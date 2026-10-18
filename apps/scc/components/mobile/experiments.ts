@@ -22,6 +22,7 @@ export const mobileExperiments = [
   { key: "transform/pixelate", label: "transform/pixelate", href: "/mobile/transform/pixelate" },
   { key: "transform/stretch", label: "transform/stretch", href: "/mobile/transform/stretch" },
   { key: "transform/substitution", label: "transform/substitution", href: "/mobile/transform/substitution" },
+  { key: "semantic-instagram/1", label: "semantic-instagram/1", href: "/mobile/semantic-instagram/1" },
   ...Array.from({ length: 14 }, (_, index) => ({
     key: `clone/${index + 1}`,
     label: `clone/${index + 1}`,

@@ -2,7 +2,7 @@
 
 Navigation: `/`, area indexes (`/complex-systems`, `/dashboard`, `/standalone`, `/multi-device`, `/mobile`, …) and family indexes all render `foundations/navigation`, grouped by creation date. Register each new variant's date and phrase in `foundations/navigation/experiments.ts`. Removed on 2026-09-30: `calendar` (realtime), `barrier`, `camera-monolith`, `moma`, `table`, `translate`.
 
-- [Mobile experiments](experiments/mobile/README.md): clone/1–14 component archive, finger-skating vector field (with finger-skated fractal clocks and road signs linked in from their own families), ui-collage loaders, progress bars and sliders played by finger skating, five-finger network, lucky-ticket scratch reveal, gaze tracking, and shared pixelate, substitution, and Markov language-transfer transforms.
+- [Mobile experiments](experiments/mobile/README.md): clone/1–14 component archive, finger-skating vector field (with finger-skated fractal clocks and road signs linked in from their own families), ui-collage loaders, progress bars and sliders played by finger skating, five-finger network, lucky-ticket scratch reveal, gaze tracking, and shared pixelate, substitution, and Markov language-transfer transforms. [semantic-instagram/1](experiments/mobile/semantic-instagram.md) is the Instagram-only in-place substitution as a standalone line.
 
 - [SNS mobile surfaces 1–14](experiments/sns/mobile/README.md): independent Korean
   and US/UK services plus Instagram, TikTok, X and YouTube replicas for collage experiments.

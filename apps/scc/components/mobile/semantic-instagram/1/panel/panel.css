@@ -1,0 +1,133 @@
+/* The option panel: a heading, a faint label over each group, grey chips that turn black when chosen,
+   slider rows that show their value, and a reset at the foot. */
+.semantic-instagram-control {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 2147483001;
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  font: 13px Arial, Helvetica, sans-serif;
+  color: #171717;
+}
+
+.semantic-instagram-control,
+.semantic-instagram-control * {
+  box-sizing: border-box;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+.semantic-instagram-trigger {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: #171717;
+  color: #fff;
+  box-shadow: 0 3px 16px #0003;
+  cursor: pointer;
+}
+
+.semantic-instagram-trigger[aria-expanded="true"] {
+  background: #fff;
+  color: #171717;
+}
+
+.semantic-instagram-panel {
+  width: min(260px, calc(100vw - 32px));
+  max-height: calc(100dvh - 160px);
+  overflow-y: auto;
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 4px 28px #0004;
+}
+
+.semantic-instagram-heading {
+  margin: 0 2px 2px;
+  font-weight: 600;
+}
+
+.semantic-instagram-note {
+  margin: 0 2px 4px;
+  font-size: 12px;
+  opacity: 0.62;
+  word-break: keep-all;
+}
+
+.semantic-instagram-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.semantic-instagram-chips button {
+  min-height: 30px;
+  border: 0;
+  border-radius: 7px;
+  padding: 5px 9px;
+  background: #f1f1f1;
+  color: #171717;
+  font: 600 12px Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.semantic-instagram-chips button[aria-pressed="true"] {
+  background: #171717;
+  color: #fff;
+}
+
+.semantic-instagram-slider {
+  display: grid;
+  gap: 2px;
+  padding: 4px 2px;
+}
+
+.semantic-instagram-slider span {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.semantic-instagram-slider output {
+  opacity: 0.62;
+  font-variant-numeric: tabular-nums;
+}
+
+.semantic-instagram-slider input {
+  width: 100%;
+  margin: 0;
+  accent-color: #171717;
+  cursor: ew-resize;
+}
+
+.semantic-instagram-reset {
+  min-height: 34px;
+  border: 0;
+  border-radius: 7px;
+  padding: 6px 10px;
+  background: #f1f1f1;
+  color: #171717;
+  font: 600 13px Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.semantic-instagram-control button:focus-visible,
+.semantic-instagram-slider input:focus-visible {
+  outline: 2px solid #1469d8;
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .semantic-instagram-control {
+    bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+}
