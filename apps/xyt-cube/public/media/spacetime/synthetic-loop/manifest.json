@@ -1,0 +1,9 @@
+{
+  "atlas": "atlas.jpg",
+  "frames": 192,
+  "fps": 24,
+  "frameWidth": 480,
+  "frameHeight": 270,
+  "columns": 16,
+  "rows": 12
+}

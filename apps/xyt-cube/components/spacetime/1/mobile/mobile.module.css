@@ -1,0 +1,94 @@
+.page {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  font: 15px Arial, Helvetica, sans-serif;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  overscroll-behavior: none;
+}
+
+.header {
+  padding: calc(16px + env(safe-area-inset-top)) 16px 12px;
+}
+
+.title {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.lede {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  opacity: 0.72;
+  word-break: keep-all;
+}
+
+.preview {
+  display: block;
+  align-self: center;
+  width: min(100%, calc(46dvh * 16 / 9));
+  aspect-ratio: 16 / 9;
+  flex: none;
+  background: #000;
+  touch-action: none;
+}
+
+.controlArea {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.field {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.field:focus-visible {
+  outline: 1px solid #ffffff80;
+  outline-offset: -2px;
+}
+
+.prompt {
+  position: absolute;
+  right: 0;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  left: 0;
+  margin: 0;
+  padding: 0 24px;
+  font-size: 14px;
+  text-align: center;
+  word-break: keep-all;
+  pointer-events: none;
+}
+
+.action {
+  position: absolute;
+  bottom: calc(56px + env(safe-area-inset-bottom));
+  left: 50%;
+  min-height: 44px;
+  border: 0;
+  border-radius: 22px;
+  padding: 10px 22px;
+  background: #fff;
+  color: #000;
+  font: 600 15px Arial, Helvetica, sans-serif;
+  transform: translateX(-50%);
+  cursor: pointer;
+}
+
+.action:focus-visible {
+  outline: 2px solid #1469d8;
+  outline-offset: 2px;
+}

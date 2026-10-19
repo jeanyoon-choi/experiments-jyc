@@ -84,6 +84,6 @@ export const sccFamilyIndexes: ReadonlySet<string> = new Set([
   "mobile/transform/language",
   "mobile/transform/language/1",
   "mobile/transform/decomposition",
-  "mobile/semantic-instagram",
+  "mobile/dada-text",
   "ar/chemical-decomposition",
 ]);

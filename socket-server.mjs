@@ -21,7 +21,7 @@ const experiments = experimentRegistries[scope];
 
 if (!experiments) {
   throw new Error(
-    `Unknown SCC_SOCKET_SCOPE "${scope}". Choose all, scc, c-val, ddong-meong, goldfishes, or six-sigma.`,
+    `Unknown SCC_SOCKET_SCOPE "${scope}". Choose all, scc, c-val, ddong-meong, goldfishes, six-sigma, or xyt-cube.`,
   );
 }
 

@@ -47,7 +47,7 @@ export type KeywordFontId = "gothic" | "thin" | "condensed" | "geometric" | "ser
 /**
  * Faces for the keyword tiles, from fonts a Mac has. `scale` evens out the
  * widths so a word spans about the same share of the tile in each.
- * 콘덴스드 · 지오메트릭 · 디도 · 타자 are mobile/semantic-instagram's faces (user, 2026-10-19);
+ * 콘덴스드 · 지오메트릭 · 디도 · 타자 are mobile/dada-text's faces (user, 2026-10-19);
  * its 그로테스크 and 모노 are already 고딕 and 모노 here.
  */
 export const KEYWORD_FONTS: readonly { id: KeywordFontId; label: string; family: string; weight: number; scale: number }[] = [
@@ -66,7 +66,7 @@ export const DEFAULT_KEYWORD_FONT: KeywordFontId = "gothic";
 /**
  * How the keyword tiles are drawn: face, size relative to the tile, the text's opacity on black,
  * for a text item that carries a brand colour (FOMO), whether it is drawn in 기술-버블's way,
- * and `fill` — mobile/semantic-instagram's lettering (user, 2026-10-19): one slab of capitals, every line
+ * and `fill` — mobile/dada-text's lettering (user, 2026-10-19): one slab of capitals, every line
  * stretched to the slab's width, instead of a word set in the middle. `flat` lays the slab flat over the disc;
  * `sphere` wraps it round the ball (user, 2026-10-19: the flat one did not read as lettering on a bubble).
  */

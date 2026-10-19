@@ -1,0 +1,331 @@
+/* Instagram iOS, 2026. Geometry in px equals pt on a 390 pt iPhone; values measured from the US App Store frames
+   (2.351 px/pt) and the igen.fr 2026 profile capture, see docs/experiments/sns/mobile/11.md. */
+.outer{--ink:#0c1014;--muted:#6a717b;--line:#e3e6eb;--field:#f4f5f7;--button:#eff1f4;--blue:#4a5df9;--sent:#424fff;--like:#ff3040;min-height:var(--clone-viewport-height,100dvh);overflow-x:hidden;background:#000;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+.app{position:relative;width:min(100%,430px);height:var(--clone-viewport-height,100dvh);margin:auto;background:#000;overflow:hidden;overscroll-behavior-x:none}
+.app *{box-sizing:border-box}
+.app button,.app input,.app textarea{font:inherit;color:inherit}
+.app button{border:0;background:none;cursor:pointer;padding:0}
+.app button:focus-visible,.app input:focus-visible,.app textarea:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.app img{user-select:none;-webkit-user-drag:none}
+.muted{color:var(--muted)}
+.scroll{height:100%;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding-bottom:110px}
+.scroll::-webkit-scrollbar{display:none}
+.noNav{padding-bottom:0}
+
+/* Floating Prism tab bar: 340 x 60 pill, 21 pt above the screen edge, 24 pt glyphs, 66 x 54 active disc. */
+.bottomNav{position:absolute;left:50%;bottom:calc(21px + env(safe-area-inset-bottom) * .4);z-index:5;width:min(340px,calc(100% - 32px));height:60px;transform:translateX(-50%);padding:0 3px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center;border-radius:30px;background:rgba(255,255,255,.82);border:1px solid rgba(12,16,20,.06);box-shadow:0 8px 28px rgba(12,16,20,.12);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);color:var(--ink)}
+.bottomNav button{height:54px;position:relative;display:grid;place-items:center}
+.bottomNav button[aria-current=page]:before{content:"";position:absolute;inset:0;border-radius:27px;background:rgba(12,16,20,.07)}
+.bottomNav button>*{position:relative;z-index:1}
+.bottomNav img{width:26px;height:26px;border-radius:50%;object-fit:cover}
+.bottomNav .activeAvatar{box-shadow:0 0 0 1.5px #fff,0 0 0 3px var(--ink)}
+.navDot{position:absolute!important;left:calc(50% + 7px);top:calc(50% + 6px);width:7px;height:7px;border-radius:50%;background:var(--like)}
+.darkNav{background:rgba(38,40,44,.62);border-color:rgba(255,255,255,.08);color:#fff;box-shadow:0 8px 28px rgba(0,0,0,.3)}
+.darkNav button[aria-current=page]:before{background:rgba(255,255,255,.16)}
+.darkNav .activeAvatar{box-shadow:0 0 0 1.5px #000,0 0 0 3px #fff}
+
+/* Home header: Create · 120 pt 2026 wordmark · Activity, glyph centres 27.5 pt from each edge. */
+.homeHeader{height:44px;display:grid;grid-template-columns:56px 1fr 56px;align-items:center;padding:0 0 0 4px}
+.homeHeader>button{width:48px;height:44px;display:grid;place-items:center}
+.homeHeader>button:last-child{justify-self:end;margin-right:-1px}
+.wordmark{justify-self:center;display:block;width:120px;height:auto;margin-top:5px}
+
+/* Story tray: 92 pt rings (3 pt stroke, 3.5 pt gap, 79 pt photo) on a 104.5 pt pitch. */
+.stories{display:flex;gap:12.5px;padding:8px 9px 8px;overflow-x:auto;scrollbar-width:none}
+.stories::-webkit-scrollbar{display:none}
+.storyEntry{width:92px;flex:none;display:flex;flex-direction:column;align-items:center;gap:4px}
+.storyEntry>span{position:relative;width:92px;height:92px;border-radius:50%;display:block}
+.storyEntry img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+.storyEntry small{font-size:12px;line-height:16px;max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.1px}
+.storyRing{padding:3px}
+.storyRing img{border:3.5px solid #fff}
+.app .ringNew{background:linear-gradient(45deg,#fec901 12%,#ff8a00 32%,#ff2051 52%,#e6029a 68%,#d300c5 86%)}
+.app .ringClose{background:#1dd063}
+.app .ringSeen{background:#dbdee3}
+.storyRing.ringSeen{padding:1px}
+.storyRing.ringSeen img{border-width:5.5px}
+.storyOwn{padding:6.5px}
+.storyOwn i{position:absolute;right:5px;bottom:5px;width:27px;height:27px;display:grid;place-items:center;border-radius:50%;background:var(--ink);color:#fff;border:3px solid #fff}
+
+/* Feed post */
+.feed{width:100%}
+.feedPost{padding-bottom:14px}
+.postHead{display:flex;align-items:center;height:54px;padding:0 9px 0 6px}
+.postAvatar{width:40px;height:40px;flex:none;border-radius:50%;display:grid;place-items:center}
+.postAvatar img{width:32px;height:32px;border-radius:50%;object-fit:cover;display:block}
+.postAvatar.ringNew img,.postAvatar.ringClose img,.postAvatar.ringSeen img{width:36px;height:36px;border:2px solid #fff}
+.identity{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;padding-left:7px!important}
+.identity strong{font-size:14px;font-weight:600;line-height:18px;display:flex;align-items:center;gap:4px}
+.identity small{font-size:12px;line-height:15px}
+.verified{display:inline-grid;color:#0095f6;margin-left:3px;vertical-align:-1px}
+.postMore{width:32px;height:44px;display:grid;place-items:center}
+.photo{position:relative;line-height:0;touch-action:manipulation}
+.photo img{width:100%;aspect-ratio:1/1.036;display:block;object-fit:cover}
+.heartBurst{position:absolute;left:50%;top:50%;z-index:2;color:#fff;pointer-events:none;filter:drop-shadow(0 4px 16px rgba(0,0,0,.25));transform:translate(-50%,-50%) scale(0);animation:heartBurst 1s cubic-bezier(.2,.9,.3,1.2) forwards}
+@keyframes heartBurst{0%{transform:translate(-50%,-50%) scale(0);opacity:0}15%{transform:translate(-50%,-50%) scale(1.2);opacity:1}30%{transform:translate(-50%,-50%) scale(.95)}45%,75%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-62%) scale(.4);opacity:0}}
+
+/* Action row measured against the US feed frame: 24 pt glyphs, 6 pt to count, 18 pt between groups. */
+.postActions{height:50px;display:flex;align-items:flex-start;gap:18px;padding:0 11px 0 12px}
+.postActions button{display:flex;align-items:center;gap:6px;min-width:0;margin-top:11px;padding:5px 0;line-height:1}
+.postActions button span{font-size:14px;font-weight:600;white-space:nowrap;letter-spacing:-.1px}
+.postActions svg{flex:none}
+.postActions .saveAction{margin-left:auto}
+.isLiked{color:var(--like)!important}
+.isLiked svg[data-icon=heart]{animation:likePop .45s ease-out}
+.postActions .isLiked span{color:var(--ink)}
+.reelSide .isLiked small{color:#fff}
+@keyframes likePop{0%{transform:scale(1)}35%{transform:scale(1.25)}70%{transform:scale(.92)}100%{transform:scale(1)}}
+.postCopy{padding:0 13px}
+.postCopy p{margin:0 0 6px;font-size:14px;line-height:18px;overflow-wrap:anywhere}
+.postCopy p button{font-weight:600}
+.postCopy p .more{font-weight:400;color:var(--muted)}
+.postCopy>.muted{display:block;font-size:14px;line-height:18px;margin-bottom:6px;text-align:left}
+.postCopy>small{display:block;color:var(--muted);font-size:12px;line-height:16px;margin-top:2px}
+
+/* Sub-screens */
+.subHeader{height:44px;display:grid;grid-template-columns:52px 1fr 52px;align-items:center;text-align:center;padding:0 6px;position:sticky;top:0;z-index:3;background:#000}
+.subHeader button{display:grid;place-items:center;height:44px}
+.subHeader strong{font-size:17px;font-weight:600}
+.nextText{color:var(--blue);font-size:16px!important;font-weight:600}
+
+/* Explore: search field then 3:4 tiles, a two-row reel tile alternating right and left. */
+.exploreHeader{padding:6px 16px 8px;position:sticky;top:0;background:#000;z-index:3}
+.searchBox{height:36px;border-radius:10px;background:var(--field);display:flex;gap:7px;align-items:center;padding:0 10px;color:var(--muted)}
+.searchBox svg{flex:none}
+.searchBox input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--ink);font-size:16px}
+.searchBox input::placeholder{color:var(--muted)}
+.searchBox button{line-height:0}
+.accountResults{padding:4px 0 10px}
+.accountResults>button{width:100%;display:flex;align-items:center;text-align:left;gap:12px;padding:8px 16px}
+.accountResults>button img{width:44px;height:44px;object-fit:cover;border-radius:50%}
+.accountResults>button span{flex:1;display:flex;flex-direction:column;gap:2px}
+.accountResults strong{font-size:14px;font-weight:600}
+.accountResults small,.accountResults p{font-size:14px;color:var(--muted);margin:0 16px}
+.accountResults small{margin:0}
+.exploreGrid{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-flow:dense;gap:0}
+.exploreGrid button,.profileGrid button{position:relative;min-width:0;line-height:0;aspect-ratio:3/4;overflow:hidden;background:var(--field)}
+.exploreGrid .tallRight,.exploreGrid .tallLeft{grid-row:span 2;aspect-ratio:auto}
+.exploreGrid .tallRight{grid-column:3}
+.exploreGrid .tallLeft{grid-column:1}
+.exploreGrid img,.profileGrid img{width:100%;height:100%;object-fit:cover}
+.tileBadge{position:absolute;top:7px;right:7px;color:#fff;filter:drop-shadow(0 0 3px rgba(0,0,0,.35))}
+.tileViews{position:absolute;left:7px;bottom:7px;display:flex;align-items:center;gap:3px;color:#fff;font-size:13px;font-weight:600;line-height:1;filter:drop-shadow(0 0 3px rgba(0,0,0,.4))}
+.empty{text-align:center;color:var(--muted);font-size:14px;padding:44px 24px}
+
+/* Notifications */
+.activitySection{font-size:16px;font-weight:700;padding:14px 16px 6px;margin:0}
+.activityRow{width:100%;display:flex;align-items:center;gap:12px;padding:8px 16px!important;text-align:left}
+.activityRow>img:first-child{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:none}
+.activityRow span{flex:1;font-size:14px;line-height:18px}
+.activityRow small{color:var(--muted);font-size:14px}
+.activityThumb{width:44px;height:58px;object-fit:cover;border-radius:4px;flex:none}
+.followSmall{flex:none;height:32px;padding:0 16px!important;border-radius:8px;background:var(--blue)!important;color:#fff!important;font-size:14px;font-weight:600}
+
+/* Create */
+.createPreview{display:block;width:100%;aspect-ratio:1;object-fit:cover}
+.recents{height:48px;display:flex;align-items:center;padding:0 16px}
+.recents strong{display:flex;align-items:center;gap:5px;font-size:16px;font-weight:600}
+.photoChoices{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5px}
+.photoChoices button{position:relative;aspect-ratio:1;line-height:0}
+.photoChoices .selectedPhoto:after{content:"";position:absolute;inset:0;background:rgba(255,255,255,.5)}
+.photoChoices img{width:100%;height:100%;object-fit:cover}
+.create{min-height:100%;display:flex;flex-direction:column}
+.captionRow{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.captionRow img{width:72px;height:96px;object-fit:cover;border-radius:4px;flex:none}
+.captionRow textarea{flex:1;border:0;outline:0;resize:none;font-size:16px;line-height:21px;padding:4px 0}
+.shareButton{display:block;margin:auto 16px 24px;width:calc(100% - 32px);min-height:46px;border-radius:12px!important;background:var(--blue)!important;color:#fff!important;font-size:16px;font-weight:600}
+
+/* Profile, after the 2026 capture: name above left-aligned counts, 3:4 grid, four tabs. */
+.profileHeader{height:44px;padding:0 6px;display:grid;grid-template-columns:96px 1fr 96px;align-items:center}
+.profileHeader>button,.profileHeader>span>button{width:44px;height:44px;display:grid;place-items:center}
+.profileHeader>span{display:flex;justify-content:flex-end}
+.profileHeader>strong{justify-self:center;display:flex;align-items:center;gap:5px;font-size:20px;font-weight:700;letter-spacing:-.3px}
+.profileSummary{display:flex;align-items:center;gap:22px;padding:10px 16px 12px}
+.profileAvatar{position:relative;width:88px;height:88px;flex:none;border-radius:50%;padding:2.5px!important}
+.profileAvatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;border:3px solid #fff}
+.profileAvatar i{position:absolute;right:0;bottom:2px;width:26px;height:26px;display:grid;place-items:center;border-radius:50%;background:var(--ink);color:#fff;border:3px solid #fff}
+.profileStats{flex:1;min-width:0}
+.profileStats>strong{display:block;font-size:14px;font-weight:600;margin-bottom:8px}
+.profileCounts{display:grid;grid-template-columns:repeat(3,1fr)}
+.profileCounts span{display:flex;flex-direction:column;gap:1px}
+.profileCounts strong{font-size:16px;font-weight:600}
+.profileCounts small{font-size:14px}
+.bio{padding:0 16px 14px;font-size:14px;line-height:18px}
+.bio p{margin:0;white-space:pre-line}
+.profileButtons{display:flex;gap:6px;padding:0 16px 16px}
+.profileButtons button{flex:1;height:32px;border-radius:8px;background:var(--button);font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:4px}
+.profileButtons .followButton{color:#fff;background:var(--blue)}
+.profileButtons .iconButton{flex:0 0 34px}
+.highlights{display:flex;gap:14px;padding:0 16px 18px;overflow-x:auto;scrollbar-width:none}
+.highlights::-webkit-scrollbar{display:none}
+.highlights button{width:68px;flex:none;display:flex;flex-direction:column;align-items:center;gap:6px}
+.highlights button>span{width:68px;height:68px;border-radius:50%;border:1px solid var(--line);padding:3px;display:grid;place-items:center}
+.highlights img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.highlights small{font-size:12px;max-width:68px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.newHighlight{color:var(--ink)}
+.profileTabs{display:grid;grid-template-columns:repeat(4,1fr);height:44px;align-items:stretch}
+.profileTabs button{position:relative;display:grid;place-items:center;color:var(--muted)}
+.profileTabs .activeProfileTab{color:var(--ink)}
+.profileTabs .activeProfileTab:after{content:"";position:absolute;left:50%;bottom:0;width:52px;height:1.5px;transform:translateX(-50%);background:var(--ink)}
+.profileGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
+.reelGrid button{aspect-ratio:9/16}
+
+/* Reels: full-bleed vertical pager, centred Reels / Friends, right rail 25.5 pt from the edge, 68 pt pitch. */
+.reelsView{position:relative;height:100%;background:#000;color:#fff;overflow:hidden}
+.reelsHeader{position:absolute;z-index:4;top:0;left:0;right:0;height:44px;display:grid;grid-template-columns:52px 1fr 52px;align-items:center;padding:0 4px;pointer-events:none}
+.reelsHeader>*{pointer-events:auto}
+.reelsHeader>button{height:44px;display:grid;place-items:center;filter:drop-shadow(0 0 4px rgba(0,0,0,.25))}
+.reelsHeader>div{display:flex;justify-content:center;gap:12px}
+.reelsHeader>div button{display:flex;align-items:center;gap:6px;font-size:19px;font-weight:700;letter-spacing:-.3px;opacity:.6;text-shadow:0 0 6px rgba(0,0,0,.25)}
+.reelsHeader .activeReelSection{opacity:1}
+.friendFaces{display:flex}
+.friendFaces img{width:18px;height:18px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,.9)}
+.friendFaces img+img{margin-left:-7px}
+.reelPager{height:100%;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none}
+.reelPager::-webkit-scrollbar{display:none}
+.reelSlot{position:relative;height:100%;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden}
+.reelVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.reelShade{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.18),transparent 16%,transparent 62%,rgba(0,0,0,.42));pointer-events:none}
+.reelTouch{position:absolute;inset:0;z-index:1;touch-action:pan-y}
+.muteFlash{position:absolute;left:50%;top:50%;z-index:2;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;background:rgba(0,0,0,.55);display:grid;place-items:center;pointer-events:none;animation:muteFlash .9s ease forwards}
+@keyframes muteFlash{0%{opacity:0;transform:scale(.8)}15%,70%{opacity:1;transform:scale(1)}100%{opacity:0}}
+.reelSide{position:absolute;right:7px;bottom:112px;z-index:3;width:38px;display:flex;flex-direction:column;align-items:center;gap:20px}
+.reelSide>button{display:flex;flex-direction:column;align-items:center;gap:5px;filter:drop-shadow(0 0 3px rgba(0,0,0,.3))}
+.reelSide small{font-size:12px;font-weight:600;line-height:14px}
+.audioThumb{width:33px;height:33px;border-radius:8px;border:2px solid #fff!important;overflow:hidden;margin-top:6px}
+.audioThumb img{width:100%;height:100%;object-fit:cover;display:block}
+.reelCopy{position:absolute;left:17px;right:64px;bottom:112px;z-index:3;font-size:14px;line-height:18px;text-shadow:0 0 6px rgba(0,0,0,.3)}
+.reelAuthor{display:flex;align-items:center;gap:10px}
+.reelAuthor>button:first-child{display:flex;align-items:center;gap:9px}
+.reelAuthor img{width:32px;height:32px;border-radius:50%;object-fit:cover}
+.reelAuthor strong{font-size:14px;font-weight:600}
+.reelAuthor .verified{color:#fff}
+.reelFollow{height:28px;padding:0 11px!important;border:1px solid rgba(255,255,255,.75)!important;border-radius:8px;font-size:13px;font-weight:600}
+.reelCopy p{margin:12px 0 0}
+.reelProgress{position:absolute;left:18px;right:18px;bottom:93px;z-index:3;height:2px;border-radius:1px;background:rgba(255,255,255,.3);overflow:hidden}
+.reelProgress i{display:block;height:100%;background:#fff;transform-origin:left;transition:transform .25s linear}
+.friendsNote{position:absolute;inset:0;display:grid;place-items:center;padding:25px;text-align:center;font-size:14px;line-height:1.5;color:rgba(255,255,255,.75)}
+
+/* Story viewer: rounded media above a reply bar; progress fills with CSS so hold pauses it. */
+.story{position:absolute;inset:0;z-index:8;background:#000;color:#fff;display:flex;flex-direction:column}
+.storyMedia{position:relative;flex:1;border-radius:10px;overflow:hidden}
+.storyMedia>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.storyShade{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.35),transparent 18%);pointer-events:none}
+.storyTop{position:absolute;top:8px;left:8px;right:8px;z-index:3;transition:opacity .2s}
+.storyHeld .storyTop,.storyHeld .storyBottom{opacity:0}
+.storyProgress{display:flex;gap:3px}
+.storyProgress span{height:2px;flex:1;border-radius:1px;background:rgba(255,255,255,.35);overflow:hidden}
+.storyProgress i{display:block;height:100%;background:#fff}
+.storyDone{width:100%}
+.storyRunning{width:0;animation:storyFill 5s linear forwards}
+@keyframes storyFill{to{width:100%}}
+.storyIdentity{display:flex;align-items:center;gap:8px;padding:10px 0 0 4px}
+.storyIdentity>button:first-child{display:flex;align-items:center;gap:9px}
+.storyIdentity img{width:32px;height:32px;border-radius:50%;object-fit:cover}
+.storyIdentity strong{font-size:14px;font-weight:600}
+.storyIdentity small{font-size:14px;color:rgba(255,255,255,.7);flex:1}
+.storyIdentity>button:not(:first-child){width:36px;height:36px;display:grid;place-items:center}
+.storyTaps{position:absolute;inset:70px 0 0;z-index:2;touch-action:none}
+.storyBottom{height:64px;flex:none;display:flex;align-items:center;gap:16px;padding:0 16px 0 12px;transition:opacity .2s}
+.storyBottom input{flex:1;min-width:0;height:44px;border:1px solid rgba(255,255,255,.55);border-radius:22px;background:transparent;color:#fff;padding:0 18px;font-size:16px;outline:0}
+.storyBottom input::placeholder{color:rgba(255,255,255,.85)}
+.storyBottom button{line-height:0}
+.storyBottom .storySend{font-size:16px;font-weight:600;line-height:1}
+
+/* Sheets: comments measured from the US comment frame (handle 31 x 2, title 47 pt down, 32 pt avatars). */
+.sheetBackdrop{position:absolute;inset:0;z-index:10;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;animation:fadeIn .2s ease}
+.sheet{width:100%;height:58%;background:#fff;border-radius:20px 20px 0 0;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom);transition:height .3s ease,transform .3s ease;animation:sheetIn .3s cubic-bezier(.2,.8,.2,1)}
+.sheetFull{height:calc(100% - 44px)}
+.sheetDragging{transition:none}
+@keyframes sheetIn{from{transform:translateY(100%)}}
+@keyframes fadeIn{from{opacity:0}}
+.sheetGrab{flex:none;display:flex;flex-direction:column;align-items:center;padding:14px 0 12px;touch-action:none;cursor:grab}
+.sheetGrab span{width:36px;height:4px;border-radius:2px;background:#c9ccd1}
+.sheetGrab strong{font-size:16px;font-weight:700;margin-top:18px}
+.comments{flex:1;overflow-y:auto;padding:8px 0}
+.commentRow{display:flex;align-items:flex-start;gap:12px;padding:8px 16px 8px 12px}
+.commentRow>img{width:32px;height:32px;border-radius:50%;object-fit:cover;flex:none}
+.commentRow>div{flex:1;min-width:0}
+.commentRow p{font-size:15px;line-height:20px;margin:0;overflow-wrap:anywhere}
+.commentRow .commentMeta{font-size:13px;line-height:17px;margin-bottom:1px}
+.commentMeta strong{font-weight:600}
+.commentMeta span{color:var(--muted)}
+.replyButton{font-size:13px;font-weight:600;color:var(--muted)!important;margin-top:6px}
+.commentLike{color:var(--muted);padding-top:14px!important}
+.noComments{display:flex;flex-direction:column;align-items:center;gap:6px;padding:40px 16px;font-size:14px;color:var(--muted)}
+.noComments strong{font-size:22px;font-weight:700;color:var(--ink)}
+.emojiBar{flex:none;display:flex;justify-content:space-between;padding:10px 12px;border-top:1px solid var(--line)}
+.emojiBar button{font-size:25px;line-height:1;width:34px}
+.commentForm{flex:none;display:flex;align-items:center;gap:10px;padding:6px 11px 12px 16px}
+.commentForm>img{width:42px;height:42px;border-radius:50%;object-fit:cover}
+.commentForm label{flex:1;min-width:0;height:42px;display:flex;align-items:center;border:1.5px solid #dbdee3;border-radius:21px;padding:0 12px 0 14px}
+.commentForm input{flex:1;min-width:0;border:0;outline:0;font-size:16px}
+.commentForm input::placeholder{color:var(--muted)}
+.commentForm label>span{line-height:0}
+.commentForm button{font-size:15px;font-weight:600;color:var(--blue)}
+.optionSheet{height:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+.optionTop{display:flex;gap:10px;padding:4px 16px 12px}
+.optionTop button{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px}
+.optionTop button span{width:100%;height:56px;border-radius:12px;background:var(--field);display:grid;place-items:center}
+.optionList{margin:0 16px;border-radius:12px;background:var(--field);overflow:hidden}
+.optionList button{width:100%;height:50px;text-align:left;padding:0 16px!important;font-size:16px}
+.optionList button+button{border-top:1px solid var(--line)}
+.shareSheet{height:62%}
+.shareSearch{margin:0 16px 8px;flex:none}
+.sharePeople{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(3,1fr);align-content:start;gap:18px 8px;padding:12px 12px 20px}
+.sharePeople button{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.sharePeople button>span{position:relative}
+.sharePeople img{width:72px;height:72px;border-radius:50%;object-fit:cover;display:block}
+.sharePeople i{position:absolute;right:-2px;bottom:-2px;color:var(--blue);background:#fff;border-radius:50%;line-height:0;border:2px solid #fff}
+.sharePeople small{font-size:12px;line-height:15px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sheet .shareButton{margin:0 16px 12px;flex:none}
+
+/* Messages, after the US Messages frame: #424fff sent bubbles, #f4f5f7 received bubbles and composer. */
+.inboxHeader{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 16px}
+.inboxHeader strong{display:flex;align-items:center;gap:6px;font-size:22px;font-weight:700;letter-spacing:-.4px}
+.inboxHeader button{width:44px;height:44px;display:grid;place-items:center}
+.inboxSearch{margin:4px 16px 0}
+.inboxTitle{display:flex;justify-content:space-between;align-items:center;padding:20px 16px 8px;font-size:16px}
+.inboxTitle strong{font-weight:700}
+.inboxTitle span{color:var(--muted);font-size:15px;font-weight:600}
+.threadRow{width:100%;display:flex;align-items:center;gap:12px;padding:8px 16px!important;text-align:left}
+.threadRow>img{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none}
+.threadRow>span:nth-child(2){min-width:0;flex:1;display:flex;flex-direction:column;gap:2px}
+.threadRow strong{font-size:14px;font-weight:400}
+.threadRow small{font-size:14px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.threadRow em{font-style:normal}
+.unread strong,.unread small{font-weight:600;color:var(--ink)}
+.unreadDot{width:8px;height:8px;border-radius:50%;background:var(--blue);flex:none}
+.rowCamera{color:var(--muted);line-height:0}
+.thread{height:100%;display:flex;flex-direction:column}
+.threadHeader{height:52px;flex:none;display:flex;align-items:center;gap:4px;padding:0 8px 0 4px;border-bottom:1px solid var(--line)}
+.threadHeader>button:not(.threadWho){width:44px;height:44px;display:grid;place-items:center}
+.threadWho{flex:1;min-width:0;display:flex;align-items:center;gap:10px;text-align:left}
+.threadWho img{width:32px;height:32px;border-radius:50%;object-fit:cover}
+.threadWho span{display:flex;flex-direction:column;min-width:0}
+.threadWho strong{font-size:16px;font-weight:700}
+.threadWho small{font-size:12px;color:var(--muted)}
+.threadIdentity{display:flex;flex-direction:column;align-items:center;gap:4px;padding:28px 12px 32px}
+.threadIdentity img{width:88px;height:88px;border-radius:50%;object-fit:cover;margin-bottom:8px}
+.threadIdentity strong{font-size:20px;font-weight:700}
+.threadIdentity small{font-size:14px;color:var(--muted)}
+.threadIdentity button{margin-top:12px;height:32px;padding:0 14px!important;border-radius:8px;background:var(--button);font-size:14px;font-weight:600}
+.bubbles{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:2px;padding:0 8px 12px}
+.bubbles p{max-width:72%;margin:0;border-radius:20px;padding:10px 14px;font-size:16px;line-height:21px;overflow-wrap:anywhere}
+.sent{display:flex;justify-content:flex-end}
+.sent p{background:var(--sent);color:#fff}
+.received{display:flex;align-items:flex-end;gap:8px}
+.received p{background:var(--field)}
+.bubbleAvatar{width:28px;flex:none;line-height:0}
+.bubbleAvatar img{width:28px;height:28px;border-radius:50%;object-fit:cover}
+.messageForm{flex:none;display:flex;gap:6px;align-items:center;margin:4px 8px calc(8px + env(safe-area-inset-bottom));height:46px;border-radius:23px;background:var(--field);padding:0 8px 0 6px}
+.cameraButton{width:34px;height:34px;border-radius:50%;background:var(--sent);color:#fff;display:grid;place-items:center;flex:none}
+.messageForm input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:16px;padding:0 4px}
+.messageForm input::placeholder{color:var(--muted)}
+.messageForm button{width:36px;height:36px;display:grid;place-items:center}
+.messageForm .sendText{width:auto;padding:0 8px!important;font-size:16px;font-weight:600;color:var(--blue)}
+
+.toast{position:absolute;left:16px;right:16px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:20;border-radius:12px;background:#262626;color:#fff;text-align:center;padding:13px;font-size:14px;box-shadow:0 4px 15px rgba(0,0,0,.2)}
+
+@media(max-width:350px){.stories{gap:9px}.storyEntry,.storyEntry>span{width:78px;height:auto}.storyEntry>span{height:78px}.postActions{gap:12px}.postActions button span{font-size:12px}.profileSummary{gap:12px}.profileAvatar{width:72px;height:72px}.profileCounts small{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.app *:not(.storyRunning){scroll-behavior:auto!important;animation:none!important;transition:none!important}}

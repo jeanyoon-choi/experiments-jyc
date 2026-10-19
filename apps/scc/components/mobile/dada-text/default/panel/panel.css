@@ -1,0 +1,133 @@
+/* The option panel: a heading, a faint label over each group, grey chips that turn black when chosen,
+   slider rows that show their value, and a reset at the foot. */
+.dada-text-control {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 2147483001;
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  font: 13px Arial, Helvetica, sans-serif;
+  color: #171717;
+}
+
+.dada-text-control,
+.dada-text-control * {
+  box-sizing: border-box;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+.dada-text-trigger {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: #171717;
+  color: #fff;
+  box-shadow: 0 3px 16px #0003;
+  cursor: pointer;
+}
+
+.dada-text-trigger[aria-expanded="true"] {
+  background: #fff;
+  color: #171717;
+}
+
+.dada-text-panel {
+  width: min(260px, calc(100vw - 32px));
+  max-height: calc(100dvh - 160px);
+  overflow-y: auto;
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 4px 28px #0004;
+}
+
+.dada-text-heading {
+  margin: 0 2px 2px;
+  font-weight: 600;
+}
+
+.dada-text-note {
+  margin: 0 2px 4px;
+  font-size: 12px;
+  opacity: 0.62;
+  word-break: keep-all;
+}
+
+.dada-text-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.dada-text-chips button {
+  min-height: 30px;
+  border: 0;
+  border-radius: 7px;
+  padding: 5px 9px;
+  background: #f1f1f1;
+  color: #171717;
+  font: 600 12px Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.dada-text-chips button[aria-pressed="true"] {
+  background: #171717;
+  color: #fff;
+}
+
+.dada-text-slider {
+  display: grid;
+  gap: 2px;
+  padding: 4px 2px;
+}
+
+.dada-text-slider span {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.dada-text-slider output {
+  opacity: 0.62;
+  font-variant-numeric: tabular-nums;
+}
+
+.dada-text-slider input {
+  width: 100%;
+  margin: 0;
+  accent-color: #171717;
+  cursor: ew-resize;
+}
+
+.dada-text-reset {
+  min-height: 34px;
+  border: 0;
+  border-radius: 7px;
+  padding: 6px 10px;
+  background: #f1f1f1;
+  color: #171717;
+  font: 600 13px Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.dada-text-control button:focus-visible,
+.dada-text-slider input:focus-visible {
+  outline: 2px solid #1469d8;
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .dada-text-control {
+    bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+}

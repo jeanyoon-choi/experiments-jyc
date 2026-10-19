@@ -26,6 +26,10 @@ test("scoped socket registries expose only their owning app", () => {
     false,
   );
   assert.deepEqual(experimentRegistries.goldfishes, []);
+  assert.deepEqual(
+    experimentRegistries["xyt-cube"].map(({ id }) => id),
+    ["spacetime:1"],
+  );
   assert.equal(
     experimentRegistries.scc.some(({ id }) => id.startsWith("ddong-meong-")),
     false,

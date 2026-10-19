@@ -4,13 +4,13 @@
 server-request wording. The following commands describe user-operated setup.
 
 `pnpm dev` starts HTTPS apps on SCC 2000, Goldfishes 2001, six-sigma 2002,
-ddong-meong 2010, C-VAL 2011, and Socket.IO 4000. Port 2003 remains available.
+xyt-cube 2003, ddong-meong 2010, C-VAL 2011, and Socket.IO 4000.
 `pnpm dev:scc`, `dev:c-val`, `dev:ddong-meong`, `dev:goldfishes`, or
-`dev:six-sigma` starts one app plus relay.
+`dev:six-sigma`, or `dev:xyt-cube` starts one app plus relay.
 The runner preflights selected ports before launch.
 
 Port overrides: `SCC_PORT`, `C_VAL_PORT`, `DDONG_MEONG_PORT`,
-`GOLDFISHES_PORT`, `SIX_SIGMA_PORT`, and `SOCKET_PORT`/`NEXT_PUBLIC_SOCKET_PORT`.
+`GOLDFISHES_PORT`, `SIX_SIGMA_PORT`, `XYT_CUBE_PORT`, and `SOCKET_PORT`/`NEXT_PUBLIC_SOCKET_PORT`.
 Clients use configured `NEXT_PUBLIC_SOCKET_URL`, otherwise the HTTPS hostname
 and socket port. The root CA is served by the relay at `/cert`.
 

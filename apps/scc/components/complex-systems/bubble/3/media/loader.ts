@@ -84,7 +84,7 @@ function drawText(context: CanvasRenderingContext2D, text: string, hex: string |
   }
 }
 
-/** The height of a face's capitals as a share of its font size, measured once from "H" (semantic-instagram tabulates this per face). */
+/** The height of a face's capitals as a share of its font size, measured once from "H" (dada-text tabulates this per face). */
 const capHeights = new Map<string, number>();
 function capHeightOf(context: CanvasRenderingContext2D, font: { family: string; weight: number }) {
   const key = `${font.weight} ${font.family}`;
@@ -118,7 +118,7 @@ const BLOCK_WIDTH = 0.82;
 const BLOCK_HEIGHT = Math.sqrt(1 - BLOCK_WIDTH * BLOCK_WIDTH);
 
 /**
- * 꽉 채움: mobile/semantic-instagram's lettering set into the bubble's disc (the tile's inscribed circle, laid
+ * 꽉 채움: mobile/dada-text's lettering set into the bubble's disc (the tile's inscribed circle, laid
  * flat over the bubble edge to edge). One rectangular block of capitals, its corners on the rim, 82 % of the
  * disc wide; the text one word per line, the lines stacked to the block's full height and every line stretched
  * sideways (as SVG's lengthAdjust="spacingAndGlyphs") to the block's full width, so the words make one solid

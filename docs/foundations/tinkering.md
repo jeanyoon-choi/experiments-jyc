@@ -1,7 +1,7 @@
 # Tinkering
 
 Working method for the experimental archives in `apps/scc`, `apps/goldfishes`,
-and `apps/six-sigma`.
+`apps/six-sigma`, and `apps/xyt-cube`.
 C-VAL and ddong-meong are finished projects; apply experiments there only when requested.
 
 Learn through bounded interventions in working material. Taleb's convex tinkering

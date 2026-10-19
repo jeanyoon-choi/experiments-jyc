@@ -3,6 +3,7 @@ import { ddongMeongExperiments } from "#socket/ddong-meong";
 import { goldfishesExperiments } from "#socket/goldfishes";
 import { sixSigmaExperiments } from "#socket/six-sigma";
 import { sccExperiments } from "#socket/scc";
+import { xytCubeExperiments } from "#socket/xyt-cube";
 
 function validateExperimentRegistry(items) {
   const ids = new Set();
@@ -35,6 +36,7 @@ export const experiments = validateExperimentRegistry([
   ...sccExperiments.slice(5),
   ...goldfishesExperiments,
   ...sixSigmaExperiments,
+  ...xytCubeExperiments,
 ]);
 
 export const experimentRegistries = Object.freeze({
@@ -44,4 +46,5 @@ export const experimentRegistries = Object.freeze({
   goldfishes: validateExperimentRegistry(goldfishesExperiments),
   "six-sigma": validateExperimentRegistry(sixSigmaExperiments),
   scc: validateExperimentRegistry(sccExperiments),
+  "xyt-cube": validateExperimentRegistry(xytCubeExperiments),
 });

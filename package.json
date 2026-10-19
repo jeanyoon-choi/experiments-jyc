@@ -7,7 +7,8 @@
     "#socket/ddong-meong": "./apps/ddong-meong/socket/experiments/index.mjs",
     "#socket/goldfishes": "./apps/goldfishes/socket/experiments/index.mjs",
     "#socket/six-sigma": "./apps/six-sigma/socket/experiments/index.mjs",
-    "#socket/scc": "./apps/scc/socket/experiments/index.mjs"
+    "#socket/scc": "./apps/scc/socket/experiments/index.mjs",
+    "#socket/xyt-cube": "./apps/xyt-cube/socket/experiments/index.mjs"
   },
   "engines": {
     "node": "24.x || 26.x"
@@ -19,6 +20,7 @@
     "dev:ddong-meong": "node scripts/dev-https.mjs --app ddong-meong",
     "dev:goldfishes": "node scripts/dev-https.mjs --app goldfishes",
     "dev:six-sigma": "node scripts/dev-https.mjs --app six-sigma",
+    "dev:xyt-cube": "node scripts/dev-https.mjs --app xyt-cube",
     "dev:next": "node scripts/dev-https.mjs --all",
     "dev:socket": "bash scripts/generate-certs.sh && node socket-server.mjs",
     "dev:socket:scc": "bash scripts/generate-certs.sh && SCC_SOCKET_SCOPE=scc node socket-server.mjs",
@@ -26,6 +28,7 @@
     "dev:socket:ddong-meong": "bash scripts/generate-certs.sh && SCC_SOCKET_SCOPE=ddong-meong node socket-server.mjs",
     "dev:socket:goldfishes": "bash scripts/generate-certs.sh && SCC_SOCKET_SCOPE=goldfishes node socket-server.mjs",
     "dev:socket:six-sigma": "bash scripts/generate-certs.sh && SCC_SOCKET_SCOPE=six-sigma node socket-server.mjs",
+    "dev:socket:xyt-cube": "bash scripts/generate-certs.sh && SCC_SOCKET_SCOPE=xyt-cube node socket-server.mjs",
     "socket:production": "node socket-server-production.mjs",
     "desktop-collage:helper": "bash scripts/generate-certs.sh && node apps/scc/components/desktop-collage/helper/serve.ts",
     "deploy:scc-relay": "node scripts/deploy-scc-relay.mjs",

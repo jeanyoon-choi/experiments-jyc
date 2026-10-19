@@ -31,6 +31,12 @@ const applications = [
     root: join(repositoryRoot, "apps", "six-sigma"),
   },
   {
+    id: "xyt-cube",
+    label: "xyt-cube",
+    port: Number.parseInt(process.env.XYT_CUBE_PORT || "2003", 10),
+    root: join(repositoryRoot, "apps", "xyt-cube"),
+  },
+  {
     id: "ddong-meong",
     label: "ddong-meong",
     port: Number.parseInt(process.env.DDONG_MEONG_PORT || "2010", 10),

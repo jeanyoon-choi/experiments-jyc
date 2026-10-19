@@ -280,7 +280,8 @@ export const sccExperiments: readonly SccExperiment[] = [
   { key: "mobile/transform/decomposition", area: "mobile", family: "mobile/transform/decomposition", date: "2026-10-03", phrase: "Interface taken apart into atoms, each sorted beside its kind, still clickable" },
   { key: "mobile/transform/finger-decomposition", area: "mobile", family: "mobile/transform/finger-decomposition", date: "2026-10-07", phrase: "Interface as a liquid sheet in WebGL: a finger carries the element it holds, the rest flows around it" },
   { key: "mobile/transform/stretch", area: "mobile", family: "mobile/transform/stretch", date: "2026-10-13", phrase: "Every photograph stretched in height from x0.3 to x12 while width stays, the feed reflowing around it" },
-  { key: "mobile/semantic-instagram/1", area: "mobile", family: "mobile/semantic-instagram", date: "2026-10-18", phrase: "Instagram alone, every text run, icon, picture and box replaced in place by a command word: 주의, Didot, no frames, a 1 px edge, white on black" },
+  { key: "mobile/dada-text/default", area: "mobile", family: "mobile/dada-text", date: "2026-10-18", phrase: "Instagram alone, every text run, icon, picture and box replaced in place by a command word: 주의, Didot, no frames, a 1 px edge, white on black" },
+  { key: "mobile/dada-text/1", area: "mobile", family: "mobile/dada-text", date: "2026-10-19", phrase: "Only Explore and the post it opens, each on its own route so back moves between the two" },
 ];
 
 function toNavigationItem(experiment: SccExperiment): SccNavigationItem {

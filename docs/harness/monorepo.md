@@ -1,6 +1,6 @@
 # Monorepo apps and deployment
 
-The repository is a pnpm workspace with five independent Next.js roots. A
+The repository is a pnpm workspace with six independent Next.js roots. A
 change to one artwork does not require a second Git repository or a duplicate
 dependency checkout.
 
@@ -11,8 +11,8 @@ dependency checkout.
 | ddong-meong | `apps/ddong-meong` | `ddong-meong.vercel.app` |
 | Goldfishes | `apps/goldfishes` | `goldfishes.vercel.app` |
 
-`apps/six-sigma` is a local experimental app at HTTPS port 2002; it has no
-Vercel project or intended domain yet.
+`apps/six-sigma` and `apps/xyt-cube` are local experimental apps at HTTPS
+ports 2002 and 2003; they have no Vercel project or intended domain yet.
 
 Create or connect four Vercel projects to the same Git repository and set each
 Root Directory exactly as above. Keep the repository's pnpm install command and

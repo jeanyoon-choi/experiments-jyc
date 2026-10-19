@@ -1,7 +1,7 @@
 # Harness overview
 
-Five independent Next.js apps share pnpm tooling and a modular Socket.IO relay.
-SCC, Goldfishes, and six-sigma are experimental archives; C-VAL and ddong-meong
+Six independent Next.js apps share pnpm tooling and a modular Socket.IO relay.
+SCC, Goldfishes, six-sigma, and xyt-cube are experimental archives; C-VAL and ddong-meong
 are finished artworks maintained within their existing contracts.
 
 [AGENTS.md](../../AGENTS.md) is the operational policy and model/delegation

@@ -8,6 +8,7 @@ index and relevant contract. This is a lookup map, not a reading checklist.
 | SCC | Experimental archive | [SCC docs](../apps/scc/docs/README.md) |
 | Goldfishes | Experimental archive | [Goldfishes docs](../apps/goldfishes/docs/README.md) |
 | six-sigma | Experimental archive | [six-sigma docs](../apps/six-sigma/docs/README.md) |
+| xyt-cube | Experimental archive | [xyt-cube docs](../apps/xyt-cube/docs/README.md) |
 | C-VAL | Finished; maintenance | [C-VAL docs](../apps/c-val/docs/README.md) |
 | ddong-meong | Finished; maintenance | [ddong-meong docs](../apps/ddong-meong/docs/README.md) |
 
@@ -38,6 +39,7 @@ history when their subject affects the task, not for every code change.
 
 - [six-sigma mobile / K6](../apps/six-sigma/docs/mobile/k6/1.md): regular-hexagon complete graph, `mobile/k6/1`.
 - [six-sigma mobile / local optimum](../apps/six-sigma/docs/mobile/k6/2.md): coupled 1D/2D maps on K6, `mobile/k6/2`.
+- [xyt-cube spacetime/1](../apps/xyt-cube/docs/spacetime/1.md): a clip as an (x, y, t) cube; phones compactify time, boost the observer and place masses, `screen/spacetime/1`.
 
 - [SNS mobile surfaces 1–13](../apps/scc/docs/experiments/sns/mobile/README.md): mobile services and Instagram, TikTok and X replicas.
 
