@@ -273,7 +273,7 @@ export default function RankedWebIteration() {
             onSurface={(next) => {
               setSurface(next);
               // A text surface starts at its own 글자 크기.
-              if (next !== surface && isTextSurface(next)) setKeywordStyle((current) => ({ ...current, size: textSizeFor(next) }));
+              if (next !== surface && isTextSurface(next)) setKeywordStyle((current) => (current.fill !== "none" ? current : { ...current, size: textSizeFor(next) }));
             }}
             keywordStyle={keywordStyle}
             setKeywordStyle={setKeywordStyle}

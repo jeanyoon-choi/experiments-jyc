@@ -7,13 +7,17 @@ import { BUBBLE_FLOATS, createFoamRenderer, MAX_BUBBLES, MEDIA_FLOATS, mediaTile
 import { GoldfishSchool, type FishPaletteId, type FishParameters } from "../fish/goldfish";
 import type { GoldfishScene } from "../fish/goldfish-scene";
 import { iterate, outWeights, transit } from "../web/iteration";
-import { DEFAULT_KEYWORD_STYLE, DEFAULT_SURFACE, isSolidSurface, surfaceItems, type KeywordStyle, type SurfaceId } from "../media/catalogue";
+import { DEFAULT_KEYWORD_STYLE, DEFAULT_SURFACE, isSolidSurface, isTextSurface, surfaceItems, type Fill, type KeywordStyle, type SurfaceId } from "../media/catalogue";
 import { loadMediaTiles, type MediaLoad } from "../media/loader";
 import { assignPage, createMediaField, follow as followTrend, resetField, stepMedia, type MediaParameters } from "../media/model";
 import { attend, concentration, leader, MAX_PAGES, stepRankedWeb, type RankedWeb, type WebParameters } from "../web/model";
 import { radiusFor, type Raft } from "../raft/raft";
 import { filmLook, type MediaLook, type Visual } from "../settings";
 import type { TouchSound } from "../sound/sound";
+
+/** foam.ts's flat and sphere mappings (settings MAPPINGS modes 1 and 3). */
+const FLAT_MAPPING = 1;
+const SPHERE_MAPPING = 3;
 
 /** The display relaxes toward one power-iteration step with this time constant, seconds. */
 const STEP_SECONDS = 1.1;
@@ -140,6 +144,8 @@ class RaftLoop implements FrameLoop {
   private mediaLoad: MediaLoad | null = null;
   private mediaLayers = 0;
   private mediaSolid = 0;
+  /** 꽉 채움 lettering, under the film as any picture is, drawn to fit the disc: laid flat over it, or wrapped round the ball; its own mapping, whatever 입히기 says. */
+  private mediaFill: Fill = "none";
   // Frame cost, when asked for: CPU work plus the GPU, synchronised by a 1-pixel read.
   private readonly costs = new Float64Array(120);
   private costCount = 0;
@@ -167,6 +173,7 @@ class RaftLoop implements FrameLoop {
     const items = surfaceItems(surface);
     this.mediaLayers = items.length;
     this.mediaSolid = isSolidSurface(surface) ? 1 : 0;
+    this.mediaFill = isTextSurface(surface) ? keywords.fill : "none";
     renderer.setMediaLayerCount(this.mediaLayers);
     resetField(this.mediaField, this.raft.web.size, this.mediaLayers, this.motionTime, this.settings.current.media, this.raft.random);
     this.mediaLoad = this.mediaLayers === 0
@@ -233,11 +240,17 @@ class RaftLoop implements FrameLoop {
     this.renderer.render(
       this.bubbleCount,
       this.motionTime,
-      filmLook(settings.visual, settings.mediaLook, {
-        mediaMode: this.mediaLayers > 0 ? settings.mapping : 0,
-        mediaReveal: settings.onTouch ? 1 : 0,
-        mediaSolid: this.mediaSolid,
-      }),
+      filmLook(
+        settings.visual,
+        // Filled lettering holds still: on the ball it spans the rim edge to edge, and a turn would slide one end
+        // past the rim and bring its mirror in at the other.
+        this.mediaFill === "none" ? settings.mediaLook : { ...settings.mediaLook, mediaDrift: 0 },
+        {
+          mediaMode: this.mediaLayers === 0 ? 0 : this.mediaFill === "flat" ? FLAT_MAPPING : this.mediaFill === "sphere" ? SPHERE_MAPPING : settings.mapping,
+          mediaReveal: settings.onTouch ? 1 : 0,
+          mediaSolid: this.mediaSolid,
+        },
+      ),
     );
     if (MEASURE) this.measure(frameStart);
     this.summarise(delta);
@@ -341,7 +354,8 @@ class RaftLoop implements FrameLoop {
       let linkCount = 0;
       for (let from = 0; from < pageCount; from += 1) linkCount += web.out[from]!.length;
       const leastFlow = portions * (linkCount > 0 ? web.damping / linkCount : 1);
-      const carried = settings.carry;
+      // 꽉 채움 lettering stays on the pages: portions carrying it sweep over the page bubbles and the words jostle.
+      const carried = settings.carry && this.mediaFill === "none";
       for (let from = 0; from < pageCount; from += 1) {
         for (const entry of web.out[from]!) {
           const to = entry.target;

@@ -71,7 +71,7 @@ export const sccExperiments: readonly SccExperiment[] = [
   { key: "amoeba/2", area: "complex-systems", family: "amoeba", date: "2026-10-06", phrase: "Full-screen lawn where amoeba sizes are inherited, drift and differ wildly" },
   { key: "bubble/1", area: "complex-systems", family: "bubble", date: "2026-10-07", phrase: "The PageRank soap-bubble raft of 7-glsl-6, as the bubble family's baseline" },
   { key: "bubble/2", area: "complex-systems", family: "bubble", date: "2026-10-08", updated: "2026-10-09", phrase: "The same raft with its network and visual parameters open to adjustment" },
-  { key: "bubble/3", area: "complex-systems", family: "bubble", date: "2026-10-10", updated: "2026-10-12", phrase: "The raft wearing Goldfishes' media — fixed per page, churning, or chasing a trend along the links" },
+  { key: "bubble/3", area: "complex-systems", family: "bubble", date: "2026-10-10", updated: "2026-10-19", phrase: "The raft wearing Goldfishes' media — fixed per page, churning, or chasing a trend along the links" },
   { key: "bubble/failure/2", area: "complex-systems", family: "bubble", date: "2026-10-07", phrase: "Failure: Apollonian bubble rafts in five renderings, all rejected" },
   { key: "bubble/failure/3", area: "complex-systems", family: "bubble", date: "2026-10-07", phrase: "Failure: a coarsening foam drawn as pebbles, then neon blobs" },
   { key: "bubble/failure/4", area: "complex-systems", family: "bubble", date: "2026-10-07", phrase: "Failure: a circle-packed foam, slow, then a wireframe" },

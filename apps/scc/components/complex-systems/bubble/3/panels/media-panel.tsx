@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { isSolidSurface, isTextSurface, KEYWORD_FONTS, KEYWORD_SIZE_RANGE, SURFACES, textSizeFor, type KeywordStyle, type SurfaceId } from "../media/catalogue";
+import { FILL_SIZE, FILLS, isSolidSurface, isTextSurface, KEYWORD_FONTS, KEYWORD_SIZE_RANGE, SURFACES, textSizeFor, type KeywordStyle, type SurfaceId } from "../media/catalogue";
 import { BOREDOM_RANGE, CHURN_RANGE, FADE_RANGE, TREND_INTERVAL_RANGE, type MediaParameters } from "../media/model";
 import { MAPPINGS, MEDIA_LOOK_CONTROLS, MEDIA_MODES, type MediaLook } from "../settings";
 import { Chip, Chips, Note, Panel, Reset, Slider } from "./controls";
@@ -40,6 +40,8 @@ export function MediaPanel({
   onDefaults,
 }: Props) {
   const solid = isSolidSurface(surface);
+  /** 꽉 채움 lettering has its own mapping, holds still and stays on the pages: 입히기, 흐름 and 흐름 버블에도 do nothing to it. */
+  const filled = keywordStyle.fill !== "none" && isTextSurface(surface);
   const setMediaValue = (change: Partial<MediaParameters>) => setMedia((current) => ({ ...current, ...change }));
   return (
     <Panel id="media" label="미디어">
@@ -61,6 +63,18 @@ export function MediaPanel({
               </Chip>
             ))}
           </Chips>
+          <Note>글자 배치</Note>
+          <Chips label="글자 배치">
+            {FILLS.map((option) => (
+              <Chip
+                key={option.id}
+                pressed={keywordStyle.fill === option.id}
+                onClick={() => setKeywordStyle((current) => ({ ...current, fill: option.id, size: option.id === "none" ? textSizeFor(surface) : FILL_SIZE }))}
+              >
+                {option.label}
+              </Chip>
+            ))}
+          </Chips>
           {surface === "fomo" && (
             <>
               <Note>글자 색</Note>
@@ -77,7 +91,7 @@ export function MediaPanel({
           <Slider
             label="글자 크기"
             output={keywordStyle.size.toFixed(2)}
-            ariaLabel={`키워드 글자 크기; 기본 ${textSizeFor(surface)}`}
+            ariaLabel={filled ? "글자 블록의 크기; 1이면 테두리까지" : `키워드 글자 크기; 기본 ${textSizeFor(surface)}`}
             min={KEYWORD_SIZE_RANGE[0]}
             max={KEYWORD_SIZE_RANGE[1]}
             step={0.05}
@@ -105,7 +119,7 @@ export function MediaPanel({
           금붕어가 닿을 때만
         </Chip>
       </Chips>
-      {!solid && (
+      {!solid && !filled && (
         <>
           <Note>입히기</Note>
           <Chips label="입히기">
@@ -183,7 +197,7 @@ export function MediaPanel({
           onChange={(fade) => setMediaValue({ fade })}
         />
       )}
-      {MEDIA_LOOK_CONTROLS.filter((control) => !(solid && control.key === "filmOverMedia")).map((control) => (
+      {MEDIA_LOOK_CONTROLS.filter((control) => !(solid && control.key === "filmOverMedia") && !(filled && control.key === "mediaDrift")).map((control) => (
         <Slider
           key={control.key}
           label={control.label}
@@ -196,11 +210,13 @@ export function MediaPanel({
           onChange={(value) => setMediaLook((current) => ({ ...current, [control.key]: value }))}
         />
       ))}
-      <Chips label="흐름 버블">
-        <Chip pressed={carry} onClick={() => setCarry((current) => !current)}>
-          흐름 버블에도
-        </Chip>
-      </Chips>
+      {!filled && (
+        <Chips label="흐름 버블">
+          <Chip pressed={carry} onClick={() => setCarry((current) => !current)}>
+            흐름 버블에도
+          </Chip>
+        </Chips>
+      )}
       <Reset onClick={onDefaults}>기본값으로</Reset>
     </Panel>
   );

@@ -42,16 +42,22 @@ export const SURFACES: readonly { id: SurfaceId; label: string }[] = [
 /** FOMO by default (user, 2026-10-12; first 키워드, 2026-10-11): the words chase the trend, the photographs are a choice. */
 export const DEFAULT_SURFACE: SurfaceId = "fomo";
 
-export type KeywordFontId = "gothic" | "thin" | "serif" | "mono" | "impact";
+export type KeywordFontId = "gothic" | "thin" | "condensed" | "geometric" | "serif" | "didot" | "typewriter" | "mono" | "impact";
 
 /**
  * Faces for the keyword tiles, from fonts a Mac has. `scale` evens out the
  * widths so a word spans about the same share of the tile in each.
+ * 콘덴스드 · 지오메트릭 · 디도 · 타자 are mobile/semantic-instagram's faces (user, 2026-10-19);
+ * its 그로테스크 and 모노 are already 고딕 and 모노 here.
  */
 export const KEYWORD_FONTS: readonly { id: KeywordFontId; label: string; family: string; weight: number; scale: number }[] = [
   { id: "gothic", label: "고딕", family: "'Helvetica Neue', Helvetica, Arial, sans-serif", weight: 700, scale: 1 },
   { id: "thin", label: "가늘게", family: "'Helvetica Neue', Helvetica, Arial, sans-serif", weight: 300, scale: 1.05 },
+  { id: "condensed", label: "콘덴스드", family: "'Avenir Next Condensed', 'Arial Narrow', 'Roboto Condensed', sans-serif", weight: 800, scale: 1.15 },
+  { id: "geometric", label: "지오메트릭", family: "Futura, 'Century Gothic', 'Avenir Next', sans-serif", weight: 700, scale: 0.98 },
   { id: "serif", label: "세리프", family: "Georgia, 'Times New Roman', serif", weight: 700, scale: 0.98 },
+  { id: "didot", label: "디도", family: "Didot, 'Bodoni 72', 'Bodoni MT', 'Times New Roman', serif", weight: 700, scale: 1.02 },
+  { id: "typewriter", label: "타자", family: "'American Typewriter', 'Courier New', Courier, monospace", weight: 700, scale: 0.92 },
   { id: "mono", label: "모노", family: "Menlo, Monaco, 'Courier New', monospace", weight: 700, scale: 0.9 },
   { id: "impact", label: "임팩트", family: "Impact, 'Arial Narrow', sans-serif", weight: 400, scale: 1.18 },
 ];
@@ -59,9 +65,13 @@ export const DEFAULT_KEYWORD_FONT: KeywordFontId = "gothic";
 
 /**
  * How the keyword tiles are drawn: face, size relative to the tile, the text's opacity on black,
- * and, for a text item that carries a brand colour (FOMO), whether it is drawn in 기술-버블's way.
+ * for a text item that carries a brand colour (FOMO), whether it is drawn in 기술-버블's way,
+ * and `fill` — mobile/semantic-instagram's lettering (user, 2026-10-19): one slab of capitals, every line
+ * stretched to the slab's width, instead of a word set in the middle. `flat` lays the slab flat over the disc;
+ * `sphere` wraps it round the ball (user, 2026-10-19: the flat one did not read as lettering on a bubble).
  */
-export type KeywordStyle = { font: KeywordFontId; size: number; opacity: number; brand: boolean };
+export type Fill = "none" | "flat" | "sphere";
+export type KeywordStyle = { font: KeywordFontId; size: number; opacity: number; brand: boolean; fill: Fill };
 /** Size 1 spans about half the tile; a single word's default is half that (user, 2026-10-11). */
 export const KEYWORD_SIZE_RANGE = [0.2, 2] as const;
 const WORD_SIZE = 0.5;
@@ -87,7 +97,15 @@ export function textSizeFor(surface: SurfaceId) {
 }
 
 /** The default surface's style: FOMO's phrases at 0.8. */
-export const DEFAULT_KEYWORD_STYLE: KeywordStyle = { font: DEFAULT_KEYWORD_FONT, size: textSizeFor(DEFAULT_SURFACE), opacity: 0.7, brand: false };
+export const DEFAULT_KEYWORD_STYLE: KeywordStyle = { font: DEFAULT_KEYWORD_FONT, size: textSizeFor(DEFAULT_SURFACE), opacity: 0.7, brand: false, fill: "none" };
+/** 꽉 채움 sets 글자 크기 to this: the lettering at its full width and height; below 1 it shrinks towards the middle. */
+export const FILL_SIZE = 1;
+/** The 글자 배치 chips: where the words sit on the bubble. */
+export const FILLS: readonly { id: Fill; label: string }[] = [
+  { id: "none", label: "가운데" },
+  { id: "flat", label: "꽉 채움" },
+  { id: "sphere", label: "꽉 채움 · 구면" },
+];
 
 /** tech-eyes/1's established industry abbreviations, in the atlas's tile order. */
 export const TECH_KEYWORDS: readonly string[] = [

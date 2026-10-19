@@ -46,6 +46,14 @@ function drawText(context: CanvasRenderingContext2D, text: string, hex: string |
   const rgb = style.brand && hex ? bubbleTint(context, hex, tile) : null;
   const strength = Math.min(1, opacity / 0.7);
   const fills = rgb ? [`rgba(${rgb}, ${0.9 * strength})`, `rgba(255, 255, 255, ${0.35 * strength})`] : [`rgba(255, 255, 255, ${opacity})`];
+  if (style.fill === "sphere") {
+    drawFilledSphere(context, text, fills, font, style.size, tile);
+    return;
+  }
+  if (style.fill === "flat") {
+    drawFilled(context, text, fills, font, style.size, tile);
+    return;
+  }
   context.textAlign = "center";
   context.textBaseline = "middle";
   const words = text.split(" ");
@@ -74,6 +82,132 @@ function drawText(context: CanvasRenderingContext2D, text: string, hex: string |
     context.fillStyle = fill;
     words.forEach((word, index) => context.fillText(word, tile / 2, top + lineHeight * index + size * 0.04));
   }
+}
+
+/** The height of a face's capitals as a share of its font size, measured once from "H" (semantic-instagram tabulates this per face). */
+const capHeights = new Map<string, number>();
+function capHeightOf(context: CanvasRenderingContext2D, font: { family: string; weight: number }) {
+  const key = `${font.weight} ${font.family}`;
+  let cap = capHeights.get(key);
+  if (cap === undefined) {
+    context.font = `${font.weight} 100px ${font.family}`;
+    cap = Math.max(0.5, context.measureText("H").actualBoundingBoxAscent / 100);
+    capHeights.set(key, cap);
+  }
+  return cap;
+}
+
+/**
+ * 꽉 채움 · 구면: how far the lettering reaches, as a share of the tile each way (longitude ±WIDTH · π/2, latitude
+ * ±REACH · π/2): 78 % puts the slab on 94 % of the radius while the last letters and lines are not yet crushed.
+ */
+const SPHERE_WIDTH = 0.78;
+const SPHERE_REACH = 0.78;
+/**
+ * How much the lettering is pre-widened towards the rim to undo the ball's foreshortening (x = sin longitude):
+ * 0 prints the line evenly on the chart and the end letters squeeze to slivers (user, 2026-10-19: the letters at
+ * the sides unreadable), 1 undoes it fully and the line reads as if flat; 0.75 keeps the end letters readable with
+ * the ball's curve still felt.
+ */
+const SPHERE_EASE = 0.75;
+
+/** Between stacked lines, as a share of a line's cap height. */
+const FILL_GAP = 0.1;
+/** The block's width as a share of the disc, and its height, the two set so the block's corners sit on the rim (w² + h² = 1). */
+const BLOCK_WIDTH = 0.82;
+const BLOCK_HEIGHT = Math.sqrt(1 - BLOCK_WIDTH * BLOCK_WIDTH);
+
+/**
+ * 꽉 채움: mobile/semantic-instagram's lettering set into the bubble's disc (the tile's inscribed circle, laid
+ * flat over the bubble edge to edge). One rectangular block of capitals, its corners on the rim, 82 % of the
+ * disc wide; the text one word per line, the lines stacked to the block's full height and every line stretched
+ * sideways (as SVG's lengthAdjust="spacingAndGlyphs") to the block's full width, so the words make one solid
+ * slab of wide letters as lettering fills the bars of an OMA diagram. `size` below 1 shrinks the block about the centre.
+ */
+function drawFilled(context: CanvasRenderingContext2D, text: string, fills: readonly string[], font: { family: string; weight: number }, size: number, tile: number) {
+  const words = text.toUpperCase().split(" ").filter(Boolean);
+  if (words.length === 0) return;
+  const scale = Math.min(1, Math.max(0, size));
+  const width = tile * BLOCK_WIDTH * scale;
+  const height = tile * BLOCK_HEIGHT * scale;
+  const cap = capHeightOf(context, font);
+  const capHeight = height / (words.length + FILL_GAP * (words.length - 1));
+  const fontSize = capHeight / cap;
+  context.font = `${font.weight} ${fontSize}px ${font.family}`;
+  context.textAlign = "left";
+  context.textBaseline = "alphabetic";
+  const left = (tile - width) / 2;
+  const top = (tile - height) / 2;
+  words.forEach((word, index) => {
+    const measured = context.measureText(word);
+    const ink = measured.actualBoundingBoxLeft + measured.actualBoundingBoxRight;
+    if (ink <= 0) return;
+    const baseline = top + capHeight * (index * (1 + FILL_GAP) + 1);
+    context.save();
+    context.translate(left, baseline);
+    context.scale(width / ink, 1);
+    for (const fill of fills) {
+      context.fillStyle = fill;
+      context.fillText(word, measured.actualBoundingBoxLeft, 0);
+    }
+    context.restore();
+  });
+}
+
+/**
+ * 꽉 채움 · 구면: the slab wrapped on the ball. foam.ts's sphere mapping reads the tile as the visible hemisphere's
+ * equirectangular chart — u across is longitude −π/2…π/2 (the rim at both sides, for every latitude), v down is
+ * latitude, and a point at longitude λ, latitude φ lands on the disc at x = cos φ · sin λ, y = sin φ. So the
+ * lines are placed by the disc height they should occupy (equal bands of y, converted to latitude) and come out
+ * evenly tall on the screen, and within a line each letter is placed by the disc width it should occupy (its
+ * share of the line, converted to longitude, eased by SPHERE_EASE), so the letters at the ends are drawn wider on
+ * the chart and the ball's foreshortening brings them back to a readable width. `size` scales the reach.
+ */
+function drawFilledSphere(context: CanvasRenderingContext2D, text: string, fills: readonly string[], font: { family: string; weight: number }, size: number, tile: number) {
+  const words = text.toUpperCase().split(" ").filter(Boolean);
+  if (words.length === 0) return;
+  const scale = Math.min(1, Math.max(0, size));
+  const longitude = (SPHERE_WIDTH * scale * Math.PI) / 2;
+  const reach = Math.sin((SPHERE_REACH * scale * Math.PI) / 2);
+  const halfWidth = Math.sin(longitude);
+  const cap = capHeightOf(context, font);
+  // Band heights on the disc (y, −reach…reach): the lines and the gaps between them.
+  const band = (2 * reach) / (words.length + FILL_GAP * (words.length - 1));
+  // A share t (0…1) of the line → tile column: evenly along the chart, or evenly across the disc, eased between.
+  const column = (t: number) => {
+    const chart = (t - 0.5) * 2 * longitude;
+    const disc = Math.asin((t - 0.5) * 2 * halfWidth);
+    return ((chart + (disc - chart) * SPHERE_EASE) / Math.PI + 0.5) * tile;
+  };
+  context.textAlign = "left";
+  context.textBaseline = "alphabetic";
+  words.forEach((word, index) => {
+    const yTop = -reach + band * index * (1 + FILL_GAP);
+    const yBottom = yTop + band;
+    // Disc height → latitude → tile row (v = φ/π + 0.5).
+    const rowTop = (Math.asin(yTop) / Math.PI + 0.5) * tile;
+    const rowBottom = (Math.asin(yBottom) / Math.PI + 0.5) * tile;
+    context.font = `${font.weight} ${(rowBottom - rowTop) / cap}px ${font.family}`;
+    const glyphs = Array.from(word);
+    const advances = glyphs.map((glyph) => context.measureText(glyph).width);
+    const total = advances.reduce((sum, advance) => sum + advance, 0);
+    if (total <= 0) return;
+    let share = 0;
+    glyphs.forEach((glyph, position) => {
+      const next = share + advances[position] / total;
+      const from = column(share);
+      const to = column(next);
+      share = next;
+      context.save();
+      context.translate(from, rowBottom);
+      context.scale((to - from) / advances[position], 1);
+      for (const fill of fills) {
+        context.fillStyle = fill;
+        context.fillText(glyph, 0, 0);
+      }
+      context.restore();
+    });
+  });
 }
 
 const EMOJI_FAMILY = `"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
