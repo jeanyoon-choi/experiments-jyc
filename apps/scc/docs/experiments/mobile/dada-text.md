@@ -123,7 +123,9 @@ nor hides it and it shows as a photograph; it opens nothing. Its key is derived 
 
 The panel's 사진 sets this: 있음 (the default) with a 사진 빈도 slider, one picture after every 12 tiles (left) to every tile
 (right), default 4; 없음; and 자율, where no pictures are inserted and instead each post tile turns between its word and a
-picture at random moments. Every 500 ms each tile may turn: a picture stays about 3 s and a word about 9 s on average
-(`PICTURE_MS`, `WORD_MS` in `1/instagram/screen/index.tsx`), so about a quarter of the tiles are pictures at any time. A
+picture at random moments. Every 250 ms each tile may turn: a picture stays about 1.5 s and a word about 4.5 s on average
+(`PICTURE_MS`, `WORD_MS` in `1/instagram/screen/index.tsx`), so about a quarter of the tiles are pictures at any time. A turn
+is a card flip (`FLIP_MS`, 360 ms): `flipOut` to 90° (ease-in), the face changes on its `animationend`, `flipIn` from −90°
+(ease-out). Chained by the event, not a timer, so the face changes exactly edge-on (measured: 90°, both halves ~200 ms). A
 tile always turns to the same portrait (`pictureFor`), carries the `UI` mark while turned, still opens its post, and gets
-its own word back when it turns again. Measured in the browser: 102 tiles, 8 → 21 turned over the first 7 s.
+its own word back when it turns again. Measured in the browser: 22–29 of 102 tiles turned at any moment.

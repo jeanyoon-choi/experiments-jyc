@@ -1,6 +1,6 @@
 'use client';
 /* eslint-disable @next/next/no-img-element -- This bounded interface uses editorial sample photography. */
-import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type MouseEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type FormEvent, type MouseEvent } from 'react';
 import { accounts, initialPosts, verifiedAccounts, type Post } from '../model/data';
 import { pictureFor, pictures, type Picture } from '../model/pictures';
 import { UI } from '../../marks';
@@ -14,10 +14,15 @@ const avatarByName = (name: string) => accounts.find(a => a.name === name)?.avat
 const suggested = accounts.filter(account => account.id !== 'you').map(account => account.id);
 const emojis = [{ id: 'heart', glyph: '❤️' }, { id: 'raised', glyph: '🙌' }, { id: 'fire', glyph: '🔥' }, { id: 'clap', glyph: '👏' }, { id: 'cry', glyph: '😢' }, { id: 'love', glyph: '😍' }, { id: 'wow', glyph: '😮' }, { id: 'laugh', glyph: '😂' }];
 const compactCount = (count: number) => { const [unit, size] = count >= 1e6 ? ['M', 1e6] as const : count >= 1e3 ? ['K', 1e3] as const : ['', 1] as const; return size === 1 ? String(count) : `${(count / size).toFixed(count / size >= 100 ? 0 : 1).replace(/\.0$/, '')}${unit}`; };
-/** 자율: every tick each tile may turn, so a picture stays about PICTURE_MS and a word about WORD_MS, at random. */
-const TICK = 500;
-const PICTURE_MS = 3000;
-const WORD_MS = 9000;
+/**
+ * 자율: every tick each tile may turn, so a picture stays about PICTURE_MS and a word about WORD_MS, at random. A turn is a
+ * card flip of FLIP_MS: the tile turns edge-on (`out`), its face changes when that half ends, and it turns back flat (`in`)
+ * showing the other side. The halves are chained by `animationend`, so the face never changes while it can be seen.
+ */
+const TICK = 250;
+const PICTURE_MS = 1500;
+const WORD_MS = 4500;
+const FLIP_MS = 360;
 // Feed timestamps read "1 day ago" in the 2026 frame; comment and story ages stay short ("5h").
 const longAge = (age: string) => { const match = /^(\d+)([mhd])$/.exec(age); if (!match) return age; const n = Number(match[1]); const unit = { m: 'minute', h: 'hour', d: 'day' }[match[2] as 'm' | 'h' | 'd']; return `${n} ${unit}${n === 1 ? '' : 's'} ago`; };
 
@@ -43,7 +48,7 @@ export default function InstagramMobile({ post: detailId, pictureEvery, autoPict
   const [comment, setComment] = useState('');
   const [burst, setBurst] = useState<{ id: string; n: number } | null>(null);
   const [notice, setNotice] = useState('');
-  const [turned, setTurned] = useState<string[]>([]);
+  const [cards, setCards] = useState<{ turned: string[]; phase: Record<string, 'out' | 'in'> }>({ turned: [], phase: {} });
   const scroll = useRef<HTMLDivElement>(null);
   const gridScroll = useRef(0);
   const lastTap = useRef<{ id: string; at: number } | null>(null);
@@ -65,14 +70,22 @@ export default function InstagramMobile({ post: detailId, pictureEvery, autoPict
   useEffect(() => {
     if (!autoPictures) return;
     const ids = initialPosts.map(p => p.id);
-    const tick = window.setInterval(() => setTurned(current => {
-      const next = ids.filter(id => current.includes(id) ? Math.random() >= TICK / PICTURE_MS : Math.random() < TICK / WORD_MS);
-      return next.length === current.length && next.every(id => current.includes(id)) ? current : next;
+    const tick = window.setInterval(() => setCards(current => {
+      const starting = ids.filter(id => !current.phase[id] && Math.random() < TICK / (current.turned.includes(id) ? PICTURE_MS : WORD_MS));
+      return starting.length ? { ...current, phase: { ...current.phase, ...Object.fromEntries(starting.map(id => [id, 'out' as const])) } } : current;
     }), TICK);
-    return () => window.clearInterval(tick);
+    return () => { window.clearInterval(tick); setCards({ turned: [], phase: {} }); };
   }, [autoPictures]);
   useEffect(() => { if (!notice) return; const timeout = window.setTimeout(() => setNotice(''), 2800); return () => window.clearTimeout(timeout); }, [notice]);
 
+  // 자율: a half flip has ended; edge-on, the face changes and the second half starts, or the flip is done.
+  function turn(id: string) {
+    setCards(current => {
+      const { [id]: phase, ...rest } = current.phase;
+      if (phase === 'out') return { turned: current.turned.includes(id) ? current.turned.filter(value => value !== id) : [...current.turned, id], phase: { ...rest, [id]: 'in' } };
+      return { ...current, phase: rest };
+    });
+  }
   function toggle(id: string, values: string[], update: (next: string[]) => void) { update(values.includes(id) ? values.filter(value => value !== id) : [...values, id]); }
   function like(id: string, only = false) { setLiked(current => current.includes(id) ? (only ? current : current.filter(value => value !== id)) : [...current, id]); }
   function photoTap(event: MouseEvent<HTMLDivElement>, id: string) {
@@ -124,8 +137,9 @@ export default function InstagramMobile({ post: detailId, pictureEvery, autoPict
         // A picture is marked as the filter's own, so it is neither read nor hidden: it shows as it is, and opens nothing.
         if (!('accountId' in p)) return <button key={p.id} type="button" className={place} aria-label={p.name} {...{ [UI]: '' }}><img src={p.image} alt={p.name} loading="lazy"/></button>;
         // Under 자율 a tile turned to its picture carries the same mark for as long as it stays turned.
-        const picture = autoPictures && !query && turned.includes(p.id) ? pictureFor(p.id) : null;
-        return <button key={p.id} className={place} onClick={() => onOpen(p.id)} aria-label={`Open ${nameFor(p.accountId)} ${p.reel ? 'reel' : 'post'}`} {...(picture ? { [UI]: '' } : {})}><img src={picture ? picture.image : p.image} alt={picture ? picture.name : p.alt} loading="lazy"/></button>; })}</div>
+        const picture = autoPictures && !query && cards.turned.includes(p.id) ? pictureFor(p.id) : null;
+        const phase = autoPictures ? cards.phase[p.id] : undefined;
+        return <button key={p.id} className={`${place} ${phase === 'out' ? s.flipOut : phase === 'in' ? s.flipIn : ''}`} style={{ '--flip-ms': `${FLIP_MS / 2}ms` } as CSSProperties} onAnimationEnd={event => { if (event.target === event.currentTarget && phase) turn(p.id); }} onClick={() => onOpen(p.id)} aria-label={`Open ${nameFor(p.accountId)} ${p.reel ? 'reel' : 'post'}`} {...(picture ? { [UI]: '' } : {})}><img src={picture ? picture.image : p.image} alt={picture ? picture.name : p.alt} loading="lazy"/></button>; })}</div>
       {!explorePosts.length && <p className={s.empty}>No posts match that search.</p>}
     </>;
   }

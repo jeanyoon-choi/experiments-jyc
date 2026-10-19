@@ -329,3 +329,8 @@
 
 @media(max-width:350px){.stories{gap:9px}.storyEntry,.storyEntry>span{width:78px;height:auto}.storyEntry>span{height:78px}.postActions{gap:12px}.postActions button span{font-size:12px}.profileSummary{gap:12px}.profileAvatar{width:72px;height:72px}.profileCounts small{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.app *:not(.storyRunning){scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+/* 자율's card flip, in two halves chained by animationend: to edge-on, where the face changes, then flat again. */
+.flipOut{animation:flipOut var(--flip-ms,180ms) ease-in forwards}
+.flipIn{animation:flipIn var(--flip-ms,180ms) ease-out}
+@keyframes flipOut{from{transform:perspective(700px) rotateY(0)}to{transform:perspective(700px) rotateY(90deg)}}
+@keyframes flipIn{from{transform:perspective(700px) rotateY(-90deg)}to{transform:perspective(700px) rotateY(0)}}
