@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Turn a video into a cubism/1 video cube.
+# Turn a video into a moving-image/1 video cube.
 #
 #   [FPS=..] [PREVIEW_H=..] [LETTERBOX=1] bash apps/xyt-cube/scripts/build-cube.sh <input-video> <clip-id> [seconds=12] [start=0]
 #
-# Writes apps/xyt-cube/public/media/cubism/<clip-id>/:
+# Writes apps/xyt-cube/public/media/moving-image/<clip-id>/:
 #   clip.mp4      the screen's cube: the source frames at their own resolution
 #                 (at least 1920x1080; wider than 2048 px is scaled to 1920 wide,
 #                 the GPU's 3D texture limit), resampled to FPS, every 8th frame a
@@ -12,7 +12,7 @@
 #                 and pads it to 1920x1080 with black bars, as 16:9 releases do.
 #   preview-N.jpg the phone's cube: small frame sheets (PREVIEW_H px tall).
 #   manifest.json
-# Then register the clip id in components/cubism/1/media/index.ts.
+# Then register the clip id in components/moving-image/1/media/index.ts.
 #
 # The screen stores the volume as Y + half-size CbCr (the mp4's own 4:2:0), so
 # GPU memory is width x height x 1.5 x frames: 1920x1080 costs 3.1 MB a frame.
@@ -31,7 +31,7 @@ MAX_W=2048
 SHEET_MAX=4096
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OUT_DIR="$SCRIPT_DIR/../public/media/cubism/$CLIP_ID"
+OUT_DIR="$SCRIPT_DIR/../public/media/moving-image/$CLIP_ID"
 WORK_DIR="$(mktemp -d)"
 trap 'rm -rf "$WORK_DIR"' EXIT
 

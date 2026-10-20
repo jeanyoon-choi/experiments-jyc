@@ -1,0 +1,6 @@
+{
+  "frames": 300,
+  "fps": 24,
+  "full": { "width": 1920, "height": 1080, "video": "clip.mp4" },
+  "preview": { "width": 170, "height": 96, "columns": 24, "rows": 13, "sheets": ["preview-1.jpg"] }
+}

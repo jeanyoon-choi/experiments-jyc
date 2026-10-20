@@ -275,6 +275,9 @@ importers:
       socket.io-client:
         specifier: ^4.8.3
         version: 4.8.3(supports-color@7.2.0)
+      three:
+        specifier: ^0.185.1
+        version: 0.185.1
     devDependencies:
       '@types/node':
         specifier: ^24
@@ -285,6 +288,9 @@ importers:
       '@types/react-dom':
         specifier: ^19
         version: 19.2.3(@types/react@19.2.17)
+      '@types/three':
+        specifier: ^0.185.1
+        version: 0.185.1
       typescript:
         specifier: ^5
         version: 5.9.3

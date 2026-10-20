@@ -43,33 +43,75 @@ export const xytCubeExperiments: readonly XytCubeExperiment[] = [
     label: "O3 mass — clock lag",
     load: () => import("./spacetime/1/mobile/mass"),
   },
-  // cubism/1: Fels, Lee & Mase's video cubism. The screen is a cut plane
+  // moving-image/1: Fels, Lee & Mase's video cubism. The screen is a cut plane
   // through the clip's (x, y, t) box; one phone link turns the plane.
   {
-    key: "screen/cubism/1",
+    key: "screen/moving-image/1",
+    legacyKeys: ["screen/cubism/1"],
     date: "2026-10-20",
     label: "Video cubism — cut plane",
-    load: () => import("./cubism/1/screen"),
+    load: () => import("./moving-image/1/screen"),
   },
   {
-    key: "mobile/cubism/1",
+    key: "mobile/moving-image/1",
+    legacyKeys: ["mobile/cubism/1"],
     date: "2026-10-20",
     label: "Video cubism — the phone is the cut",
-    load: () => import("./cubism/1/mobile"),
+    load: () => import("./moving-image/1/mobile"),
   },
-  // cubism/2: the projection stays the flat present; the cube itself is bent
+  // moving-image/2: the projection stays the flat present; the cube itself is bent
   // by one of six geometries (note Option A). Phones change how much.
   {
-    key: "screen/cubism/2",
+    key: "screen/moving-image/2",
+    legacyKeys: ["screen/cubism/2"],
     date: "2026-10-20",
     label: "Bent cube — fixed plane",
-    load: () => import("./cubism/2/screen"),
+    load: () => import("./moving-image/2/screen"),
   },
   {
-    key: "mobile/cubism/2",
+    key: "mobile/moving-image/2",
+    legacyKeys: ["mobile/cubism/2"],
     date: "2026-10-20",
     label: "Bent cube — the phone bends",
-    load: () => import("./cubism/2/mobile"),
+    load: () => import("./moving-image/2/mobile"),
+  },
+  // moving-image/3: moving-image/1–2 with a continuous (liquid) volume: no
+  // frame steps or pixel seams in any cut. Screen only.
+  {
+    key: "screen/moving-image/3",
+    date: "2026-10-20",
+    label: "Liquid cube — continuous slices",
+    load: () => import("./moving-image/3/screen"),
+  },
+  // clock/1: not recorded footage but a clock defined in (x, y, t), whose cube
+  // is turned like moving-image/1. Screen only.
+  {
+    key: "screen/clock/1",
+    date: "2026-10-20",
+    label: "Clock cube — turning the axis of time",
+    load: () => import("./clock/1/screen"),
+  },
+  // clock/2: moving-image/2's operation on the clock: the screen stays the
+  // flat present; the clock's cube is bent (six geometries, Möbius for flux).
+  {
+    key: "screen/clock/2",
+    date: "2026-10-20",
+    label: "Clock cube — bending the cube, keeping the plane",
+    load: () => import("./clock/2/screen"),
+  },
+  // clock/1-3d, clock/2-3d: clock/1's turning cut and clock/2's bending on a
+  // hyperreal 3D clock instead of the flat one. Screen only.
+  {
+    key: "screen/clock/1-3d",
+    date: "2026-10-20",
+    label: "3D clock cube — turning the axis of time",
+    load: () => import("./clock/1-3d/screen"),
+  },
+  {
+    key: "screen/clock/2-3d",
+    date: "2026-10-20",
+    label: "3D clock cube — bending the cube, keeping the plane",
+    load: () => import("./clock/2-3d/screen"),
   },
 ];
 

@@ -9,15 +9,26 @@ The first variant is [spacetime/1](./spacetime/1.md): screen
 It replaced the note's geometry with relativity metaphors and kept the
 projection fixed; it is kept as a failed attempt.
 
-[cubism/1](./cubism/1.md) is the note's Option B after Fels, Lee & Mase's
+The moving-image family (named `cubism` until 2026-10-20; `/screen/cubism/*`
+and `/mobile/cubism/*` still open the same variants) takes a recorded clip
+into the cube.
+
+[moving-image/1](./moving-image/1.md) is the note's Option B after Fels, Lee & Mase's
 video cubism: the cube stays, the projection plane turns. Screen
-`/screen/cubism/1`, phone `/mobile/cubism/1`; clips from
+`/screen/moving-image/1`, phone `/mobile/moving-image/1`; clips from
 `scripts/build-cube.sh` (1920×1080 or larger).
 
-[cubism/2](./cubism/2.md) is the note's Option A: the plane stays the
+[moving-image/2](./moving-image/2.md) is the note's Option A: the plane stays the
 ordinary present and the cube itself is bent by six geometries (non-orthogonal
 axes, cylindrical and spherical coordinates, constant curvature, Clifford
-torus, Möbius flux). Screen `/screen/cubism/2`, phone `/mobile/cubism/2`.
+torus, Möbius flux). Screen `/screen/moving-image/2`, phone `/mobile/moving-image/2`.
+
+[clock/1](./clock/1.md) is a separate family: no recorded footage, but a
+clock defined directly in (x, y, t) (SCC clock palette; analogue and
+seven-segment), whose cube is turned like moving-image/1. Screen
+`/screen/clock/1`. [clock/2](./clock/2.md) is moving-image/2's operation on
+the same clock (the plane stays the present, the cube is bent; a true Möbius
+gluing replaces the flux). Screen `/screen/clock/2`.
 
 New variants belong in `components/<family>/<serial>/`, with the doc at
 `docs/<family>/<serial>.md`; register the ISO date in
@@ -31,7 +42,9 @@ Clips are built with `scripts/build-atlas.sh`.
 | `/mobile/spacetime/1/compact` | 2026-10-19 |
 | `/mobile/spacetime/1/boost` | 2026-10-19 |
 | `/mobile/spacetime/1/mass` | 2026-10-19 |
-| `/screen/cubism/1` | 2026-10-20 |
-| `/mobile/cubism/1` | 2026-10-20 |
-| `/screen/cubism/2` | 2026-10-20 |
-| `/mobile/cubism/2` | 2026-10-20 |
+| `/screen/moving-image/1` | 2026-10-20 |
+| `/mobile/moving-image/1` | 2026-10-20 |
+| `/screen/moving-image/2` | 2026-10-20 |
+| `/mobile/moving-image/2` | 2026-10-20 |
+| `/screen/clock/1` | 2026-10-20 |
+| `/screen/clock/2` | 2026-10-20 |
