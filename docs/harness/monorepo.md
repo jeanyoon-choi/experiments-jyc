@@ -55,7 +55,12 @@ is about 268 MB static plus an 8.8 MB function bundle; one C-VAL deployment was
 - "Skip unaffected projects" is on, so an app redeploys only when its root or
   a shared root file (`package.json`, `pnpm-lock.yaml`) changes.
 - `exp-jyc.vercel.app` is a second production domain on `scc-jy`, not a
-  project: it serves the same deployment and adds no storage. Per-origin
+  project: it serves the same deployment and adds no storage. A host rewrite
+  in `apps/scc/next.config.ts` serves `/` there from `app/exp-jyc/` (title
+  "Experiments — Jeanyoon Choi"). An inline script in the root layout sets
+  `data-scc-host="exp-jyc"` on that host before paint, so the navigation's
+  home label reads `exp-jyc` on every static index page. Routes and `scc-jyc`
+  are otherwise unchanged and static. Per-origin
   allowlists must name it too: the desktop-collage helper's `defaultOrigins`
   already does, and so does the relay's `SOCKET_ALLOWED_ORIGINS`
   ([relay](./scc-relay-deployment.md#first-scc-browser-release)).

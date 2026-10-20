@@ -1,6 +1,7 @@
 "use client";
 
-// One live view of the cube: a canvas, its renderer and the clip volume. It
+// One live view of the cube: a canvas, its renderer and the clip volume (the
+// screen's clip streams in frame by frame; frames not yet read are black). It
 // smooths the relay's plane once (display only) and derives where the plane
 // sits from the pivot and the playhead. `layout` turns the canvas size into passes.
 
@@ -14,7 +15,7 @@ import {
   type CubismReceived,
   type Quaternion,
 } from "../model";
-import { loadCubismVolume, type CubismLevel, type CubismVolume } from "../media";
+import { loadCubismClip, streamCubismVideo, type CubismLevel } from "../media";
 import { CubismRenderer, type CubismCamera, type CubismPass, type CubismPlaneFrame } from "./renderer";
 
 /** Display smoothing of the plane's orientation, per second. */
@@ -72,8 +73,9 @@ export function useCubismCanvas({
   layout: CubismLayout;
   maxPixelRatio: number;
 }) {
-  const rendererRef = useRef<CubismRenderer | null>(null);
-  const volumeRef = useRef<CubismVolume | null>(null);
+  const [renderer, setRenderer] = useState<CubismRenderer | null>(null);
+  /** The loaded clip's shape; null until the renderer holds (part of) it. */
+  const volumeRef = useRef<{ aspect: number; duration: number } | null>(null);
   const layoutRef = useRef(layout);
   const [failure, setFailure] = useState<string | null>(null);
 
@@ -93,8 +95,7 @@ export function useCubismCanvas({
       queueMicrotask(() => setFailure(message));
       return;
     }
-    rendererRef.current = renderer;
-    if (volumeRef.current) renderer.setVolume(volumeRef.current);
+    queueMicrotask(() => setRenderer(renderer));
 
     const resize = () => {
       const ratio = Math.min(window.devicePixelRatio || 1, maxPixelRatio);
@@ -146,28 +147,39 @@ export function useCubismCanvas({
       cancelAnimationFrame(frameId);
       observer.disconnect();
       renderer.dispose();
-      rendererRef.current = null;
+      volumeRef.current = null;
+      setRenderer(null);
     };
   }, [canvasRef, receivedRef, maxPixelRatio]);
 
   useEffect(() => {
+    if (!renderer) return;
     const controller = new AbortController();
-    loadCubismVolume(clipId, level, controller.signal)
-      .then((volume) => {
-        volumeRef.current = volume;
-        try {
-          rendererRef.current?.setVolume(volume);
+    const { signal } = controller;
+    volumeRef.current = null;
+    const fail = (error: unknown) => {
+      if (signal.aborted) return;
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`[cubism/1] ${message}`);
+      setFailure(message);
+    };
+    loadCubismClip(clipId, level, signal)
+      .then(async (clip) => {
+        signal.throwIfAborted();
+        if (clip.kind === "rgba") {
+          renderer.setVolume(clip);
+          volumeRef.current = clip;
+        } else {
+          renderer.beginVideo(clip);
+          volumeRef.current = clip;
           setFailure(null);
-        } catch (error) {
-          setFailure(error instanceof Error ? error.message : String(error));
+          await streamCubismVideo(clip, (index, source) => renderer.writeVideoFrame(index, source), signal);
         }
+        setFailure(null);
       })
-      .catch((error: unknown) => {
-        if (controller.signal.aborted) return;
-        setFailure(error instanceof Error ? error.message : String(error));
-      });
+      .catch(fail);
     return () => controller.abort();
-  }, [clipId, level]);
+  }, [renderer, clipId, level]);
 
   return { failure };
 }

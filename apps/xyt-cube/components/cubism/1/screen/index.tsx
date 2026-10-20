@@ -13,8 +13,8 @@ import { useCubismSocket } from "../transport";
 import { Chip, Chips, Note, Panel, Reset } from "./controls";
 import styles from "./screen.module.css";
 
-/** The projector needs no more than CSS resolution. */
-const MAX_DEVICE_PIXEL_RATIO = 1;
+/** Up to 2× so a 1920 px clip keeps its pixels on high-density displays. */
+const MAX_DEVICE_PIXEL_RATIO = 2;
 /** The optional solid view: its share of the screen's height. */
 const INSET_SHARE = 0.34;
 const KEY_STEP = Math.PI / 36;

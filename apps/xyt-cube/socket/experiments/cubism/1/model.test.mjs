@@ -39,9 +39,9 @@ test("the playhead advances at the chosen rate and rebases on change", () => {
 test("the clip is a validated id", () => {
   const state = createCubismRuntime(0);
   assert.equal(snapshotCubism(state, 0).clip, null);
-  assert.equal(setClip(state, "cat-jump"), true);
+  assert.equal(setClip(state, "sintel-trailer"), true);
   assert.equal(setClip(state, "../etc"), false);
-  assert.equal(snapshotCubism(state, 0).clip, "cat-jump");
+  assert.equal(snapshotCubism(state, 0).clip, "sintel-trailer");
 });
 
 test("the pivot is now by default and only now or cube", () => {

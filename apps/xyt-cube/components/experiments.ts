@@ -57,6 +57,20 @@ export const xytCubeExperiments: readonly XytCubeExperiment[] = [
     label: "Video cubism — the phone is the cut",
     load: () => import("./cubism/1/mobile"),
   },
+  // cubism/2: the projection stays the flat present; the cube itself is bent
+  // by one of six geometries (note Option A). Phones change how much.
+  {
+    key: "screen/cubism/2",
+    date: "2026-10-20",
+    label: "Bent cube — fixed plane",
+    load: () => import("./cubism/2/screen"),
+  },
+  {
+    key: "mobile/cubism/2",
+    date: "2026-10-20",
+    label: "Bent cube — the phone bends",
+    load: () => import("./cubism/2/mobile"),
+  },
 ];
 
 export const xytCubeNavigationExperiments: readonly NavigationExperiment[] =

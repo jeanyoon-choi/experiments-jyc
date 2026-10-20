@@ -12,7 +12,12 @@ projection fixed; it is kept as a failed attempt.
 [cubism/1](./cubism/1.md) is the note's Option B after Fels, Lee & Mase's
 video cubism: the cube stays, the projection plane turns. Screen
 `/screen/cubism/1`, phone `/mobile/cubism/1`; clips from
-`scripts/build-cube.sh`.
+`scripts/build-cube.sh` (1920×1080 or larger).
+
+[cubism/2](./cubism/2.md) is the note's Option A: the plane stays the
+ordinary present and the cube itself is bent by six geometries (non-orthogonal
+axes, cylindrical and spherical coordinates, constant curvature, Clifford
+torus, Möbius flux). Screen `/screen/cubism/2`, phone `/mobile/cubism/2`.
 
 New variants belong in `components/<family>/<serial>/`, with the doc at
 `docs/<family>/<serial>.md`; register the ISO date in
@@ -28,3 +33,5 @@ Clips are built with `scripts/build-atlas.sh`.
 | `/mobile/spacetime/1/mass` | 2026-10-19 |
 | `/screen/cubism/1` | 2026-10-20 |
 | `/mobile/cubism/1` | 2026-10-20 |
+| `/screen/cubism/2` | 2026-10-20 |
+| `/mobile/cubism/2` | 2026-10-20 |

@@ -41,3 +41,13 @@
     color: inherit !important;
   }
 }
+
+/* Home label for the exp-jyc domain alias; see HomeBrand. */
+.expBrand,
+:global(:root[data-scc-host="exp-jyc"]) .sccBrand {
+  display: none;
+}
+
+:global(:root[data-scc-host="exp-jyc"]) .expBrand {
+  display: inline;
+}

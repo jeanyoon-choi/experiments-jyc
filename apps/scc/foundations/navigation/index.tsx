@@ -247,6 +247,17 @@ function ExperimentRow({
   );
 }
 
+// Static pages cannot read the host, so both labels render and the root
+// layout's `data-scc-host` attribute picks one before first paint.
+function HomeBrand() {
+  return (
+    <>
+      <span className={styles.sccBrand}>SCC</span>
+      <span className={styles.expBrand}>exp-jyc</span>
+    </>
+  );
+}
+
 function NavigationScreen({
   experiments,
   scope,
@@ -384,7 +395,7 @@ function NavigationScreen({
             {scope ? (
               <>
                 <Link href={withView("/", view)} className={`text-(--scc-fg)/55 ${linkTone}`}>
-                  SCC
+                  <HomeBrand />
                 </Link>
                 <span aria-hidden="true" className="text-(--scc-fg)/25">
                   /
@@ -392,7 +403,7 @@ function NavigationScreen({
                 <span>{scope}</span>
               </>
             ) : (
-              "SCC"
+              <HomeBrand />
             )}
           </h1>
           <label className="relative block max-w-[680px]">

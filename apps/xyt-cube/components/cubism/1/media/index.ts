@@ -1,6 +1,7 @@
-// Video cubes are frame sheets built by apps/xyt-cube/scripts/build-cube.sh into
-// public/media/cubism/<id>/. The loader unpacks them into one RGBA volume
-// (x, y, frame) ready for a 3D texture.
+// Video cubes built by apps/xyt-cube/scripts/build-cube.sh into
+// public/media/cubism/<id>/. The screen ("full") reads the clip's own frames
+// (at least 1920×1080) from an mp4, one seek per frame, straight into GPU
+// memory; phones ("preview") unpack small frame sheets into an RGBA volume.
 
 export type CubismClip = {
   id: string;
@@ -8,11 +9,9 @@ export type CubismClip = {
 };
 
 export const cubismClips: readonly CubismClip[] = [
-  { id: "genai-family", label: "생성 영상" },
-  { id: "cat-jump", label: "고양이" },
-  { id: "living-geometry", label: "리빙 지오메트리 60초" },
-  { id: "factory-4", label: "팩토리 4.0 90초" },
-  { id: "synthetic-loop", label: "합성 루프" },
+  { id: "sintel-trailer", label: "Sintel 예고편" },
+  { id: "bbb-trailer", label: "Big Buck Bunny 예고편" },
+  { id: "tears-of-steel", label: "Tears of Steel 실사" },
 ];
 
 export const defaultCubismClipId = cubismClips[0].id;
@@ -24,22 +23,14 @@ export function cubismClipId(id: string | null) {
 
 export type CubismLevel = "full" | "preview";
 
-type LevelManifest = {
-  width: number;
-  height: number;
-  columns: number;
-  rows: number;
-  sheets: string[];
-};
-
 type CubeManifest = {
   frames: number;
   fps: number;
-  full: LevelManifest;
-  preview: LevelManifest;
+  full: { width: number; height: number; video: string };
+  preview: { width: number; height: number; columns: number; rows: number; sheets: string[] };
 };
 
-export type CubismVolume = {
+type CubismVolumeShape = {
   id: string;
   width: number;
   height: number;
@@ -48,9 +39,13 @@ export type CubismVolume = {
   duration: number;
   /** Frame width / height: the box is aspect × 1 × depth. */
   aspect: number;
-  /** Row 0 is the top of the frame; frame 0 is the earliest. */
-  data: Uint8Array;
 };
+
+/** A whole clip in memory. Row 0 is the top of the frame; frame 0 is the earliest. */
+export type CubismVolume = CubismVolumeShape & { kind: "rgba"; data: Uint8Array };
+
+/** A clip whose frames arrive one by one from `src`. */
+export type CubismVideo = CubismVolumeShape & { kind: "video"; src: string; fps: number };
 
 async function decode(src: string) {
   const image = new Image();
@@ -60,16 +55,31 @@ async function decode(src: string) {
   return image;
 }
 
-export async function loadCubismVolume(
+async function readManifest(base: string, id: string, signal?: AbortSignal) {
+  const response = await fetch(`${base}/manifest.json`, { signal });
+  if (!response.ok) throw new Error(`Clip ${id} has no manifest (${response.status})`);
+  return (await response.json()) as CubeManifest;
+}
+
+export async function loadCubismClip(
   id: string,
   level: CubismLevel,
   signal?: AbortSignal,
-): Promise<CubismVolume> {
+): Promise<CubismVolume | CubismVideo> {
   const base = `/media/cubism/${id}`;
-  const response = await fetch(`${base}/manifest.json`, { signal });
-  if (!response.ok) throw new Error(`Clip ${id} has no manifest (${response.status})`);
-  const manifest = (await response.json()) as CubeManifest;
-  const { width, height, columns, rows, sheets } = manifest[level];
+  const manifest = await readManifest(base, id, signal);
+  const shape = {
+    id,
+    frames: manifest.frames,
+    duration: manifest.frames / manifest.fps,
+    aspect: manifest.full.width / manifest.full.height,
+  };
+  if (level === "full") {
+    const { width, height, video } = manifest.full;
+    return { ...shape, kind: "video", width, height, src: `${base}/${video}`, fps: manifest.fps };
+  }
+
+  const { width, height, columns, rows, sheets } = manifest.preview;
   const frameBytes = width * height * 4;
   const data = new Uint8Array(frameBytes * manifest.frames);
   const canvas = document.createElement("canvas");
@@ -91,14 +101,62 @@ export async function loadCubismVolume(
       }
     }
   }
+  return { ...shape, kind: "rgba", width, height, data };
+}
 
-  return {
-    id,
-    width,
-    height,
-    frames: manifest.frames,
-    duration: manifest.frames / manifest.fps,
-    aspect: manifest.full.width / manifest.full.height,
-    data,
-  };
+function once(target: HTMLVideoElement, type: "loadeddata" | "seeked", signal?: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    const done = () => {
+      target.removeEventListener(type, done);
+      target.removeEventListener("error", fail);
+      signal?.removeEventListener("abort", abort);
+      resolve();
+    };
+    const fail = () => {
+      target.removeEventListener(type, done);
+      signal?.removeEventListener("abort", abort);
+      reject(new Error(`Clip video failed to ${type === "seeked" ? "seek" : "load"}`));
+    };
+    const abort = () => {
+      target.removeEventListener(type, done);
+      target.removeEventListener("error", fail);
+      reject(signal?.reason);
+    };
+    target.addEventListener(type, done);
+    target.addEventListener("error", fail);
+    signal?.addEventListener("abort", abort);
+  });
+}
+
+/**
+ * Seeks through the clip once, handing each decoded frame (in order) to
+ * `onFrame` while the video element shows it.
+ */
+export async function streamCubismVideo(
+  clip: CubismVideo,
+  onFrame: (index: number, source: HTMLVideoElement) => void,
+  signal?: AbortSignal,
+) {
+  const video = document.createElement("video");
+  video.muted = true;
+  video.playsInline = true;
+  video.preload = "auto";
+  try {
+    const loaded = once(video, "loadeddata", signal);
+    video.src = clip.src;
+    await loaded;
+    if (video.videoWidth !== clip.width || video.videoHeight !== clip.height) {
+      throw new Error(`Clip video is ${video.videoWidth}×${video.videoHeight}, expected ${clip.width}×${clip.height}`);
+    }
+    for (let index = 0; index < clip.frames; index += 1) {
+      const seeked = once(video, "seeked", signal);
+      // Mid-frame, so the presented frame is unambiguously this one.
+      video.currentTime = (index + 0.5) / clip.fps;
+      await seeked;
+      onFrame(index, video);
+    }
+  } finally {
+    video.removeAttribute("src");
+    video.load();
+  }
 }

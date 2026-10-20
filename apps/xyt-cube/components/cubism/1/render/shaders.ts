@@ -1,4 +1,4 @@
-// Two full-screen passes over one 3D texture (x, y, frame).
+// Full-screen passes over one volume (x, y, frame).
 //
 //   slice  every pixel is a point s on the cut plane, seen head-on:
 //          p = centre + s.x·u + s.y·v. Beyond the frame's x, y is black; in t
@@ -7,6 +7,12 @@
 //   solid  the same box seen from outside: the half on the camera's side of
 //          the plane is removed, so the cut face shows the slice and the
 //          remaining outer faces show the clip's edges through time.
+//   luma / chroma  write one decoded video frame into the volume's Y layer
+//          and its half-size CbCr layer (BT.709, full range).
+//
+// The volume is either RGBA (phones) or Y + CbCr (screen, the mp4's own
+// 4:2:0). Frames not yet loaded read as black. Each point reads its nearest
+// frame (no blending in t), so unturned playback is the clip's own frames.
 
 export const CUBISM_VERTEX = /* glsl */ `#version 300 es
 void main() {
@@ -19,7 +25,11 @@ const COMMON = /* glsl */ `#version 300 es
 precision highp float;
 precision highp sampler3D;
 
-uniform sampler3D volume;
+uniform sampler3D volume;   // RGBA, or Y
+uniform sampler3D chroma;   // CbCr when ycbcr > 0.5
+uniform float ycbcr;
+uniform float filled;       // texture depth loaded so far, 0..1
+uniform float frames;
 uniform vec3 box;           // box half sizes, frame heights
 uniform vec3 axisU;
 uniform vec3 axisV;
@@ -31,7 +41,12 @@ out vec4 colour;
 
 vec3 sampleBox(vec3 p) {
   vec3 tex = vec3(p.x / (2.0 * box.x) + 0.5, 0.5 - p.y / (2.0 * box.y), p.z / (2.0 * box.z) + 0.5);
-  return texture(volume, tex).rgb;
+  if (tex.z > filled) return vec3(0.0);
+  tex.z = (min(floor(tex.z * frames), frames - 1.0) + 0.5) / frames;
+  if (ycbcr < 0.5) return texture(volume, tex).rgb;
+  float y = texture(volume, tex).r;
+  vec2 c = texture(chroma, tex).rg - 0.5;
+  return clamp(vec3(y + 1.5748 * c.y, y - 0.1873 * c.x - 0.4681 * c.y, y + 1.8556 * c.x), 0.0, 1.0);
 }
 
 bool insideBox(vec3 p) {
@@ -110,5 +125,25 @@ void main() {
   if (hit && entry > t0) result = mix(result, vec3(1.0), 0.35 * frontEdge);
   if (!hit) result = max(result, vec3(0.6 * frontEdge));
   colour = vec4(result, 1.0);
+}
+`;
+
+// Target texel centres map to the source: for the half-size chroma layer the
+// sample lands between four source pixels, and linear filtering averages them.
+export const CUBISM_YCBCR_FRAGMENT = /* glsl */ `#version 300 es
+precision highp float;
+
+uniform sampler2D frame;    // row 0 = top of the picture, like the volume
+uniform vec2 target;        // layer size in texels
+uniform float writeChroma;
+
+out vec4 colour;
+
+void main() {
+  vec3 rgb = texture(frame, gl_FragCoord.xy / target).rgb;
+  float y = dot(rgb, vec3(0.2126, 0.7152, 0.0722));
+  colour = writeChroma > 0.5
+    ? vec4((rgb.b - y) / 1.8556 + 0.5, (rgb.r - y) / 1.5748 + 0.5, 0.0, 1.0)
+    : vec4(y, 0.0, 0.0, 1.0);
 }
 `;

@@ -23,6 +23,18 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return {
+      // The exp-jyc alias shares this deployment but brands its home index.
+      beforeFiles: [
+        {
+          source: "/",
+          has: [{ type: "host", value: "exp-jyc.vercel.app" }],
+          destination: "/exp-jyc",
+        },
+      ],
+    };
+  },
   allowedDevOrigins: ["macbook-air-5.local"],
   devIndicators: false,
   compiler: {

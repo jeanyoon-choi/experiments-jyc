@@ -14,6 +14,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
+      <head>
+        {/* Marks the exp-jyc alias before paint so static navigation pages
+            show its label; see foundations/navigation HomeBrand. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if(location.hostname==="exp-jyc.vercel.app")document.documentElement.dataset.sccHost="exp-jyc"`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">
         <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
       </body>
