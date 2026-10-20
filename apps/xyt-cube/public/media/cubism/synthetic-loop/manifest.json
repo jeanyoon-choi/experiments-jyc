@@ -1,0 +1,6 @@
+{
+  "frames": 192,
+  "fps": 24,
+  "full": { "width": 480, "height": 270, "columns": 8, "rows": 15, "sheets": ["full-1.jpg", "full-2.jpg"] },
+  "preview": { "width": 170, "height": 96, "columns": 24, "rows": 8, "sheets": ["preview-1.jpg"] }
+}

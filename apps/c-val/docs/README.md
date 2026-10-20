@@ -60,7 +60,8 @@ the changed socket capability.
   — screen-specific contracts.
 - [Shake harness](./shake-harness.md), [voice iteration](./voice-iteration.md),
   and [beep censoring](./beep-censoring.md) — retained tooling and audio
-  contracts.
+  contracts; [deployed comment audio](./deployment-storage.md) — FLAC
+  delivery and `.vercelignore` boundary.
 - [Discord](./external-publisher.md), [Slack](./slack-publisher.md),
   [Telegram](./telegram-publisher.md), and [reset route](./reset-route.md) —
   external transport and deployment runbooks.

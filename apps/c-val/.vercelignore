@@ -1,0 +1,6 @@
+# Deploy only the audio pages fetch: comments-index.json and the FLAC files it
+# lists. WAV masters, raw takes, retired runs and generator metadata stay in git
+# for the scripts. See docs/deployment-storage.md.
+/public/audio/c-val/exclamations/**/*.wav
+/public/audio/c-val/exclamations/runs/*/*.json
+/public/audio/c-val/exclamations/beep-tests/

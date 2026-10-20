@@ -132,7 +132,8 @@ The helper:
   root. It uses the repository's local certificates, whose root the Mac
   already trusts for the development server.
 - It listens on loopback only. It answers only approved origins:
-  `https://scc-jyc.vercel.app` and the local development addresses; add more
+  `https://scc-jyc.vercel.app`, its alias `https://exp-jyc.vercel.app`, and the
+  local development addresses; add more
   with `DESKTOP_COLLAGE_ORIGINS`.
 - It plans every window itself from validated settings, so a page cannot ask
   it to open anything else.

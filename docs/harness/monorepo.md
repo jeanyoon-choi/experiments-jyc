@@ -6,7 +6,7 @@ dependency checkout.
 
 | Vercel project | Root Directory | Intended domain |
 | --- | --- | --- |
-| SCC archive | `apps/scc` | the existing SCC domain |
+| SCC archive (`scc-jy`) | `apps/scc` | `scc-jyc.vercel.app`, alias `exp-jyc.vercel.app` |
 | C-VAL | `apps/c-val` | `c-val.vercel.app` |
 | ddong-meong | `apps/ddong-meong` | `ddong-meong.vercel.app` |
 | Goldfishes | `apps/goldfishes` | `goldfishes.vercel.app` |
@@ -39,3 +39,35 @@ To add a future standalone artwork, create another `apps/<artwork>` workspace,
 give it its own Next.js config and public directory, add it to the HTTPS runner,
 and connect another Vercel project to that directory. Do not move its routes
 back into the SCC archive app.
+
+## Deployment storage
+
+The Hobby account's Deployment Storage is shared by every project and counts
+each retained deployment's full static output; identical `public/` files are
+not deduplicated across deployments. Measured 2026-10-20: one SCC deployment
+is about 268 MB static plus an 8.8 MB function bundle; one C-VAL deployment was
+231 MB, 205 MB of it WAV. About 30 days of SCC pushes reached 3.4 GB.
+
+- Retention for `scc-jy` and `c-val` is 1 week for canceled, errored,
+  pre-production, and production deployments (Settings → Build and Deployment
+  → Deployment Retention Policy). Vercel always keeps the latest three Ready
+  production deployments; older ones cannot be rolled back to after a week.
+- "Skip unaffected projects" is on, so an app redeploys only when its root or
+  a shared root file (`package.json`, `pnpm-lock.yaml`) changes.
+- `exp-jyc.vercel.app` is a second production domain on `scc-jy`, not a
+  project: it serves the same deployment and adds no storage. Per-origin
+  allowlists must name it too: the desktop-collage helper's `defaultOrigins`
+  already does, and so does the relay's `SOCKET_ALLOWED_ORIGINS`
+  ([relay](./scc-relay-deployment.md#first-scc-browser-release)).
+- C-VAL deploys FLAC comment audio and excludes WAV masters through
+  `apps/c-val/.vercelignore`; see
+  [deployed comment audio](../../apps/c-val/docs/deployment-storage.md).
+- SCC `public/` JPG/PNG files were losslessly recompressed on 2026-10-20
+  (`jpegtran -optimize -copy all`, `oxipng -o 4 --strip safe`); a file was
+  replaced only when smaller and its decoded RGBA64 pixels matched. 217 files
+  saved about 3 MB; 41 PNGs whose ffmpeg pixel check differed were left as is.
+  Gains are small because most images are already compressed JPG.
+
+Remaining larger levers, each with a trade-off: serve the onnxruntime (41 MB)
+and MediaPipe (23 MB) WASM from a CDN, move large media to external object
+storage, or re-encode video lossily.

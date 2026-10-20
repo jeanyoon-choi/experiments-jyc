@@ -13,7 +13,7 @@ import { definition as hypeThree } from '../hype/3/plan.ts';
 // settings, so a page cannot ask it to open anything else.
 
 export { HELPER_PORT };
-export const defaultOrigins = ['https://scc-jyc.vercel.app', 'https://localhost:2000', 'https://127.0.0.1:2000', 'https://macbook-air-5.local:2000'];
+export const defaultOrigins = ['https://scc-jyc.vercel.app', 'https://exp-jyc.vercel.app', 'https://localhost:2000', 'https://127.0.0.1:2000', 'https://macbook-air-5.local:2000'];
 const MAX_BODY = 64 * 1024;
 
 type Body = { action?: unknown; settings?: unknown };

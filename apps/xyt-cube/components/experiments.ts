@@ -43,6 +43,20 @@ export const xytCubeExperiments: readonly XytCubeExperiment[] = [
     label: "O3 mass — clock lag",
     load: () => import("./spacetime/1/mobile/mass"),
   },
+  // cubism/1: Fels, Lee & Mase's video cubism. The screen is a cut plane
+  // through the clip's (x, y, t) box; one phone link turns the plane.
+  {
+    key: "screen/cubism/1",
+    date: "2026-10-20",
+    label: "Video cubism — cut plane",
+    load: () => import("./cubism/1/screen"),
+  },
+  {
+    key: "mobile/cubism/1",
+    date: "2026-10-20",
+    label: "Video cubism — the phone is the cut",
+    load: () => import("./cubism/1/mobile"),
+  },
 ];
 
 export const xytCubeNavigationExperiments: readonly NavigationExperiment[] =

@@ -1,4 +1,4 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { access, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -41,6 +41,11 @@ for (const runName of runNames) {
     if (!timestamp || !style) {
       throw new Error(`Missing comment metadata for ${runName}/${file.fileName}`);
     }
+    // Pages fetch the lossless FLAC; the WAV master is not deployed.
+    const src = file.src.replace(/\.wav$/, ".flac");
+    await access(path.join(publicRoot, src)).catch(() => {
+      throw new Error(`Missing ${src}; run encode-c-val-comments-flac.mjs first`);
+    });
     entries.push({
       id: `${manifest.voice}:${file.id}`,
       voice: manifest.voice,
@@ -51,7 +56,7 @@ for (const runName of runNames) {
       valence: style.valence,
       arousal: style.arousal,
       text: file.text,
-      src: file.src,
+      src,
       profanityStatus: timestamp.profanityStatus,
       profanityStart: timestamp.start,
       profanityEnd: timestamp.end,

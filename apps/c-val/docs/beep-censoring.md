@@ -59,6 +59,10 @@ The implementation deliberately preserves the returned transcript and word
 list in the sidecar so questionable matches can be audited without rerunning
 inference.
 
+After extraction, encode the FLAC copies and rebuild the comments index as in
+[deployed comment audio](./deployment-storage.md); pages play the FLAC, not the
+WAV.
+
 ## Sidecar contract
 
 Every file record contains:

@@ -6,6 +6,13 @@ cube's geometry. Local HTTPS port 2003; no Vercel project yet.
 
 The first variant is [spacetime/1](./spacetime/1.md): screen
 `/screen/spacetime/1` with three phone links, O1 compact, O2 boost, O3 mass.
+It replaced the note's geometry with relativity metaphors and kept the
+projection fixed; it is kept as a failed attempt.
+
+[cubism/1](./cubism/1.md) is the note's Option B after Fels, Lee & Mase's
+video cubism: the cube stays, the projection plane turns. Screen
+`/screen/cubism/1`, phone `/mobile/cubism/1`; clips from
+`scripts/build-cube.sh`.
 
 New variants belong in `components/<family>/<serial>/`, with the doc at
 `docs/<family>/<serial>.md`; register the ISO date in
@@ -19,3 +26,5 @@ Clips are built with `scripts/build-atlas.sh`.
 | `/mobile/spacetime/1/compact` | 2026-10-19 |
 | `/mobile/spacetime/1/boost` | 2026-10-19 |
 | `/mobile/spacetime/1/mass` | 2026-10-19 |
+| `/screen/cubism/1` | 2026-10-20 |
+| `/mobile/cubism/1` | 2026-10-20 |

@@ -82,3 +82,11 @@ Before a deployed SCC browser is pointed at
 `https://scc-socket.banpo-xism.com`, set its exact deployed origin once in the
 `SOCKET_ALLOWED_ORIGINS` environment of `scc-io`, alongside those two existing
 origins, then restart `scc-io`. Do not guess an SCC Vercel hostname.
+SCC is served at `https://scc-jyc.vercel.app` and its alias
+`https://exp-jyc.vercel.app`; add each origin that should reach the relay.
+
+Since 2026-10-20 `scc-io` runs with `SOCKET_ALLOWED_ORIGINS` set to the C-VAL,
+ddong-meong, `scc-jyc`, and `exp-jyc` origins, saved with `pm2 save`. Before
+that it was unset and only the two code defaults were accepted. To change it,
+restart with the full list and `pm2 restart scc-io --update-env`, then
+`pm2 save`; `pnpm deploy:scc-relay` restarts without touching it.
