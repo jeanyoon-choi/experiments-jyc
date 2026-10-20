@@ -146,6 +146,18 @@ uniform float textureDiversity;       // 0: every film from one recipe (bubble/3
 uniform float filmFlow;               // 0: the film's pattern stands still (bubble/3); 1: carried at a natural pace by drainage and convection
 uniform float material;               // 0: soap film; 1: Koons's mirror-polished steel under a transparent colour coat (Balloon Dog)
 uniform vec3 coating;                 // the coat's colour over the steel (its reflectance tint)
+uniform float koonsLights;            // the brightness of the lights and windows the steel reflects
+uniform float koonsRoom;              // the gallery's own brightness (창): walls, ceiling
+uniform float koonsFloor;             // the pale floor and plinth below the horizon (창)
+uniform float koonsClear;             // the clear coat's untinted reflection at grazing angles
+uniform float koonsNeighbour;         // how much each lobe mirrors its neighbours
+uniform float koonsTurn;              // how differently the lobes are turned to the room
+uniform float koonsCrease;            // how deep and dark the clefts between lobes are
+uniform float koonsBlur;              // how blurred the light the steel reflects is (a mip level of the light map)
+uniform float koonsRotate;            // turns the light map round the raft (0–1, a full turn)
+uniform float koonsContrast;          // the light's contrast: above 1 its bright parts brighter and dark parts darker
+uniform float koonsDensity;           // the coat's density: above 1 a deeper, more saturated colour
+uniform sampler2D koonsMap;           // the light round the steel: a photographed room's light (CC0 HDRI), blurred past legibility
 uniform float coatingMix;             // 1: each bubble takes one of the five Balloon Dog coats instead of \`coating\`
 out vec4 pixel;
 
@@ -214,45 +226,25 @@ vec2 filmPattern(vec2 qn, float seed, float swirlAmount, float flowTime) {
   return vec2(warp.y + warp2.x, fbm(vec3(qn * 2.0 + warp2 * 2.6 * swirlAmount + seed, flowTime * 0.04)));
 }
 
-// What Koons's steel reflects, as the Balloon Dogs are photographed in a
-// gallery. The photographs show it mostly as broad, soft light — bright above,
-// dimmer round the horizon and in the room behind the camera, a pale floor
-// brightening towards the plinth — so most of every lobe is a smooth, deep
-// gradient of its coat. On it: long soft streaks where tall windows are
-// stretched along the curve, and a few lamps that come back as tiny, sharp,
-// clipped points. Little else is legible; the visitors are a faint, soft
-// darkening near the horizon. Screen y runs down; z points at the camera.
-float angleTo(float azimuth, float centre) {
-  float d = azimuth - centre;
-  return atan(sin(d), cos(d));
+// The light on Koons's steel: a real room's light, not drawn shapes. Drawn
+// light (discs, strips, flags, a softbox) reads as cheesy and plastic, and the
+// same shape repeats on every lobe; a photographed light distribution (a CC0
+// HDRI, blurred past legibility before it is shipped and further here by
+// 반사 흐림) has the irregular brightness and colour of real light without
+// showing anything nameable. Each lobe, turned its own way, catches its own
+// part of it. 반사되는 환경 picks the room (a bright loft hall for 창, an
+// overcast sky, a small studio, a city at night, a forest slope, a lakeside).
+// Screen y runs down; z points at the camera.
+float lobe(vec3 d, vec3 towards, float width) {
+  return exp((dot(d, normalize(towards)) - 1.0) / width);
 }
 vec3 koonsLight(vec3 d) {
   float up = -d.y;
-  float azimuth = atan(d.x, -d.z);
-  float sky = smoothstep(-0.15, 0.65, up);
-  float ground = smoothstep(-0.04, -0.6, up);
-  float behindCamera = smoothstep(0.15, 0.9, d.z);
-  float light = mix(0.3, 1.05, sky);
-  light = mix(light, 0.7 + 0.5 * smoothstep(-0.45, -0.95, up), ground);
-  light *= mix(1.0, 0.42, behindCamera * (1.0 - ground));
-  // Unevenness at the scale of a room, never a pattern.
-  // (Read from the direction itself, not its azimuth, so nothing seams where
-  // the azimuth wraps.)
-  light *= 0.82 + 0.36 * noise(d * 1.6 + vec3(2.1));
-  // Visitors, frames and doorways: a faint soft darkening near eye level.
-  light *= 1.0 - 0.3 * smoothstep(0.45, 0.75, noise(d * 4.5 + vec3(7.3))) * smoothstep(-0.12, 0.0, up) * (1.0 - smoothstep(0.12, 0.3, up));
-  // Tall windows.
-  float windows = 0.0;
-  windows += exp(-pow(angleTo(azimuth, -1.95) / 0.09, 2.0));
-  windows += 0.8 * exp(-pow(angleTo(azimuth, 1.15) / 0.07, 2.0));
-  windows += 0.6 * exp(-pow(angleTo(azimuth, 2.7) / 0.11, 2.0));
-  windows *= smoothstep(-0.1, 0.05, up) * (1.0 - smoothstep(0.55, 0.85, up));
-  // Lamps: sparse, tiny and far brighter than anything else.
-  vec3 cell = d * 6.0;
-  vec3 id = floor(cell);
-  vec3 at = fract(cell) - 0.5 - (vec3(hash(id + 1.7), hash(id + 2.9), hash(id + 5.3)) - 0.5) * 0.5;
-  float lamp = step(0.88, hash(id + 4.1)) * smoothstep(0.45, 0.6, up) * (1.0 - smoothstep(0.75, 0.9, up)) * exp(-dot(at, at) / 0.0016);
-  return vec3(1.0, 0.975, 0.94) * (light + 2.4 * windows) + vec3(28.0) * lamp;
+  vec2 at = vec2(atan(d.x, -d.z) / 6.2831853 + 0.5 + koonsRotate, acos(clamp(up, -1.0, 1.0)) / 3.1415927);
+  vec3 light = textureLod(koonsMap, at, koonsBlur).rgb;
+  light = 0.7 * pow(max(light, vec3(0.0)) / 0.7, vec3(koonsContrast));
+  float bounce = koonsFloor * 0.5 * lobe(d, vec3(0.0, 1.0, 0.25), 0.35);
+  return lightColour * (koonsLights * light + koonsRoom * 0.06 + bounce);
 }
 
 // A filmic curve (ACES, fitted): bright reflections roll into white, dark ones
@@ -445,7 +437,7 @@ void main() {
     float rr = max(a.z, 1e-3);
     vec2 out2 = da / rr;
     vec3 round3 = vec3(out2, sqrt(max(1.0 - dot(out2, out2), 0.0)));
-    float creaseWidth = min(0.05 * rr, 4.0) + 1.0;
+    float creaseWidth = (min(0.05 * rr, 4.0) + 1.0) * mix(0.5, 1.6, koonsCrease);
     float riseM = clamp(toEdge / creaseWidth, 0.0, 1.0);
     float hM = sqrt(max(1.0 - (1.0 - riseM) * (1.0 - riseM), 0.0));
     vec3 pinched = normalize(vec3(-min((1.0 - riseM) / max(hM, 0.05), 20.0) * edgeGradient, 1.0));
@@ -456,14 +448,14 @@ void main() {
     // Each lobe sits at its own angle to the room, as the dog's legs, body,
     // tail and ears do: turned, tipped and rolled, so its horizon belt tilts
     // and the windows' streaks fall differently on each.
-    float yaw = (hA.z - 0.5) * 2.4;
-    float tip = (hB.y - 0.5) * 0.7;
-    float roll = (hC.z - 0.5) * 1.3;
+    float yaw = (hA.z - 0.5) * 2.4 * koonsTurn;
+    float tip = (hB.y - 0.5) * 0.7 * koonsTurn;
+    float roll = (hC.z - 0.5) * 1.3 * koonsTurn;
     mat3 turnY = mat3(cos(yaw), 0.0, -sin(yaw), 0.0, 1.0, 0.0, sin(yaw), 0.0, cos(yaw));
     mat3 turnX = mat3(1.0, 0.0, 0.0, 0.0, cos(tip), sin(tip), 0.0, -sin(tip), cos(tip));
     mat3 turnZ = mat3(cos(roll), sin(roll), 0.0, -sin(roll), cos(roll), 0.0, 0.0, 0.0, 1.0);
     mat3 turn = turnY * turnX * turnZ;
-    vec3 coat = coatingMix > 0.5 ? balloonCoat(fract(seedRaw * 7.31)) : coating;
+    vec3 coat = pow(coatingMix > 0.5 ? balloonCoat(fract(seedRaw * 7.31)) : coating, vec3(koonsDensity));
     // The reflected ray, traced against the neighbouring lobes as spheres
     // (centres on one plane, the surface point raised by the lobe's own
     // curvature). A hit shows that lobe — its coat, its own reflection of the
@@ -494,22 +486,27 @@ void main() {
       vec3 at = from + dir * nearest;
       vec3 n2 = normalize(at - vec3(hit.xy, 0.0));
       vec3 dir2 = reflect(dir, n2);
-      vec3 coat2 = coatingMix > 0.5 ? balloonCoat(fract(hit.w * 7.31)) : coating;
-      float clear2 = 0.04 + 0.96 * pow(1.0 - abs(dot(dir, n2)), 5.0);
+      vec3 coat2 = pow(coatingMix > 0.5 ? balloonCoat(fract(hit.w * 7.31)) : coating, vec3(koonsDensity));
+      float clear2 = 0.04 + koonsClear * pow(1.0 - abs(dot(dir, n2)), 5.0);
       // Seen through its own coat as well as this lobe's; the second tint is
       // softened (a hue that drifts red reads as a different colour, not as depth).
-      light = koonsLight(turn * dir2) * (clear2 + (1.0 - clear2) * sqrt(coat2)) * mix(0.55, 1.0, smoothstep(0.0, 0.35 * rr, nearest));
+      vec3 mirrored = koonsLight(turn * dir2) * (clear2 + (1.0 - clear2) * sqrt(coat2)) * mix(0.55, 1.0, smoothstep(0.0, 0.35 * rr, nearest));
+      light = mix(koonsLight(turn * dir), mirrored, koonsNeighbour);
     } else {
       light = koonsLight(turn * dir);
     }
     // The clear coat reflects untinted, more so at grazing angles; under it,
     // the steel reflects tinted by the coat.
-    float clear = 0.04 + 0.96 * pow(1.0 - facingM, 5.0);
+    // The clear coat adds an untinted reflection only towards grazing angles,
+    // and weakly: in the photographs the silhouette stays deep in the coat's
+    // colour to a crisp edge, not haloed in grey.
+    float clear = 0.04 + koonsClear * pow(1.0 - facingM, 5.0);
     vec3 steel = light * (clear + (1.0 - clear) * coat);
     // Deep in a cleft little light arrives at all.
-    steel *= mix(0.12, 1.0, smoothstep(0.0, 2.5 * creaseWidth, toWall));
+    steel *= mix(mix(0.5, 0.05, koonsCrease), 1.0, smoothstep(0.0, 2.5 * creaseWidth, toWall));
     vec3 shown = filmic(steel * 1.25 * exposure);
-    float solidCover = smoothstep(-0.7, 0.7, toFace);
+    // A crisp silhouette: anti-aliased over one device pixel.
+    float solidCover = clamp(toFace / cssPerPixel + 0.5, 0.0, 1.0);
     pixel = vec4(mix(background, shown, solidCover), 1.0);
     return;
   }
@@ -741,6 +738,9 @@ function compile(gl: WebGL2RenderingContext, vertex: string, fragment: string) {
   return program;
 }
 
+/** Koons's light maps, by 반사되는 환경 (창, 흐린 하늘, 스튜디오, 밤 도시, 나뭇잎 빛, 물빛; an image uses 창's). CC0 HDRIs from Poly Haven. */
+const KOONS_LIGHT_FILES = ["photo_studio_loft_hall", "kloofendal_overcast", "studio_small_09", "shanghai_bund", "forest_slope", "lakeside", "photo_studio_loft_hall"] as const;
+
 export type Colour = readonly [number, number, number];
 
 /** The renderer's main visual parameters; LOOK_DEFAULTS reproduce bubble/1. */
@@ -770,6 +770,28 @@ export type Look = {
   filmFlow: number;
   /** 0: soap film; 1: Koons's mirror-polished steel under a transparent colour coat. */
   material: number;
+  /** Koons: brightness of the reflected lights and windows. */
+  koonsLights: number;
+  /** Koons (창): the gallery's own brightness. */
+  koonsRoom: number;
+  /** Koons (창): the floor and plinth below the horizon. */
+  koonsFloor: number;
+  /** Koons: the clear coat's untinted reflection at grazing angles. */
+  koonsClear: number;
+  /** Koons: how much each lobe mirrors its neighbours. */
+  koonsNeighbour: number;
+  /** Koons: how differently the lobes are turned to the room. */
+  koonsTurn: number;
+  /** Koons: depth and darkness of the clefts between lobes. */
+  koonsCrease: number;
+  /** Koons: how blurred the reflected light is (mip level of the light map). */
+  koonsBlur: number;
+  /** Koons: the light map turned round the raft (0–1). */
+  koonsRotate: number;
+  /** Koons: the light's contrast. */
+  koonsContrast: number;
+  /** Koons: the coat's density. */
+  koonsDensity: number;
   /** The coat's colour: the tint of the steel's reflection. */
   coating: Colour;
   /** 1: each bubble takes one of the five Balloon Dog coats. */
@@ -809,6 +831,17 @@ export const LOOK_DEFAULTS: Look = {
   textureDiversity: 0,
   filmFlow: 0,
   material: 0,
+  koonsLights: 1,
+  koonsRoom: 1,
+  koonsFloor: 1,
+  koonsClear: 0.25,
+  koonsNeighbour: 0.85,
+  koonsTurn: 1,
+  koonsCrease: 0.5,
+  koonsBlur: 2,
+  koonsRotate: 0,
+  koonsContrast: 1,
+  koonsDensity: 1,
   coating: [0.92, 0.1, 0.48],
   coatingMix: 0,
   mediaMode: 0,
@@ -1082,8 +1115,40 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     gl.activeTexture(gl.TEXTURE7);
     gl.bindTexture(gl.TEXTURE_2D, revealData);
     gl.uniform1i(location(filmProgram, "bubbleReveal"), 7);
+    if (look.material > 0.5) wantKoonsMap(look.envMode);
+    gl.activeTexture(gl.TEXTURE8);
+    gl.bindTexture(gl.TEXTURE_2D, koonsMap);
+    gl.uniform1i(location(filmProgram, "koonsMap"), 8);
     gl.bindVertexArray(screen);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  };
+
+  // Koons's light maps: one per 반사되는 환경, fetched when first wanted.
+  // 256 × 128 RGBA half floats (see docs/screen/bubble/2.md).
+  const koonsMap = gl.createTexture()!;
+  gl.bindTexture(gl.TEXTURE_2D, koonsMap);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, 1, 1, 0, gl.RGBA, gl.FLOAT, new Float32Array([0.7, 0.7, 0.7, 1]));
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.generateMipmap(gl.TEXTURE_2D);
+  let koonsWanted = -1;
+  let disposed = false;
+  const wantKoonsMap = (mode: number) => {
+    const file = KOONS_LIGHT_FILES[Math.min(Math.max(Math.round(mode), 0), KOONS_LIGHT_FILES.length - 1)]!;
+    if (mode === koonsWanted) return;
+    koonsWanted = mode;
+    void fetch(`/assets/goldfishes/koons-light/${file}.bin`)
+      .then((response) => response.arrayBuffer())
+      .then((data) => {
+        if (disposed || koonsWanted !== mode) return;
+        gl.bindTexture(gl.TEXTURE_2D, koonsMap);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, 256, 128, 0, gl.RGBA, gl.HALF_FLOAT, new Uint16Array(data));
+        gl.generateMipmap(gl.TEXTURE_2D);
+      })
+      .catch(() => {});
   };
 
   const setEnvironmentImage: FoamRenderer["setEnvironmentImage"] = (image) => {
@@ -1116,6 +1181,8 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
   };
 
   const dispose = () => {
+    disposed = true;
+    gl.deleteTexture(koonsMap);
     gl.deleteTexture(environment);
     gl.deleteTexture(mediaData);
     gl.deleteTexture(revealData);

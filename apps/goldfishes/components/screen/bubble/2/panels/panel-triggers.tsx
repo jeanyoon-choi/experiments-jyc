@@ -61,10 +61,21 @@ const TRIGGERS: readonly { id: PanelId; label: string; icon: (soundOn: boolean) 
 ];
 
 /** The round buttons that open one panel at a time. */
-export function PanelTriggers({ panel, onToggle, soundOn }: { panel: PanelId | null; onToggle: (panel: PanelId) => void; soundOn: boolean }) {
+export function PanelTriggers({
+  panel,
+  onToggle,
+  soundOn,
+  hidden = [],
+}: {
+  panel: PanelId | null;
+  onToggle: (panel: PanelId) => void;
+  soundOn: boolean;
+  /** Panels with nothing to act on right now (미디어 under Koons's opaque steel). */
+  hidden?: readonly PanelId[];
+}) {
   return (
     <div className={styles.triggers}>
-      {TRIGGERS.map((trigger) => (
+      {TRIGGERS.filter((trigger) => !hidden.includes(trigger.id)).map((trigger) => (
         <button
           key={trigger.id}
           type="button"

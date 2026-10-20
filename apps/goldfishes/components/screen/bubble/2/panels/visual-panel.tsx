@@ -1,6 +1,24 @@
 import type { Dispatch, SetStateAction } from "react";
 import styles from "../bubble-three.module.css";
-import { COATINGS, COLOUR_CONTROLS, ENVIRONMENTS, MATERIALS, fromHex, IMAGE_ENVIRONMENT, PALETTES, toHex, VISUAL_CONTROLS, VISUAL_DEFAULTS, type Visual } from "../settings";
+import {
+  COATINGS,
+  COLOUR_CONTROLS,
+  ENVIRONMENTS,
+  FILM_CONTROLS,
+  fromHex,
+  IMAGE_ENVIRONMENT,
+  KOONS_CONTROLS,
+  MATERIALS,
+  PALETTES,
+  PRESET_3,
+  SHARED_KEYS,
+  toHex,
+  VISUAL_CONTROLS,
+  VISUAL_DEFAULTS,
+  type NumericKey,
+  type SliderControl,
+  type Visual,
+} from "../settings";
 import { Chip, Chips, Note, Panel, Reset, Slider } from "./controls";
 
 type Props = {
@@ -11,7 +29,33 @@ type Props = {
   onImage: (file: File) => void;
 };
 
+type NumericControl = SliderControl<Exclude<NumericKey, "envMode">>;
+
 export function VisualPanel({ visual, setVisual, imageName, onImage }: Props) {
+  const koons = visual.material === 1;
+  // 쿤스 shows only what acts on the steel: its own controls, the raft's area
+  // and flow bubbles, and exposure. The film's sliders, palettes and film
+  // colour go.
+  const sliders: readonly NumericControl[] = koons
+    ? [
+        ...KOONS_CONTROLS,
+        ...VISUAL_CONTROLS.filter((control) => SHARED_KEYS.includes(control.key)),
+      ]
+    : FILM_CONTROLS;
+  const colours = koons ? COLOUR_CONTROLS.filter((control) => control.key !== "filmTint") : COLOUR_CONTROLS;
+  const slider = (control: NumericControl) => (
+    <Slider
+      key={control.key}
+      label={control.label}
+      output={visual[control.key].toFixed(control.step < 1 ? 2 : 0)}
+      ariaLabel={control.label}
+      min={control.min}
+      max={control.max}
+      step={control.step}
+      value={visual[control.key]}
+      onChange={(value) => setVisual((current) => ({ ...current, [control.key]: value }))}
+    />
+  );
   return (
     <Panel id="visual" label="비주얼">
       <Note>재질</Note>
@@ -22,7 +66,7 @@ export function VisualPanel({ visual, setVisual, imageName, onImage }: Props) {
           </Chip>
         ))}
       </Chips>
-      {visual.material === 1 && (
+      {koons && (
         <>
           <Note>코팅</Note>
           <Chips label="코팅">
@@ -59,7 +103,8 @@ export function VisualPanel({ visual, setVisual, imageName, onImage }: Props) {
           />
         </label>
       </Chips>
-      <Note>팔레트</Note>
+      {!koons && <Note>팔레트</Note>}
+      {!koons && (
       <Chips label="팔레트">
         {PALETTES.map((palette) => (
           <Chip
@@ -78,8 +123,23 @@ export function VisualPanel({ visual, setVisual, imageName, onImage }: Props) {
           </Chip>
         ))}
       </Chips>
+      )}
       <div className={styles.colours}>
-        {COLOUR_CONTROLS.map((control) => (
+        {koons && (
+          <label>
+            <input
+              aria-label="코팅 색"
+              type="color"
+              value={toHex(visual.coating)}
+              onChange={(event) => {
+                const coating = fromHex(event.target.value);
+                setVisual((current) => ({ ...current, coating, coatingMix: 0 }));
+              }}
+            />
+            코팅
+          </label>
+        )}
+        {colours.map((control) => (
           <label key={control.key}>
             <input
               aria-label={`${control.label} 색`}
@@ -94,20 +154,23 @@ export function VisualPanel({ visual, setVisual, imageName, onImage }: Props) {
           </label>
         ))}
       </div>
-      {VISUAL_CONTROLS.map((control) => (
-        <Slider
-          key={control.key}
-          label={control.label}
-          output={visual[control.key].toFixed(control.step < 1 ? 2 : 0)}
-          ariaLabel={control.label}
-          min={control.min}
-          max={control.max}
-          step={control.step}
-          value={visual[control.key]}
-          onChange={(value) => setVisual((current) => ({ ...current, [control.key]: value }))}
-        />
-      ))}
-      <Reset onClick={() => setVisual(VISUAL_DEFAULTS)}>bubble/1 값으로</Reset>
+      {sliders.map(slider)}
+      {koons ? (
+        <Reset
+          onClick={() =>
+            setVisual((current) => ({
+              ...current,
+              ...Object.fromEntries(KOONS_CONTROLS.map((control) => [control.key, PRESET_3.visual[control.key]])),
+              coating: PRESET_3.visual.coating,
+              coatingMix: PRESET_3.visual.coatingMix,
+            }))
+          }
+        >
+          쿤스 기본값으로
+        </Reset>
+      ) : (
+        <Reset onClick={() => setVisual(VISUAL_DEFAULTS)}>bubble/1 값으로</Reset>
+      )}
     </Panel>
   );
 }

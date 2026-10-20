@@ -288,7 +288,7 @@ export default function RankedWebIteration() {
             }}
           />
         )}
-        {panel === "media" && (
+        {panel === "media" && visual.material !== 1 && (
           <MediaPanel
             surface={surface}
             onSurface={(next) => {
@@ -320,7 +320,7 @@ export default function RankedWebIteration() {
           />
         )}
         {panel === "sound" && <SoundPanel on={touchSound.on} onToggle={touchSound.toggle} sound={sound} setSound={setSound} />}
-        <PanelTriggers panel={panel} onToggle={togglePanel} soundOn={touchSound.on} />
+        <PanelTriggers panel={panel} onToggle={togglePanel} soundOn={touchSound.on} hidden={visual.material === 1 ? ["media"] : []} />
       </div>
     </main>
   );

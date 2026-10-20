@@ -33,7 +33,7 @@ export const VISUAL_DEFAULTS: Visual = { ...LOOK_DEFAULTS, area: AREA_BUDGET, po
 // 기본값 2 (user, 2026-10-11): the defaults (fish included) on a mid grey (#5e5e5e) instead of black; a button in the goldfish panel, not the default.
 export const SECOND_BACKGROUND: Colour = [94 / 255, 94 / 255, 94 / 255];
 
-type NumericKey = { [K in keyof Visual]: Visual[K] extends number ? K : never }[keyof Visual];
+export type NumericKey = { [K in keyof Visual]: Visual[K] extends number ? K : never }[keyof Visual];
 
 /** Visual sliders. Defaults reproduce bubble/1. */
 export const VISUAL_CONTROLS: readonly SliderControl<Exclude<NumericKey, "envMode">>[] = [
@@ -56,6 +56,28 @@ export const VISUAL_CONTROLS: readonly SliderControl<Exclude<NumericKey, "envMod
   { key: "textureDiversity", label: "결 다양성", min: 0, max: 1, step: 0.01 },
   { key: "filmFlow", label: "막 흐름 (배수·대류)", min: 0, max: 3, step: 0.05 },
 ];
+
+/** Koons's own controls (재질 쿤스). */
+export const KOONS_CONTROLS: readonly SliderControl<Exclude<NumericKey, "envMode">>[] = [
+  { key: "koonsLights", label: "환경 밝기", min: 0, max: 3, step: 0.01 },
+  { key: "koonsBlur", label: "반사 흐림", min: 0, max: 5, step: 0.05 },
+  { key: "koonsRotate", label: "환경 회전", min: 0, max: 1, step: 0.005 },
+  { key: "koonsContrast", label: "빛 대비", min: 0.4, max: 2.5, step: 0.01 },
+  { key: "koonsDensity", label: "코팅 농도", min: 0.4, max: 2.5, step: 0.01 },
+  { key: "koonsRoom", label: "어두운 곳 밝기", min: 0, max: 3, step: 0.01 },
+  { key: "koonsFloor", label: "아래 반사광", min: 0, max: 2, step: 0.01 },
+  { key: "koonsClear", label: "클리어코트 (가장자리 반사)", min: 0, max: 1, step: 0.01 },
+  { key: "koonsNeighbour", label: "이웃 반사", min: 0, max: 1, step: 0.01 },
+  { key: "koonsTurn", label: "마디 방향 다양성", min: 0, max: 2, step: 0.01 },
+  { key: "koonsCrease", label: "주름 깊이", min: 0, max: 1, step: 0.01 },
+];
+
+/** Visual sliders that also act on Koons's steel; the rest are the film's own. */
+export const SHARED_KEYS: readonly NumericKey[] = ["area", "portions", "exposure"];
+
+const KOONS_KEYS = new Set<string>(KOONS_CONTROLS.map((control) => control.key));
+/** The film's sliders: the visual sliders without Koons's. */
+export const FILM_CONTROLS = VISUAL_CONTROLS.filter((control) => !KOONS_KEYS.has(control.key));
 
 /** What the films reflect; 0 is bubble/1's window. 6 is an uploaded image. */
 export const ENVIRONMENTS = [
