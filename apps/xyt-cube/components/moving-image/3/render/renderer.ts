@@ -29,6 +29,15 @@ export type LiquidFrame = {
   liquid: boolean;
 };
 
+/**
+ * Slots of the live window: the original video at its own frame rate around
+ * the present (for clips whose cube is sampled sparsely, e.g. 15 min at one
+ * frame per 3 s). 40 FHD frames cost ~124 MB.
+ */
+export const NEAR_SLOTS = 40;
+/** A slot time this low means the slot is empty. */
+const EMPTY = -1e9;
+
 export type LiquidCamera = {
   eye: Vector;
   right: Vector;
@@ -59,6 +68,12 @@ const SHARED = [
   "tilt",
   "present",
   "viewport",
+  "nearLuma",
+  "nearChroma",
+  "nearTimes",
+  "nearSlots",
+  "nearCount",
+  "fps",
 ] as const;
 const SLICE = [...SHARED, "aspect"] as const;
 const SOLID = [...SHARED, "eye", "eyeRight", "eyeUp", "eyeForward", "focal", "bounds", "planeZ"] as const;
@@ -127,7 +142,16 @@ export class LiquidRenderer {
   private readonly staging: WebGLTexture;
   private readonly cuts: WebGLTexture;
   private readonly framebuffer: WebGLFramebuffer;
-  private clip: Loaded | null = null;
+  private readonly nearLuma: WebGLTexture;
+  private readonly nearChroma: WebGLTexture;
+  private readonly nearTimes = new Float32Array(NEAR_SLOTS).fill(EMPTY);
+  /** The live window sorted by time for the shader: times, their slots, count. */
+  private readonly sortedTimes = new Float32Array(NEAR_SLOTS).fill(EMPTY);
+  private readonly sortedSlots = new Float32Array(NEAR_SLOTS);
+  private sortedCount = 0;
+  private readonly order = Array.from({ length: NEAR_SLOTS }, (_, i) => i);
+  private near: { width: number; height: number } | null = null;
+  private clip: (Loaded & { fps: number }) | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -144,7 +168,9 @@ export class LiquidRenderer {
     const staging = gl.createTexture();
     const cuts = gl.createTexture();
     const framebuffer = gl.createFramebuffer();
-    if (!vertexArray || !luma || !chroma || !flow || !staging || !cuts || !framebuffer) {
+    const nearLuma = gl.createTexture();
+    const nearChroma = gl.createTexture();
+    if (!vertexArray || !luma || !chroma || !flow || !staging || !cuts || !framebuffer || !nearLuma || !nearChroma) {
       throw new Error("WebGL2 could not allocate moving-image/3 resources");
     }
     this.vertexArray = vertexArray;
@@ -154,11 +180,15 @@ export class LiquidRenderer {
     this.staging = staging;
     this.cuts = cuts;
     this.framebuffer = framebuffer;
+    this.nearLuma = nearLuma;
+    this.nearChroma = nearChroma;
     this.setCuts(1, []);
     for (const [texture, internal, format] of [
       [luma, gl.R8, gl.RED],
       [chroma, gl.RG8, gl.RG],
       [flow, gl.RGBA8, gl.RGBA],
+      [nearLuma, gl.R8, gl.RED],
+      [nearChroma, gl.RG8, gl.RG],
     ] as const) {
       this.allocate(texture, internal, format, 1, 1, 1);
     }
@@ -180,11 +210,12 @@ export class LiquidRenderer {
     gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   }
 
-  /** Bytes the clip's textures hold on the GPU. */
+  /** Bytes the clip's textures hold on the GPU (the live window included). */
   get bytes() {
     const clip = this.clip;
     if (!clip) return 0;
-    return clip.frames * (clip.width * clip.height * 1.5 + clip.flowWidth * clip.flowHeight * 4);
+    const near = this.near ? NEAR_SLOTS * this.near.width * this.near.height * 1.5 : 0;
+    return clip.frames * (clip.width * clip.height * 1.5 + clip.flowWidth * clip.flowHeight * 4) + near;
   }
 
   /** Allocates empty frames and flow; they then arrive via writeVideoFrame / writeFlowLayer. */
@@ -198,7 +229,12 @@ export class LiquidRenderer {
     this.allocate(this.luma, gl.R8, gl.RED, clip.width, clip.height, clip.frames);
     this.allocate(this.chroma, gl.RG8, gl.RG, clip.width / 2, clip.height / 2, clip.frames);
     this.allocate(this.flow, gl.RGBA8, gl.RGBA, clip.flow.width, clip.flow.height, clip.frames);
+    this.near = null;
+    this.clearNear();
+    this.allocate(this.nearLuma, gl.R8, gl.RED, 1, 1, 1);
+    this.allocate(this.nearChroma, gl.RG8, gl.RG, 1, 1, 1);
     this.clip = {
+      fps: clip.fps,
       width: clip.width,
       height: clip.height,
       frames: clip.frames,
@@ -227,10 +263,55 @@ export class LiquidRenderer {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
   }
 
+  /** Allocates the live window's slots (same size as the clip's frames). */
+  beginNear(width: number, height: number) {
+    const { gl } = this;
+    this.allocate(this.nearLuma, gl.R8, gl.RED, width, height, NEAR_SLOTS);
+    this.allocate(this.nearChroma, gl.RG8, gl.RG, width / 2, height / 2, NEAR_SLOTS);
+    this.near = { width, height };
+    this.clearNear();
+  }
+
+  /** Empties the live window (after a seek, or while it is not playing). */
+  clearNear() {
+    this.nearTimes.fill(EMPTY);
+    this.sortNear();
+  }
+
+  private sortNear() {
+    const times = this.nearTimes;
+    this.order.sort((a, b) => times[a] - times[b]);
+    let count = 0;
+    this.sortedTimes.fill(EMPTY);
+    for (const slot of this.order) {
+      if (times[slot] <= EMPTY) continue;
+      this.sortedTimes[count] = times[slot];
+      this.sortedSlots[count] = slot;
+      count += 1;
+    }
+    this.sortedCount = count;
+  }
+
+  /** Converts the frame `source` shows into live slot `slot`, at clip time `seconds`. */
+  writeNearFrame(slot: number, seconds: number, source: TexImageSource) {
+    const near = this.near;
+    if (!near) return;
+    this.convert(source, this.nearLuma, this.nearChroma, slot, near.width, near.height);
+    this.nearTimes[slot % NEAR_SLOTS] = seconds;
+    this.sortNear();
+  }
+
   /** Converts the frame `source` currently shows into layer `index`. Frames arrive in order. */
   writeVideoFrame(index: number, source: TexImageSource) {
-    const { gl, clip } = this;
+    const { clip } = this;
     if (!clip || index >= clip.frames) return;
+    this.convert(source, this.luma, this.chroma, index, clip.width, clip.height);
+    clip.loaded = Math.max(clip.loaded, index + 1);
+  }
+
+  /** One decoded frame into layer `layer` of a Y array and its half-size CbCr array. */
+  private convert(source: TexImageSource, luma: WebGLTexture, chroma: WebGLTexture, layer: number, width: number, height: number) {
+    const { gl } = this;
     gl.bindTexture(gl.TEXTURE_2D, this.staging);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
@@ -243,19 +324,18 @@ export class LiquidRenderer {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.staging);
     gl.uniform1i(this.ycbcr.uniforms.frame, 0);
-    for (const [texture, width, height, chroma] of [
-      [this.luma, clip.width, clip.height, 0],
-      [this.chroma, clip.width / 2, clip.height / 2, 1],
+    for (const [texture, w, h, isChroma] of [
+      [luma, width, height, 0],
+      [chroma, width / 2, height / 2, 1],
     ] as const) {
-      gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, texture, 0, index);
-      gl.viewport(0, 0, width, height);
-      gl.uniform2f(this.ycbcr.uniforms.target, width, height);
-      gl.uniform1f(this.ycbcr.uniforms.writeChroma, chroma);
+      gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, texture, 0, layer);
+      gl.viewport(0, 0, w, h);
+      gl.uniform2f(this.ycbcr.uniforms.target, w, h);
+      gl.uniform1f(this.ycbcr.uniforms.writeChroma, isChroma);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
     gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, null, 0, 0);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    clip.loaded = Math.max(clip.loaded, index + 1);
   }
 
   /** Uploads flow layer `index` (interleaved RGBA bytes). Layers arrive in order. */
@@ -288,6 +368,10 @@ export class LiquidRenderer {
     if (!frame || !clip) return;
 
     gl.bindVertexArray(this.vertexArray);
+    gl.activeTexture(gl.TEXTURE5);
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.nearChroma);
+    gl.activeTexture(gl.TEXTURE4);
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.nearLuma);
     gl.activeTexture(gl.TEXTURE3);
     gl.bindTexture(gl.TEXTURE_2D, this.cuts);
     gl.activeTexture(gl.TEXTURE2);
@@ -308,6 +392,12 @@ export class LiquidRenderer {
       gl.uniform1i(uniforms.chromaFrames, 1);
       gl.uniform1i(uniforms.flowLayers, 2);
       gl.uniform1i(uniforms.cutWindows, 3);
+      gl.uniform1i(uniforms.nearLuma, 4);
+      gl.uniform1i(uniforms.nearChroma, 5);
+      gl.uniform1fv(uniforms.nearTimes, this.sortedTimes);
+      gl.uniform1fv(uniforms.nearSlots, this.sortedSlots);
+      gl.uniform1f(uniforms.nearCount, this.sortedCount);
+      gl.uniform1f(uniforms.fps, clip.fps);
       gl.uniform1f(uniforms.frames, clip.frames);
       gl.uniform1f(uniforms.loaded, clip.loaded);
       gl.uniform1f(uniforms.flowLoaded, clip.flowLoaded);
@@ -339,7 +429,9 @@ export class LiquidRenderer {
 
   dispose() {
     const { gl } = this;
-    for (const texture of [this.luma, this.chroma, this.flow, this.staging, this.cuts]) gl.deleteTexture(texture);
+    for (const texture of [this.luma, this.chroma, this.flow, this.staging, this.cuts, this.nearLuma, this.nearChroma]) {
+      gl.deleteTexture(texture);
+    }
     gl.deleteFramebuffer(this.framebuffer);
     gl.deleteVertexArray(this.vertexArray);
     for (const { program } of [this.slice, this.solid, this.ycbcr]) gl.deleteProgram(program);

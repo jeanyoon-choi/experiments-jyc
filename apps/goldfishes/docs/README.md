@@ -1,6 +1,6 @@
 # Goldfishes archive
 
-Code lives at `components/<area>/<family>/<serial>/` (areas: `screen`, `pc`, `desktop`, `mobile`); docs mirror it at `docs/<area>/<family>/<serial>.md`. Serials rise with creation date: a later trial in a family always takes the next number. The registry (`components/experiments.ts`) is authoritative for routable experiments, ISO dates, and archive navigation; the navigation's group view (`?view=group`) reads lineages from `foundations/navigation/families.ts`, where each new trial should be added to its family (unassigned keys appear as "unsorted"). `screen/default` is the promoted baseline; archived routes must not be repurposed.
+Code lives at `components/<area>/<family>/<serial>/`; the screen experiments before 2026-10-20 sit under `components/screen/archive/<family>/<serial>/` with their routes and doc paths unchanged, and new screen groups (from `bubble`) start beside `archive/` (areas: `screen`, `pc`, `desktop`, `mobile`); docs mirror it at `docs/<area>/<family>/<serial>.md`. Serials rise with creation date: a later trial in a family always takes the next number. The registry (`components/experiments.ts`) is authoritative for routable experiments, ISO dates, and archive navigation; the navigation's group view (`?view=group`) reads lineages from `foundations/navigation/families.ts`, where each new trial should be added to its family (unassigned keys appear as "unsorted"). `screen/default` is the promoted baseline; archived routes must not be repurposed.
 
 Dates are registry data, not folders. Date archives remain at `/<area>/<MMDD>` (for example `/screen/0908`, `/desktop/0915`, `/mobile/0930`) and list every experiment created that day or formerly filed under that dated folder.
 
@@ -15,7 +15,7 @@ Chronological log:
 | Route | Date | Former route | Proposition |
 | --- | --- | --- | --- |
 | `/screen/2d/1` | retained | — | Glyph swarm and media cells. [doc](./2d/1.md) |
-| `/screen/default` | current | — | Orthographic 3D attention field. [doc](./default.md) |
+| `/screen/default` | baseline (undated, earliest) | — | Orthographic 3D attention field. [doc](./default.md) |
 | `/screen/attraction-targets/1` | 2026-08-04 | `/screen/0804/tube` | Stations are fixed attraction targets. [doc](./screen/attraction-targets/1.md) |
 | `/screen/attraction-targets/2` | 2026-08-04 | `/screen/0804/html` | Live HTML forms enter the attention loop. [doc](./screen/attraction-targets/2.md) |
 | `/screen/attraction-targets/3` | 2026-08-04 | `/screen/0804/node-edge` | A revealed 3D topology is the field. [doc](./screen/attraction-targets/3.md) |
@@ -46,6 +46,8 @@ Chronological log:
 | `/screen/tech-eyes/2` | 2026-09-28 | `/screen/0922/interactive` | Participant clicks place story bubbles at their exact screen positions. [doc](./screen/tech-eyes/2.md) |
 | `/mobile/keyword-grid/1` | 2026-09-30 | `/mobile/0930/1` | Configure a keyword, place it on a map point; bubbles decay unless finger-skated. [doc](./mobile/keyword-grid/1.md) |
 | `/mobile/keyword-grid/2` | 2026-09-30 | `/mobile/0930/2` | + opens word and color pickers; bubbles collide and shrink over 30 seconds. [doc](./mobile/keyword-grid/2.md) |
+| `/screen/bubble/1` | 2026-10-20 | — | SCC bubble/3 copied, opening on 기본값 3. [doc](./screen/bubble/1.md) |
+| `/screen/bubble/2` | 2026-10-20 | — | bubble/1 with every bubble a lobe of Koons's coated mirror steel. [doc](./screen/bubble/2.md) |
 
 Each experiment is a complete local copy: no cross-experiment implementation or ledger imports. Exception: the desktop native-windows versions share infrastructure through `components/desktop/native-windows/shared/`. Existing public images may be addressed by URL; only immutable company logos are a shared collection (`public/assets/goldfishes/assets/company-logos`). Asset URLs must exist inside this independently deployed app; after changing a collection, run `pnpm audit:goldfishes-assets`.
 

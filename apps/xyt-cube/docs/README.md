@@ -28,7 +28,9 @@ clock defined directly in (x, y, t) (SCC clock palette; analogue and
 seven-segment), whose cube is turned like moving-image/1. Screen
 `/screen/clock/1`. [clock/2](./clock/2.md) is moving-image/2's operation on
 the same clock (the plane stays the present, the cube is bent; a true Möbius
-gluing replaces the flux). Screen `/screen/clock/2`.
+gluing replaces the flux). Screen `/screen/clock/2`. [clock/1-3d](./clock/1-3d.md)
+and [clock/2-3d](./clock/2-3d.md) do the same to a real 3D clock, ray-traced per
+pixel at the pixel's own time.
 
 New variants belong in `components/<family>/<serial>/`, with the doc at
 `docs/<family>/<serial>.md`; register the ISO date in
@@ -48,3 +50,5 @@ Clips are built with `scripts/build-atlas.sh`.
 | `/mobile/moving-image/2` | 2026-10-20 |
 | `/screen/clock/1` | 2026-10-20 |
 | `/screen/clock/2` | 2026-10-20 |
+| `/screen/clock/1-3d` | 2026-10-20 |
+| `/screen/clock/2-3d` | 2026-10-20 |

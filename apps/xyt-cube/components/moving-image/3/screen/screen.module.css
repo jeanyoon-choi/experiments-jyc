@@ -26,6 +26,19 @@
   font: 13px Arial, Helvetica, sans-serif;
 }
 
+/* The 3D view's pop-out button, bottom-left, in the panel trigger's style. */
+.viewToggle {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 10;
+}
+
+.viewToggle .trigger[aria-pressed="true"] {
+  background: #fff;
+  color: #171717;
+}
+
 .control * { box-sizing: border-box; }
 .control, .control * { -webkit-text-fill-color: currentColor !important; }
 

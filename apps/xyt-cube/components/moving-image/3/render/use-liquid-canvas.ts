@@ -25,10 +25,38 @@ import {
   type Operation,
   type Vector,
 } from "../model/geometry";
-import { LiquidRenderer, type LiquidCamera, type LiquidFrame, type LiquidPass } from "./renderer";
+import { LiquidRenderer, NEAR_SLOTS, type LiquidCamera, type LiquidFrame, type LiquidPass } from "./renderer";
 
 const AMOUNT_SMOOTHING_PER_SECOND = 10;
+const ADJUST_MS = 1000;
+const SLOW_MS = 19;
+/** At (or near) the display's own rate: 60 Hz frames are ~16.7 ms apart. */
+const FAST_MS = 17.6;
+/** Seconds of keeping up before stepping the resolution back up. */
+const RECOVER_SECONDS = 2;
+const MIN_QUALITY = 0.4;
 const MAX_FRAME_SECONDS = 0.1;
+/** The live video runs this far ahead of the present, so the window spans it. */
+const LIVE_LEAD_SECONDS = 0.6;
+/**
+ * Keeping the live video in step: small drift is absorbed by nudging its
+ * playback rate (a seek empties the window and shows as a blend); only a
+ * drift beyond LIVE_SEEK_SECONDS (a jump of the present) seeks.
+ */
+const LIVE_SEEK_SECONDS = 2;
+const LIVE_NUDGE = 0.05;
+/**
+ * Fastest rate the live window follows (the browser decodes the 1080p
+ * original at up to 4× smoothly); faster, the cube and its flow alone play.
+ */
+const LIVE_MAX_RATE = 4;
+
+/**
+ * The live window's source: a hidden, muted video of the original that plays
+ * in step with the present; each frame it presents is converted into the next
+ * ring slot with its clip time.
+ */
+type Live = { video: HTMLVideoElement; slot: number; lastTime: number; playing: boolean };
 
 /** What the screen asks for; read every animation frame. */
 export type LiquidState = {
@@ -129,6 +157,7 @@ export function useLiquidCanvas({
   const [renderer, setRenderer] = useState<LiquidRenderer | null>(null);
   /** The loaded clip's shape; null until the renderer holds (part of) it. */
   const volumeRef = useRef<{ aspect: number; fps: number; loop: Loop } | null>(null);
+  const liveRef = useRef<Live | null>(null);
   const layoutRef = useRef(layout);
   const [failure, setFailure] = useState<string | null>(null);
 
@@ -150,8 +179,12 @@ export function useLiquidCanvas({
     }
     queueMicrotask(() => setRenderer(renderer));
 
+    // Performance management: the canvas resolution follows the measured frame
+    // time (averaged each second: slower than SLOW_MS steps it down to at most
+    // MIN_QUALITY of the device ratio, faster than FAST_MS steps it back up).
+    let quality = 1;
     const resize = () => {
-      const ratio = Math.min(window.devicePixelRatio || 1, maxPixelRatio);
+      const ratio = Math.min(window.devicePixelRatio || 1, maxPixelRatio) * quality;
       renderer.resize(Math.max(1, Math.round(canvas.clientWidth * ratio)), Math.max(1, Math.round(canvas.clientHeight * ratio)));
     };
     const observer = new ResizeObserver(resize);
@@ -163,10 +196,36 @@ export function useLiquidCanvas({
     let shownTilt: Amount = [0, 0];
     let frameId = 0;
     let last = performance.now();
+    let lastAdjust = last;
+    let intervalSum = 0;
+    let intervalCount = 0;
+    let keptUp = 0;
     const tick = (now: number) => {
       frameId = requestAnimationFrame(tick);
-      const dt = Math.min((now - last) / 1000, MAX_FRAME_SECONDS);
+      const interval = now - last;
+      const dt = Math.min(interval / 1000, MAX_FRAME_SECONDS);
       last = now;
+      if (interval < 250) {
+        intervalSum += interval;
+        intervalCount += 1;
+      }
+      if (now - lastAdjust > ADJUST_MS && intervalCount > 10) {
+        const average = intervalSum / intervalCount;
+        keptUp = average < FAST_MS ? keptUp + 1 : 0;
+        const next =
+          average > SLOW_MS
+            ? Math.max(MIN_QUALITY, quality * 0.8)
+            : keptUp >= RECOVER_SECONDS
+              ? Math.min(1, quality * 1.12)
+              : quality;
+        if (Math.abs(next - quality) > 1e-3) {
+          quality = next;
+          resize();
+        }
+        lastAdjust = now;
+        intervalSum = 0;
+        intervalCount = 0;
+      }
       const volume = volumeRef.current;
       const state = stateRef.current;
       if (!volume) {
@@ -189,7 +248,36 @@ export function useLiquidCanvas({
       const extent: [number, number] = [width / scale / 2, height / scale / 2];
       const continuous = presentDepth(half, seconds / (loop.period / volume.fps));
       const span = timeSpan(operation, shown, shownTilt, continuous, half, loop, extent);
-      const present = shownPresent(continuous, half, loop, span);
+      // With a live window the present runs continuously (the window holds
+      // the frames); otherwise it snaps to a cube frame while the slice is flat.
+      const live = liveRef.current;
+      const present = live ? continuous : shownPresent(continuous, half, loop, span);
+      if (live) {
+        const duration = loop.period / volume.fps;
+        const presentSeconds = (((continuous / (2 * half[2]) + 0.5) * duration) % duration + duration) % duration;
+        const rate = state.rate;
+        const target = Math.min(presentSeconds + LIVE_LEAD_SECONDS * Math.max(rate, 1), live.video.duration || duration);
+        if (rate >= 1 && rate <= LIVE_MAX_RATE) {
+          const drift = live.video.currentTime - target;
+          if (Math.abs(drift) > LIVE_SEEK_SECONDS * rate) {
+            renderer.clearNear();
+            live.video.currentTime = target;
+            live.video.playbackRate = rate;
+          } else {
+            live.video.playbackRate = rate * (1 - Math.max(-LIVE_NUDGE, Math.min(LIVE_NUDGE, drift / rate)));
+          }
+          if (!live.playing) {
+            live.playing = true;
+            void live.video.play().catch(() => {
+              live.playing = false;
+            });
+          }
+        } else if (live.playing) {
+          live.playing = false;
+          live.video.pause();
+          renderer.clearNear();
+        }
+      }
       const frame: LiquidFrame = {
         half,
         operation: OPERATIONS.indexOf(operation),
@@ -226,6 +314,33 @@ export function useLiquidCanvas({
       console.error(`[moving-image/3] ${message}`);
       setFailure(message);
     };
+    const startLive = (src: string, width: number, height: number, abort: AbortSignal) => {
+      renderer.beginNear(width, height);
+      const video = document.createElement("video");
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = "auto";
+      video.src = src;
+      const live: Live = { video, slot: 0, lastTime: -1, playing: false };
+      const onFrame = (_now: number, metadata: VideoFrameCallbackMetadata) => {
+        if (abort.aborted) return;
+        if (metadata.mediaTime !== live.lastTime) {
+          live.lastTime = metadata.mediaTime;
+          renderer.writeNearFrame(live.slot, metadata.mediaTime, video);
+          live.slot = (live.slot + 1) % NEAR_SLOTS;
+        }
+        video.requestVideoFrameCallback(onFrame);
+      };
+      video.requestVideoFrameCallback(onFrame);
+      liveRef.current = live;
+      abort.addEventListener("abort", () => {
+        video.pause();
+        video.removeAttribute("src");
+        video.load();
+        if (liveRef.current === live) liveRef.current = null;
+      });
+    };
+    liveRef.current = null;
     loadLiquidClip(clipId, signal)
       .then(async (clip) => {
         signal.throwIfAborted();
@@ -233,6 +348,7 @@ export function useLiquidCanvas({
         renderer.setCuts(clip.frames, cutWindows(clip.flow.cuts, clip.frames, clip.fps));
         volumeRef.current = { aspect: clip.aspect, fps: clip.fps, loop: loopOf(clip.frames, clip.fps) };
         setFailure(null);
+        if (clip.live) startLive(clip.live, clip.width, clip.height, signal);
         await Promise.all([
           streamLiquidVideo(clip, (index, source) => renderer.writeVideoFrame(index, source), signal),
           streamLiquidFlow(clip, (index, rgba) => renderer.writeFlowLayer(index, rgba), signal),

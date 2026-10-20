@@ -9,6 +9,9 @@ export const liquidClips: readonly LiquidClip[] = [
   { id: "sintel-trailer", label: "Sintel 예고편" },
   { id: "bbb-trailer", label: "Big Buck Bunny 예고편" },
   { id: "tears-of-steel", label: "Tears of Steel 한 숏" },
+  // Local only (not committed: Apple keynote footage). 14.5 min at one frame
+  // per 3 s, plus a live window from the 30 fps original.
+  { id: "jobs-iphone-2007", label: "스티브 잡스 아이폰 발표" },
 ];
 
 export const defaultLiquidClipId = liquidClips[0].id;
@@ -17,6 +20,8 @@ type CubeManifest = {
   frames: number;
   fps: number;
   full: { width: number; height: number; video: string };
+  /** The original at its own frame rate, same size and start, for the live window. */
+  live?: { video: string };
 };
 
 type FlowManifest = {
@@ -39,6 +44,8 @@ export type LiquidVideo = {
   aspect: number;
   src: string;
   flow: FlowManifest & { src: string };
+  /** The original at its own frame rate (clip second 0 = its second 0), or null. */
+  live: string | null;
 };
 
 export async function loadLiquidClip(id: string, signal?: AbortSignal): Promise<LiquidVideo> {
@@ -60,6 +67,7 @@ export async function loadLiquidClip(id: string, signal?: AbortSignal): Promise<
     aspect: width / height,
     src: `${base}/${video}`,
     flow: { ...flow, src: `${base}/flow.bin.gz` },
+    live: manifest.live ? `${base}/${manifest.live.video}` : null,
   };
 }
 

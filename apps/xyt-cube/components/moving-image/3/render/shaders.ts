@@ -55,6 +55,12 @@ uniform vec2 amount;
 uniform vec2 tilt;          // the plane's turn about y, then x (radians)
 uniform float present;      // the present's depth on the undeformed cube
 uniform vec4 viewport;      // x, y, width, height in device px
+uniform sampler2DArray nearLuma;    // the live window: Y of the original frames near the present
+uniform sampler2DArray nearChroma;  //   and their half-size CbCr
+uniform float nearTimes[40];        // clip times (s) in ascending order; < -1e8: empty (at the end)
+uniform float nearSlots[40];        // the slot (texture layer) of each sorted time
+uniform float nearCount;            // filled entries
+uniform float fps;                  // the cube's frames per clip second
 
 out vec4 colour;
 
@@ -248,12 +254,50 @@ vec3 pictureAt(vec2 p, float f) {
   return (w0 * frameAt(p0, i) + w1 * frameAt(p1, i + 1.0)) / (w0 + w1);
 }
 
-/** The clip at time f: across a shot cut, the run-on before it fades into the run-on after it. */
-vec3 clipAt(vec2 p, float f) {
+/** The cube's own medium at time f: across a shot cut, the run-on before it fades into the run-on after it. */
+vec3 cubeClipAt(vec2 p, float f) {
   vec4 cut = texelFetch(cutWindows, ivec2(int(clamp(floor(f), 0.0, frames - 2.0)), 0), 0);
   if (cut.x < 0.0 || f < cut.x || f > cut.y) return pictureAt(p, f);
   float x = (f - cut.x) / (cut.y - cut.x);
   return mix(pictureAt(p, min(f, cut.z)), pictureAt(p, max(f, cut.w)), x * x * (3.0 - 2.0 * x));
+}
+
+// The live window: the original video at its own frame rate, a second or so
+// around the present (a temporal level of detail over a sparsely sampled
+// cube). w is 1 inside it, fading to 0 over its last 0.15 s at either end and
+// 0 where its frames are more than 0.2 s apart (a gap) or it is empty.
+vec4 nearAt(vec2 p, float seconds) {
+  int n = int(nearCount);
+  if (n < 2) return vec4(0.0);
+  float lo = nearTimes[0];
+  float hi = nearTimes[n - 1];
+  if (seconds < lo || seconds > hi || hi - lo < 0.35) return vec4(0.0);
+  // The frames are nearly evenly spaced: start from the proportional guess
+  // and step to the bracketing pair.
+  int k = clamp(int((seconds - lo) / (hi - lo) * float(n - 1)), 0, n - 2);
+  for (int i = 0; i < 4; i++) {
+    if (k > 0 && nearTimes[k] > seconds) k -= 1;
+    else if (k < n - 2 && nearTimes[k + 1] < seconds) k += 1;
+  }
+  float below = nearTimes[k];
+  float above = nearTimes[k + 1];
+  if (above - below > 0.2) return vec4(0.0);
+  float w = smoothstep(lo, lo + 0.15, seconds) * (1.0 - smoothstep(hi - 0.15, hi, seconds));
+  float a = clamp((seconds - below) / max(above - below, 1e-5), 0.0, 1.0);
+  vec2 uv = p / frameSize;
+  float l0 = nearSlots[k];
+  float l1 = nearSlots[k + 1];
+  vec3 ycc0 = vec3(texture(nearLuma, vec3(uv, l0)).r, texture(nearChroma, vec3(uv, l0)).rg);
+  vec3 ycc1 = vec3(texture(nearLuma, vec3(uv, l1)).r, texture(nearChroma, vec3(uv, l1)).rg);
+  return vec4(mix(ycc0, ycc1, a), w);
+}
+
+/** The clip at time f (frames): the live window where it holds the moment, the cube elsewhere. */
+vec3 clipAt(vec2 p, float f) {
+  vec4 near = nearAt(p, f / fps);
+  if (near.w >= 1.0) return near.xyz;
+  vec3 cube = cubeClipAt(p, f);
+  return near.w > 0.0 ? mix(cube, near.xyz, near.w) : cube;
 }
 
 vec2 pixelOf(vec2 cxy) {

@@ -144,10 +144,9 @@ function getDateArchive(experiments: NavigationExperiment[]) {
 
 function groupByDate(experiments: NavigationExperiment[]) {
   const groups: ExperimentGroup[] = [];
+  // Undated experiments are the first baselines, older than every dated trial:
+  // they close the list.
   const undated = experiments.filter((experiment) => activity(experiment) === null);
-  if (undated.length > 0) {
-    groups.push({ key: "current", label: "current", experiments: undated });
-  }
 
   const dates = Array.from(
     new Set(
@@ -169,6 +168,10 @@ function groupByDate(experiments: NavigationExperiment[]) {
       href: archive ? `/${archive}` : undefined,
       experiments: dateExperiments,
     });
+  }
+
+  if (undated.length > 0) {
+    groups.push({ key: "baseline", label: "baseline", experiments: undated });
   }
 
   return groups;
@@ -293,14 +296,14 @@ function ExperimentRow({
       {activity(experiment) ? (
         <time
           dateTime={activity(experiment)!}
-          title={experiment.updated ? `created ${experiment.date ? getDateLabel(experiment.date) : "current"}` : undefined}
+          title={experiment.updated ? `created ${experiment.date ? getDateLabel(experiment.date) : "baseline"}` : undefined}
           className="font-mono text-[10px] text-(--gf-fg)/45 group-hover:text-(--gf-bg)/55 group-focus-visible:text-(--gf-bg)/55"
         >
           {getDateLabel(activity(experiment)!)}
         </time>
       ) : (
         <span className="font-mono text-[10px] text-(--gf-fg)/45 group-hover:text-(--gf-bg)/55 group-focus-visible:text-(--gf-bg)/55">
-          current
+          baseline
         </span>
       )}
       <span className="hidden truncate font-mono text-[10px] text-(--gf-fg)/32 group-hover:text-(--gf-bg)/45 group-focus-visible:text-(--gf-bg)/45 md:block">
@@ -348,7 +351,7 @@ function NavigationScreen({
         getShortName(experiment.key),
         experiment.phrase,
         experiment.date ?? "",
-        experiment.date ? getDateLabel(experiment.date) : "current",
+        experiment.date ? getDateLabel(experiment.date) : "baseline",
         experiment.updated ?? "",
         experiment.updated ? getDateLabel(experiment.updated) : "",
       ]

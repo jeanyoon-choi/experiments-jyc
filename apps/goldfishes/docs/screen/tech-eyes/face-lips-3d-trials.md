@@ -16,7 +16,7 @@ Dario Amodei (IDs 001–005). Each uses the same locally held Commons portrait
 as its 3D eye study. A centered facial projection covers a rounded volume;
 from the front the person should remain recognizable, while rotation reveals
 the deliberately strange sphere rather than a photo card. Photo credits and
-licenses remain in the [eye source ledger](../../../components/screen/tech-eyes/1/model/tech-eye-3d-profiles.generated.json).
+licenses remain in the [eye source ledger](../../../components/screen/archive/tech-eyes/1/model/tech-eye-3d-profiles.generated.json).
 
 Lips test: Sam Altman 001, Lisa Su 011, Bill McDermott 035, Arthur Mensch 030,
 and Bill Gates 078. Their original `tech-power-lips-v2` crops remain the exact
@@ -87,7 +87,7 @@ varied upper/lower 3D forms. The higher-resolution group comprises 45 newly
 extracted local crops, two
 preserved trial crops (030, 035), and 17 further exact-person, licence-matched
 Commons originals recorded in
-[`lips-3d-upgrade-batch.json`](../../../components/screen/tech-eyes/1/source/lips-3d-upgrade-batch.json).
+[`lips-3d-upgrade-batch.json`](../../../components/screen/archive/tech-eyes/1/source/lips-3d-upgrade-batch.json).
 The field form is slightly larger than the five-source trial, with a less
 glossy, more skin-like finish. Browser comparison exposed a reversed atlas
 row index that had darkened many mouths; correcting it restored each

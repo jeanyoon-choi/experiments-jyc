@@ -29,7 +29,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "default",
     date: null,
     phrase: "Orthographic 3D goldfish attraction field",
-    load: () => import("./screen/default"),
+    load: () => import("./screen/archive/default"),
   },
   {
     key: "screen/2d/1",
@@ -38,7 +38,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "2d",
     date: null,
     phrase: "Glyph swarm and media attention cells",
-    load: () => import("./screen/2d/1"),
+    load: () => import("./screen/archive/2d/1"),
   },
   {
     key: "screen/attraction-targets/1",
@@ -47,7 +47,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-08-04",
     phrase: "Tube stations as persistent attraction targets",
-    load: () => import("./screen/attraction-targets/1"),
+    load: () => import("./screen/archive/attraction-targets/1"),
   },
   {
     key: "screen/attraction-targets/2",
@@ -56,7 +56,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-08-04",
     phrase: "Live HTML forms as bidirectional attraction targets",
-    load: () => import("./screen/attraction-targets/2"),
+    load: () => import("./screen/archive/attraction-targets/2"),
   },
   {
     key: "screen/attraction-targets/3",
@@ -65,7 +65,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-08-04",
     phrase: "Entropy-generated 3D topology as a persistent attraction field",
-    load: () => import("./screen/attraction-targets/3"),
+    load: () => import("./screen/archive/attraction-targets/3"),
   },
   {
     key: "screen/pillars/1",
@@ -74,7 +74,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-08-04",
     phrase: "Randomized vertical attention pillars",
-    load: () => import("./screen/pillars/1"),
+    load: () => import("./screen/archive/pillars/1"),
   },
   {
     key: "screen/pillars/2",
@@ -83,7 +83,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-08-06",
     phrase: "Pillars fork with a side-on initial view",
-    load: () => import("./screen/pillars/2"),
+    load: () => import("./screen/archive/pillars/2"),
   },
   {
     key: "screen/media-grid/1",
@@ -92,7 +92,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-08-06",
     phrase: "Locally reconfiguring composite media grid",
-    load: () => import("./screen/media-grid/1"),
+    load: () => import("./screen/archive/media-grid/1"),
   },
   {
     key: "screen/pillars/3",
@@ -101,7 +101,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-08-06",
     phrase: "Temporal pillars accumulating beneath a fixed present",
-    load: () => import("./screen/pillars/3"),
+    load: () => import("./screen/archive/pillars/3"),
   },
   {
     key: "screen/pillars/4",
@@ -110,7 +110,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-08-06",
     phrase: "Short-lived active strata leaving frozen pillars",
-    load: () => import("./screen/pillars/4"),
+    load: () => import("./screen/archive/pillars/4"),
   },
   {
     key: "screen/keyword-field/2",
@@ -119,7 +119,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "A goldfish school attending a spreading keyword field",
-    load: () => import("./screen/keyword-field/2"),
+    load: () => import("./screen/archive/keyword-field/2"),
   },
   {
     key: "screen/keyword-field/1",
@@ -128,7 +128,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Instagram/4 keyword field preserved unchanged",
-    load: () => import("./screen/keyword-field/1"),
+    load: () => import("./screen/archive/keyword-field/1"),
   },
   {
     key: "screen/overlay-3d/1",
@@ -137,7 +137,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Original Instagram/4 field with a transparent goldfish school",
-    load: () => import("./screen/overlay-3d/1"),
+    load: () => import("./screen/archive/overlay-3d/1"),
   },
   {
     key: "screen/overlay-3d/2",
@@ -146,7 +146,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Original 3D goldfish school with configurable keyword surfaces",
-    load: () => import("./screen/overlay-3d/2"),
+    load: () => import("./screen/archive/overlay-3d/2"),
   },
   {
     key: "screen/overlay-3d/3",
@@ -155,7 +155,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Original 3D goldfish school with switchable technology typefaces",
-    load: () => import("./screen/overlay-3d/3"),
+    load: () => import("./screen/archive/overlay-3d/3"),
   },
   {
     key: "screen/overlay-3d/4",
@@ -164,7 +164,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Recorded underwater textures from goldfish approach events",
-    load: () => import("./screen/overlay-3d/4"),
+    load: () => import("./screen/archive/overlay-3d/4"),
   },
   {
     key: "screen/overlay-3d/5",
@@ -173,7 +173,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Slower, roomier attention field with approach rings initially hidden",
-    load: () => import("./screen/overlay-3d/5"),
+    load: () => import("./screen/archive/overlay-3d/5"),
   },
   {
     key: "screen/overlay-2d/1",
@@ -182,7 +182,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Original Instagram/4 field with Canvas2D goldfish glyphs",
-    load: () => import("./screen/overlay-2d/1"),
+    load: () => import("./screen/archive/overlay-2d/1"),
   },
   {
     key: "screen/overlay-2d/2",
@@ -191,7 +191,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Persistent individual goldfish trails replacing influence edges",
-    load: () => import("./screen/overlay-2d/2"),
+    load: () => import("./screen/archive/overlay-2d/2"),
   },
   {
     key: "screen/overlay-2d/3",
@@ -200,7 +200,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Local attention and trail memory co-evolving with the keyword field",
-    load: () => import("./screen/overlay-2d/3"),
+    load: () => import("./screen/archive/overlay-2d/3"),
   },
   {
     key: "screen/overlay-2d/4",
@@ -209,7 +209,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Explicit fish targets, attention contact and keyword propagation",
-    load: () => import("./screen/overlay-2d/4"),
+    load: () => import("./screen/archive/overlay-2d/4"),
   },
   {
     key: "screen/attention-print/1",
@@ -218,7 +218,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Serial technology signs interrupted by living attention and accumulated ink",
-    load: () => import("./screen/attention-print/1"),
+    load: () => import("./screen/archive/attention-print/1"),
   },
   {
     key: "screen/tech-eyes/1",
@@ -227,7 +227,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-22",
     phrase: "Preserved overlay-5 attention field as the 0922 baseline",
-    load: () => import("./screen/tech-eyes/1"),
+    load: () => import("./screen/archive/tech-eyes/1"),
   },
   {
     key: "screen/tech-eyes/2",
@@ -236,7 +236,23 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-28",
     phrase: "Click to place each story bubble freely among the goldfish",
-    load: () => import("./screen/tech-eyes/2"),
+    load: () => import("./screen/archive/tech-eyes/2"),
+  },
+  {
+    key: "screen/bubble/1",
+    area: "screen",
+    section: "dated",
+    date: "2026-10-20",
+    phrase: "SCC bubble/3's PageRank foam raft and goldfish, opening on 기본값 3",
+    load: () => import("./screen/bubble/1"),
+  },
+  {
+    key: "screen/bubble/2",
+    area: "screen",
+    section: "dated",
+    date: "2026-10-20",
+    phrase: "bubble/1's raft with every bubble a lobe of Koons's coated mirror steel",
+    load: () => import("./screen/bubble/2"),
   },
   {
     key: "pc/news-phones/1",

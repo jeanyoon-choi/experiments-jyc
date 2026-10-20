@@ -24,7 +24,7 @@ The existing global backboard filter still affects the scene and inspector.
 
 ## Sources and limits
 
-[Generated source ledger](../../../components/screen/tech-eyes/1/model/tech-eye-3d-profiles.generated.json)
+[Generated source ledger](../../../components/screen/archive/tech-eyes/1/model/tech-eye-3d-profiles.generated.json)
 records each exact Commons source, author/license, raster dimensions, eye
 coordinates, and acquisition status. Final distribution: 58 Commons thumbnails,
 17 Commons originals, 5 previously downloaded Commons rasters; 80 valid Vision
@@ -38,7 +38,7 @@ Iris windows remain small even in some larger portraits; glasses, illumination,
 occlusion and landmark estimates limit identity fidelity. Unseen anatomy and
 microdetail are authored, not recovered. The first generic generated iris atlas
 was rejected and removed from runtime; its
-[prompt and rejected asset](../../../components/screen/tech-eyes/1/source/tech-eye-3d-rejected/README.md)
+[prompt and rejected asset](../../../components/screen/archive/tech-eyes/1/source/tech-eye-3d-rejected/README.md)
 remain local experiment history.
 
 ## Bounded rendering

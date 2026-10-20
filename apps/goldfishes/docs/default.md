@@ -14,7 +14,7 @@ Selected cells retain perimeter attraction, collision behavior, optional media
 surfaces, and protected-cell behavior. Leva remains a collapsed authoring
 surface rather than participant-facing interface chrome.
 
-`apps/goldfishes/components/screen/default` owns its complete model, renderer, atlas code,
+`apps/goldfishes/components/screen/archive/default` owns its complete model, renderer, atlas code,
 media-source ledgers, screen, and styles. It does not supply code to dated
 experiments. Promoting a future experiment means deliberately replacing this
 directory while retaining that experiment under its original date.

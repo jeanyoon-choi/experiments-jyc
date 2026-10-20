@@ -33,7 +33,10 @@ const FRACTAL_PHASE_LENGTH = FRACTAL_NODES.length * 3;
  */
 const ADJUST_MS = 1000;
 const SLOW_MS = 19;
-const FAST_MS = 15;
+/** At (or near) the display's own rate: 60 Hz frames are ~16.7 ms apart. */
+const FAST_MS = 17.6;
+/** Seconds of keeping up before stepping the resolution back up. */
+const RECOVER_SECONDS = 2;
 const MIN_QUALITY = 0.4;
 const READOUT_MS = 250;
 const DEGREE = Math.PI / 180;
@@ -148,6 +151,7 @@ export function useClockCanvas({
     let lastAdjust = last;
     let intervalSum = 0;
     let intervalCount = 0;
+    let keptUp = 0;
     const tick = (now: number) => {
       frameId = requestAnimationFrame(tick);
       const interval = now - last;
@@ -159,10 +163,11 @@ export function useClockCanvas({
       }
       if (now - lastAdjust > ADJUST_MS && intervalCount > 10) {
         const average = intervalSum / intervalCount;
+        keptUp = average < FAST_MS ? keptUp + 1 : 0;
         const next =
           average > SLOW_MS
             ? Math.max(MIN_QUALITY, quality * 0.8)
-            : average < FAST_MS
+            : keptUp >= RECOVER_SECONDS
               ? Math.min(1, quality * 1.12)
               : quality;
         if (Math.abs(next - quality) > 1e-3) {

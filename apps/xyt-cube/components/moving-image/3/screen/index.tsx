@@ -16,7 +16,6 @@ import { Chip, Chips, Panel, Reset, Slider } from "./controls";
 import styles from "./screen.module.css";
 
 const MAX_DEVICE_PIXEL_RATIO = 2;
-const INSET_SHARE = 0.44;
 const KEY_SHARE = 0.02;
 
 /** What a drag or the arrow keys change: the plane's tilt or the cube's geometry. */
@@ -24,6 +23,10 @@ type Mode = "rotate" | "bend";
 
 const RATE_CHIPS: readonly { rate: number; label: string }[] = [
   { rate: 1, label: "재생" },
+  { rate: 2, label: "2배" },
+  { rate: 4, label: "4배" },
+  { rate: 16, label: "16배" },
+  { rate: 60, label: "60배" },
   { rate: 0, label: "정지" },
   { rate: -1, label: "역재생" },
 ];
@@ -71,7 +74,8 @@ export default function LiquidCubeScreen() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const dragRef = useRef<{ id: number; x: number; y: number } | null>(null);
   const [panelOpen, setPanelOpen] = useState(true);
-  const [showSolid, setShowSolid] = useState(true);
+  /** The 3D cube view, popped out to fill the screen by the bottom-left button. */
+  const [solidView, setSolidView] = useState(false);
   const [mode, setMode] = useState<Mode>("bend");
   const [operation, setOperation] = useState<Operation>("shear");
   const [amounts, setAmounts] = useState<Record<Operation, Amount>>(FLAT);
@@ -112,19 +116,12 @@ export default function LiquidCubeScreen() {
 
   const layout = useCallback<LiquidLayout>(
     (width, height, view, ring) => {
-      const passes: ReturnType<LiquidLayout> = [{ kind: "slice", viewport: [0, 0, width, height] }];
-      if (showSolid) {
-        const size = Math.round(height * INSET_SHARE);
-        const margin = Math.round(height * 0.03);
-        passes.push({
-          kind: "solid",
-          viewport: [margin, margin, size, size],
-          camera: solidCamera(view, 1, ring ? 0.8 : 1.05, ring ? 0.75 : 0.36),
-        });
-      }
-      return passes;
+      const full = [0, 0, width, height] as const;
+      return solidView
+        ? [{ kind: "solid", viewport: full, camera: solidCamera(view, width / height, ring ? 0.8 : 1.05, ring ? 0.75 : 0.36) }]
+        : [{ kind: "slice", viewport: full }];
     },
-    [showSolid],
+    [solidView],
   );
 
   const { failure } = useLiquidCanvas({ canvasRef, stateRef, clipId, layout, maxPixelRatio: MAX_DEVICE_PIXEL_RATIO });
@@ -174,6 +171,26 @@ export default function LiquidCubeScreen() {
         onPointerCancel={onPointerEnd}
         onKeyDown={onKeyDown}
       />
+
+      <div className={styles.viewToggle}>
+        <button
+          type="button"
+          className={styles.trigger}
+          aria-label={solidView ? "단면으로 돌아가기" : "3D 큐브 보기"}
+          aria-pressed={solidView}
+          onClick={() => setSolidView((current) => !current)}
+        >
+          <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
+            <path
+              d="M4 7l6-3 6 3v7l-6 3-6-3zM4 7l6 3 6-3M10 10v7"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
 
       <div className={styles.control}>
         {panelOpen && (
@@ -237,11 +254,6 @@ export default function LiquidCubeScreen() {
               </Chip>
               <Chip pressed={!liquid} onClick={() => setLiquid(false)}>
                 교차 (2번)
-              </Chip>
-            </Chips>
-            <Chips label="보기">
-              <Chip pressed={showSolid} onClick={() => setShowSolid((value) => !value)}>
-                큐브 보기
               </Chip>
             </Chips>
             <Reset onClick={flatten}>평평하게</Reset>
