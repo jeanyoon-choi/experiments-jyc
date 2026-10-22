@@ -263,6 +263,6 @@ export const PRESET_3 = {
   carry: true,
   fishCount: 380,
   fish: { ...FISH_DEFAULTS, scale: 0.65, speed: 2.2, follow: 0.6, novelty: 1, habituation: 1.75, span: 0.5, schooling: 2, patrol: 1 } satisfies FishParameters,
-  fishPalette: "mono" as FishPaletteId,
+  fishPalette: "rose" as FishPaletteId,
   influence: 0.52,
 };
