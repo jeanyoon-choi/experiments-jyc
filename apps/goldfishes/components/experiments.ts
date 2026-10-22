@@ -263,6 +263,14 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     load: () => import("./screen/bubble/3"),
   },
   {
+    key: "screen/bubble/4",
+    area: "screen",
+    section: "dated",
+    date: "2026-10-22",
+    phrase: "bubble/3 copied as the start of the goldfish's lifecycle",
+    load: () => import("./screen/bubble/4"),
+  },
+  {
     key: "pc/news-phones/1",
     legacyKeys: ["pc/0908/default"],
     area: "pc",

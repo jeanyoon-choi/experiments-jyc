@@ -248,18 +248,6 @@ export const LOOKS: readonly { id: string; label: string; look: Partial<Visual> 
     label: "금빛 숲",
     look: { coating: [1, 0.74, 0.32], viewTilt: 0.7, lightTurn: 0.3, photo: 4, photoStrength: 1.6, keyStrength: 0.4, keySize: 0.6, shadowLift: 0.05, groundLight: 0.4, roughness: 0.18, clearcoat: 0.3, variety: 0.15, background: [0.93, 0.9, 0.84], exposure: 0.9 },
   },
-  // A city at night on red steel, over dark ground, from the side.
-  {
-    id: "night",
-    label: "밤 도시",
-    look: { coating: [0.95, 0.07, 0.08], viewTilt: 1, lightTurn: 0.6, photo: 3, photoStrength: 2, keyStrength: 0, shadowLift: 0.02, groundLight: 0.5, roughness: 0.08, clearcoat: 0.5, variety: 0.15, background: [0.04, 0.04, 0.06], exposure: 1 },
-  },
-  // Crimson in black ink, from straight above, one small hard key.
-  {
-    id: "ink",
-    label: "먹물",
-    look: { coating: [0.82, 0.04, 0.1], viewTilt: 0, lightTurn: 0.875, photo: 2, photoStrength: 0.15, keyStrength: 3, keySize: 0.2, shadowLift: 0.02, groundLight: 1.4, edgeShadow: 0.4, colourBleed: 0.4, roughness: 0.04, clearcoat: 0.6, variety: 0.15, background: [0.05, 0.05, 0.06], exposure: 1 },
-  },
 ];
 
 /** The renderer's look for a frame: the visual panel's, without the raft's own area and portions. */
