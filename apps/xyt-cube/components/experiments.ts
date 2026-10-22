@@ -80,8 +80,17 @@ export const xytCubeExperiments: readonly XytCubeExperiment[] = [
   {
     key: "screen/moving-image/3",
     date: "2026-10-20",
+    updated: "2026-10-22",
     label: "Liquid cube — continuous slices",
     load: () => import("./moving-image/3/screen"),
+  },
+  // moving-image/4: moving-image/3 over fixed-viewpoint time-lapses (a day,
+  // a crossing, the Earth, a glacier's decades). Screen only.
+  {
+    key: "screen/moving-image/4",
+    date: "2026-10-22",
+    label: "Time-lapse cube",
+    load: () => import("./moving-image/4/screen"),
   },
   // clock/1: not recorded footage but a clock defined in (x, y, t), whose cube
   // is turned like moving-image/1. Screen only.

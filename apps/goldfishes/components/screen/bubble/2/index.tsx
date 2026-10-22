@@ -1,38 +1,22 @@
 "use client";
 
-// bubble/2: bubble/1 with a second material — every bubble a lobe of Koons's
-// coated mirror steel (Balloon Dog) — opening on it in magenta. This component holds the panels' state and the
-// pointer. Folders: web/ (model), raft/ (layout, views, shared state),
-// render/ (frame loop, WebGL), fish/, media/, sound/, panels/.
+// bubble/2: bubble/1's raft with every bubble a lobe of Koons's coated mirror
+// steel (Balloon Dog), opening in magenta. This component holds the panels'
+// state and the pointer. Folders: web/ (model), raft/ (layout, views, shared
+// state), render/ (frame loop, WebGL), fish/, sound/, panels/.
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import styles from "./bubble-three.module.css";
-import { startFrameLoop, type FrameLoop, type LoopSettings } from "./render/frame-loop";
+import { startFrameLoop, type LoopSettings } from "./render/frame-loop";
 import { FISH_DEFAULTS, type FishPaletteId, type FishParameters } from "./fish/goldfish";
-import { DEFAULT_KEYWORD_STYLE, DEFAULT_SURFACE, isTextSurface, textSizeFor, type KeywordStyle, type SurfaceId } from "./media/catalogue";
-import { MEDIA_DEFAULTS, type MediaParameters } from "./media/model";
 import { DEFAULT_DIVERSITY, DEFAULT_PARAMETERS, fadeCandidate } from "./web/model";
 import { FishPanel } from "./panels/fish-panel";
-import { MediaPanel } from "./panels/media-panel";
 import { NetworkPanel, type Rates } from "./panels/network-panel";
 import { PanelTriggers } from "./panels/panel-triggers";
 import { SoundPanel } from "./panels/sound-panel";
 import { VisualPanel } from "./panels/visual-panel";
 import { Raft } from "./raft/raft";
-import {
-  DEFAULT_FISH_PALETTE,
-  DEFAULT_INFLUENCE,
-  DEFAULT_MAPPING,
-  DEFAULT_ON_TOUCH,
-  IMAGE_ENVIRONMENT,
-  MEDIA_LOOK_DEFAULTS,
-  PRESET_3,
-  SECOND_BACKGROUND,
-  VISUAL_DEFAULTS,
-  type MediaLook,
-  type PanelId,
-  type Visual,
-} from "./settings";
+import { DEFAULT_FISH_PALETTE, DEFAULT_INFLUENCE, PRESET_3, SECOND_BACKGROUND, VISUAL_DEFAULTS, type PanelId, type Visual } from "./settings";
 import { SOUND_DEFAULTS, type SoundParameters } from "./sound/sound";
 import { useTouchSound } from "./sound/use-touch-sound";
 import type { ViewId } from "./raft/views";
@@ -54,7 +38,6 @@ export default function RankedWebIteration() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fishCanvasRef = useRef<HTMLCanvasElement>(null);
   const [raft] = useState(() => new Raft({ pages: PRESET_3.pages, groups: PRESET_3.groups, damping: PRESET_3.damping }));
-  const loopRef = useRef<FrameLoop | null>(null);
   const pressRef = useRef<Press | null>(null);
 
   const [panel, setPanel] = useState<PanelId | null>(null);
@@ -69,15 +52,6 @@ export default function RankedWebIteration() {
   const [diversity, setDiversity] = useState(DEFAULT_DIVERSITY);
   // 비주얼
   const [visual, setVisual] = useState<Visual>(PRESET_3.visual);
-  const [imageName, setImageName] = useState<string | null>(null);
-  // 미디어
-  const [surface, setSurface] = useState<SurfaceId>(PRESET_3.surface);
-  const [keywordStyle, setKeywordStyle] = useState<KeywordStyle>(DEFAULT_KEYWORD_STYLE);
-  const [mapping, setMapping] = useState<number>(PRESET_3.mapping);
-  const [media, setMedia] = useState<MediaParameters>(PRESET_3.media);
-  const [mediaLook, setMediaLook] = useState<MediaLook>(PRESET_3.mediaLook);
-  const [carry, setCarry] = useState(PRESET_3.carry);
-  const [onTouch, setOnTouch] = useState(PRESET_3.onTouch);
   // 금붕어
   const [fishCount, setFishCount] = useState(PRESET_3.fishCount);
   const [fish, setFish] = useState<FishParameters>(PRESET_3.fish);
@@ -91,11 +65,6 @@ export default function RankedWebIteration() {
   const settingsRef = useRef<LoopSettings>({
     parameters: { ...DEFAULT_PARAMETERS, ...PRESET_3.rates },
     visual: PRESET_3.visual,
-    mapping: PRESET_3.mapping,
-    media: PRESET_3.media,
-    mediaLook: PRESET_3.mediaLook,
-    carry: PRESET_3.carry,
-    onTouch: PRESET_3.onTouch,
     fishCount: PRESET_3.fishCount,
     fish: PRESET_3.fish,
     fishPalette: PRESET_3.fishPalette,
@@ -105,33 +74,20 @@ export default function RankedWebIteration() {
     settingsRef.current = {
       parameters: { ...DEFAULT_PARAMETERS, ...rates },
       visual,
-      mapping,
-      media,
-      mediaLook,
-      carry,
-      onTouch,
       fishCount,
       fish,
       fishPalette,
       influence,
     };
-  }, [rates, visual, mapping, media, mediaLook, carry, onTouch, fishCount, fish, fishPalette, influence]);
+  }, [rates, visual, fishCount, fish, fishPalette, influence]);
 
   const { playing } = touchSound;
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const loop = startFrameLoop(raft, canvas, fishCanvasRef.current, settingsRef, { sound: playing, summary: setSummary, frameCost: setFrameCost });
-    loopRef.current = loop;
-    return () => {
-      loopRef.current = null;
-      loop?.dispose();
-    };
+    return () => loop?.dispose();
   }, [raft, playing]);
-  // After the loop (re)starts, which opens on the catalogue's default surface: 기본값 3 opens on 없음.
-  useEffect(() => {
-    loopRef.current?.applySurface(surface, keywordStyle);
-  }, [surface, keywordStyle, playing]);
 
   const togglePanel = useCallback((id: PanelId) => setPanel((current) => (current === id ? null : id)), []);
   const changeView = (next: ViewId) => {
@@ -234,19 +190,7 @@ export default function RankedWebIteration() {
           />
         )}
         {panel === "visual" && (
-          <VisualPanel
-            visual={visual}
-            setVisual={setVisual}
-            imageName={imageName}
-            onImage={async (file) => {
-              if (!loopRef.current) return;
-              const image = await createImageBitmap(file);
-              loopRef.current?.setEnvironmentImage(image);
-              image.close();
-              setImageName(file.name);
-              setVisual((current) => ({ ...current, envMode: IMAGE_ENVIRONMENT }));
-            }}
-          />
+          <VisualPanel visual={visual} setVisual={setVisual} />
         )}
         {panel === "fish" && (
           <FishPanel
@@ -275,12 +219,6 @@ export default function RankedWebIteration() {
               setPopulation(PRESET_3.pages);
               raft.requestRestart(PRESET_3.pages);
               setVisual(PRESET_3.visual);
-              setSurface(PRESET_3.surface);
-              setMapping(PRESET_3.mapping);
-              setMedia(PRESET_3.media);
-              setMediaLook(PRESET_3.mediaLook);
-              setCarry(PRESET_3.carry);
-              setOnTouch(PRESET_3.onTouch);
               setFishCount(PRESET_3.fishCount);
               setFish(PRESET_3.fish);
               setFishPalette(PRESET_3.fishPalette);
@@ -288,39 +226,8 @@ export default function RankedWebIteration() {
             }}
           />
         )}
-        {panel === "media" && visual.material !== 1 && (
-          <MediaPanel
-            surface={surface}
-            onSurface={(next) => {
-              setSurface(next);
-              // A text surface starts at its own 글자 크기.
-              if (next !== surface && isTextSurface(next)) setKeywordStyle((current) => (current.fill !== "none" ? current : { ...current, size: textSizeFor(next) }));
-            }}
-            keywordStyle={keywordStyle}
-            setKeywordStyle={setKeywordStyle}
-            onTouch={onTouch}
-            setOnTouch={setOnTouch}
-            mapping={mapping}
-            setMapping={setMapping}
-            media={media}
-            setMedia={setMedia}
-            mediaLook={mediaLook}
-            setMediaLook={setMediaLook}
-            carry={carry}
-            setCarry={setCarry}
-            onDefaults={() => {
-              setSurface(DEFAULT_SURFACE);
-              setKeywordStyle(DEFAULT_KEYWORD_STYLE);
-              setMapping(DEFAULT_MAPPING);
-              setMedia(MEDIA_DEFAULTS);
-              setMediaLook(MEDIA_LOOK_DEFAULTS);
-              setCarry(true);
-              setOnTouch(DEFAULT_ON_TOUCH);
-            }}
-          />
-        )}
         {panel === "sound" && <SoundPanel on={touchSound.on} onToggle={touchSound.toggle} sound={sound} setSound={setSound} />}
-        <PanelTriggers panel={panel} onToggle={togglePanel} soundOn={touchSound.on} hidden={visual.material === 1 ? ["media"] : []} />
+        <PanelTriggers panel={panel} onToggle={togglePanel} soundOn={touchSound.on} />
       </div>
     </main>
   );

@@ -38,17 +38,6 @@ const TRIGGERS: readonly { id: PanelId; label: string; icon: (soundOn: boolean) 
     ),
   },
   {
-    id: "media",
-    label: "미디어 옵션",
-    icon: () => (
-      <>
-        <rect x="3" y="4" width="14" height="12" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.4" />
-        <path d="M3.5 14l4-4.5 3 3 2-2 4 3.5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-        <circle cx="13" cy="7.5" r="1.2" fill="currentColor" />
-      </>
-    ),
-  },
-  {
     id: "sound",
     label: "소리 옵션",
     icon: (soundOn) => (
@@ -65,17 +54,14 @@ export function PanelTriggers({
   panel,
   onToggle,
   soundOn,
-  hidden = [],
 }: {
   panel: PanelId | null;
   onToggle: (panel: PanelId) => void;
   soundOn: boolean;
-  /** Panels with nothing to act on right now (미디어 under Koons's opaque steel). */
-  hidden?: readonly PanelId[];
 }) {
   return (
     <div className={styles.triggers}>
-      {TRIGGERS.filter((trigger) => !hidden.includes(trigger.id)).map((trigger) => (
+      {TRIGGERS.map((trigger) => (
         <button
           key={trigger.id}
           type="button"

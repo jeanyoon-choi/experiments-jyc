@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Turn a video into a moving-image/1 video cube.
 #
-#   [FPS=..] [PREVIEW_H=..] [LETTERBOX=1] bash apps/xyt-cube/scripts/build-cube.sh <input-video> <clip-id> [seconds=12] [start=0]
+#   [FPS=..] [CRF=16] [PREVIEW_H=..] [LETTERBOX=1] bash apps/xyt-cube/scripts/build-cube.sh <input-video> <clip-id> [seconds=12] [start=0]
 #
 # Writes apps/xyt-cube/public/media/moving-image/<clip-id>/:
 #   clip.mp4      the screen's cube: the source frames at their own resolution
@@ -10,6 +10,8 @@
 #                 keyframe so the browser can seek frame by frame.
 #                 LETTERBOX=1 accepts a 1920-wide scope master (e.g. 1920x800)
 #                 and pads it to 1920x1080 with black bars, as 16:9 releases do.
+#                 CRF trades size for fidelity (16 is near lossless; 22 suits
+#                 a still camera that must stay small for deployment).
 #   preview-N.jpg the phone's cube: small frame sheets (PREVIEW_H px tall).
 #   manifest.json
 # Then register the clip id in components/moving-image/1/media/index.ts.
@@ -25,6 +27,7 @@ SECONDS_MAX="${3:-12}"
 START="${4:-0}"
 PREVIEW_H="${PREVIEW_H:-96}"
 FPS="${FPS:-24}"
+CRF="${CRF:-16}"
 MIN_W=1920
 MIN_H=1080
 MAX_W=2048
@@ -65,7 +68,7 @@ rm -rf "$OUT_DIR"
 mkdir -p "$OUT_DIR"
 
 ffmpeg -loglevel error -y -ss "$START" -t "$SECONDS_MAX" -i "$INPUT" \
-  -vf "fps=$FPS$SCALE" -an -c:v libx264 -preset slow -crf 16 -g 8 -bf 0 \
+  -vf "fps=$FPS$SCALE" -an -c:v libx264 -preset slow -crf "$CRF" -g 8 -bf 0 \
   -pix_fmt yuv420p -movflags +faststart "$OUT_DIR/clip.mp4"
 
 FRAMES=$(ffprobe -v error -select_streams v:0 -count_frames \

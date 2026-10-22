@@ -114,8 +114,7 @@
   margin-bottom: 6px;
 }
 
-.chips button,
-.file {
+.chips button {
   min-height: 30px;
   border: 0;
   border-radius: 7px;
@@ -126,25 +125,7 @@
   cursor: pointer;
 }
 
-.chips button[aria-pressed="true"],
-.file[aria-pressed="true"] { background: #171717; color: #fff; }
-
-.file {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.file input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-}
+.chips button[aria-pressed="true"] { background: #171717; color: #fff; }
 
 .colours {
   display: flex;

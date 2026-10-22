@@ -1,0 +1,147 @@
+.page {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #000000;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* road-signs/direction/4's bottom-right option control, as copied by bubble/3. */
+.control {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 10;
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  color: #171717;
+  font: 13px Arial, Helvetica, sans-serif;
+}
+
+/* The 3D view's pop-out button, bottom-left, in the panel trigger's style. */
+.viewToggle {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 10;
+}
+
+.viewToggle .trigger[aria-pressed="true"] {
+  background: #fff;
+  color: #171717;
+}
+
+.control * { box-sizing: border-box; }
+.control, .control * { -webkit-text-fill-color: currentColor !important; }
+
+.trigger {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: #171717;
+  color: #fff;
+  font: 600 13px Arial, Helvetica, sans-serif;
+  box-shadow: 0 3px 16px #0003;
+  cursor: pointer;
+}
+
+.trigger[aria-expanded="true"] {
+  background: #fff;
+  color: #171717;
+}
+
+.panel {
+  width: min(280px, calc(100vw - 32px));
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 4px 28px #0004;
+}
+
+.heading {
+  margin: 0 2px 2px;
+  font-weight: 600;
+}
+
+.note {
+  margin: 0 2px 4px;
+  font-size: 12px;
+  opacity: 0.62;
+  word-break: keep-all;
+}
+
+.reset {
+  flex: 1;
+  min-height: 34px;
+  border: 0;
+  border-radius: 7px;
+  padding: 6px 10px;
+  background: #f1f1f1;
+  color: #171717;
+  font: 600 13px Arial, Helvetica, sans-serif;
+  text-align: center;
+  cursor: pointer;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.chips button {
+  min-height: 30px;
+  border: 0;
+  border-radius: 7px;
+  padding: 5px 9px;
+  background: #f1f1f1;
+  color: #171717;
+  font: 600 12px Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.chips button[aria-pressed="true"] { background: #171717; color: #fff; }
+
+.slider {
+  display: grid;
+  grid-template-columns: 68px 1fr 38px;
+  align-items: center;
+  gap: 6px;
+  margin: 0 2px 6px;
+  font-size: 12px;
+}
+
+.slider input { width: 100%; margin: 0; accent-color: #171717; }
+
+.slider output { text-align: right; font-variant-numeric: tabular-nums; opacity: 0.62; }
+
+.control button:focus-visible { outline: 2px solid #1469d8; outline-offset: 2px; }
+
+.screenReaderOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.canvas:focus-visible { outline: none; }

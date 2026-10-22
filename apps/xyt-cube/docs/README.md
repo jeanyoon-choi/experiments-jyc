@@ -23,6 +23,12 @@ ordinary present and the cube itself is bent by six geometries (non-orthogonal
 axes, cylindrical and spherical coordinates, constant curvature, Clifford
 torus, Möbius flux). Screen `/screen/moving-image/2`, phone `/mobile/moving-image/2`.
 
+[moving-image/3](./moving-image/3.md) makes both continuous (optical-flow
+interpolation between frames). [moving-image/4](./moving-image/4.md) is
+moving-image/3 over fixed-viewpoint time-lapses only (a day, a crossing, the
+Earth from orbit, a glacier's decades), each about 10 MB. Screen
+`/screen/moving-image/4`.
+
 [clock/1](./clock/1.md) is a separate family: no recorded footage, but a
 clock defined directly in (x, y, t) (SCC clock palette; analogue and
 seven-segment), whose cube is turned like moving-image/1. Screen
@@ -48,6 +54,7 @@ Clips are built with `scripts/build-atlas.sh`.
 | `/mobile/moving-image/1` | 2026-10-20 |
 | `/screen/moving-image/2` | 2026-10-20 |
 | `/mobile/moving-image/2` | 2026-10-20 |
+| `/screen/moving-image/4` | 2026-10-22 |
 | `/screen/clock/1` | 2026-10-20 |
 | `/screen/clock/2` | 2026-10-20 |
 | `/screen/clock/1-3d` | 2026-10-20 |

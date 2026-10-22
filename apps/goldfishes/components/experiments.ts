@@ -255,6 +255,14 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     load: () => import("./screen/bubble/2"),
   },
   {
+    key: "screen/bubble/3",
+    area: "screen",
+    section: "dated",
+    date: "2026-10-22",
+    phrase: "bubble/2's raft as a material lab: physically based parameters, a view from above or the side, looks to switch between",
+    load: () => import("./screen/bubble/3"),
+  },
+  {
     key: "pc/news-phones/1",
     legacyKeys: ["pc/0908/default"],
     area: "pc",

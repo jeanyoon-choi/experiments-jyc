@@ -4,17 +4,11 @@ import {
   COATINGS,
   COLOUR_CONTROLS,
   ENVIRONMENTS,
-  FILM_CONTROLS,
   fromHex,
-  IMAGE_ENVIRONMENT,
   KOONS_CONTROLS,
-  MATERIALS,
-  PALETTES,
   PRESET_3,
-  SHARED_KEYS,
+  RAFT_CONTROLS,
   toHex,
-  VISUAL_CONTROLS,
-  VISUAL_DEFAULTS,
   type NumericKey,
   type SliderControl,
   type Visual,
@@ -24,25 +18,14 @@ import { Chip, Chips, Note, Panel, Reset, Slider } from "./controls";
 type Props = {
   visual: Visual;
   setVisual: Dispatch<SetStateAction<Visual>>;
-  /** The uploaded environment's file name, once there is one. */
-  imageName: string | null;
-  onImage: (file: File) => void;
 };
 
 type NumericControl = SliderControl<Exclude<NumericKey, "envMode">>;
 
-export function VisualPanel({ visual, setVisual, imageName, onImage }: Props) {
-  const koons = visual.material === 1;
-  // 쿤스 shows only what acts on the steel: its own controls, the raft's area
-  // and flow bubbles, and exposure. The film's sliders, palettes and film
-  // colour go.
-  const sliders: readonly NumericControl[] = koons
-    ? [
-        ...KOONS_CONTROLS,
-        ...VISUAL_CONTROLS.filter((control) => SHARED_KEYS.includes(control.key)),
-      ]
-    : FILM_CONTROLS;
-  const colours = koons ? COLOUR_CONTROLS.filter((control) => control.key !== "filmTint") : COLOUR_CONTROLS;
+/** The steel's own controls, then the raft's area and flow bubbles, and exposure. */
+const SLIDERS: readonly NumericControl[] = [...KOONS_CONTROLS, ...RAFT_CONTROLS];
+
+export function VisualPanel({ visual, setVisual }: Props) {
   const slider = (control: NumericControl) => (
     <Slider
       key={control.key}
@@ -58,32 +41,20 @@ export function VisualPanel({ visual, setVisual, imageName, onImage }: Props) {
   );
   return (
     <Panel id="visual" label="비주얼">
-      <Note>재질</Note>
-      <Chips label="재질">
-        {MATERIALS.map((option) => (
-          <Chip key={option.mode} pressed={visual.material === option.mode} onClick={() => setVisual((current) => ({ ...current, material: option.mode }))}>
+      <Note>코팅</Note>
+      <Chips label="코팅">
+        {COATINGS.map((option) => (
+          <Chip
+            key={option.id}
+            pressed={option.colour === null ? visual.coatingMix === 1 : visual.coatingMix === 0 && toHex(visual.coating) === toHex(option.colour)}
+            onClick={() =>
+              setVisual((current) => (option.colour === null ? { ...current, coatingMix: 1 } : { ...current, coatingMix: 0, coating: option.colour }))
+            }
+          >
             {option.label}
           </Chip>
         ))}
       </Chips>
-      {koons && (
-        <>
-          <Note>코팅</Note>
-          <Chips label="코팅">
-            {COATINGS.map((option) => (
-              <Chip
-                key={option.id}
-                pressed={option.colour === null ? visual.coatingMix === 1 : visual.coatingMix === 0 && toHex(visual.coating) === toHex(option.colour)}
-                onClick={() =>
-                  setVisual((current) => (option.colour === null ? { ...current, coatingMix: 1 } : { ...current, coatingMix: 0, coating: option.colour }))
-                }
-              >
-                {option.label}
-              </Chip>
-            ))}
-          </Chips>
-        </>
-      )}
       <Note>반사되는 환경</Note>
       <Chips label="반사되는 환경">
         {ENVIRONMENTS.map((option) => (
@@ -91,55 +62,21 @@ export function VisualPanel({ visual, setVisual, imageName, onImage }: Props) {
             {option.label}
           </Chip>
         ))}
-        <label className={styles.file} aria-pressed={visual.envMode === IMAGE_ENVIRONMENT}>
-          {imageName ?? "이미지…"}
+      </Chips>
+      <div className={styles.colours}>
+        <label>
           <input
-            accept="image/*"
-            type="file"
+            aria-label="코팅 색"
+            type="color"
+            value={toHex(visual.coating)}
             onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (file) onImage(file);
+              const coating = fromHex(event.target.value);
+              setVisual((current) => ({ ...current, coating, coatingMix: 0 }));
             }}
           />
+          코팅
         </label>
-      </Chips>
-      {!koons && <Note>팔레트</Note>}
-      {!koons && (
-      <Chips label="팔레트">
-        {PALETTES.map((palette) => (
-          <Chip
-            key={palette.id}
-            pressed={COLOUR_CONTROLS.every(({ key }) => toHex(visual[key]) === palette[key])}
-            onClick={() =>
-              setVisual((current) => ({
-                ...current,
-                lightColour: fromHex(palette.lightColour),
-                filmTint: fromHex(palette.filmTint),
-                background: fromHex(palette.background),
-              }))
-            }
-          >
-            {palette.label}
-          </Chip>
-        ))}
-      </Chips>
-      )}
-      <div className={styles.colours}>
-        {koons && (
-          <label>
-            <input
-              aria-label="코팅 색"
-              type="color"
-              value={toHex(visual.coating)}
-              onChange={(event) => {
-                const coating = fromHex(event.target.value);
-                setVisual((current) => ({ ...current, coating, coatingMix: 0 }));
-              }}
-            />
-            코팅
-          </label>
-        )}
-        {colours.map((control) => (
+        {COLOUR_CONTROLS.map((control) => (
           <label key={control.key}>
             <input
               aria-label={`${control.label} 색`}
@@ -154,23 +91,19 @@ export function VisualPanel({ visual, setVisual, imageName, onImage }: Props) {
           </label>
         ))}
       </div>
-      {sliders.map(slider)}
-      {koons ? (
-        <Reset
-          onClick={() =>
-            setVisual((current) => ({
-              ...current,
-              ...Object.fromEntries(KOONS_CONTROLS.map((control) => [control.key, PRESET_3.visual[control.key]])),
-              coating: PRESET_3.visual.coating,
-              coatingMix: PRESET_3.visual.coatingMix,
-            }))
-          }
-        >
-          쿤스 기본값으로
-        </Reset>
-      ) : (
-        <Reset onClick={() => setVisual(VISUAL_DEFAULTS)}>bubble/1 값으로</Reset>
-      )}
+      {SLIDERS.map(slider)}
+      <Reset
+        onClick={() =>
+          setVisual((current) => ({
+            ...current,
+            ...Object.fromEntries(KOONS_CONTROLS.map((control) => [control.key, PRESET_3.visual[control.key]])),
+            coating: PRESET_3.visual.coating,
+            coatingMix: PRESET_3.visual.coatingMix,
+          }))
+        }
+      >
+        쿤스 기본값으로
+      </Reset>
     </Panel>
   );
 }

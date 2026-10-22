@@ -3,21 +3,14 @@
 // links as travelling portions, lets the goldfish swim and watch, and draws.
 // Settings are read from `settings.current` each frame; nothing here is React.
 
-import { BUBBLE_FLOATS, createFoamRenderer, MAX_BUBBLES, MEDIA_FLOATS, mediaTileSize, type FoamRenderer } from "./foam";
+import { BUBBLE_FLOATS, createFoamRenderer, MAX_BUBBLES, type FoamRenderer } from "./foam";
 import { GoldfishSchool, type FishPaletteId, type FishParameters } from "../fish/goldfish";
 import type { GoldfishScene } from "../fish/goldfish-scene";
 import { iterate, outWeights, transit } from "../web/iteration";
-import { DEFAULT_KEYWORD_STYLE, DEFAULT_SURFACE, isSolidSurface, isTextSurface, surfaceItems, type Fill, type KeywordStyle, type SurfaceId } from "../media/catalogue";
-import { loadMediaTiles, type MediaLoad } from "../media/loader";
-import { assignPage, createMediaField, follow as followTrend, resetField, stepMedia, type MediaParameters } from "../media/model";
 import { attend, concentration, leader, MAX_PAGES, stepRankedWeb, type RankedWeb, type WebParameters } from "../web/model";
 import { radiusFor, type Raft } from "../raft/raft";
-import { filmLook, type MediaLook, type Visual } from "../settings";
+import { lookOf, type Visual } from "../settings";
 import type { TouchSound } from "../sound/sound";
-
-/** foam.ts's flat and sphere mappings (settings MAPPINGS modes 1 and 3). */
-const FLAT_MAPPING = 1;
-const SPHERE_MAPPING = 3;
 
 /** The display relaxes toward one power-iteration step with this time constant, seconds. */
 const STEP_SECONDS = 1.1;
@@ -49,13 +42,6 @@ const MEASURE = typeof window !== "undefined" && window.location.search.includes
 export type LoopSettings = {
   parameters: WebParameters;
   visual: Visual;
-  mapping: number;
-  media: MediaParameters;
-  mediaLook: MediaLook;
-  /** Travelling portions show their source page's image. */
-  carry: boolean;
-  /** Pictures only on bubbles a goldfish is touching. */
-  onTouch: boolean;
   fishCount: number;
   fish: FishParameters;
   fishPalette: FishPaletteId;
@@ -72,9 +58,6 @@ export type LoopHooks = {
 };
 
 export type FrameLoop = {
-  /** Loads a surface's images into the renderer. */
-  applySurface(surface: SurfaceId, keywords: KeywordStyle): void;
-  setEnvironmentImage(image: TexImageSource): void;
   dispose(): void;
 };
 
@@ -103,7 +86,7 @@ export function startFrameLoop(
 ): FrameLoop | null {
   const renderer = createFoamRenderer(canvas);
   if (!renderer) {
-    console.warn("bubble/1 needs WebGL2 with float render targets.");
+    console.warn("bubble/2 needs WebGL2 with float render targets.");
     return null;
   }
   return new RaftLoop(raft, renderer, canvas, fishCanvas, settings, hooks);
@@ -123,7 +106,7 @@ class RaftLoop implements FrameLoop {
   private readonly weights = new Float64Array(MAX_PAGES);
   /** Each page's pool: its displayed rank less what is under way along its links. */
   private readonly pools = new Float64Array(MAX_PAGES);
-  /** Time that stands still under reduced motion: the film, the media and the portions run on it. */
+  /** Time that stands still under reduced motion: the portions and the fish run on it. */
   private motionTime = 0;
   private bubbleCount = 0;
   // Goldfish: the school and its renderer exist only once fish are asked for.
@@ -134,18 +117,8 @@ class RaftLoop implements FrameLoop {
   private sceneLoading = false;
   private disposed = false;
   private readonly attention = new Float64Array(MAX_PAGES);
-  private readonly revealField = new Float32Array(MAX_PAGES);
   /** Which pages a fish touched last frame: a page newly touched is a note (소리). */
   private readonly touchedBefore = new Uint8Array(MAX_PAGES);
-  // Media: which image each page shows, and the images themselves.
-  private readonly mediaField = createMediaField(MAX_PAGES);
-  /** Pages up to here have been given their image. */
-  private mediaKnown = 0;
-  private mediaLoad: MediaLoad | null = null;
-  private mediaLayers = 0;
-  private mediaSolid = 0;
-  /** 꽉 채움 lettering, under the film as any picture is, drawn to fit the disc: laid flat over it, or wrapped round the ball; its own mapping, whatever 입히기 says. */
-  private mediaFill: Fill = "none";
   // Frame cost, when asked for: CPU work plus the GPU, synchronised by a 1-pixel read.
   private readonly costs = new Float64Array(120);
   private costCount = 0;
@@ -160,46 +133,25 @@ class RaftLoop implements FrameLoop {
     private readonly hooks: LoopHooks,
   ) {
     this.restart();
-    this.applySurface(DEFAULT_SURFACE, DEFAULT_KEYWORD_STYLE);
     this.sizeCanvas();
     this.observer = new ResizeObserver(() => this.sizeCanvas());
     this.observer.observe(canvas);
     this.animationFrame = requestAnimationFrame(this.tick);
   }
 
-  applySurface(surface: SurfaceId, keywords: KeywordStyle) {
-    const renderer = this.renderer;
-    this.mediaLoad?.cancel();
-    const items = surfaceItems(surface);
-    this.mediaLayers = items.length;
-    this.mediaSolid = isSolidSurface(surface) ? 1 : 0;
-    this.mediaFill = isTextSurface(surface) ? keywords.fill : "none";
-    renderer.setMediaLayerCount(this.mediaLayers);
-    resetField(this.mediaField, this.raft.web.size, this.mediaLayers, this.motionTime, this.settings.current.media, this.raft.random);
-    this.mediaLoad = this.mediaLayers === 0
-      ? null
-      : loadMediaTiles(items, (index, tile) => renderer.setMediaLayer(index, tile), () => renderer.commitMedia(), keywords, mediaTileSize(items.length));
-  }
-
-  setEnvironmentImage(image: TexImageSource) {
-    this.renderer.setEnvironmentImage(image);
-  }
-
   dispose() {
     this.disposed = true;
-    this.mediaLoad?.cancel();
     this.observer.disconnect();
     cancelAnimationFrame(this.animationFrame);
     this.renderer.dispose();
     this.scene?.dispose();
   }
 
-  /** The display starts over from uniform, and every page takes its born image. */
+  /** The display starts over from uniform. */
   private restart() {
     const web = this.raft.web;
     this.shown.fill(0);
     this.shown.fill(1 / Math.max(1, web.size), 0, web.size);
-    resetField(this.mediaField, web.size, this.mediaLayers, this.motionTime, this.settings.current.media, this.raft.random);
   }
 
   private sizeCanvas() {
@@ -227,7 +179,6 @@ class RaftLoop implements FrameLoop {
       // A new page count starts the web, and the display, over from uniform.
       raft.rebuild(raft.repopulate);
       this.restart();
-      this.mediaKnown = raft.web.size;
     }
     // Under reduced motion the web and the school run slowly.
     const step = delta * (still ? 0.3 : 1);
@@ -235,28 +186,14 @@ class RaftLoop implements FrameLoop {
     this.stepWeb(step, settings);
     this.stepDisplay(step);
     raft.arrange(this.shown, delta, step, still, settings.visual.area);
-    const pageStart = this.emitBubbles(step, settings);
-    this.stepFish(delta, step, pageStart, settings);
-    this.renderer.render(
-      this.bubbleCount,
-      this.motionTime,
-      filmLook(
-        settings.visual,
-        // Filled lettering holds still: on the ball it spans the rim edge to edge, and a turn would slide one end
-        // past the rim and bring its mirror in at the other.
-        this.mediaFill === "none" ? settings.mediaLook : { ...settings.mediaLook, mediaDrift: 0 },
-        {
-          mediaMode: this.mediaLayers === 0 ? 0 : this.mediaFill === "flat" ? FLAT_MAPPING : this.mediaFill === "sphere" ? SPHERE_MAPPING : settings.mapping,
-          mediaReveal: settings.onTouch ? 1 : 0,
-          mediaSolid: this.mediaSolid,
-        },
-      ),
-    );
+    const pageStart = this.emitBubbles(settings);
+    this.stepFish(step, pageStart, settings);
+    this.renderer.render(this.bubbleCount, lookOf(settings.visual));
     if (MEASURE) this.measure(frameStart);
     this.summarise(delta);
   };
 
-  /** The model's step, with images for new pages and the media's own changes. */
+  /** The model's step; a new page appears beside the first page it links to. */
   private stepWeb(step: number, settings: LoopSettings) {
     const raft = this.raft;
     const web = raft.web;
@@ -264,8 +201,6 @@ class RaftLoop implements FrameLoop {
     const random = raft.random;
     const events = stepRankedWeb(web, step, settings.parameters, raft.pendingPages);
     for (const event of events) {
-      // A new page appears beside the first page it links to, with its own image.
-      assignPage(this.mediaField, event.page, this.motionTime, settings.media, random);
       const anchor = raft.bodies[event.targets[0] ?? 0];
       const angle = random() * Math.PI * 2;
       raft.placePage(
@@ -274,14 +209,6 @@ class RaftLoop implements FrameLoop {
         (anchor?.y ?? field.height / 2) + Math.sin(angle) * 24,
       );
     }
-    // Pages made by hand arrive outside the events: give them their image too.
-    const mediaField = this.mediaField;
-    while (this.mediaKnown < web.size) {
-      const page = this.mediaKnown;
-      if (mediaField.next[page] === 0 && mediaField.since[page] === 0) assignPage(mediaField, page, this.motionTime, settings.media, random);
-      this.mediaKnown += 1;
-    }
-    stepMedia(mediaField, web, this.motionTime, step, settings.media, random);
   }
 
   /** Continuous power iteration on the web as it is now. */
@@ -294,30 +221,16 @@ class RaftLoop implements FrameLoop {
     for (let page = 0; page < web.size; page += 1) shown[page] = shown[page]! + (stepped[page]! - shown[page]!) * relax;
   }
 
-  /** Adds a bubble for the renderer; `page` is the page whose image it shows, −1 the bare film. */
-  private put(x: number, y: number, radius: number, seed: number, page: number) {
+  /** Adds a bubble for the renderer. */
+  private put(x: number, y: number, radius: number, seed: number) {
     const index = this.bubbleCount;
     if (index >= MAX_BUBBLES) return;
-    const { bubbles, media, reveal } = this.renderer;
+    const bubbles = this.renderer.bubbles;
     const at = index * BUBBLE_FLOATS;
     bubbles[at] = x;
     bubbles[at + 1] = y;
     bubbles[at + 2] = radius;
     bubbles[at + 3] = seed;
-    reveal[index] = page >= 0 ? this.revealField[page]! : 0;
-    const m = index * MEDIA_FLOATS;
-    if (page >= 0) {
-      const field = this.mediaField;
-      media[m] = field.layer[page]!;
-      media[m + 1] = field.next[page]!;
-      media[m + 2] = field.blend[page]!;
-      media[m + 3] = field.phase[page]!;
-    } else {
-      media[m] = -1;
-      media[m + 1] = -1;
-      media[m + 2] = 0;
-      media[m + 3] = 0;
-    }
     this.bubbleCount = index + 1;
   }
 
@@ -333,29 +246,24 @@ class RaftLoop implements FrameLoop {
    *
    * Writes the portions, then one bubble per page; returns where the pages start.
    */
-  private emitBubbles(step: number, settings: LoopSettings) {
+  private emitBubbles(settings: LoopSettings) {
     const raft = this.raft;
     const web = raft.web;
     const field = raft.size;
     const points = raft.points;
-    const { shown, pools, weights, mediaField } = this;
+    const { shown, pools, weights } = this;
     const focus = raft.focus;
     const pageCount = Math.min(web.size, MAX_PAGES);
     const flowing = raft.linkVisibility >= 0.5;
     for (let page = 0; page < pageCount; page += 1) pools[page] = shown[page]!;
     this.bubbleCount = 0;
-    const mediaParameters = settings.media;
-    const trending = mediaParameters.mode === "trend" && this.mediaLayers > 1;
     const motionTime = this.motionTime;
-    const before = motionTime - step;
     const { area, portions } = settings.visual;
 
-    if (flowing || trending) {
+    if (flowing) {
       let linkCount = 0;
       for (let from = 0; from < pageCount; from += 1) linkCount += web.out[from]!.length;
       const leastFlow = portions * (linkCount > 0 ? web.damping / linkCount : 1);
-      // 꽉 채움 lettering stays on the pages: portions carrying it sweep over the page bubbles and the words jostle.
-      const carried = settings.carry && this.mediaFill === "none";
       for (let from = 0; from < pageCount; from += 1) {
         for (const entry of web.out[from]!) {
           const to = entry.target;
@@ -363,10 +271,6 @@ class RaftLoop implements FrameLoop {
           const offset = hashOf(to, from);
           const period = PERIOD[0] + (PERIOD[1] - PERIOD[0]) * hashOf(from, to);
           const cycle = (motionTime / period + offset) % 1;
-          // As its portion is taken in, the sender may take up the receiver's image
-          // (also in the rank view, where no portions are drawn: the same clocks).
-          if (trending && (before / period + offset) % 1 < TAKEN_IN && cycle >= TAKEN_IN) followTrend(mediaField, web, from, to, motionTime, mediaParameters, raft.random);
-          if (!flowing) continue;
           const flow = transit(web, shown, from, entry.weight, weights[from]!);
           const detach = smooth(0, DETACHED, cycle);
           const takeIn = smooth(TAKEN_IN, 1, cycle);
@@ -384,7 +288,7 @@ class RaftLoop implements FrameLoop {
           const dy = points[to * 2 + 1]! - ay;
           const length = Math.hypot(dx, dy) || 1;
           const bow = Math.sin(Math.PI * travel) * Math.min(BOW_LIMIT, BOW * length) * (hashOf(from + 7, to) < 0.5 ? -1 : 1);
-          this.put(ax + dx * travel - (dy / length) * bow, ay + dy * travel + (dx / length) * bow, radius, hashOf(from, to + 5), carried ? from : -1);
+          this.put(ax + dx * travel - (dy / length) * bow, ay + dy * travel + (dx / length) * bow, radius, hashOf(from, to + 5));
         }
       }
     }
@@ -393,13 +297,13 @@ class RaftLoop implements FrameLoop {
     const pageStart = this.bubbleCount;
     for (let page = 0; page < pageCount; page += 1) {
       const r = radiusFor(Math.max(pools[page]!, 0), field, area);
-      this.put(points[page * 2]!, points[page * 2 + 1]!, r, hashOf(page, 3), page);
+      this.put(points[page * 2]!, points[page * 2 + 1]!, r, hashOf(page, 3));
     }
     return pageStart;
   }
 
   /** Goldfish swim around exactly this frame's discs, and their watching feeds back into quality. */
-  private stepFish(delta: number, step: number, pageStart: number, settings: LoopSettings) {
+  private stepFish(step: number, pageStart: number, settings: LoopSettings) {
     const raft = this.raft;
     const web = raft.web;
     const field = raft.size;
@@ -418,21 +322,12 @@ class RaftLoop implements FrameLoop {
     if (web.size > this.knownPages) school.notePages(this.knownPages, web.size);
     this.knownPages = web.size;
     school.setCount(settings.fishCount);
-    const { attention, revealField, touchedBefore, shown } = this;
+    const { attention, touchedBefore, shown } = this;
     const bubbles = this.renderer.bubbles;
     const drawnPages = this.bubbleCount - pageStart;
     school.step(step, web, shown, bubbles, this.bubbleCount, pageStart, drawnPages, settings.fish);
     school.drainContact(drawnPages, attention);
-    // A page's picture comes while a fish touches it and goes when none does, over the media fade
-    // (read next frame, one frame behind the contact).
-    const fade = settings.media.fade;
-    const reveal = fade > 0 ? delta / fade : 1;
-    for (let page = 0; page < drawnPages; page += 1) {
-      const target = attention[page]! > 0 ? 1 : 0;
-      const current = revealField[page]!;
-      revealField[page] = current < target ? Math.min(target, current + reveal) : Math.max(target, current - reveal);
-    }
-    // 소리: the same onset as the reveal above — a page a fish has just begun to touch.
+    // 소리: a page a fish has just begun to touch.
     const player = this.hooks.sound();
     let largest = 0;
     if (player) for (let page = 0; page < drawnPages; page += 1) largest = Math.max(largest, shown[page]!);

@@ -6,6 +6,9 @@
 export type LiquidClip = { id: string; label: string };
 
 export const liquidClips: readonly LiquidClip[] = [
+  // Pexels (Ben Kyselka): one fixed camera over Brno, night to day to night,
+  // 28 s sampled at 6 fps (CRF 26, flow at 1/16 scale) to stay small.
+  { id: "brno-day", label: "타임랩스" },
   { id: "sintel-trailer", label: "Sintel 예고편" },
   { id: "bbb-trailer", label: "Big Buck Bunny 예고편" },
   { id: "tears-of-steel", label: "Tears of Steel 한 숏" },

@@ -48,6 +48,7 @@ Chronological log:
 | `/mobile/keyword-grid/2` | 2026-09-30 | `/mobile/0930/2` | + opens word and color pickers; bubbles collide and shrink over 30 seconds. [doc](./mobile/keyword-grid/2.md) |
 | `/screen/bubble/1` | 2026-10-20 | — | SCC bubble/3 copied, opening on 기본값 3. [doc](./screen/bubble/1.md) |
 | `/screen/bubble/2` | 2026-10-20 | — | bubble/1 with every bubble a lobe of Koons's coated mirror steel. [doc](./screen/bubble/2.md) |
+| `/screen/bubble/3` | 2026-10-22 | — | bubble/2's raft as a material lab: physically based parameters, a camera tilt from above (a tank) to the side (bubble/2), switchable looks. [doc](./screen/bubble/3.md) |
 
 Each experiment is a complete local copy: no cross-experiment implementation or ledger imports. Exception: the desktop native-windows versions share infrastructure through `components/desktop/native-windows/shared/`. Existing public images may be addressed by URL; only immutable company logos are a shared collection (`public/assets/goldfishes/assets/company-logos`). Asset URLs must exist inside this independently deployed app; after changing a collection, run `pnpm audit:goldfishes-assets`.
 
