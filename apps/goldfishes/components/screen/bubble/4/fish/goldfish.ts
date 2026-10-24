@@ -92,6 +92,8 @@ export type Fish = {
   trapped: number;
   enclosureCheckAt: number;
   seed: number;
+  /** Was its mouth at its page's edge last step: the step it gets there is a touch. */
+  touching: boolean;
   /** Its lifecycle (lifecycle.ts): strength, the colour it has taken on, and whether it is sinking. */
   life: Life;
 };
@@ -226,6 +228,9 @@ export class GoldfishSchool {
   readonly deaths = { spent: 0, crushed: 0, shut: 0 };
   /** The deepest a page's bubble came over the fish in the last resolve (px). */
   private pagePush = 0;
+  /** This step's touches — fish whose mouth has just reached their page's edge — as x, y, seed; `touchCount` of them. */
+  readonly touches = new Float64Array(MAX_FISH * 3);
+  touchCount = 0;
 
   constructor(width: number, height: number) {
     this.resize(width, height);
@@ -294,6 +299,7 @@ export class GoldfishSchool {
         trapped: 0,
         enclosureCheckAt: 0,
         seed: this.nextSeed + this.nextRandom(),
+        touching: false,
         life: createLife(this.lifeParameters, this.nextRandom(), staggered ? 0.35 + 0.65 * this.nextRandom() : 1),
       };
       // Seeds keep counting up, so a newcomer never shares a dead fish's memories or affinities.
@@ -684,6 +690,7 @@ export class GoldfishSchool {
     const scale = parameters.scale;
     const lifeParameters = life?.parameters ?? { ...LIFE_DEFAULTS, enabled: 0 };
     this.lifeParameters = lifeParameters;
+    this.touchCount = 0;
     if (lifeParameters.enabled >= 0.5) this.wave(dt, lifeParameters);
     else this.fill(false);
     if (this.fish.length === 0 || dt === 0) return;
@@ -807,6 +814,13 @@ export class GoldfishSchool {
         const edgeGap = toFish - discR - MOUTH * scale;
         if (edgeGap < CONTACT_BAND) {
           watching = true;
+          if (!fish.touching && this.touchCount < MAX_FISH) {
+            const at = this.touchCount * 3;
+            this.touches[at] = fish.x;
+            this.touches[at + 1] = fish.y;
+            this.touches[at + 2] = fish.seed;
+            this.touchCount += 1;
+          }
           if (life) life.colourOf(this.pageStart + page, this.watched);
           this.contact[page] = this.contact[page]! + dt;
           const key = id * 1_000 + page;
@@ -830,6 +844,7 @@ export class GoldfishSchool {
       }
 
       fish.facing += angleDifference(desiredFacing, fish.facing) * Math.min(1, dt * 9);
+      fish.touching = watching;
       // Spent: it lets go of its page.
       if (stepLife(fish.life, dt, watching && life ? this.watched : null, lifeParameters, fish.vx, fish.vy)) {
         this.deaths.spent += 1;

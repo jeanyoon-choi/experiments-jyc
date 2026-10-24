@@ -6,6 +6,7 @@ import { FISH_DEFAULTS, type FishPaletteId, type FishParameters } from "./fish/g
 import { LIFE_DEFAULTS, type LifeParameters } from "./fish/lifecycle";
 import { ATTENDED_QUALITY, DEFAULT_DAMPING, DEFAULT_PARAMETERS } from "./web/model";
 import type { SoundParameters } from "./sound/sound";
+import { REACTION_DEFAULTS } from "./reactions/reactions"; // 반응
 
 /** Share of the field's area that all pages together cover; area = displayed rank × this. 0.4 (user, 2026-10-12; /2 keeps 0.3). */
 export const AREA_BUDGET = 0.4;
@@ -194,6 +195,7 @@ export const PRESET_3 = {
   fishPalette: "rose" as FishPaletteId,
   feedback: FEEDBACK_DEFAULTS,
   life: LIFE_DEFAULTS,
+  reactions: REACTION_DEFAULTS, // 반응
 };
 
 /**
@@ -207,6 +209,9 @@ export const LOOKS: readonly { id: string; label: string; look: Partial<Visual> 
   // The same, roughness 1 (and no clear coat, whose sharper reflection would still show specks): no reflected
   // surroundings at all, only the light's soft gradient over the coat (user, 2026-10-22).
   { id: "matte", label: "갤러리 · 거칠기 1", look: { roughness: 1, clearcoat: 0 } },
+  // bubble/2's look with the blue coat, as in the first lifecycle recording (bubble-4-lifecycle.gif): the
+  // goldfish's own colours, the blue they take on and their grey all read against it (user, 2026-10-22).
+  { id: "gallery-blue", label: "갤러리 · 블루", look: { coating: [0.08, 0.26, 0.95], coatingMix: 0 } },
   // Saved by the user with JSON 내려받기 (bubble-3-2026-10-22T06-00-47-849Z.json): blue coat under violet light,
   // roughness 1, the dark parts lifted almost to the light, a bright ground, larger bubbles.
   {

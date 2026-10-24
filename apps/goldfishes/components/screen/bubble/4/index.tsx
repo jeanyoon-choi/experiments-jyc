@@ -21,6 +21,7 @@ import { DEFAULT_FISH_PALETTE, DEFAULT_INFLUENCE, FEEDBACK_DEFAULTS, FIRST_BACKG
 import { SOUND_DEFAULTS, type SoundParameters } from "./sound/sound";
 import { useTouchSound } from "./sound/use-touch-sound";
 import type { ViewId } from "./raft/views";
+import type { ReactionParameters } from "./reactions/reactions"; // 반응
 
 const DRAG_THRESHOLD = 6;
 
@@ -60,6 +61,8 @@ export default function RankedWebIteration() {
   const [feedback, setFeedback] = useState<Feedback>(PRESET_3.feedback);
   // 생애주기
   const [life, setLife] = useState<LifeParameters>(PRESET_3.life);
+  // 반응
+  const [reactions, setReactions] = useState<ReactionParameters>(PRESET_3.reactions);
   // 소리
   const [sound, setSound] = useState<SoundParameters>(SOUND_DEFAULTS);
   const touchSound = useTouchSound(sound);
@@ -73,6 +76,7 @@ export default function RankedWebIteration() {
     fishPalette: PRESET_3.fishPalette,
     feedback: PRESET_3.feedback,
     life: PRESET_3.life,
+    reactions: PRESET_3.reactions,
   });
   useEffect(() => {
     settingsRef.current = {
@@ -83,8 +87,9 @@ export default function RankedWebIteration() {
       fishPalette,
       feedback,
       life,
+      reactions,
     };
-  }, [rates, visual, fishCount, fish, fishPalette, feedback, life]);
+  }, [rates, visual, fishCount, fish, fishPalette, feedback, life, reactions]);
 
   const { playing } = touchSound;
   useEffect(() => {
@@ -205,6 +210,7 @@ export default function RankedWebIteration() {
                 network: { view, rates, damping, pages: population, groups, diversity },
                 fish: { count: fishCount, parameters: fish, palette: fishPalette, feedback },
                 life,
+                reactions,
                 sound,
               })
             }
@@ -220,6 +226,8 @@ export default function RankedWebIteration() {
             onPalette={setFishPalette}
             feedback={feedback}
             setFeedback={setFeedback}
+            reactions={reactions}
+            setReactions={setReactions}
             onDefaults={(second) => {
               setFish(FISH_DEFAULTS);
               setFishPalette(DEFAULT_FISH_PALETTE);
@@ -242,6 +250,7 @@ export default function RankedWebIteration() {
               setFishPalette(PRESET_3.fishPalette);
               setFeedback(PRESET_3.feedback);
               setLife(PRESET_3.life);
+              setReactions(PRESET_3.reactions);
             }}
           />
         )}

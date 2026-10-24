@@ -2,6 +2,8 @@ import type { Dispatch, SetStateAction } from "react";
 import { FISH_PALETTES, MAX_FISH, type FishPaletteId, type FishParameters } from "../fish/goldfish";
 import { FEEDBACK_CONTROLS, FISH_CONTROLS, type Feedback } from "../settings";
 import { Chip, Chips, Note, Panel, Reset, Slider } from "./controls";
+import { ReactionSection } from "../reactions/reaction-section"; // 반응
+import type { ReactionParameters } from "../reactions/reactions"; // 반응
 
 const PALETTE_IDS = Object.keys(FISH_PALETTES) as FishPaletteId[];
 
@@ -15,13 +17,16 @@ type Props = {
   /** How the school's watching feeds back into page quality. */
   feedback: Feedback;
   setFeedback: Dispatch<SetStateAction<Feedback>>;
+  /** 반응: hearts, likes and comments as fish reach bubbles. */
+  reactions: ReactionParameters;
+  setReactions: Dispatch<SetStateAction<ReactionParameters>>;
   /** 기본값으로 (black) or 기본값 2 (grey). */
   onDefaults: (second: boolean) => void;
   /** 기본값 3: every panel back to the set this experiment opens with. */
   onPreset3: () => void;
 };
 
-export function FishPanel({ count, onCount, fish, setFish, palette, onPalette, feedback, setFeedback, onDefaults, onPreset3 }: Props) {
+export function FishPanel({ count, onCount, fish, setFish, palette, onPalette, feedback, setFeedback, reactions, setReactions, onDefaults, onPreset3 }: Props) {
   return (
     <Panel id="fish" label="금붕어">
       <Note>버블 가장자리를 오가며 링크를 따라 옮겨 다니고, 오래 머문 페이지의 품질을 올립니다</Note>
@@ -64,6 +69,7 @@ export function FishPanel({ count, onCount, fish, setFish, palette, onPalette, f
       <Reset onClick={() => onDefaults(false)}>기본값으로</Reset>
       <Reset onClick={() => onDefaults(true)}>기본값 2</Reset>
       <Reset onClick={onPreset3}>기본값 3</Reset>
+      <ReactionSection reactions={reactions} setReactions={setReactions} />
     </Panel>
   );
 }

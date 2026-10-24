@@ -267,6 +267,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     area: "screen",
     section: "dated",
     date: "2026-10-22",
+    updated: "2026-10-24",
     phrase: "bubble/3 copied as the start of the goldfish's lifecycle",
     load: () => import("./screen/bubble/4"),
   },

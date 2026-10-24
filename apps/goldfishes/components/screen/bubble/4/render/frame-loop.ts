@@ -12,6 +12,9 @@ import { attend, concentration, leader, MAX_PAGES, stepRankedWeb, type RankedWeb
 import { radiusFor, type Raft } from "../raft/raft";
 import { lookOf, type Feedback, type Visual } from "../settings";
 import type { TouchSound } from "../sound/sound";
+import { Reactions } from "../reactions/reaction-state"; // 반응
+import type { ReactionMeshes } from "../reactions/reaction-meshes"; // 반응
+import type { ReactionParameters } from "../reactions/reactions"; // 반응
 
 /** The display relaxes toward one power-iteration step with this time constant, seconds. */
 const STEP_SECONDS = 1.1;
@@ -57,6 +60,8 @@ export type LoopSettings = {
   fishPalette: FishPaletteId;
   /** How the school's watching feeds back into page quality. */
   feedback: Feedback;
+  /** 반응: hearts, likes and comments as fish reach bubbles. */
+  reactions: ReactionParameters;
 };
 
 export type LoopHooks = {
@@ -126,6 +131,9 @@ class RaftLoop implements FrameLoop {
   private knownPages = 0;
   private scene: GoldfishScene | null = null;
   private sceneLoading = false;
+  /** 반응: the live reactions, and their 3D meshes in the fish scene once it has loaded. */
+  private readonly reactions = new Reactions();
+  private reactionMeshes: ReactionMeshes | null = null;
   private disposed = false;
   private readonly attention = new Float64Array(MAX_PAGES);
   /** Which pages a fish touched last frame: a page newly touched is a note (소리). */
@@ -171,6 +179,7 @@ class RaftLoop implements FrameLoop {
     this.observer.disconnect();
     cancelAnimationFrame(this.animationFrame);
     this.renderer.dispose();
+    this.reactionMeshes?.dispose();
     this.scene?.dispose();
   }
 
@@ -378,6 +387,12 @@ class RaftLoop implements FrameLoop {
     school.step(step, web, shown, bubbles, this.bubbleCount, pageStart, drawnPages, settings.fish, this.lifeContext);
     if (MEASURE) this.schoolCost = this.schoolCost * 0.95 + (performance.now() - schoolStart) * 0.05;
     school.drainContact(drawnPages, attention);
+    // 반응: now and then, a heart, a like or a comment where a fish has just reached a bubble (not under reduced motion).
+    if (!this.reduceMotion.matches || this.reactions.live.length > 0) {
+      const touches = this.reduceMotion.matches ? 0 : school.touchCount;
+      this.reactions.step(school.touches, touches, settings.reactions, settings.fish.scale, raft.time, field.width);
+    }
+    this.reactionMeshes?.update(this.reactions.live, raft.time, settings.reactions, field.width, field.height);
     // 소리: a page a fish has just begun to touch.
     const player = this.hooks.sound();
     let largest = 0;
@@ -411,12 +426,13 @@ class RaftLoop implements FrameLoop {
     const fishCanvas = this.fishCanvas;
     if (this.scene || this.sceneLoading || school.fish.length === 0 || !fishCanvas) return;
     this.sceneLoading = true;
-    void import("../fish/goldfish-scene").then(({ GoldfishScene: Scene }) => {
+    void Promise.all([import("../fish/goldfish-scene"), import("../reactions/reaction-meshes")]).then(([{ GoldfishScene: Scene }, { ReactionMeshes: Meshes }]) => {
       if (this.disposed) return;
       const scene = new Scene(fishCanvas);
       const size = this.raft.size;
       scene.setSize(size.width, size.height);
       this.scene = scene;
+      this.reactionMeshes = scene.extend((parent, renderer) => new Meshes(parent, renderer)); // 반응
     }, (error: unknown) => {
       console.warn("bubble/4 goldfish renderer failed to load.", error);
     });

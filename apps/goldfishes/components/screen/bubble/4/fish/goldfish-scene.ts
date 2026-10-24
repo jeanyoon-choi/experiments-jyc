@@ -70,6 +70,8 @@ export class GoldfishScene {
   private width = 1;
   private height = 1;
   private shownCount = -1;
+  /** Anything else drawn with the fish, in their light (반응's 3D reactions). */
+  private readonly extras = new THREE.Group();
 
   constructor(canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, canvas, powerPreference: "high-performance" });
@@ -79,6 +81,7 @@ export class GoldfishScene {
     const light = new THREE.DirectionalLight("#ffd6a0", 2.15);
     light.position.set(-0.35, 1, 0.55);
     this.scene.add(light);
+    this.scene.add(this.extras);
     const body = new THREE.SphereGeometry(1, 22, 15);
     const peduncle = new THREE.CylinderGeometry(0.68, 1.2, 2.5, 12, 1);
     peduncle.rotateZ(Math.PI / 2);
@@ -181,6 +184,11 @@ export class GoldfishScene {
     }
     this.renderer.render(this.scene, this.camera);
     this.shownCount = count;
+  }
+
+  /** Builds something to draw with the fish: it gets a parent in the scene and the renderer. */
+  extend<T>(make: (parent: THREE.Object3D, renderer: THREE.WebGLRenderer) => T) {
+    return make(this.extras, this.renderer);
   }
 
   /** Waits for the GPU to finish this canvas's last frame (measurement only). */
