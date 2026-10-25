@@ -53,11 +53,13 @@ export type ObjectParameters = {
 
 export const OBJECT_DEFAULTS = {
   pages: 1,
-  portions: 1,
+  // 왔다갔다 하는 것: SNS, hearts and likes only (user, 2026-10-25).
+  portions: 3,
   size: 1,
-  // 부풂 0.2 (user, 2026-10-25).
-  puff: 0.2,
-  facing: 0,
+  // 부풂 1.5 (user, 2026-10-25; bubble/5 opens at 0.2).
+  puff: 1.5,
+  // 각도: 움직이는 방향 (user, 2026-10-25).
+  facing: 2,
   ...(Object.fromEntries(
     OBJECT_KINDS.flatMap((kind) => [
       [`${kind}On`, 1],
@@ -66,6 +68,7 @@ export const OBJECT_DEFAULTS = {
   ) as Record<`${ObjectKind}On` | ObjectKind, number>),
   // 원숭이 JPEG off by default (user, 2026-10-25); its chip brings it in.
   apeOn: 0,
+  commentOn: 0,
 } satisfies ObjectParameters;
 
 export const OBJECT_LABELS: Record<ObjectKind, string> = {

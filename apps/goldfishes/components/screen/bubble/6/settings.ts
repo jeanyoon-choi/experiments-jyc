@@ -184,6 +184,9 @@ export const SOUND_CONTROLS: readonly SliderControl<Exclude<keyof SoundParameter
 export const LOOK_BASE: Visual = { ...VISUAL_DEFAULTS, area: 0.46, portions: 1.95 };
 
 /** 우유 수조 (crimson metal in the studio room, seen from straight above): bubble/5's opening look (user, 2026-10-25). */
+/** 크롬 (bare polished chrome at a slant, the studio mirrored nearly unblurred): bubble/6's opening look (user, 2026-10-25). */
+const CHROME: Partial<Visual> = { coating: [0.78, 0.77, 0.75], viewTilt: 0.4, lightTurn: 0.1, photo: 2, photoStrength: 1.2, keyStrength: 1.2, keySize: 0.3, shadowLift: 0.05, groundLight: 0.8, edgeShadow: 0.3, roughness: 0.02, clearcoat: 0.2, variety: 0.15, exposure: 0.9 };
+
 const MILK: Partial<Visual> = { coating: [0.72, 0.015, 0.035], metalness: 1, roughness: 0.12, clearcoat: 0.35, variety: 0.15, viewTilt: 0, lightTurn: 0.875, photo: 2, photoStrength: 0.45, keyStrength: 2.6, keySize: 0.85, shadowLift: 0.18, groundLight: 1.1, edgeShadow: 0.05, colourBleed: 0, neighbourReflection: 0.9, crease: 0.35, background: [1, 1, 1], exposure: 0.85 };
 
 /**
@@ -206,7 +209,7 @@ export const PRESET_3 = {
   // 800 pages (user, 2026-10-25; 기본값 3 had 1,000).
   pages: 800,
   groups: 1,
-  visual: { ...LOOK_BASE, ...MILK } satisfies Visual,
+  visual: { ...LOOK_BASE, ...CHROME } satisfies Visual,
   fishCount: 380,
   fish: { ...FISH_DEFAULTS, scale: 0.65, speed: 2.2, follow: 0.6, novelty: 1, habituation: 1.75, span: 0.5, schooling: 2, patrol: 1 } satisfies FishParameters,
   fishPalette: "rose" as FishPaletteId,
@@ -219,7 +222,7 @@ export const PRESET_3 = {
 /**
  * 연출: whole looks, each a different environment, material and viewpoint
  * (the raft's area and flow stay unless a look sets them). The first is bubble/2's, which bubble/4
- * opened on; bubble/5 opens on 우유 수조.
+ * opened on; bubble/5 opens on 우유 수조, bubble/6 on 크롬.
  */
 export const LOOKS: readonly { id: string; label: string; look: Partial<Visual> }[] = [
   // bubble/2: magenta steel in a photographed loft, seen from the side, each lobe turned its own way.
@@ -279,7 +282,7 @@ export const LOOKS: readonly { id: string; label: string; look: Partial<Visual> 
   {
     id: "chrome",
     label: "크롬",
-    look: { coating: [0.78, 0.77, 0.75], viewTilt: 0.4, lightTurn: 0.1, photo: 2, photoStrength: 1.2, keyStrength: 1.2, keySize: 0.3, shadowLift: 0.05, groundLight: 0.8, edgeShadow: 0.3, roughness: 0.02, clearcoat: 0.2, variety: 0.15, exposure: 0.9 },
+    look: CHROME,
   },
   // Gold in a forest's light, half from the side.
   {
