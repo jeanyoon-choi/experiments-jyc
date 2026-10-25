@@ -51,6 +51,7 @@ Chronological log:
 | `/screen/bubble/3` | 2026-10-22 | — | bubble/2's raft as a material lab: physically based parameters, a camera tilt from above (a tank) to the side (bubble/2), switchable looks. [doc](./screen/bubble/3.md) |
 | `/screen/bubble/4` | 2026-10-22 | — | bubble/3 copied as the start of the goldfish's lifecycle. [doc](./screen/bubble/4.md) |
 | `/screen/bubble/5` | 2026-10-25 | — | bubble/4 with its pages shown as 3D objects (AI sparkle, cloud, GPU, robot) in the bubbles' material. [doc](./screen/bubble/5.md) |
+| `/screen/bubble/6` | 2026-10-25 | — | bubble/5 with the web's attention bounded and tiring, so it churns without a few pages taking it all. [doc](./screen/bubble/6.md) |
 
 Each experiment is a complete local copy: no cross-experiment implementation or ledger imports. Exception: the desktop native-windows versions share infrastructure through `components/desktop/native-windows/shared/`. Existing public images may be addressed by URL; only immutable company logos are a shared collection (`public/assets/goldfishes/assets/company-logos`). Asset URLs must exist inside this independently deployed app; after changing a collection, run `pnpm audit:goldfishes-assets`.
 

@@ -280,6 +280,14 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     load: () => import("./screen/bubble/5"),
   },
   {
+    key: "screen/bubble/6",
+    area: "screen",
+    section: "dated",
+    date: "2026-10-25",
+    phrase: "bubble/5 with the web's attention bounded and tiring: it keeps churning without a few pages taking it all",
+    load: () => import("./screen/bubble/6"),
+  },
+  {
     key: "pc/news-phones/1",
     legacyKeys: ["pc/0908/default"],
     area: "pc",
