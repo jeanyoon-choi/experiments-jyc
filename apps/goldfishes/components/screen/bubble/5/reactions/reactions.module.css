@@ -1,0 +1,29 @@
+/* 반응's part of the fish panel: set apart by a rule, one group per kind. */
+.section {
+  display: grid;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid #e3e3e3;
+}
+
+.kind {
+  display: grid;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.kindHeading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 2px;
+  font-weight: 600;
+}
+
+.kindHeading span {
+  display: block;
+  width: 14px;
+  height: 14px;
+}

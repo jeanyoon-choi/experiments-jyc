@@ -1,0 +1,12 @@
+/* 오브제's panel: one group per object, set apart by a rule. */
+.kind {
+  display: grid;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.kindHeading {
+  margin: 0 2px;
+  font-weight: 600;
+}
