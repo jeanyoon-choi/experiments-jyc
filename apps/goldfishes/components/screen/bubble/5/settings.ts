@@ -4,7 +4,7 @@
 import { LOOK_DEFAULTS, type Colour, type Look } from "./render/foam";
 import { FISH_DEFAULTS, type FishPaletteId, type FishParameters } from "./fish/goldfish";
 import { LIFE_DEFAULTS, type LifeParameters } from "./fish/lifecycle";
-import { ATTENDED_QUALITY, DEFAULT_DAMPING, DEFAULT_PARAMETERS } from "./web/model";
+import { ATTENDED_QUALITY, DEFAULT_DAMPING, DEFAULT_PARAMETERS, FLOOR_RANGE } from "./web/model";
 import type { SoundParameters } from "./sound/sound";
 import { REACTION_DEFAULTS } from "./reactions/reactions"; // 반응
 import { OBJECT_DEFAULTS } from "./objects/objects"; // 오브제
@@ -180,18 +180,25 @@ export const SOUND_CONTROLS: readonly SliderControl<Exclude<keyof SoundParameter
 
 // 기본값 3
 
+/** What every 연출 starts from: bubble/2's look (갤러리) with 기본값 3's raft. */
+export const LOOK_BASE: Visual = { ...VISUAL_DEFAULTS, area: 0.46, portions: 1.95 };
+
+/** 우유 수조 (crimson metal in the studio room, seen from straight above): bubble/5's opening look (user, 2026-10-25). */
+const MILK: Partial<Visual> = { coating: [0.72, 0.015, 0.035], metalness: 1, roughness: 0.12, clearcoat: 0.35, variety: 0.15, viewTilt: 0, lightTurn: 0.875, photo: 2, photoStrength: 0.45, keyStrength: 2.6, keySize: 0.85, shadowLift: 0.18, groundLight: 1.1, edgeShadow: 0.05, colourBleed: 0, neighbourReflection: 0.9, crease: 0.35, background: [1, 1, 1], exposure: 0.85 };
+
 /**
  * 기본값 3 (user, 2026-10-20): the set read off scc bubble/3 — one web of a
  * thousand pages, a fast school — with bubble/2's look (연출 갤러리). bubble/4
  * opens with it; 기본값 3 in the goldfish panel brings every panel back to it.
  */
 export const PRESET_3 = {
-  // 순위 쏠림 halfway from its least (0, even) to 기본값 3's 0.32 (floor 3): many objects of many sizes, few grown huge (user, 2026-10-25).
-  rates: { growth: DEFAULT_PARAMETERS.growth, volatility: 1.5, floor: 7.7 },
+  // 순위 쏠림 0.03 on its slider (기본값 3: 0.32): many objects of many sizes, few grown huge (user, 2026-10-25).
+  rates: { growth: DEFAULT_PARAMETERS.growth, volatility: 1.5, floor: FLOOR_RANGE[0] * (FLOOR_RANGE[1] / FLOOR_RANGE[0]) ** (1 - 0.03) },
   damping: DEFAULT_DAMPING,
-  pages: 1_000,
+  // 800 pages (user, 2026-10-25; 기본값 3 had 1,000).
+  pages: 800,
   groups: 1,
-  visual: { ...VISUAL_DEFAULTS, area: 0.46, portions: 1.95 } satisfies Visual,
+  visual: { ...LOOK_BASE, ...MILK } satisfies Visual,
   fishCount: 380,
   fish: { ...FISH_DEFAULTS, scale: 0.65, speed: 2.2, follow: 0.6, novelty: 1, habituation: 1.75, span: 0.5, schooling: 2, patrol: 1 } satisfies FishParameters,
   fishPalette: "rose" as FishPaletteId,
@@ -204,7 +211,7 @@ export const PRESET_3 = {
 /**
  * 연출: whole looks, each a different environment, material and viewpoint
  * (the raft's area and flow stay unless a look sets them). The first is bubble/2's, which bubble/4
- * opens on.
+ * opened on; bubble/5 opens on 우유 수조.
  */
 export const LOOKS: readonly { id: string; label: string; look: Partial<Visual> }[] = [
   // bubble/2: magenta steel in a photographed loft, seen from the side, each lobe turned its own way.
@@ -252,7 +259,7 @@ export const LOOKS: readonly { id: string; label: string; look: Partial<Visual> 
   {
     id: "milk",
     label: "우유 수조",
-    look: { coating: [0.72, 0.015, 0.035], metalness: 1, roughness: 0.12, clearcoat: 0.35, variety: 0.15, viewTilt: 0, lightTurn: 0.875, photo: 2, photoStrength: 0.45, keyStrength: 2.6, keySize: 0.85, shadowLift: 0.18, groundLight: 1.1, edgeShadow: 0.05, colourBleed: 0, neighbourReflection: 0.9, crease: 0.35, background: [1, 1, 1], exposure: 0.85 },
+    look: MILK,
   },
   // The second reference: the same, with more contrast — darker middles, a smaller, crisper window.
   {

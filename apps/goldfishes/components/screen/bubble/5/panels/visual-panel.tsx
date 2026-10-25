@@ -6,6 +6,7 @@ import {
   fromHex,
   LOOKS,
   PHOTO_ROOMS,
+  LOOK_BASE,
   PRESET_3,
   SLIDER_GROUPS,
   toHex,
@@ -24,7 +25,7 @@ type Props = {
 
 /** The look a 연출 button gives: the opening values, then its own. The raft's area and flow stay unless the look sets them. */
 function withLook(current: Visual, look: Partial<Visual>): Visual {
-  return { ...PRESET_3.visual, area: current.area, portions: current.portions, ...look };
+  return { ...LOOK_BASE, area: current.area, portions: current.portions, ...look };
 }
 
 function sameLook(visual: Visual, look: Partial<Visual>) {
@@ -123,7 +124,7 @@ export function VisualPanel({ visual, setVisual, onExport }: Props) {
           {group.controls.map(slider)}
         </div>
       ))}
-      <Reset onClick={() => setVisual((current) => withLook(current, {}))}>처음 값으로</Reset>
+      <Reset onClick={() => setVisual(PRESET_3.visual)}>처음 값으로</Reset>
       <Reset onClick={onExport}>JSON 내려받기</Reset>
     </Panel>
   );

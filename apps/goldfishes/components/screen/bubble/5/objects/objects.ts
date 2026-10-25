@@ -47,13 +47,16 @@ export const OBJECT_DEFAULTS = {
   shown: 1,
   portions: 1,
   size: 1,
-  puff: 1,
+  // 부풂 0.2 (user, 2026-10-25).
+  puff: 0.2,
   ...(Object.fromEntries(
     OBJECT_KINDS.flatMap((kind) => [
       [`${kind}On`, 1],
       [kind, 1],
     ]),
   ) as Record<`${ObjectKind}On` | ObjectKind, number>),
+  // 원숭이 JPEG off by default (user, 2026-10-25); its 켬 brings it in.
+  apeOn: 0,
 } satisfies ObjectParameters;
 
 export const OBJECT_LABELS: Record<ObjectKind, string> = {
@@ -75,7 +78,7 @@ export type ObjectControl = { key: "size" | "puff" | ObjectKind; label: string; 
 
 export const OBJECT_CONTROLS: readonly ObjectControl[] = [
   { key: "size", label: "오브제 크기 (버블 원 대비)", min: 0.5, max: 1.5, step: 0.01 },
-  { key: "puff", label: "부풂 (높이 배율)", min: 0.2, max: 2, step: 0.01 },
+  { key: "puff", label: "부풂 (높이 배율)", min: 0, max: 2, step: 0.01 },
 ];
 
 /** A stable value in [0, 1) per page. */
