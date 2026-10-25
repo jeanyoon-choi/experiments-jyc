@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { kindOf, OBJECT_DEFAULTS, OBJECT_KINDS } from "./objects.ts";
+import { OBJECT_DEFAULTS, OBJECT_KINDS, OBJECT_SETS, PAGE_SHOWS, pageKind, PORTION_SHOWS, portionKind } from "./objects.ts";
 import { shapeOf } from "./shapes.ts";
 
 test("every object builds, in both levels, rising from z 0 within its reach of the disc", () => {
@@ -23,10 +23,22 @@ test("every object builds, in both levels, rising from z 0 within its reach of t
   }
 });
 
-test("a page keeps its object; off kinds never come; none on, none", () => {
-  assert.equal(kindOf(7, OBJECT_DEFAULTS), kindOf(7, OBJECT_DEFAULTS));
-  const onlyRockets = { ...OBJECT_DEFAULTS, ...Object.fromEntries(OBJECT_KINDS.map((kind) => [`${kind}On`, kind === "rocket" ? 1 : 0])) };
-  for (let page = 0; page < 50; page += 1) assert.equal(kindOf(page, onlyRockets), "rocket");
-  const none = { ...OBJECT_DEFAULTS, ...Object.fromEntries(OBJECT_KINDS.map((kind) => [`${kind}On`, 0])) };
-  assert.equal(kindOf(3, none), null);
+test("pages and portions take their sets; off kinds never come; bubbles stay bubbles", () => {
+  assert.equal(pageKind(7, OBJECT_DEFAULTS), pageKind(7, OBJECT_DEFAULTS));
+  for (let page = 0; page < 60; page += 1) {
+    const kind = pageKind(page, OBJECT_DEFAULTS);
+    assert.ok(kind && (OBJECT_SETS.tech.kinds as readonly string[]).includes(kind) && kind !== "ape", `${kind}`);
+    // Portions follow their page by default.
+    assert.equal(portionKind(page, 0.3, OBJECT_DEFAULTS), kind);
+  }
+  // SNS for the portions alone: pages stay tech, portions are hearts, likes and comments.
+  const snsPortions = { ...OBJECT_DEFAULTS, portions: PORTION_SHOWS.indexOf("sns") };
+  for (let seed = 0; seed < 1; seed += 0.05) assert.ok((OBJECT_SETS.sns.kinds as readonly string[]).includes(portionKind(3, seed, snsPortions)!));
+  const onlyHearts = { ...snsPortions, likeOn: 0, commentOn: 0 };
+  for (let seed = 0; seed < 1; seed += 0.05) assert.equal(portionKind(3, seed, onlyHearts), "heart");
+  // Bubbles.
+  const bubbles = { ...OBJECT_DEFAULTS, pages: PAGE_SHOWS.indexOf("bubble") };
+  assert.equal(pageKind(3, bubbles), null);
+  assert.equal(portionKind(3, 0.5, bubbles), null);
+  assert.equal(portionKind(3, 0.5, { ...OBJECT_DEFAULTS, portions: PORTION_SHOWS.indexOf("bubble") }), null);
 });

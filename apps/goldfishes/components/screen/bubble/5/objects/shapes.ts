@@ -35,6 +35,13 @@ type Part = {
   base: number;
   /** 2: a sphere's fall to the edge; higher: flatter on top, a rounder edge. */
   profile: number;
+  /**
+   * Blown up as a balloon is, instead of by profile: the height is that of a
+   * membrane under pressure over the outline (∇²u = −1 inside, u = 0 on the
+   * edge; height = 2√u, exactly a sphere over a disc), so lobes swell into one
+   * another without a ridge or crease, and `height` scales it (1: a sphere's).
+   */
+  balloon: boolean;
   sectors: number;
   rings: number;
 };
@@ -47,13 +54,21 @@ const capsule = (ax: number, ay: number, bx: number, by: number, radius: number)
   const t = Math.min(1, Math.max(0, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy)));
   return Math.hypot(x - ax - dx * t, y - ay - dy * t) <= radius;
 };
+/** Inside the triangle a b c. */
+const triangle = (a: readonly [number, number], b: readonly [number, number], c: readonly [number, number]) => (x: number, y: number) => {
+  const side = (p: readonly [number, number], q: readonly [number, number]) => (q[0] - p[0]) * (y - p[1]) - (q[1] - p[1]) * (x - p[0]);
+  const ab = side(a, b);
+  const bc = side(b, c);
+  const ca = side(c, a);
+  return (ab >= 0 && bc >= 0 && ca >= 0) || (ab <= 0 && bc <= 0 && ca <= 0);
+};
 const union =
   (...shapes: ((x: number, y: number) => boolean)[]) =>
   (x: number, y: number) =>
     shapes.some((shape) => shape(x, y));
 
 function part(inside: Part["inside"], reach: number, options: Partial<Omit<Part, "inside" | "reach">> = {}): Part {
-  return { inside, reach, x: 0, y: 0, height: 0.5, base: 0, profile: 2, sectors: 64, rings: 10, ...options };
+  return { inside, reach, x: 0, y: 0, height: 0.5, base: 0, profile: 2, balloon: false, sectors: 64, rings: 10, ...options };
 }
 
 /** The height of a part `profile` at a share `s` of the way from its centre to its edge. */
@@ -105,6 +120,28 @@ function partsOf(kind: ObjectKind): Part[] {
     case "spinner":
       // Hard-surface: models.ts.
       return [];
+    case "heart":
+      // Koons's heart: the heart's outline blown up as one balloon, its two lobes swelling into each other
+      // with no ridge down the middle.
+      return [part((x, y) => (x * x + y * y - 1) ** 3 + x * x * y * y * y <= 0, 1.4, { y: 0.05, height: 0.9, balloon: true, sectors: 160, rings: 18 })];
+    case "comment":
+      // A comment's speech bubble as a balloon: a wide round body, its tail to the lower right, one membrane.
+      return [
+        part(
+          // The tail leans off the radius, rooted on the lower rim, as a speech bubble's does (radial, it read as a drop).
+          union(superellipse(0.9, 0.78, 2), triangle([0.18, 0.62], [0.55, 0.52], [0.78, 1.05])),
+          1.2,
+          { height: 0.9, balloon: true, sectors: 160, rings: 18 },
+        ),
+      ];
+    case "like":
+      // A thumbs-up made of balloons, as a balloon twister would: the fist, its finger rolls, the thumb up, the cuff.
+      return [
+        part(capsule(0, 0, 0, -0.5, 0.17), 0.75, { x: -0.02, y: -0.08, height: 0.55, sectors: 64, rings: 10 }),
+        part(superellipse(0.42, 0.38, 3), 0.5, { x: 0.12, y: 0.3, height: 0.72, profile: 2.4, sectors: 96, rings: 12 }),
+        ...[0.1, 0.27, 0.44].map((y) => part(capsule(-0.22, 0, 0.22, 0, 0.085), 0.32, { x: 0.18, y: y + 0.02, base: 0.56, height: 0.18, sectors: 40, rings: 6 })),
+        part(superellipse(0.15, 0.42, 4), 0.48, { x: -0.33, y: 0.3, height: 0.6, profile: 3, sectors: 64, rings: 10 }),
+      ];
     case "robot": {
       // 🤖's head: a rounded box with ears, an antenna and its ball, two eyes and a mouth on its face.
       const head = 0.68;
@@ -120,6 +157,40 @@ function partsOf(kind: ObjectKind): Part[] {
       ];
     }
   }
+}
+
+/** The balloon's membrane over the part's outline (see Part.balloon): heights at any point of it, in its own units. */
+function membraneOf(part: Part, cells: number) {
+  const size = cells + 1;
+  const step = (part.reach * 2) / cells;
+  const inside = new Uint8Array(size * size);
+  for (let row = 0; row < size; row += 1) {
+    for (let column = 0; column < size; column += 1) inside[row * size + column] = part.inside(-part.reach + column * step, -part.reach + row * step) ? 1 : 0;
+  }
+  // ∇²u = −1 inside, 0 outside, by over-relaxed Gauss–Seidel.
+  const u = new Float64Array(size * size);
+  const relax = 2 / (1 + Math.sin(Math.PI / cells));
+  for (let sweep = 0; sweep < cells * 3; sweep += 1) {
+    for (let row = 1; row < size - 1; row += 1) {
+      for (let column = 1; column < size - 1; column += 1) {
+        const at = row * size + column;
+        if (!inside[at]) continue;
+        const next = (u[at - 1]! + u[at + 1]! + u[at - size]! + u[at + size]! + step * step) / 4;
+        u[at] = u[at]! + relax * (next - u[at]!);
+      }
+    }
+  }
+  return (x: number, y: number) => {
+    const fx = Math.min(cells - 1e-6, Math.max(0, (x + part.reach) / step));
+    const fy = Math.min(cells - 1e-6, Math.max(0, (y + part.reach) / step));
+    const column = Math.floor(fx);
+    const row = Math.floor(fy);
+    const tx = fx - column;
+    const ty = fy - row;
+    const at = row * size + column;
+    const value = (u[at]! * (1 - tx) + u[at + 1]! * tx) * (1 - ty) + (u[at + size]! * (1 - tx) + u[at + size + 1]! * tx) * ty;
+    return 2 * Math.sqrt(Math.max(0, value));
+  };
 }
 
 /** Along each direction from the part's centre, how far its outline reaches (bisection on `inside`). */
@@ -169,6 +240,9 @@ const FILL: Record<ObjectKind, number> = {
   rocket: 1.3,
   chat: 1.15,
   spinner: 1.05,
+  heart: 1.12,
+  like: 1.15,
+  comment: 1.08,
 };
 
 /** One object's mesh, its parts together, scaled to fill the unit disc; `detailed` false: lighter, for small ones. */
@@ -185,21 +259,44 @@ export function shapeOf(kind: ObjectKind, detailed = true): ShapeMesh {
   const parts = partsOf(kind).map((part) => (detailed ? part : { ...part, sectors: Math.max(12, Math.round(part.sectors / 2)), rings: Math.max(3, Math.round(part.rings / 2)) }));
   const positions: number[] = [];
   const indices: number[] = [];
+  /** Vertices whose heights are in the outline's own units (balloons), to scale with it. */
+  const scaled: number[] = [];
+  /** A balloon's normals, from its membrane's slope rather than its triangles (no seam where the mesh pinches). */
+  const exact = new Map<number, readonly [number, number, number]>();
   let furthest = 0;
   for (const part of parts) {
     const reaches = outlineOf(part);
     const first = positions.length / 3;
-    positions.push(part.x, part.y, part.base + part.height);
+    const membrane = part.balloon ? membraneOf(part, detailed ? 160 : 72) : null;
+    const heightAt = (localX: number, localY: number, s: number) =>
+      membrane ? (s >= 1 ? 0 : part.height * membrane(localX, localY)) : part.base + part.height * rise(s, part.profile);
+    positions.push(part.x, part.y, heightAt(0, 0, 0));
+    if (membrane) scaled.push(first);
     // Rings closer together towards the edge, where the height falls fastest.
     for (let ring = 1; ring <= part.rings; ring += 1) {
       const s = Math.sin((ring / part.rings) * (Math.PI / 2));
-      const z = part.base + part.height * rise(s, part.profile);
       for (let sector = 0; sector < part.sectors; sector += 1) {
         const angle = (sector / part.sectors) * Math.PI * 2;
-        const x = part.x + Math.cos(angle) * reaches[sector]! * s;
-        const y = part.y + Math.sin(angle) * reaches[sector]! * s;
+        const localX = Math.cos(angle) * reaches[sector]! * s;
+        const localY = Math.sin(angle) * reaches[sector]! * s;
+        const x = part.x + localX;
+        const y = part.y + localY;
         furthest = Math.max(furthest, Math.hypot(x, y));
-        positions.push(x, y, z);
+        if (membrane) {
+          const vertex = positions.length / 3;
+          scaled.push(vertex);
+          // The slope a hair inside the edge for the edge itself, where it turns straight down.
+          const inner = Math.min(s, 0.995);
+          const px = Math.cos(angle) * reaches[sector]! * inner;
+          const py = Math.sin(angle) * reaches[sector]! * inner;
+          // Over about a cell of the membrane, so its bilinear facets do not show.
+          const step = part.reach / 70;
+          const gx = (part.height * (membrane(px + step, py) - membrane(px - step, py))) / (2 * step);
+          const gy = (part.height * (membrane(px, py + step) - membrane(px, py - step))) / (2 * step);
+          const length = Math.hypot(gx, gy, 1);
+          exact.set(vertex, [-gx / length, -gy / length, 1 / length]);
+        }
+        positions.push(x, y, heightAt(localX, localY, s));
       }
     }
     const at = (ring: number, sector: number) => first + 1 + (ring - 1) * part.sectors + (sector % part.sectors);
@@ -215,13 +312,16 @@ export function shapeOf(kind: ObjectKind, detailed = true): ShapeMesh {
       }
     }
   }
-  // Fill the unit disc, and past it by FILL.
+  // Fill the unit disc, and past it by FILL; a balloon's heights scale with its outline.
   const scale = FILL[kind] / furthest;
+  for (const vertex of scaled) positions[vertex * 3 + 2] = positions[vertex * 3 + 2]! * scale;
   for (let index = 0; index < positions.length; index += 3) {
     positions[index] = positions[index]! * scale;
     positions[index + 1] = positions[index + 1]! * scale;
   }
-  return { positions: new Float32Array(positions), normals: normalsOf(positions, indices), indices: new Uint32Array(indices) };
+  const normals = normalsOf(positions, indices);
+  for (const [vertex, normal] of exact) normals.set(normal, vertex * 3);
+  return { positions: new Float32Array(positions), normals, indices: new Uint32Array(indices) };
 }
 
 /**

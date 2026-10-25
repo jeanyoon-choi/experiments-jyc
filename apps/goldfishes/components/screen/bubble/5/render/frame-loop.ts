@@ -16,7 +16,7 @@ import { Reactions } from "../reactions/reaction-state"; // 반응
 import type { ReactionMeshes } from "../reactions/reaction-meshes"; // 반응
 import type { ReactionParameters } from "../reactions/reactions"; // 반응
 import { createObjectPass, type ObjectPass } from "../objects/object-pass"; // 오브제
-import type { ObjectParameters } from "../objects/objects"; // 오브제
+import { pageSet, PORTION_SHOWS, type ObjectParameters } from "../objects/objects"; // 오브제
 
 /** The display relaxes toward one power-iteration step with this time constant, seconds. */
 const STEP_SECONDS = 1.1;
@@ -246,11 +246,16 @@ class RaftLoop implements FrameLoop {
       this.scene?.sync();
       this.lap(7);
     }
-    // 오브제: the pages drawn as objects instead of spheres; the portions under way stay spheres, or (an option) become their source page's objects.
-    const objects = settings.objects.shown >= 0.5;
-    const portionObjects = objects && settings.objects.portions >= 0.5;
-    this.renderer.render(!objects ? this.bubbleCount : portionObjects ? 0 : pageStart, lookOf(settings.visual));
-    if (objects) this.objectPass.draw(portionObjects ? 0 : pageStart, this.bubbleCount, this.pageOf, settings.objects);
+    // 오브제: the pages, the portions under way, both or neither drawn as objects instead of spheres; the spheres left are drawn as before.
+    const pageObjects = pageSet(settings.objects) !== null;
+    const portionShow = PORTION_SHOWS[Math.round(settings.objects.portions)] ?? "bubble";
+    const portionObjects = portionShow !== "bubble" && (portionShow !== "page" || pageObjects);
+    const look = lookOf(settings.visual);
+    if (pageObjects && portionObjects) this.renderer.render(0, look);
+    else if (pageObjects) this.renderer.render(pageStart, look);
+    else if (portionObjects) this.renderer.render(this.bubbleCount, look, pageStart);
+    else this.renderer.render(this.bubbleCount, look);
+    if (pageObjects || portionObjects) this.objectPass.draw(pageStart, this.bubbleCount, this.pageOf, settings.objects);
     mark(5);
     if (MEASURE) {
       this.renderer.sync();

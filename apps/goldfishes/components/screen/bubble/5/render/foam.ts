@@ -651,7 +651,8 @@ export type FoamRenderer = {
   /** Per bubble: x y radius seed (CSS px; seed in [0, 1)). */
   readonly bubbles: Float32Array;
   resize(width: number, height: number, ratio: number): void;
-  render(bubbleCount: number, look?: Look): void;
+  /** Draws the bubbles `from` … `bubbleCount` (by default all from the first). */
+  render(bubbleCount: number, look?: Look, from?: number): void;
   /** For passes drawn over the raft in its material (objects/): the context, a program from shaders that include SHADING, */
   readonly gl: WebGL2RenderingContext;
   program(vertex: string, fragment: string): WebGLProgram;
@@ -688,7 +689,7 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
   gl.enableVertexAttribArray(0);
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
-  const bubbles = new Float32Array(MAX_BUBBLES * BUBBLE_FLOATS);
+  const all = new Float32Array(MAX_BUBBLES * BUBBLE_FLOATS);
   const bubbleBuffer = gl.createBuffer();
   const bubbleMesh = gl.createVertexArray();
   gl.bindVertexArray(bubbleMesh);
@@ -696,7 +697,7 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
   gl.enableVertexAttribArray(0);
   gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
   gl.bindBuffer(gl.ARRAY_BUFFER, bubbleBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, bubbles.byteLength, gl.DYNAMIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, all.byteLength, gl.DYNAMIC_DRAW);
   gl.enableVertexAttribArray(1);
   gl.vertexAttribPointer(1, 4, gl.FLOAT, false, BUBBLE_FLOATS * 4, 0);
   gl.vertexAttribDivisor(1, 1);
@@ -819,8 +820,11 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
   };
 
   let lastLook = LOOK_DEFAULTS;
-  const render: FoamRenderer["render"] = (bubbleCount, look = LOOK_DEFAULTS) => {
+  const render: FoamRenderer["render"] = (bubbleCount, look = LOOK_DEFAULTS, from = 0) => {
     lastLook = look;
+    // Only these bubbles, as if they were all there were.
+    const bubbles = all.subarray(Math.min(from, bubbleCount) * BUBBLE_FLOATS);
+    bubbleCount -= Math.min(from, bubbleCount);
     // The ground reacts (meniscus, shade, colour) only when asked to; otherwise no halos are drawn.
     const groundHalo = look.edgeShadow > 0 || look.colourBleed > 0 ? 1 : 0;
     const keyScreen = keyOnScreen(look.viewTilt, look.lightTurn);
@@ -1003,7 +1007,7 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
   };
 
   return {
-    bubbles,
+    bubbles: all,
     resize,
     render,
     gl,

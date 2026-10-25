@@ -1,6 +1,17 @@
 import type { Dispatch, SetStateAction } from "react";
 import { Chip, Chips, Note, Panel, Reset, Slider } from "../panels/controls";
-import { OBJECT_CONTROLS, OBJECT_DEFAULTS, OBJECT_KINDS, OBJECT_LABELS, type ObjectControl, type ObjectKind, type ObjectParameters } from "./objects";
+import {
+  OBJECT_CONTROLS,
+  OBJECT_DEFAULTS,
+  OBJECT_LABELS,
+  OBJECT_SETS,
+  PAGE_SHOWS,
+  PORTION_SHOWS,
+  SHOW_LABELS,
+  type ObjectControl,
+  type ObjectParameters,
+  type ObjectSet,
+} from "./objects";
 import styles from "./objects.module.css";
 
 type Props = {
@@ -8,7 +19,10 @@ type Props = {
   setObjects: Dispatch<SetStateAction<ObjectParameters>>;
 };
 
-/** 오브제's panel (its own, user 2026-10-25): bubbles or objects, the portions, size, then each object's 끔/켬 and share. */
+/**
+ * 오브제's panel: what the pages and the portions under way are shown as,
+ * size and puff; each set's kinds folded away, one chip each (pressed: on).
+ */
 export function ObjectPanel({ objects, setObjects }: Props) {
   const slider = (control: ObjectControl) => (
     <Slider
@@ -23,41 +37,38 @@ export function ObjectPanel({ objects, setObjects }: Props) {
       onChange={(value) => setObjects((current) => ({ ...current, [control.key]: value }))}
     />
   );
-  const turn = (kind: ObjectKind, value: number) => setObjects((current) => ({ ...current, [`${kind}On`]: value }));
+  const choice = (label: string, key: "pages" | "portions", shows: readonly (keyof typeof SHOW_LABELS)[]) => (
+    <>
+      <Note>{label}</Note>
+      <Chips label={label}>
+        {shows.map((show, index) => (
+          <Chip key={show} pressed={Math.round(objects[key]) === index} onClick={() => setObjects((current) => ({ ...current, [key]: index }))}>
+            {SHOW_LABELS[show]}
+          </Chip>
+        ))}
+      </Chips>
+    </>
+  );
   return (
     <Panel id="objects" label="오브제">
-      <Note>페이지 모양</Note>
-      <Chips label="페이지 모양">
-        <Chip pressed={objects.shown < 0.5} onClick={() => setObjects((current) => ({ ...current, shown: 0 }))}>
-          버블
-        </Chip>
-        <Chip pressed={objects.shown >= 0.5} onClick={() => setObjects((current) => ({ ...current, shown: 1 }))}>
-          오브제
-        </Chip>
-      </Chips>
-      <Note>왔다갔다 하는 것 (링크를 따라 흐르는 몫)</Note>
-      <Chips label="왔다갔다 하는 것">
-        <Chip pressed={objects.portions < 0.5} onClick={() => setObjects((current) => ({ ...current, portions: 0 }))}>
-          버블
-        </Chip>
-        <Chip pressed={objects.portions >= 0.5} onClick={() => setObjects((current) => ({ ...current, portions: 1 }))}>
-          오브제
-        </Chip>
-      </Chips>
+      {choice("페이지", "pages", PAGE_SHOWS)}
+      {choice("왔다갔다 하는 것", "portions", PORTION_SHOWS)}
       {OBJECT_CONTROLS.map(slider)}
-      {OBJECT_KINDS.map((kind) => (
-        <div key={kind} className={styles.kind} role="group" aria-label={OBJECT_LABELS[kind]}>
-          <p className={styles.kindHeading}>{OBJECT_LABELS[kind]}</p>
-          <Chips label={`${OBJECT_LABELS[kind]} 켜기`}>
-            <Chip pressed={objects[`${kind}On`] < 0.5} onClick={() => turn(kind, 0)}>
-              끔
-            </Chip>
-            <Chip pressed={objects[`${kind}On`] >= 0.5} onClick={() => turn(kind, 1)}>
-              켬
-            </Chip>
+      {(Object.keys(OBJECT_SETS) as ObjectSet[]).map((set) => (
+        <details key={set} className={styles.set}>
+          <summary>{OBJECT_SETS[set].label} · 세부</summary>
+          <Chips label={`${OBJECT_SETS[set].label} 켜기`}>
+            {OBJECT_SETS[set].kinds.map((kind) => (
+              <Chip
+                key={kind}
+                pressed={objects[`${kind}On`] >= 0.5}
+                onClick={() => setObjects((current) => ({ ...current, [`${kind}On`]: current[`${kind}On`] >= 0.5 ? 0 : 1 }))}
+              >
+                {OBJECT_LABELS[kind]}
+              </Chip>
+            ))}
           </Chips>
-          {slider({ key: kind, label: `${OBJECT_LABELS[kind]} 비중 (얼마나 자주)`, min: 0, max: 1, step: 0.05 })}
-        </div>
+        </details>
       ))}
       <Reset onClick={() => setObjects(OBJECT_DEFAULTS)}>오브제 기본값으로</Reset>
     </Panel>
