@@ -284,6 +284,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     area: "screen",
     section: "dated",
     date: "2026-10-25",
+    updated: "2026-10-26",
     phrase: "bubble/5 with the web's attention bounded and tiring: it keeps churning without a few pages taking it all",
     load: () => import("./screen/bubble/6"),
   },

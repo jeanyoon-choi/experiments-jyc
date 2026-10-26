@@ -35,6 +35,26 @@ const PERFORMANCE_INTERVAL = 500;
 // time-based motion jump.
 const MAX_AUTO_PIXEL_RATIO = 2;
 
+// Obstacles: the original tests and life blocks (책), or shelves of real
+// workbook spines (문제집).
+type Obstacles = "books" | "workbooks";
+const obstacleChoices: { id: Obstacles; label: string }[] = [
+  { id: "books", label: "책" },
+  { id: "workbooks", label: "문제집" },
+];
+
+// Rows stay where they are (그대로), or rank by lifespan (수명순): the game
+// whose human has lived longest on top, ties keeping their order.
+type Ordering = "fixed" | "lifespan";
+const orderings: { id: Ordering; label: string }[] = [
+  { id: "fixed", label: "그대로" },
+  { id: "lifespan", label: "수명순" },
+];
+// Games are checked for a new game over this often.
+const RANK_INTERVAL = 200;
+// The age clock runs six months a second.
+const YEAR_MILLISECONDS = 2000;
+
 type Resolution = "auto" | 1 | 2 | 3;
 const resolutions: { id: Resolution; label: string }[] = [
   { id: "auto", label: "자동" },
@@ -109,10 +129,12 @@ function withDocumentSettings(
   html: string,
   pixelRatio: number,
   clockTop: number,
+  workbooks: boolean,
+  growth: boolean,
 ) {
   return html.replace(
     "<title>",
-    `<script data-spoon-class-settings>Object.defineProperty(window, "devicePixelRatio", { configurable: true, get: function () { return ${pixelRatio}; } }); window.spoonClassClockTop = ${clockTop}; window.spoonClassJumpCeiling = ${clockTop};</script>\n<title>`,
+    `<script data-spoon-class-settings>Object.defineProperty(window, "devicePixelRatio", { configurable: true, get: function () { return ${pixelRatio}; } }); window.spoonClassClockTop = ${clockTop}; window.spoonClassJumpCeiling = ${clockTop}; window.spoonClassWorkbooks = ${workbooks}; window.spoonClassGrowth = ${growth};</script>\n<title>`,
   );
 }
 
@@ -153,6 +175,12 @@ export default function SpoonClassThree() {
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [performanceVisible, setPerformanceVisible] = useState(false);
   const [resolution, setResolution] = useState<Resolution>("auto");
+  const [obstacles, setObstacles] = useState<Obstacles>("books");
+  const [ordering, setOrdering] = useState<Ordering>("fixed");
+  // The human grows with age (켬) or stays a baby (끔, the earlier /3).
+  const [growth, setGrowth] = useState(true);
+  // Row id → displayed position, while ranking by lifespan.
+  const [places, setPlaces] = useState<Map<string, number>>(new Map());
   // The game set that has received input; new rows or resolution start fresh.
   const [playedSession, setPlayedSession] = useState<string | null>(null);
   const sessionRef = useRef("");
@@ -199,14 +227,66 @@ export default function SpoonClassThree() {
 
   const pixelRatio = resolution === "auto" ? layout.autoPixelRatio : resolution;
   const html = useMemo(
-    () => withDocumentSettings(source.html, pixelRatio, layout.clockTop),
-    [pixelRatio, layout.clockTop],
+    () =>
+      withDocumentSettings(
+        source.html,
+        pixelRatio,
+        layout.clockTop,
+        obstacles === "workbooks",
+        growth,
+      ),
+    [pixelRatio, layout.clockTop, obstacles, growth],
   );
-  const session = `rows-${layout.rows}-ratio-${pixelRatio}`;
+  const session = `rows-${layout.rows}-ratio-${pixelRatio}-${obstacles}-${growth ? "growth" : "baby"}`;
 
   useEffect(() => {
     sessionRef.current = session;
   }, [session]);
+
+  useEffect(() => {
+    if (ordering !== "lifespan") return;
+    // Rows move by transform, never in the DOM: moving an iframe reloads it.
+    // The order changes only when a game ends: a life is ranked once it is
+    // over, by whole years lived (6 months a second, so one year is 2s); a
+    // game still running counts its years so far. Equal years keep their order.
+    let previous: string[] = [];
+    let ended = new Set<string>();
+    const rank = () => {
+      const ids = [...framesRef.current.keys()].sort((a, b) =>
+        a.localeCompare(b, undefined, { numeric: true }),
+      );
+      const state = (id: string) => {
+        const view = framesRef.current.get(id)?.contentWindow as
+          | {
+              spoonClassAge?: number;
+              Runner?: { instance_?: { crashed?: boolean } };
+            }
+          | null
+          | undefined;
+        const age = typeof view?.spoonClassAge === "number" ? view.spoonClassAge : 0;
+        return {
+          years: Math.floor(age / YEAR_MILLISECONDS),
+          crashed: Boolean(view?.Runner?.instance_?.crashed),
+        };
+      };
+      const states = new Map(ids.map((id) => [id, state(id)]));
+      const nowEnded = new Set(ids.filter((id) => states.get(id)?.crashed));
+      const newlyEnded = [...nowEnded].some((id) => !ended.has(id));
+      ended = nowEnded;
+      if (previous.length === ids.length && !newlyEnded) return;
+      const base = previous.length === ids.length ? previous : ids;
+      const ranked = [...base].sort(
+        (a, b) =>
+          (states.get(b)?.years ?? 0) - (states.get(a)?.years ?? 0) ||
+          base.indexOf(a) - base.indexOf(b),
+      );
+      previous = ranked;
+      setPlaces(new Map(ranked.map((id, index) => [id, index])));
+    };
+    rank();
+    const timer = window.setInterval(rank, RANK_INTERVAL);
+    return () => window.clearInterval(timer);
+  }, [ordering, session]);
 
   useEffect(() => {
     const readout = performanceRef.current;
@@ -283,7 +363,13 @@ export default function SpoonClassThree() {
         style={{ "--spoon-class-rows": layout.rows } as CSSProperties}
       >
         {rows.map(({ id, row }) => (
-          <div className={styles.row} key={id}>
+          <div
+            className={styles.row}
+            key={id}
+            style={{
+              transform: `translateY(${((ordering === "lifespan" ? (places.get(id) ?? row) : row) - row) * 100}%)`,
+            }}
+          >
             <SourceFrame
               ref={(frame) => {
                 if (frame) framesRef.current.set(id, frame);
@@ -337,30 +423,86 @@ export default function SpoonClassThree() {
           />
         )}
         {optionsOpen && (
-          <div className={styles.controlRow}>
-            {resolutions.map(({ id, label }) => (
+          <div className={styles.menu} role="group" aria-label="옵션">
+            <div className={styles.menuRow}>
+              <span className={styles.menuLabel}>장애물</span>
+              {obstacleChoices.map(({ id, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  className={styles.choice}
+                  aria-pressed={obstacles === id}
+                  onClick={(event) => {
+                    event.currentTarget.blur();
+                    setPlayedSession(null);
+                    setObstacles(id);
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className={styles.menuRow}>
+              <span className={styles.menuLabel}>성장</span>
+              {[
+                { id: true, label: "켬" },
+                { id: false, label: "끔" },
+              ].map(({ id, label }) => (
+                <button
+                  key={label}
+                  type="button"
+                  className={styles.choice}
+                  aria-pressed={growth === id}
+                  onClick={(event) => {
+                    event.currentTarget.blur();
+                    setPlayedSession(null);
+                    setGrowth(id);
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className={styles.menuRow}>
+              <span className={styles.menuLabel}>정렬</span>
+              {orderings.map(({ id, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  className={styles.choice}
+                  aria-pressed={ordering === id}
+                  onClick={(event) => {
+                    event.currentTarget.blur();
+                    setOrdering(id);
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className={styles.menuRow}>
+              <span className={styles.menuLabel}>해상도</span>
+              {resolutions.map(({ id, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  className={styles.choice}
+                  aria-pressed={resolution === id}
+                  onClick={(event) => {
+                    event.currentTarget.blur();
+                    setPlayedSession(null);
+                    setResolution(id);
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className={styles.menuRow}>
+              <span className={styles.menuLabel}>줄</span>
               <button
-                key={id}
                 type="button"
-                className={styles.control}
-                aria-pressed={resolution === id}
-                onClick={(event) => {
-                  event.currentTarget.blur();
-                  setPlayedSession(null);
-                  setResolution(id);
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
-        <div className={styles.controlRow}>
-          {optionsOpen && (
-            <>
-              <button
-                type="button"
-                className={styles.control}
+                className={styles.choice}
                 aria-label="줄 줄이기"
                 disabled={layout.rows <= ROW_LIMITS.min}
                 onClick={(event) => {
@@ -370,10 +512,10 @@ export default function SpoonClassThree() {
               >
                 −
               </button>
-              <span className={styles.count}>{layout.rows}줄</span>
+              <span className={styles.count}>{layout.rows}</span>
               <button
                 type="button"
-                className={styles.control}
+                className={styles.choice}
                 aria-label="줄 늘리기"
                 disabled={layout.rows >= ROW_LIMITS.max}
                 onClick={(event) => {
@@ -383,32 +525,35 @@ export default function SpoonClassThree() {
               >
                 +
               </button>
+            </div>
+            <div className={styles.menuRow}>
+              <span className={styles.menuLabel}>성능</span>
               <button
                 type="button"
-                className={styles.control}
+                className={styles.choice}
                 aria-pressed={performanceVisible}
                 onClick={(event) => {
                   event.currentTarget.blur();
                   setPerformanceVisible((value) => !value);
                 }}
               >
-                성능
+                {performanceVisible ? "켜짐" : "꺼짐"}
               </button>
-            </>
-          )}
-          <button
-            type="button"
-            className={styles.control}
-            aria-expanded={optionsOpen}
-            onClick={(event) => {
-              // Keyboard play goes back to the stack instead of this button.
-              event.currentTarget.blur();
-              setOptionsOpen((value) => !value);
-            }}
-          >
-            {optionsOpen ? "닫기" : "옵션"}
-          </button>
-        </div>
+            </div>
+          </div>
+        )}
+        <button
+          type="button"
+          className={styles.toggle}
+          aria-expanded={optionsOpen}
+          onClick={(event) => {
+            // Keyboard play goes back to the stack instead of this button.
+            event.currentTarget.blur();
+            setOptionsOpen((value) => !value);
+          }}
+        >
+          {optionsOpen ? "닫기" : "옵션"}
+        </button>
       </div>
     </>
   );

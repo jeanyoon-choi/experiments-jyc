@@ -1,11 +1,18 @@
 // 소리 (user, 2026-10-12): a sound each time a goldfish touches a page's bubble — the
-// same onset as 금붕어가 닿을 때만's reveal. Two soundscapes on one engine:
+// same onset as 금붕어가 닿을 때만's reveal. Four soundscapes on one engine:
 //
 //   유리 — Max Cooper's generative electronica: glassy FM tones on a slowly turning
 //          chord, tight clicks, stuttering grains, ping-pong echoes in tempo, a long
 //          room;
+//   금속 — the objects' chrome and steel (sound-metal.ts) on 군중's low root and fifth;
 //   군중 — the work's FOMO and desire as a crowd crying out in harmony: one sung
-//          voice (sound-crowd.ts) stacked on the chord and chopped up it in sixteenths.
+//          voice (sound-crowd.ts) stacked on the chord and chopped up it in sixteenths;
+//   알림 — 군중's method on the feed's interface sounds: chimes, likes' pops, taps and
+//          swooshes (sound-notify.ts) stacked on the chord and retriggered;
+//   알림 2 — 알림 made vast: chimes whose ring turns into a choir, stacked over three
+//          octaves on a driven, flipped-down stab, in a larger room;
+//   알림 3 — 군중 note for note, its yell sung by a phone (a chime's spectrum through
+//          군중's voices, scoop, fall, rasp and drive).
 //
 // Nothing sounds but the touches (user, 2026-10-12): a pad under 유리 and a choir under
 // 군중 were tried and removed.
@@ -23,6 +30,9 @@
 // buses. At most one touch per sixteenth and twelve voices at once.
 
 import { renderCry } from "./sound-crowd";
+import { beam, clang, pipe } from "./sound-metal";
+import { chime, hymn, pop, swoosh, tap } from "./sound-notify";
+import { SYNTH_RATE } from "./synth";
 
 /** One touch, as the frame loop reports it. */
 export type Touch = {
@@ -34,11 +44,15 @@ export type Touch = {
   y: number;
 };
 
-export type Soundscape = "glass" | "crowd";
+export type Soundscape = "glass" | "metal" | "crowd" | "notify" | "hymn" | "notice";
 
 export const SOUNDSCAPES: readonly { id: Soundscape; label: string }[] = [
   { id: "glass", label: "유리" },
+  { id: "metal", label: "금속" },
   { id: "crowd", label: "군중" },
+  { id: "notify", label: "알림" },
+  { id: "hymn", label: "알림 2" },
+  { id: "notice", label: "알림 3" },
 ];
 
 export type SoundParameters = {
@@ -134,6 +148,24 @@ function cryFor(note: number) {
   if (cry !== undefined) return cry;
   cries.set(note, null);
   void renderCry(note, note < 52 ? 1.4 : note < 60 ? 1.1 : 0.8).then((buffer) => cries.set(note, buffer));
+  return null;
+}
+
+/**
+ * 금속's tones and 알림's voices by key, computed (sound/synth.ts) the first time each is
+ * needed, in a task of its own rather than the frame that asked; the touch stays silent.
+ */
+const voices = new Map<string, AudioBuffer | null>();
+function voiceFor(key: string, render: () => Float32Array<ArrayBuffer>) {
+  const voice = voices.get(key);
+  if (voice !== undefined) return voice;
+  voices.set(key, null);
+  setTimeout(() => {
+    const data = render();
+    const buffer = new AudioBuffer({ length: data.length, sampleRate: SYNTH_RATE, numberOfChannels: 1 });
+    buffer.copyToChannel(data, 0);
+    voices.set(key, buffer);
+  }, 0);
   return null;
 }
 
@@ -252,7 +284,8 @@ export class TouchSound {
     this.parameters = parameters;
     const now = this.context.currentTime;
     this.master.gain.setTargetAtTime(parameters.volume * 0.8, now, 0.05);
-    this.roomSend.gain.setTargetAtTime(parameters.space * 0.55, now, 0.1);
+    // 알림 2 sits in a larger share of the room.
+    this.roomSend.gain.setTargetAtTime(parameters.space * (parameters.scape === "hymn" ? 0.9 : 0.55), now, 0.1);
     this.echoSend.gain.setTargetAtTime(parameters.space * 0.4, now, 0.1);
   }
 
@@ -276,7 +309,19 @@ export class TouchSound {
     // A page's own voice: a fixed degree of the chord.
     const note = notes[1 + Math.floor(hash(touch.page * 31 + 7) * (notes.length - 1))]!;
     const bus = this.buses[Math.max(0, Math.min(PANS.length - 1, Math.round(touch.x * (PANS.length - 1))))]!;
-    const length = this.parameters.scape === "crowd" ? this.crowd(touch, notes, now, bus) : this.glass(touch, note, notes[0]!, now, bus);
+    const { scape } = this.parameters;
+    const length =
+      scape === "crowd"
+        ? this.crowd(touch, notes, now, bus)
+        : scape === "notify"
+          ? this.notify(touch, notes, now, bus)
+          : scape === "hymn"
+            ? this.hymn(touch, notes, now, bus)
+            : scape === "notice"
+              ? this.notice(touch, notes, now, bus)
+            : scape === "metal"
+              ? this.metal(touch, notes, now, bus)
+              : this.glass(touch, note, notes[0]!, now, bus);
     if (length <= 0) return;
     this.lastAt.set(touch.page, now);
     this.lastTouchAt = now;
@@ -294,6 +339,212 @@ export class TouchSound {
     if (rank > 0.85) this.play(this.sub, midiToHz(root < 40 ? root + 12 : root) / 55, now, 0.3, 0.7, this.buses[2]!);
     if (hash(page * 13 + Math.floor(now * 4)) < this.parameters.grain) this.stutter(midiToHz(note + 12), now, rank, bus);
     return length;
+  }
+
+  /**
+   * 금속, on 군중's grammar rather than 유리's (user: "훨씬 낮게 … 군중과 같이 더 깊게 묵직하고
+   * 낮게 깔려야"): the chord's root and fifth only, in 군중's registers. Leaders: a steel beam
+   * on the root an octave up, with its fifth, and the sub; the middle a struck pipe two octaves
+   * up (root or fifth); small pages a steel clang a little higher, cut short. Breaking (부서짐):
+   * a chain's rattle on root and fifth, off the beat.
+   */
+  private metal({ page, rank }: Touch, notes: readonly number[], now: number, bus: AudioNode) {
+    const root = notes[0]!;
+    const fifth = hash(page * 31 + 7) < 0.5;
+    if (hash(page * 13 + Math.floor(now * 4)) < this.parameters.grain) {
+      const count = 4 + Math.floor(Math.random() * 4);
+      let at = now;
+      for (let index = 0; index < count; index += 1) {
+        const note = root + 24 + (Math.random() < 0.5 ? 7 : 0);
+        const voice = voiceFor(`m${note}`, () => clang(note, false, 1.2));
+        if (voice) this.play(voice, 1, at, 0.2 * 0.85 ** index, 0.3, bus);
+        at += 0.03 + Math.random() * 0.08;
+      }
+      return at - now + 0.3;
+    }
+    if (rank > 0.7) {
+      const note = root + 12;
+      const low = voiceFor(`b${note}`, () => beam(note, 3.6));
+      const upper = voiceFor(`b${note + 7}`, () => beam(note + 7, 3.2));
+      if (!low) return 0;
+      const length = Math.min(low.duration, 1.6 + 2 * rank);
+      this.play(low, 1, now, 0.34, length, this.buses[2]!);
+      if (upper) this.play(upper, 1, now + 0.025, 0.24, length, bus);
+      if (rank > 0.85) this.play(this.sub, midiToHz(root < 40 ? root + 12 : root) / 55, now, 0.34, 0.7, this.buses[2]!);
+      return length;
+    }
+    if (rank > 0.3) {
+      const note = root + 24 + (fifth ? 7 : 0);
+      const voice = voiceFor(`q${note}`, () => pipe(note, 2.4));
+      if (!voice) return 0;
+      const length = Math.min(voice.duration, 0.8 + 2 * rank);
+      this.play(voice, 1, now, 0.3, length, bus);
+      return length;
+    }
+    const note = root + 31 + (fifth ? 5 : 0);
+    const voice = voiceFor(`m${note}`, () => clang(note, false, 1.2));
+    if (!voice) return 0;
+    this.play(voice, 1, now, 0.24, 0.35, bus);
+    return 0.35;
+  }
+
+  /**
+   * 알림 2: every chime's ring turns into a choir (hymn). Leaders: the driven chime flipped down
+   * to the root, the sub, and choir-chimes rising over three octaves — root, fifth, the page's
+   * tone, its octave. The middle: a like's pop struck into two choir-chimes a chord tone apart.
+   * The small: a double tap with a faint choir above. Breaking (부서짐): chimes climbing the
+   * chord in sixteenths over two octaves, the last one sung.
+   */
+  private hymn({ page, rank }: Touch, notes: readonly number[], now: number, bus: AudioNode) {
+    const scale = notes.slice(1).sort((a, b) => a - b);
+    const index = Math.floor(hash(page * 31 + 7) * scale.length);
+    const degree = (step: number) => scale[(index + step) % scale.length]! + 12 * Math.floor((index + step) / scale.length);
+    const root = notes[0]!;
+    const sung = (note: number) => voiceFor(`h${note}`, () => hymn(note));
+    if (hash(page * 13 + Math.floor(now * 4)) < this.parameters.grain) {
+      const count = 4 + Math.floor(Math.random() * 3);
+      const step = BEAT / 4;
+      for (let index = 0; index < count; index += 1) {
+        const note = degree(index) + (rank > 0.5 ? 0 : 12);
+        const last = index === count - 1;
+        const voice = last ? sung(note) : voiceFor(`c${note}`, () => chime(note));
+        if (voice) this.play(voice, 1, now + index * step, (last ? 0.2 : 0.17) * 0.92 ** index, last ? voice.duration : 0.7, bus);
+      }
+      return count * step + 2;
+    }
+    if (rank > 0.7) {
+      const stab = voiceFor(`f${root}`, () => chime(root, 2.2));
+      const choir = [root + 12, root + 19, degree(0), degree(0) + 12].map(sung);
+      if (!stab || choir.some((voice) => !voice)) return 0;
+      const length = 2 + 2 * rank;
+      this.play(stab, 1, now, 0.26, Math.min(stab.duration, length), bus);
+      this.play(this.sub, midiToHz(root < 40 ? root + 12 : root) / 55, now, 0.32, 0.7, this.buses[2]!);
+      choir.forEach((voice, step) => this.play(voice!, 1, now + step * 0.07, 0.15, length, step < 2 ? this.buses[2]! : bus));
+      return length;
+    }
+    if (rank > 0.3) {
+      const like = voiceFor(`p${degree(0) + 12}`, () => pop(degree(0) + 12));
+      const choir = [degree(0) + 12, degree(1) + 12].map(sung);
+      if (!like || choir.some((voice) => !voice)) return 0;
+      const length = 1.4 + 2 * rank;
+      this.play(like, 1, now, 0.24, like.duration, bus);
+      choir.forEach((voice, step) => this.play(voice!, 1, now + 0.03 + step * 0.05, 0.14, length, bus));
+      return length;
+    }
+    const [first, second] = [degree(0) + 24, degree(1) + 24].map((note) => voiceFor(`t${note}`, () => tap(note)));
+    const halo = sung(degree(0) + 24);
+    if (!first || !second || !halo) return 0;
+    this.play(first, 1, now, 0.2, first.duration, bus);
+    this.play(second, 1, now + 0.085, 0.16, second.duration, bus);
+    this.play(halo, 1, now + 0.085, 0.06, 1.2, bus);
+    return 1.2;
+  }
+
+  /**
+   * 알림 3 (user: "군중과 같은 소리가 아니라 알림 소리에서 시작해야"): 알림's own sounds — the
+   * chime, the like's pop, the tap — slowed to a quarter speed (two octaves down, four times
+   * as long), as a sample is pitched down, then given 군중's grammar: root and fifth (and the
+   * minor third where D minor has one) instead of the chord's colours, low, through a dark
+   * low-pass, the leaders over the chime flipped down to the root, driven, and the sub, so the
+   * slowed rings lie under everything. Breaking (부서짐): one slowed onset retriggered in
+   * sixteenths, as 군중's yells are.
+   */
+  private notice({ page, rank }: Touch, notes: readonly number[], now: number, bus: AudioNode) {
+    const root = notes[0]!;
+    const third = [0, 2, 4, 5, 7, 9, 10].includes((root + 3) % 12) ? root + 3 : null;
+    const fifth = hash(page * 31 + 7) < 0.5;
+    // Rendered two octaves above where they sound; played at a quarter speed.
+    const slowed = (kind: "c" | "p" | "t", note: number) =>
+      voiceFor(`${kind}${note + 24}`, () => (kind === "c" ? chime(note + 24) : kind === "p" ? pop(note + 24) : tap(note + 24)));
+    const dark = this.context.createBiquadFilter();
+    dark.type = "lowpass";
+    dark.frequency.value = rank > 0.7 ? 900 : 1500;
+    dark.Q.value = 0.9;
+    dark.connect(bus);
+    if (hash(page * 13 + Math.floor(now * 4)) < this.parameters.grain) {
+      const voice = slowed("c", root + (rank > 0.5 ? 12 : 24) + (fifth ? 7 : 0));
+      if (!voice) return 0;
+      const count = 2 + Math.floor(Math.random() * 3);
+      for (let index = 0; index < count; index += 1) this.play(voice, 0.25, now + (index * BEAT) / 4, 0.4 * 0.82 ** index, 0.2, dark);
+      return (count * BEAT) / 4 + 0.2;
+    }
+    if (rank > 0.7) {
+      const chant = [root + 12, root + 19, ...(third === null ? [] : [third + 12])].map((note) => slowed("c", note));
+      const stab = voiceFor(`f${root}`, () => chime(root, 2.2));
+      if (chant.some((voice) => !voice) || !stab) return 0;
+      const length = 2.4 + 2 * rank;
+      chant.forEach((voice, step) => this.play(voice!, 0.25, now + step * 0.025, step === 2 ? 0.3 : 0.45, length, dark));
+      this.play(stab, 1, now, 0.26, Math.min(stab.duration, length), this.buses[2]!);
+      this.play(this.sub, midiToHz(root < 40 ? root + 12 : root) / 55, now, 0.34, 0.7, this.buses[2]!);
+      return length;
+    }
+    if (rank > 0.3) {
+      const like = slowed("p", root + 24 + (fifth ? 7 : 0));
+      const ring = slowed("c", root + 24 + (fifth ? 7 : 0));
+      if (!like || !ring) return 0;
+      const length = 1.4 + 2 * rank;
+      this.play(like, 0.25, now, 0.45, like.duration * 4, dark);
+      this.play(ring, 0.25, now, 0.22, length, dark);
+      return length;
+    }
+    const [first, second] = [root + 31, root + 36].map((note) => slowed("t", note));
+    if (!first || !second) return 0;
+    this.play(first, 0.25, now, 0.4, first.duration * 4, dark);
+    this.play(second, 0.25, now + 0.17, 0.32, second.duration * 4, dark);
+    return 0.9;
+  }
+
+  /**
+   * 알림: the feed's sounds harmonised on the chord. Each page has its own chord tone and the
+   * tone above it. Leaders play the notification's rising three notes over the chime flipped
+   * down to the root and driven, the largest with a swoosh in tune after them; the middle pop
+   * as a pair, likes a chord tone apart; small pages double-tap high up. Breaking (부서짐), a
+   * page's notifications pile up: chimes climbing the chord in sixteenths, or taps in
+   * thirty-seconds.
+   */
+  private notify({ page, rank }: Touch, notes: readonly number[], now: number, bus: AudioNode) {
+    const scale = notes.slice(1).sort((a, b) => a - b);
+    const index = Math.floor(hash(page * 31 + 7) * scale.length);
+    const degree = (step: number) => scale[(index + step) % scale.length]! + 12 * Math.floor((index + step) / scale.length);
+    const root = notes[0]!;
+    const chimeAt = (note: number) => voiceFor(`c${note}`, () => chime(note));
+    if (hash(page * 13 + Math.floor(now * 4)) < this.parameters.grain) {
+      const count = 3 + Math.floor(Math.random() * 3);
+      const small = rank <= 0.3;
+      const step = small ? BEAT / 8 : BEAT / 4;
+      for (let index = 0; index < count; index += 1) {
+        const note = small ? degree(index % 2) + 24 : degree(index) + (rank > 0.7 ? 0 : 12);
+        const voice = small ? voiceFor(`t${note}`, () => tap(note)) : chimeAt(note);
+        if (voice) this.play(voice, 1, now + index * step, 0.2 * 0.85 ** index, small ? voice.duration : 0.6, bus);
+      }
+      return count * step + (small ? 0.18 : 0.6);
+    }
+    if (rank > 0.7) {
+      const stab = voiceFor(`f${root}`, () => chime(root, 2.2));
+      const rising = [degree(0), degree(1), degree(0) + 12].map(chimeAt);
+      if (!stab || rising.some((voice) => !voice)) return 0;
+      const length = 0.8 + 1.4 * rank;
+      this.play(stab, 1, now, 0.2, length, bus);
+      rising.forEach((voice, step) => this.play(voice!, 1, now + step * 0.075, 0.2 - 0.015 * step, Math.min(voice!.duration, length), bus));
+      if (rank > 0.85) {
+        const note = degree(0) + 12;
+        const whoosh = voiceFor(`s${note}`, () => swoosh(note));
+        if (whoosh) this.play(whoosh, 1, now + 0.15, 0.12, whoosh.duration, bus);
+      }
+      return length;
+    }
+    if (rank > 0.3) {
+      const [first, second] = [degree(0) + 12, degree(1) + 12].map((note) => voiceFor(`p${note}`, () => pop(note)));
+      if (!first || !second) return 0;
+      this.play(first, 1, now, 0.26, first.duration, bus);
+      this.play(second, 1, now + 0.035, 0.2, second.duration, bus);
+      return 0.45;
+    }
+    const [first, second] = [degree(0) + 24, degree(1) + 24].map((note) => voiceFor(`t${note}`, () => tap(note)));
+    if (!first || !second) return 0;
+    this.play(first, 1, now, 0.22, first.duration, bus);
+    this.play(second, 1, now + 0.085, 0.18, second.duration, bus);
+    return 0.27;
   }
 
   /**

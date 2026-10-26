@@ -9,6 +9,7 @@ import {
 } from "./browser.mjs";
 import { installLifeAgeMeter } from "./life-age.mjs";
 import { installJumpCeiling } from "./jump-ceiling.mjs";
+import { installGrowth } from "./growth.mjs";
 import { installLifeGamePresentation } from "./life-game.mjs";
 
 const original = readFileSync(new URL("./dino.html", import.meta.url), "utf8");
@@ -36,9 +37,43 @@ html, body {
 // so the small integration correction is reviewable without rewriting its code.
 const adapter = `<script data-spoon-class-compatibility>(${installRunnerCompatibility.toString()})(window.Runner, window);</script>`;
 const audioAdapter = `<script data-spoon-class-audio>(${installAudioCompatibility.toString()})(window);</script>`;
-const lifeAdapter = `<script data-spoon-class-life-presentation>(${installLifeGamePresentation.toString()})(document);</script>`;
+// Spine photographs from Aladin's spine downloads, 200px high (see the docs).
+const BOOKS = [
+  "math-jeongseok",
+  "ssen",
+  "gaenyeom-wonri",
+  "black-label",
+  "xistory",
+  "mapl-synergy",
+];
+
+function jpegSize(bytes) {
+  for (let offset = 2; offset < bytes.length; ) {
+    const marker = bytes[offset + 1];
+    const length = bytes.readUInt16BE(offset + 2);
+    if (marker === 0xc0 || marker === 0xc2) {
+      return {
+        height: bytes.readUInt16BE(offset + 5),
+        width: bytes.readUInt16BE(offset + 7),
+      };
+    }
+    offset += 2 + length;
+  }
+  throw new Error("JPEG size not found");
+}
+
+const books = BOOKS.map((name) => {
+  const bytes = readFileSync(new URL(`./books/${name}.jpg`, import.meta.url));
+  return {
+    src: `data:image/jpeg;base64,${bytes.toString("base64")}`,
+    ...jpegSize(bytes),
+  };
+});
+// The host's 책/문제집 option sets window.spoonClassWorkbooks before this runs.
+const lifeAdapter = `<script data-spoon-class-life-presentation>(${installLifeGamePresentation.toString()})(document, window.spoonClassWorkbooks ? ${JSON.stringify(books)} : null);</script>`;
 const ageAdapter = `<script data-spoon-class-life-age>(${installLifeAgeMeter.toString()})(window);</script>`;
 const jumpAdapter = `<script data-spoon-class-jump-ceiling>(${installJumpCeiling.toString()})(window);</script>`;
+const growthAdapter = `<script data-spoon-class-growth>(${installGrowth.toString()})(window);</script>`;
 const runnerBootstrap = `<script type="text/javascript">
     if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) {`;
 const runnerBootstrapEnd = `  </script>
@@ -116,7 +151,7 @@ const html = applyBrowserReplacements(
     .replace("<head>", `<head>\n${policy}`)
     .replace("</head>", `${moduleStyles}\n${browserStyle}\n${adapter}\n${audioAdapter}\n</head>`)
     .replace(runnerBootstrap, `${lifeAdapter}\n${runnerBootstrap}`)
-    .replace(runnerBootstrapEnd, `  </script>\n${ageAdapter}\n${jumpAdapter}\n\n  <div class="onlyforchrome">`)
+    .replace(runnerBootstrapEnd, `  </script>\n${ageAdapter}\n${jumpAdapter}\n${growthAdapter}\n\n  <div class="onlyforchrome">`)
     .replace("</body>", `${modulePresentation}\n</body>`),
 );
 const packaged = {

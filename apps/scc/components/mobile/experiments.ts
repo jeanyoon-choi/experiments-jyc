@@ -17,6 +17,7 @@ export const mobileExperiments = [
   { key: "arithmetic/fractal", label: "사칙연산 /fractal", href: "/mobile/arithmetic/fractal" },
   { key: "suneung/default", label: "수능 국어", href: "/mobile/suneung/default" },
   { key: "suneung/math", label: "수능 수학", href: "/mobile/suneung/math" },
+  { key: "hangman/1", label: "hangman/1", href: "/mobile/hangman/1" },
   { key: "face-trace/1", label: "face-trace/1", href: "/mobile/face-trace/1" },
   { key: "gaze-tracking", label: "gaze-tracking", href: "/mobile/gaze-tracking" },
   { key: "transform/pixelate", label: "transform/pixelate", href: "/mobile/transform/pixelate" },

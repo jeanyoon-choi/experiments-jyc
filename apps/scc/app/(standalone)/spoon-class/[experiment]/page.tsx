@@ -4,6 +4,7 @@ import SpoonClassDefault from "@/components/standalone/spoon-class/default";
 import SpoonClassOne from "@/components/standalone/spoon-class/1";
 import SpoonClassTwo from "@/components/standalone/spoon-class/2";
 import SpoonClassThree from "@/components/standalone/spoon-class/3";
+import SpoonClassFour from "@/components/standalone/spoon-class/4";
 import {
   isSpoonClassExperimentSlug,
   spoonClassExperiments,
@@ -28,6 +29,8 @@ export async function generateMetadata({
           ? "A synchronized human-life game field with less dense and dense layouts."
           : experiment === "3"
             ? "A mobile stack of full-width synchronized human-life games."
+            : experiment === "4"
+              ? "Eight human-life runners racing, placed left to right by rank."
           : "The original Chrome Dino source preserved as a standalone experiment.",
   };
 }
@@ -43,5 +46,6 @@ export default async function SpoonClassExperimentPage({
   if (experiment === "1") return <SpoonClassOne />;
   if (experiment === "2") return <SpoonClassTwo />;
   if (experiment === "3") return <SpoonClassThree />;
+  if (experiment === "4") return <SpoonClassFour />;
   return <SpoonClassDefault />;
 }

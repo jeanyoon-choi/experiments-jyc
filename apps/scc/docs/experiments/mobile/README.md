@@ -18,6 +18,8 @@ Removed 2026-10-07: `finger-skating/2` (skated curve read back as a formula); it
 
 `suneung/default` (국어) and `suneung/math` (수학) are the 2026학년도 수능 홀수형 booklets (20 pages each) rebuilt in DOM from the KICE PDFs, one page per screen, at [`/mobile/suneung/[experiment]`](../../../app/mobile/suneung/[experiment]/page.tsx). [수능](suneung.md) records the paper's style language (frame, headers, type, rhythm, question anatomy, boxes, 수식) in measured points.
 
+`hangman/1` is English hangman whose 졸라맨 is dressed stroke by stroke as Trump, at [`/mobile/hangman/1`](../../../app/mobile/hangman/[experiment]/page.tsx). See [hangman](hangman.md).
+
 `face-trace/1` keeps the live eye and mouth cutouts inside a full-screen `face-voronoi/3` `face-gradient 3` lattice made only of those features and their short echoes. Opening the mouth swells and melts the lattice outward from the mouth. It is at [`/mobile/face-trace/1`](../../../app/mobile/face-trace/[experiment]/page.tsx). See [face trace](face-trace.md).
 
 `finger-network/1` maps each active mobile touch to a node and joins every pair at [`/mobile/finger-network/1`](../../../app/mobile/finger-network/[experiment]/page.tsx). See [finger network](finger-network.md).

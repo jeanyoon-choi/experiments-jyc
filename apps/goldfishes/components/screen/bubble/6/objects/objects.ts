@@ -69,6 +69,10 @@ export const OBJECT_DEFAULTS = {
   // 원숭이 JPEG off by default (user, 2026-10-25); its chip brings it in.
   apeOn: 0,
   commentOn: 0,
+  // 로드스터, 로봇 (머리), 챗봇 말풍선 off by default (user, 2026-10-26); their chips bring them in.
+  roadsterOn: 0,
+  robotOn: 0,
+  chatOn: 0,
 } satisfies ObjectParameters;
 
 export const OBJECT_LABELS: Record<ObjectKind, string> = {

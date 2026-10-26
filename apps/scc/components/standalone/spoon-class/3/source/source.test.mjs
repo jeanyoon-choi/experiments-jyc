@@ -21,7 +21,7 @@ test("vendored HTML matches the pinned upstream bytes", () => {
 test("packaging preserves the upstream document outside its explicit integration additions", () => {
   assert.ok(packaged.html.includes(`(${installRunnerCompatibility.toString()})(window.Runner, window);`));
   assert.ok(packaged.html.includes(`(${installLifeAgeMeter.toString()})(window);`));
-  assert.ok(packaged.html.includes(`(${installLifeGamePresentation.toString()})(document);`));
+  assert.ok(packaged.html.includes(`(${installLifeGamePresentation.toString()})(document, window.spoonClassWorkbooks ? [{"src":"data:image/jpeg;base64,`));
   assert.match(packaged.html, /data-spoon-class-module-style/);
   assert.match(packaged.html, /data-spoon-class-module-presentation/);
   const restored = packaged.html
@@ -32,7 +32,8 @@ test("packaging preserves the upstream document outside its explicit integration
     .replace(/<script data-spoon-class-audio>[\s\S]*?<\/script>\n/, "")
     .replace(/<script data-spoon-class-life-presentation>[\s\S]*?<\/script>\n/, "")
     .replace(/<script data-spoon-class-life-age>[\s\S]*?<\/script>\n/, "")
-    .replace(/<script data-spoon-class-jump-ceiling>[\s\S]*?<\/script>\n/, "");
+    .replace(/<script data-spoon-class-jump-ceiling>[\s\S]*?<\/script>\n/, "")
+    .replace(/<script data-spoon-class-growth>[\s\S]*?<\/script>\n/, "");
   const sourceRestored = restored.replace(
     /<script data-spoon-class-module-presentation>[\s\S]*?<\/script>\n/,
     "",
@@ -80,6 +81,27 @@ test("life presentation replaces the runner, test and large-life-obstacle sprite
   installLifeGamePresentation({ getElementById: (id) => images.get(id) });
   for (const image of images.values()) {
     assert.match(image.src, /^data:image\/svg\+xml;charset=utf-8,/);
+  }
+});
+
+test("given spine photographs, both obstacle sprites become a full shelf of books", () => {
+  const images = new Map(
+    ["1x-obstacle-small", "2x-obstacle-small", "1x-obstacle-large", "2x-obstacle-large"].map((id) => [id, { src: "upstream" }]),
+  );
+  const books = [
+    { src: "data:image/jpeg;base64,AAAA", width: 21, height: 200 },
+    { src: "data:image/jpeg;base64,BBBB", width: 15, height: 200 },
+  ];
+  installLifeGamePresentation({ getElementById: (id) => images.get(id) }, books);
+  for (const [id, image] of images) {
+    const svg = Buffer.from(image.src.replace("data:image/svg+xml;base64,", ""), "base64").toString();
+    const [width, height] = id.includes("small") ? [102, 35] : [150, 50];
+    assert.ok(svg.includes(`viewBox="0 0 ${width} ${height}"`));
+    const spines = [...svg.matchAll(/<image x="([\d.]+)" y="0" width="([\d.]+)" height="(\d+)"/g)];
+    assert.ok(spines.length > 0);
+    const last = spines.at(-1);
+    assert.ok(Number(last[1]) + Number(last[2]) >= width, "the shelf reaches the sprite's right edge");
+    for (const spine of spines) assert.equal(Number(spine[3]), height);
   }
 });
 
@@ -196,4 +218,48 @@ test("a cropped row lowers only the jump apex, never below the visible edge", ()
     assert.equal(config.DROP_VELOCITY, -5);
     if (ceiling === 0) assert.deepEqual(config, trex.config);
   }
+});
+
+test("growth: a grown human is taller and wider on the same ground, with rescaled frames", async () => {
+  const { installGrowth } = await import("./growth.mjs");
+  const table = { CRASHED: [220], JUMPING: [0], RUNNING: [88, 132], WAITING: [44, 0] };
+  const trex = {
+    status: "WAITING",
+    jumping: false,
+    yPos: 93,
+    groundYPos: 93,
+    config: { WIDTH: 44, HEIGHT: 47, MIN_JUMP_HEIGHT: 30 },
+    update(_, status) {
+      if (status) {
+        this.status = status;
+        this.currentAnimFrames = table[status];
+      }
+    },
+  };
+  const images = [{ id: "1x-trex", src: "" }, { id: "2x-trex", src: "" }];
+  let update = 0;
+  const window = {
+    spoonClassGrowth: true,
+    spoonClassAge: 0,
+    Runner: { instance_: { tRex: trex, update() { update += 1; } } },
+    document: { getElementById: (id) => images.find((image) => image.id === id) },
+    Image: class {
+      set src(value) {
+        this.value = value;
+        this.onload();
+      }
+    },
+  };
+  installGrowth(window);
+  assert.equal(trex.status, "WAITING");
+  assert.equal(trex.config.HEIGHT, 47, "a newborn keeps the /3 size");
+  window.spoonClassAge = 18 * 2000;
+  window.Runner.instance_.update();
+  assert.equal(update, 1);
+  assert.ok(trex.config.HEIGHT > 70);
+  assert.ok(trex.config.WIDTH > 44);
+  assert.equal(trex.groundYPos, 150 - trex.config.HEIGHT - 10);
+  assert.equal(trex.yPos, trex.groundYPos);
+  assert.deepEqual(table.RUNNING, [2 * trex.config.WIDTH, 3 * trex.config.WIDTH]);
+  for (const image of images) assert.match(image.src, /^data:image\/svg\+xml/);
 });

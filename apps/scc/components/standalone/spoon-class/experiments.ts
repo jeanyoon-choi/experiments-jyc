@@ -3,6 +3,7 @@ export const spoonClassExperiments = [
   { slug: "1", label: "spoon-class/1" },
   { slug: "2", label: "spoon-class/2" },
   { slug: "3", label: "spoon-class/3" },
+  { slug: "4", label: "spoon-class/4" },
 ] as const;
 
 export type SpoonClassExperimentSlug =

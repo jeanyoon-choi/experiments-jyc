@@ -77,6 +77,8 @@ export function installLifeAgeMeter(window) {
     if (runner.started && !runner.playingIntro && !runner.crashed) {
       ageMilliseconds += deltaTime;
     }
+    // The host reads each game's lifespan to rank rows by it.
+    window.spoonClassAge = ageMilliseconds;
     drawAge(this);
     return false;
   };
@@ -84,6 +86,7 @@ export function installLifeAgeMeter(window) {
   const restart = runner.restart;
   runner.restart = function restartLife() {
     ageMilliseconds = 0;
+    window.spoonClassAge = 0;
     return restart.apply(this, arguments);
   };
 

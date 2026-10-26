@@ -1,6 +1,12 @@
 // Deliberately self-contained: this function is stringified into the isolated
 // game document before the upstream bootstrap runs.
-export function installLifeGamePresentation(document) {
+//
+// `books` lists real spine photographs (data URI and pixel size, 수학의 정석
+// first). When given, both obstacle sprites become a shelf of those spines
+// standing upright, full height, in a random order per game: 수학의 정석 and
+// other workbooks in place of tests and life blocks. Only the images change;
+// obstacle sizes and collision boxes stay the source's.
+export function installLifeGamePresentation(document, books) {
   const INK = "#535353";
   const PAPER = "#f7f7f7";
 
@@ -44,13 +50,33 @@ export function installLifeGamePresentation(document) {
     return dataUri(`<svg xmlns="http://www.w3.org/2000/svg" width="${150 * scale}" height="${50 * scale}" viewBox="0 0 150 50" shape-rendering="crispEdges">${blocks}</svg>`);
   }
 
+  // Spines are drawn this much thicker than photographed so their titles
+  // read at game size; height stays the obstacle's.
+  const SPINE_WIDTH_SCALE = 2.2;
+
+  function shelf(width, height, scale) {
+    // 수학의 정석 is twice as likely as any other workbook.
+    const choices = [books[0]].concat(books);
+    let x = 0;
+    let spines = "";
+    while (x < width) {
+      const book = choices[Math.floor(Math.random() * choices.length)];
+      const bookWidth = (height * book.width * SPINE_WIDTH_SCALE) / book.height;
+      spines += `<image x="${x}" y="0" width="${bookWidth}" height="${height}" preserveAspectRatio="none" href="${book.src}"/>`;
+      x += bookWidth;
+    }
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width * scale}" height="${height * scale}" viewBox="0 0 ${width} ${height}">${spines}</svg>`;
+    return `data:image/svg+xml;base64,${btoa(svg)}`;
+  }
+
+  const shelves = Array.isArray(books) && books.length > 0;
   const sprites = {
     "1x-trex": trexSprite(1),
     "2x-trex": trexSprite(2),
-    "1x-obstacle-small": examSprite(1),
-    "2x-obstacle-small": examSprite(2),
-    "1x-obstacle-large": lifeObstacleSprite(1),
-    "2x-obstacle-large": lifeObstacleSprite(2),
+    "1x-obstacle-small": shelves ? shelf(102, 35, 1) : examSprite(1),
+    "2x-obstacle-small": shelves ? shelf(102, 35, 2) : examSprite(2),
+    "1x-obstacle-large": shelves ? shelf(150, 50, 1) : lifeObstacleSprite(1),
+    "2x-obstacle-large": shelves ? shelf(150, 50, 2) : lifeObstacleSprite(2),
   };
 
   for (const [id, src] of Object.entries(sprites)) {
