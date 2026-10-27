@@ -7,6 +7,39 @@
   border-top: 1px solid #e3e3e3;
 }
 
+/* The heading opens and closes the section. */
+.toggle {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-height: 30px;
+  border: 0;
+  padding: 4px 2px;
+  background: transparent;
+  color: #171717;
+  font: 600 13px Arial, Helvetica, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.toggleNote {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.62;
+  word-break: keep-all;
+}
+
+.chevron {
+  width: 14px;
+  text-align: center;
+}
+
+.body {
+  display: grid;
+  gap: 6px;
+}
+
 .kind {
   display: grid;
   gap: 6px;

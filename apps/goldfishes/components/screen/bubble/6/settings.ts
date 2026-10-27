@@ -184,8 +184,11 @@ export const SOUND_CONTROLS: readonly SliderControl<Exclude<keyof SoundParameter
 export const LOOK_BASE: Visual = { ...VISUAL_DEFAULTS, area: 0.46, portions: 1.95 };
 
 /** 우유 수조 (crimson metal in the studio room, seen from straight above): bubble/5's opening look (user, 2026-10-25). */
-/** 크롬 (bare polished chrome at a slant, the studio mirrored nearly unblurred): bubble/6's opening look (user, 2026-10-25). */
+/** 크롬 (bare polished chrome at a slant, the studio mirrored nearly unblurred): bubble/6's opening look (user, 2026-10-25; again 2026-10-27). */
 const CHROME: Partial<Visual> = { coating: [0.78, 0.77, 0.75], viewTilt: 0.4, lightTurn: 0.1, photo: 2, photoStrength: 1.2, keyStrength: 1.2, keySize: 0.3, shadowLift: 0.05, groundLight: 0.8, edgeShadow: 0.3, roughness: 0.02, clearcoat: 0.2, variety: 0.15, exposure: 0.9 };
+
+/** 갤러리 · 거칠기 1: bubble/6 opened on it briefly (user, 2026-10-27), then on 크롬 again. */
+const MATTE: Partial<Visual> = { roughness: 1, clearcoat: 0 };
 
 const MILK: Partial<Visual> = { coating: [0.72, 0.015, 0.035], metalness: 1, roughness: 0.12, clearcoat: 0.35, variety: 0.15, viewTilt: 0, lightTurn: 0.875, photo: 2, photoStrength: 0.45, keyStrength: 2.6, keySize: 0.85, shadowLift: 0.18, groundLight: 1.1, edgeShadow: 0.05, colourBleed: 0, neighbourReflection: 0.9, crease: 0.35, background: [1, 1, 1], exposure: 0.85 };
 
@@ -229,7 +232,7 @@ export const LOOKS: readonly { id: string; label: string; look: Partial<Visual> 
   { id: "gallery", label: "갤러리 (bubble/2)", look: {} },
   // The same, roughness 1 (and no clear coat, whose sharper reflection would still show specks): no reflected
   // surroundings at all, only the light's soft gradient over the coat (user, 2026-10-22).
-  { id: "matte", label: "갤러리 · 거칠기 1", look: { roughness: 1, clearcoat: 0 } },
+  { id: "matte", label: "갤러리 · 거칠기 1", look: MATTE },
   // bubble/2's look with the blue coat, as in the first lifecycle recording (bubble-4-lifecycle.gif): the
   // goldfish's own colours, the blue they take on and their grey all read against it (user, 2026-10-22).
   { id: "gallery-blue", label: "갤러리 · 블루", look: { coating: [0.08, 0.26, 0.95], coatingMix: 0 } },

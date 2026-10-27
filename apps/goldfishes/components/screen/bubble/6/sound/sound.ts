@@ -64,7 +64,8 @@ export type SoundParameters = {
   grain: number;
 };
 
-export const SOUND_DEFAULTS: SoundParameters = { scape: "glass", volume: 0.7, space: 0.55, grain: 0.35 };
+// 알림 2 by default (user, 2026-10-27).
+export const SOUND_DEFAULTS: SoundParameters = { scape: "hymn", volume: 0.7, space: 0.55, grain: 0.35 };
 
 const BPM = 112;
 const BEAT = 60 / BPM;
