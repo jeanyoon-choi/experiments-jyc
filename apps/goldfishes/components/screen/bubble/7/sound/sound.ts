@@ -14,6 +14,11 @@
 //   알림 3 — 군중 note for note, with 알림's chime, pop and tap yelled in place of the voice
 //          (held, scooped up and falling nine semitones, three voices, driven).
 //
+// Those six are v1. v2 (sound-raw.ts, the default since 2026-10-28) keeps the touches,
+// the pages' own voices, rank, pan and 부서짐, and drops the chord, the harmony and the
+// room: one platform's notification per touch. v3 (sound-real.ts, the default since later
+// that day) plays the platforms' own files, as they ship.
+//
 // Nothing sounds but the touches (user, 2026-10-12): a pad under 유리 and a choir under
 // 군중 were tried and removed.
 //
@@ -32,6 +37,8 @@
 import { renderCry } from "./sound-crowd";
 import { beam, clang, pipe } from "./sound-metal";
 import { chime, droop, hymn, pop, swoosh, tap } from "./sound-notify";
+import { RAW_KINDS, rawVoice, type RawScape } from "./sound-raw";
+import { REAL_FILES, REAL_PLATFORMS, realUrl, type RealScape } from "./sound-real";
 import { SYNTH_RATE } from "./synth";
 
 /** One touch, as the frame loop reports it. */
@@ -56,7 +63,19 @@ export const SOUNDSCAPES: readonly { id: Soundscape; label: string }[] = [
 ];
 
 export type SoundParameters = {
+  /** 1: the six soundscapes; 2: platforms' notifications, synthesised (sound-raw.ts); 3: their own files (sound-real.ts). */
+  version: 1 | 2 | 3;
   scape: Soundscape;
+  /** v2's sound. */
+  raw: RawScape;
+  /**
+   * v2's 겹침: "clean" as above; "brutal" (user, 2026-10-28: "진짜 '브루털' 하게 알림음들의 겹침 … 모든
+   * 슈가코팅 사운드 필터 빼고"): no limiter, no spacing between touches, every voice at full level,
+   * clipping where they pile up.
+   */
+  pile: "clean" | "brutal";
+  /** v3's platform. */
+  real: RealScape;
   volume: number;
   /** How much reaches the room and the echoes, 0–1. */
   space: number;
@@ -64,8 +83,8 @@ export type SoundParameters = {
   grain: number;
 };
 
-// 알림 2 by default (user, 2026-10-27).
-export const SOUND_DEFAULTS: SoundParameters = { scape: "hymn", volume: 0.7, space: 0.55, grain: 0.35 };
+// v2 by default (user, 2026-10-28); within v1, 알림 2 (user, 2026-10-27).
+export const SOUND_DEFAULTS: SoundParameters = { version: 3, scape: "hymn", raw: "mixed", pile: "clean", real: "mixed", volume: 0.7, space: 0.55, grain: 0.35 };
 
 const BPM = 112;
 const BEAT = 60 / BPM;
@@ -79,6 +98,8 @@ const CHORDS: readonly (readonly number[])[] = [
   [33, 50, 52, 55, 57, 59],
 ];
 const MAX_VOICES = 12;
+/** 브루털's ceiling: buffer sources are cheap; this only keeps a stampede from running away. */
+const MAX_BRUTAL_VOICES = 96;
 const PAGE_REST = 0.4;
 /** At most one new touch per sixteenth: 250 fish begin touching ~16 pages a second. */
 const TOUCH_GAP = BEAT / 4;
@@ -156,6 +177,20 @@ function cryFor(note: number) {
  * 금속's tones and 알림's voices by key, computed (sound/synth.ts) the first time each is
  * needed, in a task of its own rather than the frame that asked; the touch stays silent.
  */
+/** v3's files by URL, fetched and decoded the first time each is needed; the touch stays silent. */
+const files = new Map<string, AudioBuffer | null>();
+function fileFor(context: BaseAudioContext, url: string) {
+  const file = files.get(url);
+  if (file !== undefined) return file;
+  files.set(url, null);
+  void fetch(url)
+    .then((response) => (response.ok ? response.arrayBuffer() : Promise.reject(new Error(`${url}: ${response.status}`))))
+    .then((data) => context.decodeAudioData(data))
+    .then((buffer) => files.set(url, buffer))
+    .catch((error: unknown) => console.warn("bubble/7 소리 v3:", error));
+  return null;
+}
+
 const voices = new Map<string, AudioBuffer | null>();
 function voiceFor(key: string, render: () => Float32Array<ArrayBuffer>) {
   const voice = voices.get(key);
@@ -215,6 +250,8 @@ function subBuffer(context: AudioContext) {
 export class TouchSound {
   readonly context: AudioContext;
   private readonly master: GainNode;
+  private readonly limiter: DynamicsCompressorNode;
+  private limited = true;
   private readonly roomSend: GainNode;
   private readonly echoSend: GainNode;
   private readonly buses: StereoPannerNode[] = [];
@@ -234,6 +271,7 @@ export class TouchSound {
     limiter.attack.value = 0.004;
     limiter.release.value = 0.25;
     limiter.connect(context.destination);
+    this.limiter = limiter;
     this.master = context.createGain();
     this.master.connect(limiter);
 
@@ -285,9 +323,17 @@ export class TouchSound {
     this.parameters = parameters;
     const now = this.context.currentTime;
     this.master.gain.setTargetAtTime(parameters.volume * 0.8, now, 0.05);
-    // 알림 2 sits in a larger share of the room.
-    this.roomSend.gain.setTargetAtTime(parameters.space * (parameters.scape === "hymn" ? 0.9 : 0.55), now, 0.1);
-    this.echoSend.gain.setTargetAtTime(parameters.space * 0.4, now, 0.1);
+    // 브루털 goes straight out: what piles up clips.
+    const limited = !(parameters.version >= 2 && parameters.pile === "brutal");
+    if (limited !== this.limited) {
+      this.limited = limited;
+      this.master.disconnect();
+      this.master.connect(limited ? this.limiter : this.context.destination);
+    }
+    // 알림 2 sits in a larger share of the room; v2 is dry.
+    const space = parameters.version >= 2 ? 0 : parameters.space;
+    this.roomSend.gain.setTargetAtTime(space * (parameters.scape === "hymn" ? 0.9 : 0.55), now, 0.1);
+    this.echoSend.gain.setTargetAtTime(space * 0.4, now, 0.1);
   }
 
   /** The chord sounding now. */
@@ -300,11 +346,14 @@ export class TouchSound {
     const context = this.context;
     if (context.state !== "running") return;
     const now = context.currentTime;
-    if (now - this.lastTouchAt < TOUCH_GAP) return;
-    if (now - (this.lastAt.get(touch.page) ?? -1) < PAGE_REST) return;
-    if (this.endings.length >= MAX_VOICES) {
+    // 브루털: every touch sounds, however close to the last.
+    const brutal = !this.limited;
+    if (!brutal && now - this.lastTouchAt < TOUCH_GAP) return;
+    if (!brutal && now - (this.lastAt.get(touch.page) ?? -1) < PAGE_REST) return;
+    const ceiling = brutal ? MAX_BRUTAL_VOICES : MAX_VOICES;
+    if (this.endings.length >= ceiling) {
       this.endings = this.endings.filter((end) => end > now);
-      if (this.endings.length >= MAX_VOICES) return;
+      if (this.endings.length >= ceiling) return;
     }
     const notes = this.currentChord();
     // A page's own voice: a fixed degree of the chord.
@@ -312,7 +361,11 @@ export class TouchSound {
     const bus = this.buses[Math.max(0, Math.min(PANS.length - 1, Math.round(touch.x * (PANS.length - 1))))]!;
     const { scape } = this.parameters;
     const length =
-      scape === "crowd"
+      this.parameters.version === 3
+        ? this.real(touch, now)
+        : this.parameters.version === 2
+        ? this.raw(touch, now, bus)
+        : scape === "crowd"
         ? this.crowd(touch, notes, now, bus)
         : scape === "notify"
           ? this.notify(touch, notes, now, bus)
@@ -327,6 +380,45 @@ export class TouchSound {
     this.lastAt.set(touch.page, now);
     this.lastTouchAt = now;
     this.endings.push(now + length);
+  }
+
+  /**
+   * v2: one platform's notification, as it is. Under 섞임 a page keeps its platform; rank sets
+   * how loud and how many arrive in a row (leaders three, the small one); 부서짐 piles up six.
+   */
+  private raw({ page, rank }: Touch, now: number, bus: AudioNode) {
+    const { raw, grain } = this.parameters;
+    const kind = raw === "mixed" ? RAW_KINDS[Math.floor(hash(page * 17 + 3) * RAW_KINDS.length)]! : raw;
+    const brutal = !this.limited;
+    const burst = hash(page * 13 + Math.floor(now * 4)) < grain;
+    const count = burst ? (brutal ? 12 : 6) : rank > 0.7 ? 3 : rank > 0.3 ? 2 : 1;
+    const voice = voiceFor(`r${brutal ? "b" : ""}${kind}x${count}`, () => rawVoice(kind, count, brutal));
+    if (!voice) return 0;
+    this.play(voice, 1, now, brutal ? 0.7 + 0.3 * rank : 0.16 + 0.14 * rank, voice.duration, bus);
+    return voice.duration;
+  }
+
+  /**
+   * v3: the platform's own file, played as it is: straight into the master, no pan, at its
+   * own level. Under 섞임 a page keeps its platform, and within it its sound. 부서짐 makes
+   * the same notification arrive several times running (70 ms apart under 브루털).
+   */
+  private real({ page }: Touch, now: number) {
+    const { real, grain } = this.parameters;
+    const platform = real === "mixed" ? REAL_PLATFORMS[Math.floor(hash(page * 17 + 3) * REAL_PLATFORMS.length)]! : real;
+    const names = REAL_FILES[platform];
+    const file = fileFor(this.context, realUrl(platform, names[Math.floor(hash(page * 31 + 7) * names.length)]!));
+    if (!file) return 0;
+    const brutal = !this.limited;
+    const count = hash(page * 13 + Math.floor(now * 4)) < grain ? (brutal ? 8 : 3) : 1;
+    for (let index = 0; index < count; index += 1) {
+      const source = this.context.createBufferSource();
+      source.buffer = file;
+      source.connect(this.master);
+      source.start(now + index * (brutal ? 0.07 : 0.2));
+    }
+    // A long tail (Note rings 4.4 s) counts as a voice for 1.5 s at most.
+    return Math.min(1.5, file.duration) + (count - 1) * (brutal ? 0.07 : 0.2);
   }
 
   /** 유리: the page's tone in a register set by its rank; returns how long it sounds, 0 if nothing played. */

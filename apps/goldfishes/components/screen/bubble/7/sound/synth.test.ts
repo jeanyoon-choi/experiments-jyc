@@ -66,3 +66,17 @@ test("the voices sit on their notes, so the harmony holds; 금속 stays off them
   assert.ok(harmonicShare(voices.pop, 74, 0.01) > 0.6);
   assert.ok(harmonicShare(voices.swoosh, 69, 0.12) > 0.3);
 });
+
+test("v2's notifications are finite, level and end without a click", async () => {
+  const { RAW_KINDS, rawVoice } = await import("./sound-raw.ts");
+  for (const kind of RAW_KINDS) {
+    for (const count of [1, 3, 6]) {
+      const data = rawVoice(kind, count);
+      assert.ok(data.length > 0 && data.every(Number.isFinite), kind);
+      assert.ok(Math.abs(Math.max(...data.map(Math.abs)) - 0.9) < 1e-3, `${kind} peak`);
+      assert.ok(Math.abs(data[data.length - 1]!) < 1e-3, `${kind} end`);
+      const brutal = rawVoice(kind, count, true);
+      assert.ok(brutal.every(Number.isFinite) && Math.abs(Math.max(...brutal.map(Math.abs)) - 1) < 1e-3, `${kind} brutal`);
+    }
+  }
+});

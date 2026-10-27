@@ -47,3 +47,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Platforms' own notification sounds (bubble/7 소리 v3), copied from local installs: copyrighted, kept off git
+/apps/goldfishes/public/assets/goldfishes/audio/bubble-7/

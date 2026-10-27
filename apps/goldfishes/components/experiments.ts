@@ -293,7 +293,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     area: "screen",
     section: "dated",
     date: "2026-10-27",
-    updated: "2026-10-27",
+    updated: "2026-10-28",
     phrase: "bubble/6 with an object lab: one object at a time, morphing like liquid metal from one shape into the next, its settings shared with the raft",
     load: () => import("./screen/bubble/7"),
   },

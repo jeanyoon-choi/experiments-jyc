@@ -5,7 +5,6 @@ import { LOOK_DEFAULTS, type Colour, type Look } from "./render/foam";
 import { FISH_DEFAULTS, type FishPaletteId, type FishParameters } from "./fish/goldfish";
 import { LIFE_DEFAULTS, type LifeParameters } from "./fish/lifecycle";
 import { ATTENDED_QUALITY, DEFAULT_DAMPING, DEFAULT_PARAMETERS, FLOOR_RANGE } from "./web/model";
-import type { SoundParameters } from "./sound/sound";
 import { REACTION_DEFAULTS } from "./reactions/reactions"; // 반응
 import { OBJECT_DEFAULTS } from "./objects/objects"; // 오브제
 
