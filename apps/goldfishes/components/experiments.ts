@@ -293,8 +293,17 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     area: "screen",
     section: "dated",
     date: "2026-10-27",
+    updated: "2026-10-27",
     phrase: "bubble/6 with an object lab: one object at a time, morphing like liquid metal from one shape into the next, its settings shared with the raft",
     load: () => import("./screen/bubble/7"),
+  },
+  {
+    key: "pc/mobiles/1",
+    area: "pc",
+    section: "dated",
+    date: "2026-10-27",
+    phrase: "One phone per goldfish: each bubble it reaches arrives as the same hype event in hyper-real clones of eight apps, over socket feed/1",
+    load: () => import("./pc/mobiles/1"),
   },
   {
     key: "pc/news-phones/1",
@@ -303,7 +312,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Independent keyword-driven news phones, one per goldfish",
-    load: () => import("./pc/news-phones/1"),
+    load: () => import("./pc/archive/news-phones/1"),
   },
   {
     key: "pc/news-phones/2",
@@ -312,7 +321,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Mobile colour and keyword surface variations",
-    load: () => import("./pc/news-phones/2"),
+    load: () => import("./pc/archive/news-phones/2"),
   },
   {
     key: "pc/image-search/1",
@@ -321,7 +330,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-10",
     phrase: "Desktop image-search grammar under subsecond technology-query replacement",
-    load: () => import("./pc/image-search/1"),
+    load: () => import("./pc/archive/image-search/1"),
   },
 ];
 

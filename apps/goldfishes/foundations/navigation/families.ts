@@ -103,6 +103,12 @@ export const goldfishFamilies: readonly GoldfishFamily[] = [
     members: ["screen/bubble/1", "screen/bubble/2", "screen/bubble/3", "screen/bubble/4", "screen/bubble/5", "screen/bubble/6"],
   },
   {
+    key: "pc:mobiles",
+    area: "pc",
+    label: "mobiles",
+    members: ["pc/mobiles/1"],
+  },
+  {
     key: "pc:news-phones",
     area: "pc",
     label: "news phones",

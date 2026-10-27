@@ -47,7 +47,8 @@ function slab(shape: THREE.Shape, bottom: number, depth: number, bevel: number, 
     curveSegments,
   });
   geometry.translate(0, 0, bottom + bevel);
-  return geometry.toNonIndexed();
+  // ExtrudeGeometry is already non-indexed.
+  return geometry.index ? geometry.toNonIndexed() : geometry;
 }
 
 function box(x: number, y: number, z: number, sx: number, sy: number, sz: number) {
@@ -67,7 +68,7 @@ function blade(hub: number, rim: number, sweep: number, width: number, pitch: nu
   const geometry = new THREE.ExtrudeGeometry(shape, { depth: 0.008, bevelEnabled: false, curveSegments: 3 });
   // Pitched like a propeller: turned about the blade's own radial line.
   geometry.rotateX(pitch);
-  return geometry.toNonIndexed();
+  return geometry.index ? geometry.toNonIndexed() : geometry;
 }
 
 function fan(x: number, base: number, detailed: boolean) {

@@ -39,6 +39,8 @@ export type SpreadParameters = {
   strain: number;
   /** The object a tap brings in: a field kind (bubble included). */
   pick: string;
+  /** What the pages are shown as under 전파 (index in PAGE_SHOWS): SNS by default, hearts and likes (user, 2026-10-27). */
+  unit: number;
   /** Index in SPREAD_ROUTES. */
   route: number;
   /** 1: the newcomer's object spreads too (the pages morph into it). */
@@ -46,7 +48,7 @@ export type SpreadParameters = {
 };
 
 // Measured at 0.6 and 2.5 s (2026-10-27): the whole raft in 20 s; now a hop takes several seconds.
-export const SPREAD_DEFAULTS: SpreadParameters = { rate: 0.1, takeOn: 3.5, keep: 0, strain: 0, pick: "heart", route: 0, shape: 1 };
+export const SPREAD_DEFAULTS: SpreadParameters = { rate: 0.1, takeOn: 3.5, keep: 0, strain: 0, pick: "heart", unit: 2, route: 0, shape: 1 };
 
 export type SpreadControl = { key: "rate" | "takeOn" | "keep"; label: string; min: number; max: number; step: number };
 

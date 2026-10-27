@@ -10,7 +10,7 @@ import { Chip, Chips, Note, Reset, Slider } from "./controls";
 import { LAB_DEFAULTS, type LabSettings } from "../objects/lab";
 import { LIQUID_CONTROLS, LIQUID_DEFAULTS, type LiquidControl } from "../objects/liquid";
 import { FIELD_KINDS, LAB_SEQUENCE_LABELS, LAB_SEQUENCES } from "../objects/morph";
-import { OBJECT_LABELS, type ObjectKind, type ObjectParameters } from "../objects/objects";
+import { OBJECT_LABELS, PAGE_SHOWS, SHOW_LABELS, type ObjectKind, type ObjectParameters } from "../objects/objects";
 import { SPREAD_CONTROLS, SPREAD_DEFAULTS, SPREAD_ROUTE_LABELS, SPREAD_ROUTES, STRAINS, type SpreadControl, type SpreadParameters } from "../spread/contagion";
 import styles from "./mode-control.module.css";
 
@@ -148,6 +148,14 @@ export function ModeControl({ mode, onMode, objects, setObjects, lab, setLab, la
           <p className={styles.armed} style={{ borderColor: css(STRAINS[Math.round(spread.strain)] ?? STRAINS[0]!) }}>
             <span style={{ background: css(STRAINS[Math.round(spread.strain)] ?? STRAINS[0]!) }} aria-hidden="true" />③ 누르거나 그으면 {STRAIN_NAMES[Math.round(spread.strain)]} {kindLabel(spread.pick)}
           </p>
+          <Note>유닛 (페이지가 무엇으로 보이나)</Note>
+          <Chips label="유닛">
+            {PAGE_SHOWS.map((show, index) => (
+              <Chip key={show} pressed={Math.round(spread.unit) === index} onClick={() => setSpread((current) => ({ ...current, unit: index }))}>
+                {SHOW_LABELS[show]}
+              </Chip>
+            ))}
+          </Chips>
           <Note>경로</Note>
           <Chips label="경로">
             {SPREAD_ROUTES.map((route, index) => (

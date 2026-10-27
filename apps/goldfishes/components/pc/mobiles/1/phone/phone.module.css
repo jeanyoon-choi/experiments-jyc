@@ -1,0 +1,334 @@
+/*
+ * iOS at native points (1 CSS px = 1 pt), after SCC mobiles/1 ios.module.css:
+ * a 404 × 858 frame with a 7 pt bezel, so the glass is exactly 390 × 844.
+ */
+.phone {
+  --ios-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --ios-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --glass-width: 390px;
+  --glass-height: 844px;
+  --safe-top: 54px;
+  --safe-bottom: 34px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 404px;
+  height: 858px;
+  box-sizing: border-box;
+  padding: 7px;
+  border-radius: 62px;
+  background: #0b0b0c;
+  box-shadow: inset 0 0 0 1.5px #3a3a3c, inset 0 0 0 3px #0b0b0c;
+  font-family: var(--ios-font);
+  -webkit-font-smoothing: antialiased;
+  font-synthesis: none;
+}
+
+.glass {
+  contain: strict;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 55px;
+  background: #000;
+  color: #000;
+  font-size: 17px;
+  line-height: 22px;
+  letter-spacing: -0.41px;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* Each phone paints apart from the rest of the grid. */
+  contain: strict;
+  perspective: 1400px;
+  background: #000;
+}
+
+/*
+ * Hop: one app to another (index.tsx Hop). The app left stays opaque
+ * beneath until the new one covers it, so nothing shows through; transform,
+ * opacity and one clip only; --hop-ms from the option menu.
+ */
+.hopLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  animation-duration: var(--hop-ms, 560ms);
+  animation-fill-mode: both;
+  backface-visibility: hidden;
+}
+
+.hopLayer[data-phase="in"] { z-index: 2; }
+.hopLayer[data-phase="out"] { z-index: 1; pointer-events: none; }
+
+/* A tapped notification: the app opens out of the banner (its place: .banner), the app before settles back beneath. */
+.hopLayer[data-hop="open"][data-phase="in"] { animation-name: hop-open-in; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+.hopLayer[data-hop="open"][data-phase="out"] { animation-name: hop-open-under; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+@keyframes hop-open-in {
+  from { clip-path: inset(54px 9px 708px 9px round 24px); transform: scale(1.04); }
+  60% { transform: scale(0.992); }
+  to { clip-path: inset(0 0 0 0 round 55px); transform: none; }
+}
+@keyframes hop-open-under { from { transform: none; } to { transform: scale(0.9); } }
+
+/* Along the home bar: the app slides off left as the next comes in from the right, both a little shrunk mid-way. */
+.hopLayer[data-hop="slide"][data-phase="in"] { animation-name: hop-slide-in; animation-timing-function: cubic-bezier(0.3, 0.8, 0.25, 1); }
+.hopLayer[data-hop="slide"][data-phase="out"] { animation-name: hop-slide-out; animation-timing-function: cubic-bezier(0.3, 0.8, 0.25, 1); }
+@keyframes hop-slide-in { from { transform: translateX(102%) scale(0.9); border-radius: 48px; } 55% { transform: translateX(8%) scale(0.93); border-radius: 48px; } to { transform: none; border-radius: 0; } }
+@keyframes hop-slide-out { from { transform: none; } 55% { transform: translateX(-96%) scale(0.93); border-radius: 48px; } to { transform: translateX(-104%) scale(0.9); border-radius: 48px; } }
+
+/* A cube turning to its next face. */
+.hopLayer[data-hop="flip"][data-phase="in"] { transform-origin: 0 50%; animation-name: hop-flip-in; animation-timing-function: cubic-bezier(0.45, 0, 0.2, 1); }
+.hopLayer[data-hop="flip"][data-phase="out"] { transform-origin: 100% 50%; animation-name: hop-flip-out; animation-timing-function: cubic-bezier(0.45, 0, 0.2, 1); }
+@keyframes hop-flip-in { from { transform: translateX(100%) rotateY(-90deg); } to { transform: none; } }
+@keyframes hop-flip-out { to { transform: translateX(-100%) rotateY(90deg); } }
+
+/* The app switcher: both shrink to cards, the deck slides, the new card opens. */
+.hopLayer[data-hop="switcher"][data-phase="in"] { animation-name: hop-switch-in; animation-timing-function: cubic-bezier(0.3, 0.7, 0.2, 1); }
+.hopLayer[data-hop="switcher"][data-phase="out"] { animation-name: hop-switch-out; animation-timing-function: cubic-bezier(0.3, 0.7, 0.2, 1); }
+@keyframes hop-switch-in { from { transform: translateX(112%) scale(0.74); border-radius: 48px; } 62% { transform: scale(0.74); border-radius: 48px; } to { transform: none; border-radius: 0; } }
+@keyframes hop-switch-out { from { transform: none; } 30% { transform: scale(0.74); border-radius: 48px; } to { transform: translateX(-112%) scale(0.74); border-radius: 48px; } }
+
+/* The scroller moves the feed every frame: its own layer, composited, not repainted. */
+.screen :global([data-feed]) { will-change: transform; }
+
+
+/* Lock screen */
+.lock {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 70px;
+  color: #fff;
+  background: linear-gradient(180deg, #1c2333 0%, #0d1018 60%, #06070b 100%);
+  z-index: 3;
+}
+
+/* The first item: the lock screen is swiped up off the app beneath it. */
+.lock[data-phase="out"] { animation: lock-out 520ms cubic-bezier(0.32, 0.72, 0, 1) both; }
+@keyframes lock-out { to { transform: translateY(-100%); } }
+
+.lockDate {
+  font: 600 21px/26px var(--ios-font);
+  letter-spacing: 0.2px;
+  opacity: 0.9;
+}
+
+.lockClock {
+  margin-top: 2px;
+  font: 700 96px/1 var(--ios-display);
+  letter-spacing: -2px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Status bar and Dynamic Island */
+.statusBar {
+  position: absolute;
+  z-index: 20;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 54px;
+  display: grid;
+  grid-template-columns: 1fr 126px 1fr;
+  align-items: center;
+  pointer-events: none;
+  color: #000;
+}
+
+.statusBar[data-tone="light"] { color: #fff; }
+
+.statusTime {
+  justify-self: center;
+  padding-left: 14px;
+  font: 600 17px/22px var(--ios-font);
+  letter-spacing: -0.4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.statusRight {
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 10px;
+}
+
+.battery {
+  position: relative;
+  box-sizing: border-box;
+  width: 27px;
+  height: 13px;
+  padding: 1.5px;
+  border: 1.2px solid currentColor;
+  border-radius: 4px;
+  opacity: 0.95;
+}
+
+.battery::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  right: -3.5px;
+  width: 1.6px;
+  height: 4.5px;
+  border-radius: 0 1px 1px 0;
+  background: currentColor;
+  opacity: 0.45;
+}
+
+.batteryLevel {
+  display: block;
+  width: 72%;
+  height: 100%;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.island {
+  position: absolute;
+  z-index: 30;
+  top: 11px;
+  left: 50%;
+  width: 126px;
+  height: 37px;
+  margin-left: -63px;
+  border-radius: 20px;
+  background: #000;
+  pointer-events: none;
+}
+
+.homeIndicator {
+  position: absolute;
+  z-index: 20;
+  bottom: 8px;
+  left: 50%;
+  width: 139px;
+  height: 5px;
+  margin-left: -69.5px;
+  border-radius: 3px;
+  background: #000;
+  pointer-events: none;
+}
+
+.homeIndicator[data-tone="light"] { background: #fff; }
+
+/* Swipe: the next card lies beneath, complete; the shown one is swiped off it (Swipe in index.tsx). Transform only. */
+.swipeLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  animation-fill-mode: both;
+}
+
+.swipeLayer[data-phase="out"] { z-index: 1; }
+.swipeLayer[data-motion="aside"][data-phase="out"] { transform-origin: 50% 120%; animation-name: swipe-aside-out; }
+.swipeLayer[data-motion="aside"][data-phase="out"][data-side="right"] { animation-name: swipe-aside-right; }
+.swipeLayer[data-motion="up"][data-phase="out"] { animation-name: swipe-up-out; animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1); }
+
+@keyframes swipe-aside-out { to { transform: translateX(-130%) rotate(-14deg); } }
+@keyframes swipe-aside-right { to { transform: translateX(130%) rotate(14deg); } }
+@keyframes swipe-up-out { to { transform: translateY(-100%); } }
+
+/*
+ * Notification banners, iOS's: they slide in from above the glass and back
+ * up, or, tapped, open into their app (hop-open-in starts at this rect).
+ * Opaque, no backdrop blur: 64 blurred layers in motion would cost the grid.
+ */
+.banners {
+  position: absolute;
+  z-index: 25;
+  inset: 7px;
+  overflow: hidden;
+  border-radius: 55px;
+  pointer-events: none;
+}
+
+.banner {
+  position: absolute;
+  top: 54px;
+  left: 9px;
+  right: 9px;
+  height: 82px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  border-radius: 24px;
+  background: rgb(246 246 248 / 97%);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 22%), 0 0 0 0.5px rgb(0 0 0 / 8%);
+  color: #000;
+  font-family: var(--ios-font);
+  animation-fill-mode: both;
+}
+
+.banner[data-phase="in"] { animation: banner-in 460ms cubic-bezier(0.2, 1.1, 0.3, 1) both; }
+.banner[data-phase="out"] { animation: banner-out 340ms cubic-bezier(0.5, 0, 0.75, 0) both; }
+.banner[data-phase="into"] { animation: banner-into var(--hop-ms, 560ms) cubic-bezier(0.32, 0.72, 0, 1) both; }
+
+@keyframes banner-in { from { transform: translateY(-150px) scale(0.96); } to { transform: none; } }
+@keyframes banner-out { from { transform: none; } to { transform: translateY(-150px); } }
+/* Tapped: it fades into the app opening out of it, with it. */
+@keyframes banner-into { from { opacity: 1; } 45% { opacity: 0; transform: scale(1.04); } to { opacity: 0; transform: scale(1.04); } }
+
+.bannerIcon {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  overflow: hidden;
+  border-radius: 9px;
+}
+
+.bannerIcon > * { display: block; }
+
+.bannerText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.bannerHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.bannerHead b {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font: 600 15px/20px var(--ios-font);
+  letter-spacing: -0.24px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bannerHead small {
+  flex: none;
+  font: 400 13px/18px var(--ios-font);
+  color: rgb(60 60 67 / 60%);
+}
+
+.bannerBody {
+  display: -webkit-box;
+  overflow: hidden;
+  font: 400 15px/20px var(--ios-font);
+  letter-spacing: -0.24px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swipeLayer, .hopLayer, .lock, .banner { animation-duration: 1ms !important; }
+}

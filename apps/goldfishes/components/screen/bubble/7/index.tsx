@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import styles from "./bubble-three.module.css";
 import { startFrameLoop, type FrameLoop, type LoopSettings } from "./render/frame-loop";
+import { BubbleFeed, FEED_ENABLED } from "./link/feed"; // 연결
 import { ModeControl, type Mode } from "./panels/mode-control"; // 모드
 import { LAB_DEFAULTS, type LabSettings } from "./objects/lab"; // 랩
 import { SPREAD_DEFAULTS, type SpreadParameters } from "./spread/contagion"; // 전파
@@ -121,6 +122,17 @@ export default function RankedWebIteration() {
   }, [rates, visual, fishCount, fish, fishPalette, feedback, life, reactions, objects, mode, lab, spread]);
 
   const { playing } = touchSound;
+  // 연결: the goldfish's contacts go to socket feed/1 for pc/mobiles (`?feed=0` off).
+  const feedRef = useRef<BubbleFeed | null>(null);
+  useEffect(() => {
+    if (!FEED_ENABLED) return;
+    const feed = new BubbleFeed();
+    feedRef.current = feed;
+    return () => {
+      feedRef.current = null;
+      feed.close();
+    };
+  }, []);
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -129,6 +141,7 @@ export default function RankedWebIteration() {
       summary: setSummary,
       frameCost: setFrameCost,
       labMorph: (from, to) => setLabMorph({ from, to }),
+      feed: () => feedRef.current,
     });
     loopRef.current = loop;
     return () => {

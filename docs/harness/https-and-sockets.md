@@ -22,8 +22,9 @@ App handlers belong in `apps/<owner>/socket/experiments/`.
 `socket-server.mjs` loads complete or scoped registries, not artwork state.
 Each experiment has isolated events, rooms, and state. Handlers own abstract
 state, parameters, flows, interventions, histories, and time; browsers own all
-visual mappings. Goldfishes' registry is currently empty; future handlers must
-not borrow another artwork's namespace.
+visual mappings. Goldfishes registers versioned protocols (`goldfishes-feed:1`,
+[contract](../../apps/goldfishes/docs/socket/feed/1.md)); handlers must not
+borrow another artwork's namespace.
 
 Production is a separate stateful service:
 [shared relay runbook](scc-relay-deployment.md).

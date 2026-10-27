@@ -1,0 +1,378 @@
+/* LinkedIn iOS at native points: warm grey #F4F2EE between white posts,
+   rgba black ink at 90 / 60 %, LinkedIn blue #0A66C2, SF system type. */
+.screen {
+  --li-blue: #0a66c2;
+  --li-ink: rgb(0 0 0 / 90%);
+  --li-gray: rgb(0 0 0 / 60%);
+  --li-line: rgb(0 0 0 / 8%);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--li-ink);
+  background: #f4f2ee;
+  font-family: var(--ios-font);
+  letter-spacing: -0.1px;
+}
+
+/* Fixed chrome stacks over the feed, which runs on beneath it. */
+.top {
+  position: relative;
+  z-index: 2;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  height: calc(var(--safe-top) + 46px);
+  padding: var(--safe-top) 16px 0;
+  border-bottom: 0.5px solid var(--li-line);
+  background: #fff;
+}
+
+.me {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #dfe5ea;
+}
+
+.search {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 6px;
+  color: var(--li-gray);
+  background: #edf3f8;
+  font: 400 15px/20px var(--ios-font);
+}
+
+.messaging {
+  flex: none;
+  display: flex;
+  color: var(--li-gray);
+}
+
+/* The whole feed; a driver outside the clone translates it. */
+.feed {
+  flex: none;
+  padding-bottom: calc(49px + var(--safe-bottom));
+}
+
+.card {
+  margin-top: 8px;
+  background: #fff;
+}
+
+.author {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px 0;
+}
+
+.avatar {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #dfe5ea;
+}
+
+.byline {
+  flex: 1;
+  min-width: 0;
+}
+
+.nameRow,
+.headline,
+.age {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.nameRow {
+  font: 400 14px/18px var(--ios-font);
+}
+
+.name {
+  font-weight: 600;
+}
+
+.degree,
+.headline,
+.age {
+  color: var(--li-gray);
+}
+
+.headline,
+.age {
+  font: 400 12px/16px var(--ios-font);
+}
+
+.age {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.controls {
+  flex: none;
+  display: flex;
+  gap: 14px;
+  height: 20px;
+  color: var(--li-gray);
+}
+
+.body {
+  position: relative;
+  display: -webkit-box;
+  margin: 8px 16px 8px;
+  overflow: hidden;
+  font: 400 14px/20px var(--ios-font);
+  white-space: pre-line;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.more {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding-left: 22px;
+  color: var(--li-gray);
+  background: linear-gradient(90deg, rgb(255 255 255 / 0%), #fff 18px);
+}
+
+/* Document post: the first page of a carousel PDF. */
+.document {
+  position: relative;
+  height: 300px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 92% 8%, hsl(calc(var(--h) + 40) 80% 62% / 55%), transparent 42%),
+    linear-gradient(160deg, hsl(var(--h) 62% 30%), hsl(calc(var(--h) + 24) 70% 14%));
+}
+
+.documentBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  overflow: hidden;
+  padding: 0 12px;
+  color: #fff;
+  background: rgb(0 0 0 / 60%);
+  font: 600 12px/32px var(--ios-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.slide {
+  position: absolute;
+  inset: 32px 0 0;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 26px 22px;
+  color: #fff;
+}
+
+.slideKicker {
+  font: 700 12px/16px var(--ios-font);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.slideTitle {
+  display: -webkit-box;
+  margin-top: 12px;
+  overflow: hidden;
+  font: 800 30px/34px var(--ios-display);
+  letter-spacing: -0.6px;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+
+.slideAuthor {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  font: 600 13px/18px var(--ios-font);
+  opacity: 0.9;
+}
+
+.slideArrow {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: hsl(var(--h, 210) 60% 22%);
+  background: #fff;
+  font: 700 18px/1 var(--ios-font);
+}
+
+/* Link post: 1.91 : 1 preview over a pale blue title strip. */
+.link {
+  background: #edf3f8;
+}
+
+.linkImage {
+  display: grid;
+  place-items: center;
+  height: 204px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 20% 0%, hsl(calc(var(--h) + 30) 70% 70% / 50%), transparent 55%),
+    linear-gradient(135deg, hsl(var(--h) 45% 42%), hsl(calc(var(--h) - 20) 55% 18%));
+}
+
+.linkImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.linkMark {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 20px;
+  color: hsl(var(--h) 55% 24%);
+  background: #fff;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 30%);
+  font: 800 34px/1 var(--ios-display);
+  letter-spacing: -1px;
+}
+
+.linkText {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 16px 10px;
+}
+
+.linkTitle {
+  display: -webkit-box;
+  overflow: hidden;
+  font: 600 14px/20px var(--ios-font);
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.linkSource {
+  color: var(--li-gray);
+  font: 400 12px/16px var(--ios-font);
+}
+
+.social {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--li-line);
+}
+
+.reactions {
+  display: flex;
+  align-items: center;
+}
+
+.reaction {
+  margin-right: -4px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px #fff;
+}
+
+.reaction:nth-child(1) { z-index: 3; }
+.reaction:nth-child(2) { z-index: 2; }
+.reaction:nth-child(3) { z-index: 1; }
+
+.reactions .count {
+  margin-left: 10px;
+}
+
+.count {
+  color: var(--li-gray);
+  font: 400 12px/16px var(--ios-font);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  height: 52px;
+  padding: 0 8px;
+}
+
+.action {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+  color: var(--li-gray);
+  font: 600 12px/16px var(--ios-font);
+}
+
+.tabs {
+  position: absolute;
+  z-index: 2;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  height: calc(49px + var(--safe-bottom));
+  box-sizing: border-box;
+  padding-top: 6px;
+  border-top: 0.5px solid rgb(0 0 0 / 15%);
+  background: #fff;
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--li-gray);
+  font: 400 10px/12px var(--ios-font);
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.tab[data-active] {
+  color: var(--li-ink);
+  font-weight: 600;
+}
+
+.tabIcon {
+  position: relative;
+  display: flex;
+}
+
+.badge {
+  position: absolute;
+  top: -3px;
+  left: 14px;
+  min-width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+  padding: 0 5px;
+  border: 2px solid #fff;
+  border-radius: 9px;
+  color: #fff;
+  background: #cb112d;
+  font: 600 10px/14px var(--ios-font);
+  text-align: center;
+}

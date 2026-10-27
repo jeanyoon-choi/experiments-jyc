@@ -172,10 +172,18 @@ export const LIFE_CONTROLS: readonly SliderControl<Exclude<keyof LifeParameters,
 
 // Sound
 
-export const SOUND_CONTROLS: readonly SliderControl<Exclude<keyof SoundParameters, "scape">>[] = [
+type SoundSlider = SliderControl<"volume" | "space" | "grain">;
+
+export const SOUND_CONTROLS: readonly SoundSlider[] = [
   { key: "volume", label: "음량", min: 0, max: 1, step: 0.01 },
   { key: "space", label: "공간 (잔향 · 메아리)", min: 0, max: 1, step: 0.01 },
   { key: "grain", label: "부서짐 (끊기는 알갱이 · 되풀이되는 고함 · 쌓이는 알림)", min: 0, max: 1, step: 0.01 },
+];
+
+/** v2 is dry: no room, no echoes. */
+export const SOUND_RAW_CONTROLS: readonly SoundSlider[] = [
+  { key: "volume", label: "음량", min: 0, max: 1, step: 0.01 },
+  { key: "grain", label: "부서짐 (연타)", min: 0, max: 1, step: 0.01 },
 ];
 
 // 기본값 3

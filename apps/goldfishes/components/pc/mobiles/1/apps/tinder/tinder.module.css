@@ -1,0 +1,347 @@
+/*
+ * Tinder discovery, light theme, at iOS points on the 390 × 844 glass.
+ * Brand: gradient #FD267A → #FF6036. Proxima Nova is not shipped; the
+ * system display face at heavy weights stands in (closest on iOS).
+ */
+.app {
+  --tinder-a: #fd267a;
+  --tinder-b: #ff6036;
+  --tinder-gradient: linear-gradient(45deg, var(--tinder-a), var(--tinder-b));
+  --tinder-ink: #21262e;
+  --tinder-gray: #7c8591;
+  --tinder-font: "Proxima Nova", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #fff;
+  color: var(--tinder-ink);
+  font-family: var(--tinder-font);
+  letter-spacing: 0;
+}
+
+/* Top bar: flame + wordmark, bell and filters. */
+.header {
+  position: absolute;
+  top: 54px;
+  left: 0;
+  right: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 0 14px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.logoFlame {
+  width: 27px;
+  height: 27px;
+  background: var(--tinder-gradient);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.wordmark {
+  font: 800 29px/32px var(--tinder-font);
+  letter-spacing: -1.4px;
+  background: var(--tinder-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  padding-bottom: 3px;
+}
+
+.headerIcons {
+  display: flex;
+  gap: 18px;
+  color: #505965;
+}
+
+/* The deck: cards stacked, actions floating over their foot. */
+.deck {
+  position: absolute;
+  top: 100px;
+  left: 8px;
+  right: 8px;
+  bottom: 89px;
+}
+
+.card {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #d9dce1;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 10%);
+  color: #fff;
+}
+
+.card[data-top] { transform-origin: 50% 120%; }
+.card[data-lean="like"] { transform: translateX(12px) rotate(1.8deg); }
+.card[data-lean="nope"] { transform: translateX(-12px) rotate(-1.8deg); }
+
+.photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 30%;
+}
+
+.scrim {
+  position: absolute;
+  inset: 35% 0 0;
+  background: linear-gradient(180deg, rgb(0 0 0 / 0%) 0%, rgb(0 0 0 / 38%) 32%, rgb(0 0 0 / 82%) 70%, rgb(0 0 0 / 92%) 100%);
+}
+
+.bars {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+}
+
+.bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgb(0 0 0 / 22%);
+  box-shadow: 0 0 0 0.5px rgb(255 255 255 / 12%);
+}
+
+.bar[data-on] { background: #fff; }
+
+.stampLike,
+.stampNope {
+  position: absolute;
+  top: 46px;
+  padding: 2px 10px;
+  border: 4px solid currentColor;
+  border-radius: 8px;
+  font: 800 44px/48px var(--tinder-font);
+  letter-spacing: 1px;
+}
+
+.stampLike { left: 26px; color: #1edb9d; transform: rotate(-18deg); }
+.stampNope { right: 26px; color: #ff4458; transform: rotate(18deg); }
+
+.info {
+  position: absolute;
+  left: 16px;
+  right: 14px;
+  bottom: 98px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.active {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 9px 0 8px;
+  border-radius: 12px;
+  background: rgb(18 162 105 / 90%);
+  font: 600 13px/16px var(--tinder-font);
+}
+
+.activeDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4cf5a3;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  font: 800 32px/38px var(--tinder-font);
+  letter-spacing: -0.4px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.age {
+  flex: none;
+  font: 400 28px/38px var(--tinder-font);
+}
+
+.more {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: #fff;
+  color: #21262e;
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  font: 400 16px/20px var(--tinder-font);
+  opacity: 0.95;
+}
+
+.line svg { flex: none; }
+
+.lineText {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.bio {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 2px 0 0;
+  font: 400 16px/21px var(--tinder-font);
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.passions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 30px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.passion {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 18%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 22%);
+  font: 600 14px/28px var(--tinder-font);
+  white-space: nowrap;
+}
+
+.passion[data-shared] {
+  background: rgb(255 255 255 / 92%);
+  box-shadow: none;
+  color: var(--tinder-ink);
+}
+
+/* Actions: five circles over the card's foot. */
+.actions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.action {
+  --tone: #fff;
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  color: var(--tone);
+  background: rgb(23 26 31 / 62%);
+  box-shadow: inset 0 0 0 1.5px var(--tone), 0 2px 8px rgb(0 0 0 / 25%);
+}
+
+.action[data-big] { width: 62px; height: 62px; }
+.action[data-kind="rewind"] { --tone: #f7b500; }
+.action[data-kind="nope"] { --tone: #ff4458; }
+.action[data-kind="super"] { --tone: #2ea7ff; }
+.action[data-kind="like"] { --tone: #1edb9d; }
+.action[data-kind="boost"] { --tone: #b064ff; }
+
+.actions[data-lean="like"] .action[data-kind="like"],
+.actions[data-lean="nope"] .action[data-kind="nope"] {
+  color: #fff;
+  background: var(--tone);
+  transform: scale(1.08);
+}
+
+/* Tab bar: icons only. */
+.tabs {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 83px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-around;
+  padding: 10px 14px 0;
+  border-top: 0.5px solid rgb(0 0 0 / 8%);
+  background: #fff;
+  color: var(--tinder-gray);
+}
+
+.tab {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+}
+
+.tabFlame {
+  width: 30px;
+  height: 30px;
+  background: var(--tinder-gradient);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.badge {
+  position: absolute;
+  top: -5px;
+  left: 18px;
+  min-width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+  padding: 0 5px;
+  border: 2px solid #fff;
+  border-radius: 9px;
+  background: #d8a62d;
+  color: #fff;
+  font: 700 10px/14px var(--tinder-font);
+  text-align: center;
+}
+
+/* Home-screen icon: white flame on the brand gradient. */
+.icon {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(200deg, #ff7854 0%, #fd267a 100%);
+}
+
+.icon svg { margin-top: 4%; }

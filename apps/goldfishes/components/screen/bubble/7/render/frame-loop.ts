@@ -19,6 +19,7 @@ import { createObjectPass, type ObjectFrame, type ObjectPass } from "../objects/
 import { OBJECT_KINDS, pageSet, PORTION_SHOWS, type ObjectParameters } from "../objects/objects"; // 오브제
 import { FIELD_KINDS, layerOf, nextInSequence, retarget, type Morph } from "../objects/morph"; // 랩
 import type { LabSettings } from "../objects/lab"; // 랩
+import type { BubbleFeed } from "../link/feed"; // 연결
 import { Contagion, type SpreadParameters } from "../spread/contagion"; // 전파
 
 /** The display relaxes toward one power-iteration step with this time constant, seconds. */
@@ -86,6 +87,8 @@ export type LoopHooks = {
   frameCost(text: string): void;
   /** 랩: the morph under way, from one kind to another (field kinds). */
   labMorph?(from: string, to: string): void;
+  /** 연결: the feed/1 sender (link/feed.ts), null under `?feed=0`. */
+  feed?(): BubbleFeed | null;
 };
 
 export type FrameLoop = {
@@ -328,7 +331,9 @@ class RaftLoop implements FrameLoop {
     // 오브제: the pages, the portions under way, both or neither drawn as objects instead of spheres; the spheres left are drawn as before.
     const spreading = settings.mode === "spread";
     // Under 전파 the pages are drawn as objects (only objects take a strain's colour).
-    const pageObjects = pageSet(settings.objects) !== null || spreading;
+    // Under 전파 the pages are its own unit (SNS by default), whatever the object panel shows them as.
+    const objects = spreading ? { ...settings.objects, pages: settings.spread.unit } : settings.objects;
+    const pageObjects = pageSet(objects) !== null || spreading;
     const portionShow = PORTION_SHOWS[Math.round(settings.objects.portions)] ?? "bubble";
     // Morphing at both ends, the portions are the object pass's whenever the pages are objects.
     const portionObjects = (portionShow !== "bubble" && (portionShow !== "page" || pageObjects)) || (settings.objects.portionMorph >= 0.5 && pageObjects);
@@ -345,7 +350,7 @@ class RaftLoop implements FrameLoop {
         tints: spreading ? this.contagion.tints : null,
         caught: spreading ? this.contagion.caught : null,
       };
-      this.objectPass.draw(pageStart, this.bubbleCount, this.pageOf, this.headingOf, settings.objects, frame);
+      this.objectPass.draw(pageStart, this.bubbleCount, this.pageOf, this.headingOf, objects, frame);
     }
     mark(5);
     if (MEASURE) {
@@ -556,6 +561,18 @@ class RaftLoop implements FrameLoop {
     school.step(step, web, shown, bubbles, this.bubbleCount, pageStart, drawnPages, settings.fish, this.lifeContext);
     if (MEASURE) this.schoolCost = this.schoolCost * 0.95 + (performance.now() - schoolStart) * 0.05;
     school.drainContact(drawnPages, attention);
+    // 연결: what each fish has just reached, for pc/mobiles (link/feed.ts).
+    const feed = this.hooks.feed?.();
+    if (feed) {
+      const spreading = settings.mode === "spread";
+      feed.observe(school.fish, {
+        objects: spreading ? { ...settings.objects, pages: settings.spread.unit } : settings.objects,
+        caught: spreading ? this.contagion.caught : null,
+        time: raft.time,
+        shown,
+        pageCount: drawnPages,
+      });
+    }
     // 반응: now and then, a heart, a like or a comment where a fish has just reached a bubble (not under reduced motion).
     if (!this.reduceMotion.matches || this.reactions.live.length > 0) {
       const touches = this.reduceMotion.matches ? 0 : school.touchCount;

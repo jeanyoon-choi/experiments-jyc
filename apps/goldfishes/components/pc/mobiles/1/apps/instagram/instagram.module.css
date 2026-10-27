@@ -1,0 +1,185 @@
+/* Instagram iOS, 2026, at native points on the 390 × 844 glass. Values from SCC clone/11 instagram.module.css,
+   measured on the US App Store frames (2.351 px/pt); see apps/scc/docs/experiments/sns/mobile/11.md. */
+
+.app {
+  --ink: #0c1014;
+  --muted: #6a717b;
+  --line: #e3e6eb;
+  --like: #ff3040;
+  --tag: #00376b;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  padding-top: var(--safe-top, 54px);
+  box-sizing: border-box;
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--ios-font);
+  font-size: 14px;
+  line-height: 18px;
+  letter-spacing: normal;
+}
+
+.app * { box-sizing: border-box; }
+.app img { display: block; object-fit: cover; }
+.app svg { flex: none; }
+.muted { color: var(--muted); }
+
+/* Home header: Create · 120 pt 2026 wordmark · Activity, glyph centres 27.5 pt from each edge. It stays fixed
+   (opaque, over the status bar) while the [data-feed] column below it is scrolled by the driver. */
+.top {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--safe-top, 54px) + 44px);
+  background: #fff;
+  display: grid;
+  grid-template-columns: 56px 1fr 56px;
+  align-items: center;
+  justify-items: center;
+  padding: var(--safe-top, 54px) 0 0 4px;
+}
+
+.feed { padding-top: 44px; }
+
+.wordmark { display: block; margin-top: 5px; line-height: 0; }
+.activity { position: relative; justify-self: end; width: 48px; display: grid; place-items: center; margin-right: -1px; }
+.activity i { position: absolute; top: 1px; right: 9px; width: 8px; height: 8px; border-radius: 50%; background: var(--like); }
+
+/* Story tray: 92 pt rings (3 pt stroke, 3.5 pt gap, 79 pt photo) on a 104.5 pt pitch. */
+.stories { display: flex; gap: 12.5px; padding: 8px 9px; overflow: hidden; }
+.story { width: 92px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.story > span { position: relative; width: 92px; height: 92px; border-radius: 50%; display: block; }
+.story img { width: 100%; height: 100%; border-radius: 50%; }
+.story small { max-width: 92px; overflow: hidden; font-size: 12px; line-height: 16px; letter-spacing: -0.1px; text-overflow: ellipsis; white-space: nowrap; }
+.storyRing { padding: 3px; }
+.storyRing img { border: 3.5px solid #fff; }
+.ringNew { background: linear-gradient(45deg, #fec901 12%, #ff8a00 32%, #ff2051 52%, #e6029a 68%, #d300c5 86%); }
+.storyOwn { padding: 6.5px; }
+.storyOwn i { position: absolute; right: 5px; bottom: 5px; width: 27px; height: 27px; display: grid; place-items: center; border: 3px solid #fff; border-radius: 50%; background: var(--ink); color: #fff; }
+
+/* Post header: 54 pt row, 32 pt avatar (36 pt inside a 40 pt ring when the account has a story). */
+.post { padding-bottom: 14px; }
+.postHead { display: flex; align-items: center; height: 54px; padding: 0 9px 0 6px; }
+.postAvatar { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 50%; }
+.postAvatar img { width: 32px; height: 32px; border-radius: 50%; }
+.postAvatar.ringNew img { width: 36px; height: 36px; border: 2px solid #fff; }
+.identity { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; padding-left: 7px; }
+.identity strong { display: flex; align-items: center; font-size: 14px; font-weight: 600; line-height: 18px; }
+.identity small { font-size: 12px; line-height: 15px; }
+.verified { display: inline-grid; margin-left: 4px; color: #0095f6; }
+.postMore { width: 32px; height: 44px; display: grid; place-items: center; }
+
+/* Media: the feed frame's 1 : 1.036 crop, full width. */
+.media { position: relative; width: 390px; height: 404px; overflow: hidden; background: #efefef; }
+.media > img { width: 100%; height: 100%; }
+.counter {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  height: 26px;
+  padding: 0 9px;
+  border-radius: 13px;
+  background: rgb(18 18 18 / 70%);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 26px;
+  letter-spacing: 0.2px;
+}
+
+/* Carousel text cards: what news and meme accounts post when there is no photo. */
+.textCard, .figureCard {
+  display: flex;
+  flex-direction: column;
+  padding: 26px 26px 30px;
+  background: var(--card-bg);
+  color: var(--card-ink);
+  font-family: var(--ios-display);
+}
+
+.cardHandle { display: flex; align-items: center; gap: 8px; font: 600 13px/16px var(--ios-font); letter-spacing: -0.1px; }
+.cardHandle img { width: 24px; height: 24px; border-radius: 50%; }
+
+.textCard strong {
+  margin-top: auto;
+  font-size: 33px;
+  font-weight: 800;
+  line-height: 35px;
+  letter-spacing: -1.1px;
+  text-wrap: balance;
+}
+
+.textCard p { margin: 16px 0 0; font-size: 15px; line-height: 20px; opacity: 0.78; }
+.textCard p::before { content: ""; display: block; width: 34px; height: 4px; margin-bottom: 14px; background: var(--card-accent); }
+
+.figure {
+  margin-top: auto;
+  color: var(--card-accent);
+  font-size: 64px;
+  font-weight: 800;
+  line-height: 64px;
+  letter-spacing: -2.6px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.figureCard p { margin: 14px 0 0; font-size: 22px; font-weight: 700; line-height: 26px; letter-spacing: -0.5px; text-wrap: balance; }
+
+.meshCard { color: #fff; }
+.meshCopy {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 80px 24px 26px;
+  background: linear-gradient(180deg, transparent 0%, rgb(0 0 0 / 62%) 60%);
+  font-family: var(--ios-display);
+}
+
+.meshCopy strong { font-size: 27px; font-weight: 700; line-height: 31px; letter-spacing: -0.6px; text-wrap: balance; }
+
+/* Action row: 24 pt glyphs, 6 pt to count, 18 pt between groups, Save at the right edge. */
+.actions { position: relative; height: 50px; display: flex; align-items: flex-start; gap: 18px; padding: 0 11px 0 12px; }
+.actions > span { display: flex; align-items: center; gap: 6px; margin-top: 11px; padding: 5px 0; line-height: 1; }
+.actions b { font-size: 14px; font-weight: 600; letter-spacing: -0.1px; white-space: nowrap; }
+.actions .save { margin-left: auto; }
+.dots { position: absolute; top: 0; left: 50%; display: flex; gap: 4px; transform: translateX(-50%); margin-top: 25px; }
+.dots em { width: 6px; height: 6px; border-radius: 50%; background: #c7ccd3; }
+.dots em[data-on] { background: #0095f6; }
+
+.copy { padding: 0 13px; }
+.copy p { margin: 0 0 6px; overflow-wrap: anywhere; }
+.copy b { font-weight: 600; }
+.tag { color: var(--tag); }
+.copy > span { display: block; margin-bottom: 6px; }
+.copy > small { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; line-height: 16px; }
+
+/* Floating Prism tab bar: 340 × 60 pill, 21 pt above the glass edge, 66 × 54 active disc (the one blur). */
+.nav {
+  position: absolute;
+  left: 25px;
+  bottom: 21px;
+  z-index: 5;
+  width: 340px;
+  height: 60px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: center;
+  padding: 0 3px;
+  border: 1px solid rgb(12 16 20 / 6%);
+  border-radius: 30px;
+  background: rgb(255 255 255 / 82%);
+  box-shadow: 0 8px 28px rgb(12 16 20 / 12%);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+}
+
+.nav > span { position: relative; height: 54px; display: grid; place-items: center; }
+.nav > span[data-active]::before { content: ""; position: absolute; inset: 0; border-radius: 27px; background: rgb(12 16 20 / 7%); }
+.nav > span > * { position: relative; z-index: 1; }
+.nav img { width: 26px; height: 26px; border-radius: 50%; }
+.navDot { position: absolute !important; left: calc(50% + 7px); top: calc(50% + 6px); width: 7px; height: 7px; border-radius: 50%; background: var(--like); }
