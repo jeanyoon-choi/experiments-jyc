@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { beam, clang, pipe, tink } from "./sound-metal.ts";
-import { chime, hymn, pop, swoosh, tap } from "./sound-notify.ts";
+import { chime, droop, hymn, pop, swoosh, tap } from "./sound-notify.ts";
 import { midiToHz, SYNTH_RATE } from "./synth.ts";
 
 /** Share of the power within 25 Hz of the note's harmonics, over 4096 samples from `start` (s). */
@@ -35,6 +35,8 @@ const voices = {
   pipe: pipe(62, 2.4),
   tink: tink(86),
   hymn: hymn(62),
+  yelledChime: droop("chime", 50, 1.4),
+  yelledPop: droop("pop", 62, 1.1),
   chime: chime(62),
   flipped: chime(38, 2.2),
   pop: pop(74),

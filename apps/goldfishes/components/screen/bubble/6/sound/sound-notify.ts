@@ -150,3 +150,70 @@ export function hymn(note: number) {
   fadeOut(out, 0.3);
   return normalise(out);
 }
+
+/** 군중's yell contour (sound-crowd.ts renderCry): a 4-semitone scoop up in 80 ms, a 9-semitone fall from 35% to the end. */
+function yellContour(t: number, seconds: number) {
+  const smooth = (edge0: number, edge1: number, x: number) => {
+    const u = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
+    return u * u * (3 - 2 * u);
+  };
+  return -4 * (1 - smooth(0, 0.08, t)) - 9 * smooth(seconds * 0.35, seconds, t) ** 1.6;
+}
+
+/** Each notification sound's partials: [ratio, level, decay (s) of its strike]. */
+const NOTICE_PARTIALS: Record<"chime" | "pop" | "tap", readonly (readonly [number, number, number])[]> = {
+  chime: [[1, 1, 0.5], [2, 0.12, 0.25], [3.93, 0.3, 0.12], [10, 0.06, 0.04]],
+  pop: [[1, 1, 0.08], [2, 0.2, 0.04]],
+  tap: [[1, 1, 0.025], [2.01, 0.25, 0.012]],
+};
+
+/**
+ * 알림 3 (user, 2026-10-26: "군중과 같은 소리가 아니라 알림 소리에서 시작해야"; "묵직하고 낮게
+ * 깔리는"): a notification sound — the chime, the like's pop, the tap — yelled as 군중 yells.
+ * Its strike stays as it is (the "ding", the "pop", the "tick"); under it the sound is held
+ * and bent with 군중's contour: three voices 0, +14 and −17 cents and 0, 12 and 26 ms apart,
+ * scooping up four semitones and falling nine, held to 45% of its length. The held body is
+ * not the strike's sine but a full stack of the note's harmonics up to 3 kHz (the chime's
+ * bar 4th and 10th lifted), driven hard (tanh 3.5): measured live, 군중's weight is a dense,
+ * saturated roar at 600–1200 Hz, not a low fundamental a laptop cannot play.
+ */
+export function droop(kind: "chime" | "pop" | "tap", note: number, seconds: number) {
+  const out = new Float32Array(Math.floor(SYNTH_RATE * seconds));
+  const frequency = midiToHz(note);
+  const partials = NOTICE_PARTIALS[kind];
+  // The held body: one period of the note's harmonics up to 3 kHz, n^−0.75, the fundamental and octave
+  // thinned as a mouth thins them, the bar's 4th and 10th lifted.
+  const size = 2048;
+  const table = new Float32Array(size + 1);
+  for (let n = 1; frequency * n < 3000; n += 1) {
+    const level = n ** -0.75 * (n === 1 ? 0.35 : n === 2 ? 0.7 : n === 4 ? 1.8 : n === 10 ? 1.5 : 1);
+    for (let index = 0; index <= size; index += 1) table[index]! += level * Math.sin((2 * Math.PI * n * index) / size);
+  }
+  let largest = 0;
+  for (const value of table) largest = Math.max(largest, Math.abs(value));
+  for (const [cents, delay] of [[0, 0], [14, 0.012], [-17, 0.026]] as const) {
+    const phases = partials.map(() => 0);
+    let phase = 0;
+    for (let index = Math.floor(delay * SYNTH_RATE); index < out.length; index += 1) {
+      const t = index / SYNTH_RATE - delay;
+      const bend = 2 ** ((yellContour(t, seconds) + cents / 100) / 12);
+      // Up within 30 ms, flat to 45%, then down to nothing.
+      const body = Math.min(1, t / 0.03) * (t < seconds * 0.45 ? 1 : Math.max(0, 1 - (t - seconds * 0.45) / (seconds * 0.55)));
+      phase = (phase + (frequency * bend * size) / SYNTH_RATE) % size;
+      const at = Math.floor(phase);
+      let sample = (body * (table[at]! + (table[at + 1]! - table[at]!) * (phase - at))) / largest;
+      partials.forEach(([ratio, level, decay], partial) => {
+        const hz = frequency * ratio * bend;
+        if (hz > SYNTH_RATE * 0.45) return;
+        phases[partial] = phases[partial]! + (2 * Math.PI * hz) / SYNTH_RATE;
+        sample += 0.6 * level * Math.sin(phases[partial]!) * Math.exp(-t / decay) * Math.min(1, t / 0.002);
+      });
+      out[index]! += sample;
+    }
+  }
+  const click = kind === "tap" ? [3200, 1, 0.5] : kind === "pop" ? [1800, 0.8, 0.2] : [1200, 0.7, 0.1];
+  addClick(out, note * 41 + 5, click[0]!, click[1]!, click[2]! * 3, 0.0015);
+  saturate(out, 3.5);
+  fadeOut(out, 0.02);
+  return normalise(out);
+}
