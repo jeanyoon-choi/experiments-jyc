@@ -10,9 +10,10 @@
 //   - slack/: Slack.app's notification sounds, knock brush its default;
 //   - whatsapp/: WhatsApp.app's incoming message, long and short;
 //   - mac/: macOS's alert sounds (/System/Library/Sounds).
-// They are the platforms' copyrighted sounds, so the folder is git-ignored: they stay on this
-// machine. Teams, Discord, Instagram, Messenger and Snapchat ship theirs from the web, so
-// none were on disk; they join when their files are added here.
+// They are the platforms' copyrighted sounds. They were git-ignored at first, and v3 was then
+// silent on the deployment, so they are committed with the code (user, 2026-10-28). Teams,
+// Discord, Instagram, Messenger and Snapchat ship theirs from the web, so none were on disk;
+// they join when their files are added here.
 
 export type RealPlatform = "iphone" | "slack" | "whatsapp" | "mac";
 export type RealScape = "mixed" | RealPlatform;
