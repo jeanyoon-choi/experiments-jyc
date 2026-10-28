@@ -4,12 +4,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { TouchSound, type SoundParameters } from "./sound";
 
 /**
- * 소리: off until the panel's button starts it (the browser needs a gesture).
- * `playing()` is the engine while it is on, for the frame loop.
+ * 소리: on from the start (user, 2026-10-28: "auto sound on"). A browser lets audio start only
+ * after a gesture on the page, so the engine is made at once and resumed both straight away
+ * (which a kiosk with `--autoplay-policy=no-user-gesture-required` allows) and on the first
+ * tap, click or key anywhere. Until then it stays silent. `playing()` is the engine while it
+ * is on, for the frame loop.
  */
 export function useTouchSound(parameters: SoundParameters) {
-  const [on, setOn] = useState(false);
-  const onRef = useRef(false);
+  const [on, setOn] = useState(true);
+  const onRef = useRef(true);
   const engineRef = useRef<TouchSound | null>(null);
   const parametersRef = useRef(parameters);
   useEffect(() => {
@@ -17,13 +20,19 @@ export function useTouchSound(parameters: SoundParameters) {
     engineRef.current?.setParameters(parameters);
   }, [parameters]);
   useEffect(() => {
-    // A remount while 켬 (a hot reload) rebuilds the closed engine.
+    // On at mount, and after a remount while 켬 (a hot reload) the closed engine is rebuilt.
     if (onRef.current && !engineRef.current) {
       engineRef.current = new TouchSound();
       engineRef.current.setParameters(parametersRef.current);
       void engineRef.current.resume();
     }
+    const unlock = () => {
+      if (onRef.current) void engineRef.current?.resume();
+    };
+    const events = ["pointerdown", "keydown", "touchend"] as const;
+    for (const event of events) window.addEventListener(event, unlock, { capture: true });
     return () => {
+      for (const event of events) window.removeEventListener(event, unlock, { capture: true });
       engineRef.current?.dispose();
       engineRef.current = null;
     };
@@ -33,12 +42,12 @@ export function useTouchSound(parameters: SoundParameters) {
     onRef.current = next;
     if (next) {
       engineRef.current ??= new TouchSound();
-      engineRef.current.setParameters(parameters);
+      engineRef.current.setParameters(parametersRef.current);
       void engineRef.current.resume();
     } else {
       void engineRef.current?.suspend();
     }
-  }, [parameters]);
+  }, []);
   const playing = useCallback(() => (onRef.current ? engineRef.current : null), []);
   return { on, toggle, playing };
 }

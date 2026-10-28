@@ -26,7 +26,7 @@
 // sounding), its rank picks the register and the gesture (leaders ring low and long, or
 // yell as a root-and-fifth pair; small pages chime high, or bark), its place on the screen pans and colours it,
 // so the school plays
-// the web as an instrument. The context starts only from the panel's button.
+// the web as an instrument. The sound is on from the start and begins with the first gesture on the page (use-touch-sound.ts).
 //
 // Cost (user, 2026-10-12: the first version cost frames): nothing is synthesised per
 // touch. Tones are rendered offline, off the main thread, the first time a note is
