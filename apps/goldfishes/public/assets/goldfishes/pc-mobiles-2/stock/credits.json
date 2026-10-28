@@ -1,0 +1,410 @@
+[
+  {
+    "file": "sparkle-02.jpg",
+    "keyword": "sparkle",
+    "source": "https://commons.wikimedia.org/wiki/File:Daniele_Restelli_UMANIA_2019_IULM_AI_conference.jpg",
+    "title": "File:Daniele Restelli UMANIA 2019 IULM AI conference.jpg",
+    "author": "Daniele-restelli-phd",
+    "license": "CC BY 4.0"
+  },
+  {
+    "file": "cloud-01.jpg",
+    "keyword": "cloud",
+    "source": "https://commons.wikimedia.org/wiki/File:Summer_clouds_over_Tuntorp_3.jpg",
+    "title": "File:Summer clouds over Tuntorp 3.jpg",
+    "author": "W.carter",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "cloud-02.jpg",
+    "keyword": "cloud",
+    "source": "https://commons.wikimedia.org/wiki/File:Clouds_in_the_sky_in_August_2014.JPG",
+    "title": "File:Clouds in the sky in August 2014.JPG",
+    "author": "Jakec",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "cloud-03.jpg",
+    "keyword": "cloud",
+    "source": "https://commons.wikimedia.org/wiki/File:Duga-1_radar_data_center_inside_dark_corridor_2018.jpg",
+    "title": "File:Duga-1 radar data center inside dark corridor 2018.jpg",
+    "author": "Joël van der Loo",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "cloud-04.jpg",
+    "keyword": "cloud",
+    "source": "https://commons.wikimedia.org/wiki/File:Corridor,_Eden_Center.jpg",
+    "title": "File:Corridor, Eden Center.jpg",
+    "author": "Ser Amantio di Nicolao",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "gpu-01.jpg",
+    "keyword": "gpu",
+    "source": "https://commons.wikimedia.org/wiki/File:Graphics_Card_Diamond_Viper_330_with_Nvidia_(RIVA_128)_GPU.jpg",
+    "title": "File:Graphics Card Diamond Viper 330 with Nvidia (RIVA 128) GPU.jpg",
+    "author": "Timothy Borkowski",
+    "license": "CC BY-SA 3.0"
+  },
+  {
+    "file": "gpu-02.jpg",
+    "keyword": "gpu",
+    "source": "https://commons.wikimedia.org/wiki/File:AMD_Fiji_GPU_package_with_GPU,_HBM_memory_and_interposer.jpg",
+    "title": "File:AMD Fiji GPU package with GPU, HBM memory and interposer.jpg",
+    "author": "C. Spille/pcgameshardware.de",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "gpu-03.jpg",
+    "keyword": "gpu",
+    "source": "https://commons.wikimedia.org/wiki/File:Hot_off_the_press_%E2%80%94_the_latest_D-Wave_wafer_of_quantum_processors_and_TIME_cover_story.jpg",
+    "title": "File:Hot off the press — the latest D-Wave wafer of quantum processors and TIME cover story.jpg",
+    "author": "Steve Jurvetson",
+    "license": "CC BY 2.0"
+  },
+  {
+    "file": "gpu-04.jpg",
+    "keyword": "gpu",
+    "source": "https://commons.wikimedia.org/wiki/File:Piastra_circolare_di_silicio_contenente_109_chip_di_memoria_-_Museo_scienza_tecnologia_Milano_D1210.jpg",
+    "title": "File:Piastra circolare di silicio contenente 109 chip di memoria - Museo scienza tecnologia Milano D1210.jpg",
+    "author": "I.B.M. Italia (costruttore/ produttore/ progettista)",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "humanoid-01.jpg",
+    "keyword": "humanoid",
+    "source": "https://commons.wikimedia.org/wiki/File:Halodi_Robotics%27_Perception_Engineer_With_a_Humanoid_Collaborative_Robot.jpg",
+    "title": "File:Halodi Robotics' Perception Engineer With a Humanoid Collaborative Robot.jpg",
+    "author": "Nicholas-halodi",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "humanoid-02.jpg",
+    "keyword": "humanoid",
+    "source": "https://commons.wikimedia.org/wiki/File:Humanoider-Roboter-DASA.JPG",
+    "title": "File:Humanoider-Roboter-DASA.JPG",
+    "author": "Sven Volkens",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "humanoid-03.jpg",
+    "keyword": "humanoid",
+    "source": "https://commons.wikimedia.org/wiki/File:C2E2_2015_-_Marvin_the_Paranoid_Android_(17306748285).jpg",
+    "title": "File:C2E2 2015 - Marvin the Paranoid Android (17306748285).jpg",
+    "author": "GabboT",
+    "license": "CC BY-SA 2.0"
+  },
+  {
+    "file": "robotDog-01.jpg",
+    "keyword": "robotDog",
+    "source": "https://commons.wikimedia.org/wiki/File:SpotMini,_Boston_Dynamics,_Robot.jpg",
+    "title": "File:SpotMini, Boston Dynamics, Robot.jpg",
+    "author": "Web Summit",
+    "license": "CC BY 2.0"
+  },
+  {
+    "file": "robotDog-02.jpg",
+    "keyword": "robotDog",
+    "source": "https://commons.wikimedia.org/wiki/File:Spot_by_Boston_Dynamics.jpg",
+    "title": "File:Spot by Boston Dynamics.jpg",
+    "author": "Jonte",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "robotDog-03.jpg",
+    "keyword": "robotDog",
+    "source": "https://commons.wikimedia.org/wiki/File:Legged_Squad_Support_System_robot_prototype.jpg",
+    "title": "File:Legged Squad Support System robot prototype.jpg",
+    "author": "Tactical Technology Office, Defense Advanced Research Projects Agency, U.S. Department of Defense",
+    "license": "Public domain"
+  },
+  {
+    "file": "robotDog-04.jpg",
+    "keyword": "robotDog",
+    "source": "https://commons.wikimedia.org/wiki/File:Legged_squad_support_system_demonstration_held_120910-M-LU710-098.jpg",
+    "title": "File:Legged squad support system demonstration held 120910-M-LU710-098.jpg",
+    "author": "Sgt. Mallory Vanderschans",
+    "license": "Public domain"
+  },
+  {
+    "file": "roadster-01.jpg",
+    "keyword": "roadster",
+    "source": "https://commons.wikimedia.org/wiki/File:15-05-23-Berlin-Sachsendamm-Tesla-RalfR-N3S_7354.jpg",
+    "title": "File:15-05-23-Berlin-Sachsendamm-Tesla-RalfR-N3S 7354.jpg",
+    "author": "Ralf Roletschek",
+    "license": "GFDL 1.2"
+  },
+  {
+    "file": "roadster-02.jpg",
+    "keyword": "roadster",
+    "source": "https://commons.wikimedia.org/wiki/File:Tesla_roadster_2020_prototype.jpg",
+    "title": "File:Tesla roadster 2020 prototype.jpg",
+    "author": "Smnt",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "roadster-03.jpg",
+    "keyword": "roadster",
+    "source": "https://commons.wikimedia.org/wiki/File:Paris_2010_sports_car.jpg",
+    "title": "File:Paris 2010 sports car.jpg",
+    "author": "Mark Chatterley from Didcot, England",
+    "license": "CC BY 2.0"
+  },
+  {
+    "file": "roadster-04.jpg",
+    "keyword": "roadster",
+    "source": "https://commons.wikimedia.org/wiki/File:The_frontview_of_Tommykaira_ZZ_by_GLM_(1).JPG",
+    "title": "File:The frontview of Tommykaira ZZ by GLM (1).JPG",
+    "author": "Tokumeigakarinoaoshima",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "headset-01.jpg",
+    "keyword": "headset",
+    "source": "https://commons.wikimedia.org/wiki/File:Virtual_reality_headset.jpg",
+    "title": "File:Virtual reality headset.jpg",
+    "author": "FloppaIngénieur",
+    "license": "CC BY 4.0"
+  },
+  {
+    "file": "headset-02.jpg",
+    "keyword": "headset",
+    "source": "https://commons.wikimedia.org/wiki/File:VR_headset_with_smartphone_and_stereoscopy_image.jpg",
+    "title": "File:VR headset with smartphone and stereoscopy image.jpg",
+    "author": "Bert Niehaus",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "headset-03.jpg",
+    "keyword": "headset",
+    "source": "https://commons.wikimedia.org/wiki/File:VR_headset_with_smartphone_and_stereoscopy_image.jpg",
+    "title": "File:VR headset with smartphone and stereoscopy image.jpg",
+    "author": "Bert Niehaus",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "headset-04.jpg",
+    "keyword": "headset",
+    "source": "https://commons.wikimedia.org/wiki/File:Girl_wears_a_VR_headset._(30161666678).jpg",
+    "title": "File:Girl wears a VR headset. (30161666678).jpg",
+    "author": "MIKI Yoshihito from Sapporo City, Hokkaido, Japan",
+    "license": "CC BY 2.0"
+  },
+  {
+    "file": "rocket-01.jpg",
+    "keyword": "rocket",
+    "source": "https://commons.wikimedia.org/wiki/File:NASA%E2%80%99s_Evolved_SLS_Block_1B_Crew_Rocket_-_Night_Launch_(B1B_Crew_Night_Launch).jpg",
+    "title": "File:NASA’s Evolved SLS Block 1B Crew Rocket - Night Launch (B1B Crew Night Launch).jpg",
+    "author": "NASA Marshall Space Flight Center / Terry White/SLS",
+    "license": "Public domain"
+  },
+  {
+    "file": "rocket-02.jpg",
+    "keyword": "rocket",
+    "source": "https://commons.wikimedia.org/wiki/File:Talos_Terrier_Oriole_Nihka_sounding_rocket_VISIONS_launch_at_Poker_Flat.jpg",
+    "title": "File:Talos Terrier Oriole Nihka sounding rocket VISIONS launch at Poker Flat.jpg",
+    "author": "NASA Goddard Space Flight Center",
+    "license": "CC BY 2.0"
+  },
+  {
+    "file": "rocket-03.jpg",
+    "keyword": "rocket",
+    "source": "https://commons.wikimedia.org/wiki/File:SpaceX_Starbase_ground_tracking_station_in_Boca_Chica,_Texas.jpg",
+    "title": "File:SpaceX Starbase ground tracking station in Boca Chica, Texas.jpg",
+    "author": "Jenny Hautmann",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "rocket-04.jpg",
+    "keyword": "rocket",
+    "source": "https://commons.wikimedia.org/wiki/File:SpaceX_Boca_Chica_Launch_Pad_-_SN9.jpg",
+    "title": "File:SpaceX Boca Chica Launch Pad - SN9.jpg",
+    "author": "Jaredkrahn",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "chat-01.jpg",
+    "keyword": "chat",
+    "source": "https://commons.wikimedia.org/wiki/File:DZ3_1066_A_street_vendor_in_Pattaya_City_relaxes_on_a_worn_leather_sofa_while_checking_his_phone_in_the_evening.jpg",
+    "title": "File:DZ3 1066 A street vendor in Pattaya City relaxes on a worn leather sofa while checking his phone in the evening.jpg",
+    "author": "PattayaPatrol",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "chat-03.jpg",
+    "keyword": "chat",
+    "source": "https://commons.wikimedia.org/wiki/File:NYCS_smartphones_vc.jpg",
+    "title": "File:NYCS smartphones vc.jpg",
+    "author": "Billie Grace Ward from New York, USA",
+    "license": "CC BY 2.0"
+  },
+  {
+    "file": "chat-04.jpg",
+    "keyword": "chat",
+    "source": "https://commons.wikimedia.org/wiki/File:People_engaging_with_their_phones_on_the_Seoul_Metro_-_5166351572_4e33242d3e_o.jpg",
+    "title": "File:People engaging with their phones on the Seoul Metro - 5166351572 4e33242d3e o.jpg",
+    "author": "Marc Smith",
+    "license": "CC BY 2.0"
+  },
+  {
+    "file": "spinner-01.jpg",
+    "keyword": "spinner",
+    "source": "https://commons.wikimedia.org/wiki/File:Crowd_waiting_for_entering_in_Palais_de_l%27Elysee_during_European_Heritage_Days_2014.jpg",
+    "title": "File:Crowd waiting for entering in Palais de l'Elysee during European Heritage Days 2014.jpg",
+    "author": "Tangopaso",
+    "license": "Public domain"
+  },
+  {
+    "file": "spinner-02.jpg",
+    "keyword": "spinner",
+    "source": "https://commons.wikimedia.org/wiki/File:Resbakuna_COVID-19_vaccination_of_mall_shoppers_at_queue_area_in_Baliwag_03.jpg",
+    "title": "File:Resbakuna COVID-19 vaccination of mall shoppers at queue area in Baliwag 03.jpg",
+    "author": "FBenjr123",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "spinner-03.jpg",
+    "keyword": "spinner",
+    "source": "https://commons.wikimedia.org/wiki/File:Flight_departure_board_at_Brisbane_Airport,_December_2022.jpg",
+    "title": "File:Flight departure board at Brisbane Airport, December 2022.jpg",
+    "author": "Kgbo",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "spinner-04.jpg",
+    "keyword": "spinner",
+    "source": "https://commons.wikimedia.org/wiki/File:Flight_departure_board_at_Canberra_Airport,_November_2022.jpg",
+    "title": "File:Flight departure board at Canberra Airport, November 2022.jpg",
+    "author": "Kgbo",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "heart-01.jpg",
+    "keyword": "heart",
+    "source": "https://commons.wikimedia.org/wiki/File:Heart_Balloons_in_the_sky_(24190361616).jpg",
+    "title": "File:Heart Balloons in the sky (24190361616).jpg",
+    "author": "VillageHero from Ulm, Germany",
+    "license": "CC BY-SA 2.0"
+  },
+  {
+    "file": "heart-02.jpg",
+    "keyword": "heart",
+    "source": "https://commons.wikimedia.org/wiki/File:RU_-_Saint_Petersburg_-_Heart_-_Balloons_(4891062819).jpg",
+    "title": "File:RU - Saint Petersburg - Heart - Balloons (4891062819).jpg",
+    "author": "CGP Grey",
+    "license": "CC BY 2.0"
+  },
+  {
+    "file": "heart-03.jpg",
+    "keyword": "heart",
+    "source": "https://commons.wikimedia.org/wiki/File:Live_band_performance_at_an_outdoor_concert_with_lights_and_energetic_crowd_during_nighttime.jpg",
+    "title": "File:Live band performance at an outdoor concert with lights and energetic crowd during nighttime.jpg",
+    "author": "Shixart1985",
+    "license": "CC BY 2.0"
+  },
+  {
+    "file": "heart-04.jpg",
+    "keyword": "heart",
+    "source": "https://commons.wikimedia.org/wiki/File:Beach-Please-2022-crowd-stage-lights-night-performance.jpg",
+    "title": "File:Beach-Please-2022-crowd-stage-lights-night-performance.jpg",
+    "author": "PinkBeachPlanet",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "like-03.jpg",
+    "keyword": "like",
+    "source": "https://commons.wikimedia.org/wiki/File:ISS-20_Thunderstorms_on_the_Brazilian_Horizon.jpg",
+    "title": "File:ISS-20 Thunderstorms on the Brazilian Horizon.jpg",
+    "author": "NASA Expedition 20 crew",
+    "license": "Public domain"
+  },
+  {
+    "file": "like-04.jpg",
+    "keyword": "like",
+    "source": "https://commons.wikimedia.org/wiki/File:Human_eye_in_bright_light.jpg",
+    "title": "File:Human eye in bright light.jpg",
+    "author": "Rapidreflex",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "comment-03.jpg",
+    "keyword": "comment",
+    "source": "https://commons.wikimedia.org/wiki/File:Press_conference,_Busworld_Europe_2025,_Brussels_(20251002-P1051390).jpg",
+    "title": "File:Press conference, Busworld Europe 2025, Brussels (20251002-P1051390).jpg",
+    "author": "Matti Blume",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "extra-01.jpg",
+    "keyword": "extra",
+    "source": "https://commons.wikimedia.org/wiki/File:Pearl_Milk_Tea_in_Chun_Shui_Tang.jpg",
+    "title": "File:Pearl Milk Tea in Chun Shui Tang.jpg",
+    "author": "Battlesnake1",
+    "license": "CC0"
+  },
+  {
+    "file": "extra-02.jpg",
+    "keyword": "extra",
+    "source": "https://commons.wikimedia.org/wiki/File:Bubble_tea_six_languages.jpg",
+    "title": "File:Bubble tea six languages.jpg",
+    "author": "Hippietrail",
+    "license": "CC0"
+  },
+  {
+    "file": "extra-03.jpg",
+    "keyword": "extra",
+    "source": "https://commons.wikimedia.org/wiki/File:Entrance_in_Torp_shopping_mall,_Uddevalla.jpg",
+    "title": "File:Entrance in Torp shopping mall, Uddevalla.jpg",
+    "author": "W.carter",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "extra-04.jpg",
+    "keyword": "extra",
+    "source": "https://commons.wikimedia.org/wiki/File:Melbourne_Old_Post_Office_(Shopping_Mall_Interior).jpg",
+    "title": "File:Melbourne Old Post Office (Shopping Mall Interior).jpg",
+    "author": "Donaldytong",
+    "license": "CC BY-SA 3.0"
+  },
+  {
+    "file": "extra-05.jpg",
+    "keyword": "extra",
+    "source": "https://commons.wikimedia.org/wiki/File:Frankfurt_Stock_Exchange_(Ank_Kumar)_03.jpg",
+    "title": "File:Frankfurt Stock Exchange (Ank Kumar) 03.jpg",
+    "author": "Ank Kumar",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "extra-06.jpg",
+    "keyword": "extra",
+    "source": "https://commons.wikimedia.org/wiki/File:Frankfurt_Stock_Exchange_(Ank_Kumar)_08.jpg",
+    "title": "File:Frankfurt Stock Exchange (Ank Kumar) 08.jpg",
+    "author": "Ank Kumar",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "extra-07.jpg",
+    "keyword": "extra",
+    "source": "https://commons.wikimedia.org/wiki/File:Seoul_at_Night.jpg",
+    "title": "File:Seoul at Night.jpg",
+    "author": "Philippe Teuwen",
+    "license": "CC BY-SA 2.0"
+  },
+  {
+    "file": "extra-11.jpg",
+    "keyword": "extra",
+    "source": "https://commons.wikimedia.org/wiki/File:Food_delivery_by_scooter_in_France_(1).jpg",
+    "title": "File:Food delivery by scooter in France (1).jpg",
+    "author": "Cjp24",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "extra-12.jpg",
+    "keyword": "extra",
+    "source": "https://commons.wikimedia.org/wiki/File:Domino%27s_Pizza_delivery_scooter_in_Southern_Taiwan_20070220.jpg",
+    "title": "File:Domino's Pizza delivery scooter in Southern Taiwan 20070220.jpg",
+    "author": "Joe Lewis",
+    "license": "CC BY-SA 2.0"
+  }
+]

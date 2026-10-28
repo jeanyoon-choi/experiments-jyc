@@ -106,7 +106,7 @@ export const goldfishFamilies: readonly GoldfishFamily[] = [
     key: "pc:mobiles",
     area: "pc",
     label: "mobiles",
-    members: ["pc/mobiles/1"],
+    members: ["pc/mobiles/1", "pc/mobiles/2"],
   },
   {
     key: "pc:news-phones",

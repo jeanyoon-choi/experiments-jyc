@@ -54,6 +54,7 @@ Chronological log:
 | `/screen/bubble/6` | 2026-10-25 | — | bubble/5 with the web's attention bounded and tiring, so it churns without a few pages taking it all. [doc](./screen/bubble/6.md) |
 | `/screen/bubble/7` | 2026-10-27 | — | bubble/6 with an object lab: one object at a time, morphing like liquid metal into the next, its settings shared with the raft. [doc](./screen/bubble/7.md) |
 | `/pc/mobiles/1` | 2026-10-27 | — | **Failed (2026-10-28).** One phone per goldfish: each bubble it reaches arrives as the same hype event in hyper-real clones of eight apps, over [socket feed/1](./socket/feed/1.md). The spectacle of fast transitions never appeared; [failure record and handoff](./pc/mobiles/1.md#failure-record-and-handoff-2026-10-28). |
+| `/pc/mobiles/2` | 2026-10-28 | — | From zero after mobiles/1: one WebGL2 compositor moves every phone every moment; each strike is an interrupt you see (buzz, banner, the post scrolled to); bubble/7's own goldfish is the thumb and dies its spent death. [doc](./pc/mobiles/2.md) |
 
 Each experiment is a complete local copy: no cross-experiment implementation or ledger imports. Exception: the desktop native-windows versions share infrastructure through `components/desktop/native-windows/shared/`. Existing public images may be addressed by URL; only immutable company logos are a shared collection (`public/assets/goldfishes/assets/company-logos`). Asset URLs must exist inside this independently deployed app; after changing a collection, run `pnpm audit:goldfishes-assets`.
 

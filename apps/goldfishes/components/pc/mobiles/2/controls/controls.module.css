@@ -1,0 +1,123 @@
+/* The option menu at the bottom right: bubble/7's control (bubble-three.module.css), copied. */
+.control {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 10;
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  color: #171717;
+  font: 13px Arial, Helvetica, sans-serif;
+}
+
+.control * { box-sizing: border-box; }
+.control, .control * { -webkit-text-fill-color: currentColor !important; }
+
+.triggers {
+  display: flex;
+  gap: 8px;
+}
+
+.trigger {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: #171717;
+  color: #fff;
+  font: 600 13px Arial, Helvetica, sans-serif;
+  box-shadow: 0 3px 16px #0003;
+  cursor: pointer;
+}
+
+.trigger[aria-expanded="true"] {
+  background: #fff;
+  color: #171717;
+}
+
+.panel {
+  width: min(260px, calc(100vw - 32px));
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 4px 28px #0004;
+}
+
+.heading {
+  margin: 0 2px 2px;
+  font-weight: 600;
+}
+
+.note {
+  margin: 0 2px 4px;
+  font-size: 12px;
+  opacity: 0.62;
+  word-break: keep-all;
+}
+
+.reset {
+  min-height: 34px;
+  border: 0;
+  border-radius: 7px;
+  padding: 6px 10px;
+  background: #f1f1f1;
+  color: #171717;
+  font: 600 13px Arial, Helvetica, sans-serif;
+  text-align: center;
+  cursor: pointer;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.chips button {
+  min-height: 30px;
+  border: 0;
+  border-radius: 7px;
+  padding: 5px 9px;
+  background: #f1f1f1;
+  color: #171717;
+  font: 600 12px Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.chips button[aria-pressed="true"] { background: #171717; color: #fff; }
+
+.row {
+  display: grid;
+  gap: 2px;
+  padding: 4px 2px;
+}
+
+.row span {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.row output {
+  opacity: 0.62;
+  font-variant-numeric: tabular-nums;
+}
+
+.row input {
+  width: 100%;
+  accent-color: #171717;
+  cursor: ew-resize;
+}
+
+.control button:focus-visible,
+.row input:focus-visible { outline: 2px solid #1469d8; outline-offset: 2px; }

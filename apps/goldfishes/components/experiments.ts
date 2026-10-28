@@ -306,6 +306,14 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     load: () => import("./pc/mobiles/1"),
   },
   {
+    key: "pc/mobiles/2",
+    area: "pc",
+    section: "dated",
+    date: "2026-10-28",
+    phrase: "From zero after mobiles/1: every phone moves every moment on one GPU compositor, each strike an interrupt you see, the goldfish its thumb",
+    load: () => import("./pc/mobiles/2"),
+  },
+  {
     key: "pc/news-phones/1",
     legacyKeys: ["pc/0908/default"],
     area: "pc",

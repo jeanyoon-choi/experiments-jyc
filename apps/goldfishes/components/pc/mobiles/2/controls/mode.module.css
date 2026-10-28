@@ -1,0 +1,57 @@
+/* pc/mobiles/2's mode switch at the bottom left, in bubble/7's manner (its mode-control.module.css), on the black field. */
+.modes {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 10;
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  color: #fff;
+  font: 13px Arial, Helvetica, sans-serif;
+}
+
+.modes * { box-sizing: border-box; }
+
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 23px;
+  background: #171717;
+  box-shadow: 0 0 0 1px #2c2c2c, 0 3px 16px #0006;
+}
+
+.switch button {
+  min-width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 18px;
+  padding: 0 12px;
+  background: transparent;
+  color: #fff;
+  font: 600 13px Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.switch button[aria-pressed="true"] { background: #fff; color: #171717; }
+.switch button:focus-visible, .switch select:focus-visible { outline: 2px solid #1469d8; outline-offset: 2px; }
+
+.seat {
+  min-width: 64px;
+  text-align: center;
+  font: 600 13px Arial, Helvetica, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.switch select {
+  height: 36px;
+  border: 0;
+  border-radius: 18px;
+  padding: 0 10px;
+  background: #262626;
+  color: #fff;
+  font: 600 13px Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
