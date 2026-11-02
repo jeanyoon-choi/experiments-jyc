@@ -20,7 +20,21 @@ Removed 2026-10-07: `finger-skating/2` (skated curve read back as a formula); it
 
 `hangman/1` is English hangman whose 졸라맨 is dressed stroke by stroke as Trump, at [`/mobile/hangman/1`](../../../app/mobile/hangman/[experiment]/page.tsx). See [hangman](hangman.md).
 
+`metro/1` draws the whole 수도권 전철 network — 24 lines, 656 stations, topology from OpenStreetMap — as an octilinear 노선도 turned 90° to stand in a phone, at [`/mobile/metro/1`](../../../app/mobile/metro/[experiment]/page.tsx). See [수도권 전철 노선도](metro.md).
+
+`daechi/1` is a Daechi-dong academy street at 10 p.m. in three.js — stacked academy signs, LED tickers, 학원차 hazards and 1,050 upright backpacked goldfish walking on two legs; a lifted fish swims off and smashes the signs — at [`/mobile/daechi/1`](../../../app/mobile/daechi/[experiment]/page.tsx). See [대치동](daechi.md).
+
+`no-longer-human/1` sets the opening of Dazai's 인간 실격 — the preface and the first notebook's beginning — as a paged phone e-book whose letters, skated by vertical strokes, come loose and collide with each other and the page edges, at [`/mobile/no-longer-human/1`](../../../app/mobile/no-longer-human/[experiment]/page.tsx). See [인간 실격](no-longer-human.md).
+
+`samdasoo/1` sets one bare, unlabelled 500 mL 제주삼다수 bottle on a studio floor in three.js, turning slowly and by drag, at [`/mobile/samdasoo/1`](../../../app/mobile/samdasoo/[experiment]/page.tsx). See [삼다수](samdasoo.md).
+
+`escalator/1` builds a three.js block of running escalators in every heading and storey phase, orbited and pinched by the viewer from the whole structure down to a single step, at [`/mobile/escalator/1`](../../../app/mobile/escalator/[experiment]/page.tsx). See [escalator](escalator.md).
+
 `face-trace/1` keeps the live eye and mouth cutouts inside a full-screen `face-voronoi/3` `face-gradient 3` lattice made only of those features and their short echoes. Opening the mouth swells and melts the lattice outward from the mouth. It is at [`/mobile/face-trace/1`](../../../app/mobile/face-trace/[experiment]/page.tsx). See [face trace](face-trace.md).
+
+`expression/1` reads the front camera, on the device, as 58 named facial conditions (smile to scream, wink to side-eye, turn and tilt), head pose, blink and nod counts, landmark ratios and all 51 raw blendshapes, each lit by its own value over the mirrored face, at [`/mobile/expression/1`](../../../app/mobile/expression/[experiment]/page.tsx). See [expression](expression.md).
+
+`expression/2` is a KakaoTalk clone whose 26 chat rooms read the face through the hidden front camera and nag about it, faster for anger and fake smiles than for a blank face, at [`/mobile/expression/2`](../../../app/mobile/expression/[experiment]/page.tsx). See [expression /2](expression-2.md).
 
 `finger-network/1` maps each active mobile touch to a node and joins every pair at [`/mobile/finger-network/1`](../../../app/mobile/finger-network/[experiment]/page.tsx). See [finger network](finger-network.md).
 
@@ -30,11 +44,13 @@ Removed 2026-10-07: `finger-skating/2` (skated curve read back as a formula); it
 
 `finger-network/4` starts from `/3` with people on and keeps each session's person: when the fingers lift it joins, by a bottom option, either a one-sex society of couples, children, betrayal, divorce, ageing, and death, or a political landscape where height is opinion (상파 above, 하파 below), at [`/mobile/finger-network/4`](../../../app/mobile/finger-network/[experiment]/page.tsx). See [finger network /4](finger-network-4.md).
 
+`finger-network/5` copies `/4` and removes every population upper bound: no hard cap, no crowding brake on births, no political cap, at [`/mobile/finger-network/5`](../../../app/mobile/finger-network/[experiment]/page.tsx). See [finger network /5](finger-network-5.md).
+
 `gaze-tracking/1` preserves the independent camera-input study. The [`/mobile/gaze-tracking`](../../../app/mobile/gaze-tracking/page.tsx) index also links to `gaze-tracking/2`, which applies gaze-driven difference circles, liquid displacement, or a local-curl mesh distortion to each clone. See [gaze tracking](gaze-tracking.md) for the sensing and accuracy boundary.
 
 `transform/pixelate/` applies one shared viewport raster effect to any of the archived clones without editing them. The selection index is at [`/mobile/transform/pixelate`](../../../app/mobile/transform/pixelate/page.tsx). See [pixelate](pixelate.md) for its rendering and interaction boundary.
 
-`transform/substitution/1` switches between the original clone, object outlines, and representative colors. `substitution/2` adds uppercase command readings in three vocabulary groups, with an original mode. Both share one renderer across all clones. `substitution/3`, for Instagram, TikTok, X and YouTube only, writes each part's cell into the CSS background of the element already there, so cells scroll, clip and round with the interface. Names, handles, times and counts are separate parts, and every word is stretched to fill its cell. The selection index is at [`/mobile/transform/substitution`](../../../app/mobile/transform/substitution/page.tsx). See [substitution](substitution.md). `dada-text/default` (first `/1`) is `substitution/3` on Instagram alone as a standalone line (its own copy of the clone and the filter, nothing shared with `clone/` or `transform/`), opening on 주의, Didot, no frames, a 1 px edge and a black ground; `dada-text/1` keeps only Explore and the post it opens, on two routes; see [dada-text](dada-text.md).
+`transform/substitution/1` switches between the original clone, object outlines, and representative colors. `substitution/2` adds uppercase command readings in three vocabulary groups, with an original mode. Both share one renderer across all clones. `substitution/3`, for Instagram, TikTok, X and YouTube only, writes each part's cell into the CSS background of the element already there, so cells scroll, clip and round with the interface. Names, handles, times and counts are separate parts, and every word is stretched to fill its cell. The selection index is at [`/mobile/transform/substitution`](../../../app/mobile/transform/substitution/page.tsx). See [substitution](substitution.md). `dada-text/default` (first `/1`) is `substitution/3` on Instagram alone as a standalone line (its own copy of the clone and the filter, nothing shared with `clone/` or `transform/`), opening on 주의, Didot, no frames, a 1 px edge and a black ground; `dada-text/1` keeps only Explore and the post it opens, on two routes; `dada-text/2` splits `/default` down the screen's middle, the original on the left and the replacement on the right; see [dada-text](dada-text.md).
 
 `transform/language/1` hides the glyphs of every recognised interface string in a clone and redraws them in one of 40 literal translations; each button or text block changes language on its own Markov chain, optionally coupled to its on-screen neighbours, at up to 60 steps per second. The selection index is at [`/mobile/transform/language`](../../../app/mobile/transform/language/page.tsx). See [language](language.md).
 

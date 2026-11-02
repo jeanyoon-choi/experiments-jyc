@@ -1,0 +1,47 @@
+/*
+ * The split: the untouched copy covers the screen's left half, so the live, replaced clone shows only on the right.
+ * The copy is our own UI (never read, never hidden) and takes no touch; the line between the halves is the screen's middle.
+ */
+.dada-text-split {
+  position: fixed;
+  inset: 0;
+  z-index: 2147482000;
+  overflow: hidden;
+  clip-path: inset(0 50% 0 0);
+  contain: layout style;
+}
+
+.dada-text-split,
+.dada-text-split * {
+  pointer-events: none !important;
+}
+
+/*
+ * A copied scroller does not scroll: its children are moved by the live scroller's own scroll timeline (named on that
+ * scroller, scoped on <html>) across the live scroll range, so the copy moves in the same compositor frame as the live one.
+ * A sticky child stays put, as its live original does at the top of the scroller.
+ */
+.dada-text-split [data-split-follow] {
+  overflow: hidden !important;
+  scroll-snap-type: none !important;
+}
+
+.dada-text-split [data-split-follow="y"] > :not([data-split-pin]) {
+  animation: split-follow-y linear both;
+  animation-timeline: var(--split-timeline);
+}
+
+.dada-text-split [data-split-follow="x"] > :not([data-split-pin]) {
+  animation: split-follow-x linear both;
+  animation-timeline: var(--split-timeline);
+}
+
+@keyframes split-follow-y {
+  from { translate: 0 0; }
+  to { translate: 0 calc(-1 * var(--split-range, 0px)); }
+}
+
+@keyframes split-follow-x {
+  from { translate: 0 0; }
+  to { translate: calc(-1 * var(--split-range, 0px)) 0; }
+}

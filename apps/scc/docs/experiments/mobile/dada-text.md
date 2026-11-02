@@ -129,3 +129,25 @@ is a card flip (`FLIP_MS`, 360 ms): `flipOut` to 90° (ease-in), the face change
 (ease-out). Chained by the event, not a timer, so the face changes exactly edge-on (measured: 90°, both halves ~200 ms). A
 tile always turns to the same portrait (`pictureFor`), carries the `UI` mark while turned, still opens its post, and gets
 its own word back when it turns again. Measured in the browser: 22–29 of 102 tiles turned at any moment.
+
+## /2 — 2026-11-02
+
+`/default` split down the screen's middle: the left half is the untouched Instagram, the right half its replacement, as one
+interface across both (user: "왼쪽은 정상, 오른쪽은 오버레이"). A copy of `default/` with `split/` added; the clone, reading, words,
+drawing, panel and defaults are unchanged.
+
+- `2/index.tsx` wraps the clone in a `display: contents` box and adds `split/mirror.tsx`. The live clone is the one touched and
+  replaced, exactly as in `/default`. The mirror is a copy of its DOM, kept in step by a MutationObserver (children reconciled
+  against the live node's, attributes and text copied), with the renderer's `data-dada-text*` attributes and `--dada-text-*`
+  properties stripped. Typed values, ticks and video playback, which attributes do not carry, are copied on their events.
+- Scrolling never passes through script (2026-11-02, later; user: copying `scrollTop` on scroll events was not smooth at all).
+  A live scroller, the first time it moves, names a scroll timeline (`scroll-timeline`, scoped by `timeline-scope` on `<html>`);
+  its copy stops scrolling (`data-split-follow`) and its children are translated by an animation on that timeline across the
+  live scroll range (`--split-range`, re-measured after each mutation pass and on resize), so both halves move in the same
+  compositor frame, momentum and snapping included. Direct sticky children (`.subHeader`, `.exploreHeader`) are pinned. Where
+  scroll-driven animations are missing, the copy falls back to copying scroll positions. Style records that only carry the
+  renderer's cell properties leave the copy untouched.
+- The mirror carries the `UI` mark, so the renderer neither reads it nor hides it and it keeps the clone's own paint. It is
+  fixed over the whole screen, clipped to the left half (`clip-path: inset(0 50% 0 0)`, `split/split.css`), `inert` and
+  without pointer events: every touch falls through to the live clone. No line is drawn between the halves.
+- The panel's 화면, 명령어 and look apply to the right half only; 원본 makes both halves the same.

@@ -19,6 +19,7 @@
 
 <!-- BEGIN:repo-agent-rules -->
 - Never run `pnpm build`, `pnpm dev`, or `pnpm dev:http`. Never start dev/socket servers through any command. Do not kill servers unless explicitly asked.
+- Running servers hot-reload every save and other agents share them: never leave a file in a broken intermediate state. Stage multi-step or cross-file edits in the scratchpad or an unimported copy, typecheck, then replace each file whole.
 - 필요할 경우 브라우저 들어가기: when a visual, layout, or interaction result matters, open the running HTTPS route in the browser and check it directly. All local runtime verification uses HTTPS.
 - `pnpm lint`, `pnpm typecheck`, and scoped static/pure checks are allowed. Documentation-only edits need link/diff checks, not application builds.
 - Servers are usually already running (SCC `https://localhost:2000`, ports in [HTTPS/sockets](docs/harness/https-and-sockets.md)); request the route there and open it in the browser before deciding a start is needed. If authorized verification needs a first server start, use exactly: `전하, 소인이 감히 실제 작동을 확인해 올리려면 서버가 필요하옵니다. 번거로우시겠지만 서버 켜주세요 전하.`

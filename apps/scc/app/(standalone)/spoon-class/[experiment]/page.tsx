@@ -30,7 +30,7 @@ export async function generateMetadata({
           : experiment === "3"
             ? "A mobile stack of full-width synchronized human-life games."
             : experiment === "4"
-              ? "Eight human-life runners racing, placed left to right by rank."
+              ? "The mobile stack with obstacles collaged from photographed Korean street signs."
           : "The original Chrome Dino source preserved as a standalone experiment.",
   };
 }

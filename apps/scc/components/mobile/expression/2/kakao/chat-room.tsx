@@ -1,0 +1,143 @@
+import { useLayoutEffect, useRef, useState } from "react";
+import type { ChatMessage, ChatStore } from "../director/chat";
+import { Face } from "./avatar";
+import { clock, dayLabel, sameDay, sameMinute } from "./format";
+import { BackIcon, HashIcon, MenuIcon, PlusIcon, SearchIcon, SendIcon, SmileIcon } from "./icons";
+import styles from "./kakao.module.css";
+
+type Props = {
+  store: ChatStore;
+  roomId: string;
+  onBack: () => void;
+  onSend: (text: string) => void;
+};
+
+export function ChatRoom({ store, roomId, onBack, onSend }: Props) {
+  const view = store.view(roomId);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const pinnedRef = useRef(true);
+  const [draft, setDraft] = useState("");
+  const [pinned, setPinned] = useState(true);
+  const [anchorId, setAnchorId] = useState(0);
+  const messages = view?.messages ?? [];
+  const last = messages[messages.length - 1];
+  // Scrolled up: KakaoTalk previews the newest message above the input.
+  const behind: ChatMessage | null = !pinned && last && last.id > anchorId && last.sender !== "me" ? last : null;
+
+  // Follow new messages while at the bottom.
+  useLayoutEffect(() => {
+    const scroller = scrollRef.current;
+    if (!scroller || !last) return;
+    if (pinnedRef.current || last.sender === "me") scroller.scrollTop = scroller.scrollHeight;
+  }, [last]);
+
+  if (!view) return null;
+  const { room } = view;
+  const memberOf = (id: string) => room.members.find((member) => member.id === id) ?? room.members[0];
+
+  const send = () => {
+    if (!draft.trim()) return;
+    onSend(draft);
+    setDraft("");
+  };
+
+  return (
+    <section className={styles.room}>
+      <header className={styles.roomHeader}>
+        <button type="button" aria-label="뒤로" onClick={onBack}><BackIcon /></button>
+        <h2>
+          <span>{room.name}</span>
+          {room.kind === "group" && <small>{room.size}</small>}
+        </h2>
+        <div className={styles.headerActions}>
+          <button type="button" aria-label="대화 검색"><SearchIcon /></button>
+          <button type="button" aria-label="채팅방 메뉴"><MenuIcon /></button>
+        </div>
+      </header>
+      <div
+        ref={scrollRef}
+        className={styles.thread}
+        onScroll={(event) => {
+          const element = event.currentTarget;
+          const atBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 80;
+          pinnedRef.current = atBottom;
+          if (atBottom !== pinned) {
+            setPinned(atBottom);
+            if (!atBottom) setAnchorId(last?.id ?? 0);
+          }
+        }}
+      >
+        {messages.map((message, index) => {
+          const previous = messages[index - 1];
+          const next = messages[index + 1];
+          const newDay = !previous || !sameDay(previous.at, message.at);
+          const startsRun = newDay || !previous || previous.sender !== message.sender || !sameMinute(previous.at, message.at);
+          const endsRun = !next || next.sender !== message.sender || !sameMinute(next.at, message.at) || !sameDay(next.at, message.at);
+          const mine = message.sender === "me";
+          const member = mine ? null : memberOf(message.sender);
+          return (
+            <div key={message.id}>
+              {newDay && <p className={styles.day}><span>{dayLabel(message.at)}</span></p>}
+              <div className={styles.line} data-mine={mine} data-start={startsRun}>
+                {!mine && (
+                  <span className={styles.lineFace}>{startsRun && member && <Face member={member} size={38} />}</span>
+                )}
+                <div className={styles.lineBody}>
+                  {!mine && startsRun && member && <span className={styles.sender}>{member.name}</span>}
+                  <div className={styles.bubbleRow}>
+                    <p className={styles.bubble} data-tail={startsRun}>{message.text}</p>
+                    <span className={styles.stamp}>
+                      {mine && message.unread > 0 && <span className={styles.readCount}>{message.unread}</span>}
+                      {endsRun && <span>{clock(message.at)}</span>}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {behind && (
+        <button
+          type="button"
+          className={styles.behind}
+          onClick={() => {
+            const scroller = scrollRef.current;
+            if (scroller) scroller.scrollTop = scroller.scrollHeight;
+          }}
+        >
+          <Face member={memberOf(behind.sender)} size={22} />
+          <strong>{memberOf(behind.sender).name}</strong>
+          <span>{behind.text}</span>
+        </button>
+      )}
+      <form
+        className={styles.composer}
+        onSubmit={(event) => {
+          event.preventDefault();
+          send();
+        }}
+      >
+        <button type="button" className={styles.composerPlus} aria-label="더보기"><PlusIcon /></button>
+        <textarea
+          rows={1}
+          value={draft}
+          aria-label="메시지 입력"
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+              event.preventDefault();
+              send();
+            }
+          }}
+        />
+        <button type="button" className={styles.composerIcon} aria-label="이모티콘"><SmileIcon /></button>
+        {draft.trim() ? (
+          <button type="submit" className={styles.sendButton} aria-label="전송"><SendIcon /></button>
+        ) : (
+          <button type="button" className={styles.composerIcon} aria-label="샵검색"><HashIcon /></button>
+        )}
+      </form>
+    </section>
+  );
+}

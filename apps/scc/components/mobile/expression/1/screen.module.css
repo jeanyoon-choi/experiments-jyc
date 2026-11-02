@@ -1,0 +1,113 @@
+.stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  container-type: size;
+  background: #000;
+  color: #fff;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.video,
+.mesh {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+  pointer-events: none;
+}
+
+.video {
+  filter: brightness(0.62);
+}
+
+/* Readings run down the columns; each cell's weight (--v) lifts its text and
+   fills a bar behind it. Font size fits every row and column on screen. */
+.grid {
+  position: absolute;
+  z-index: 1;
+  inset: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--rows), minmax(0, 1fr));
+  column-gap: 1.2em;
+  font-size: min(calc((100cqh - 32px) / var(--rows) * 0.74), calc((100cqw - 32px) / var(--columns) / 11));
+  line-height: 1;
+  pointer-events: none;
+}
+
+.cell {
+  --v: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5em;
+  min-width: 0;
+  padding: 0 0.25em;
+  background: linear-gradient(to right, rgb(255 255 255 / 0.2) calc(var(--v) * 100%), transparent 0);
+  opacity: calc(0.38 + var(--v) * 0.62);
+  text-shadow: 0 0 3px #000, 0 0 1px #000;
+  white-space: nowrap;
+}
+
+.cell[data-on="true"] {
+  background: #fff;
+  color: #000;
+  opacity: 1;
+  text-shadow: none;
+}
+
+.label {
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+.value {
+  font-variant-numeric: tabular-nums;
+}
+
+.cell[data-group="condition"] .label {
+  font-weight: 600;
+}
+
+.prompt,
+.status {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  padding: 10px 16px;
+  background: #000;
+  font-family: system-ui, sans-serif;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.prompt p {
+  margin: 0 0 16px;
+  white-space: normal;
+}
+
+.prompt button {
+  min-height: 48px;
+  padding: 10px 20px;
+  border: 1px solid currentColor;
+  border-radius: 0;
+  background: #000;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.prompt button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+}
