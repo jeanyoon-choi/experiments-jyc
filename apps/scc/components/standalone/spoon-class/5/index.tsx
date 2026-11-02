@@ -12,7 +12,7 @@ import source from "./source/document.json";
 import SourceFrame, { NATIVE_GAME_HEIGHT } from "./source-frame";
 import styles from "./spoon-class.module.css";
 import { useGameAudio } from "../game-audio";
-import { SIGNS } from "./signs";
+import { SIGNS, STAGES } from "./signs";
 
 const RUNNER_KEY_CODES = new Set([32, 38, 40, 13]);
 
@@ -163,13 +163,14 @@ type LoadedSign = {
   width: number;
   height: number;
   kind: (typeof SIGNS)[number]["kind"];
+  stages: readonly string[];
 };
 
-declare global {
-  interface Window {
-    spoonClassSigns?: LoadedSign[];
-  }
-}
+// Read by every game document as window.parent.spoonClassSigns/Stages.
+type SignWindow = Window & {
+  spoonClassSigns?: LoadedSign[];
+  spoonClassStages?: typeof STAGES;
+};
 
 // Every game document paints its obstacle sprites from these images, read
 // from the page as window.spoonClassSigns when the document starts. Loading
@@ -179,17 +180,20 @@ function useSigns() {
   const [ready, setReady] = useState(false);
   useEffect(() => {
     let cancelled = false;
-    const loaded = SIGNS.map(({ image, kind }) => {
+    const loaded = SIGNS.map(({ image, kind, stages }) => {
       const element = new Image();
       element.decoding = "async";
       element.src = image.src;
-      return { image: element, width: image.width, height: image.height, kind };
+      return { image: element, width: image.width, height: image.height, kind, stages };
     });
     Promise.all(
       loaded.map(({ image }) => image.decode().catch(() => undefined)),
     ).then(() => {
       if (cancelled) return;
-      window.spoonClassSigns = loaded.filter(({ image }) => image.naturalWidth > 0);
+      const host = window as SignWindow;
+      host.spoonClassSigns = loaded.filter(({ image }) => image.naturalWidth > 0);
+      // Life stages and the age (years) each begins; see signs.ts.
+      host.spoonClassStages = STAGES;
       setReady(true);
     });
     return () => {

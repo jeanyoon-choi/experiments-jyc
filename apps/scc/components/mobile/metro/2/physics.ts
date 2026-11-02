@@ -131,9 +131,12 @@ export function hold(net: Network, i: number, x: number, y: number) {
   net.prev[i * 2 + 1] = y;
 }
 
-/** Lets node i go where it is, and makes that its home: a station stays where it was put. */
+/**
+ * A released station stays exactly where it was put — held there, as by the
+ * finger — and the rest of the network settles around it. Grabbing it again
+ * moves it on.
+ */
 export function drop(net: Network, i: number) {
-  net.free[i] = 1;
   net.home[i * 2] = net.pos[i * 2];
   net.home[i * 2 + 1] = net.pos[i * 2 + 1];
 }

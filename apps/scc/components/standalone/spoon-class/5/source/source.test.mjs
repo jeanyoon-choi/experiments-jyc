@@ -9,6 +9,7 @@ import { installLifeAgeMeter } from "./life-age.mjs";
 import { installJumpCeiling } from "./jump-ceiling.mjs";
 import { installLifeGamePresentation } from "./life-game.mjs";
 import { installScale } from "./scale.mjs";
+import { installLifeStages } from "./life-stages.mjs";
 
 const original = readFileSync(new URL("./dino.html", import.meta.url), "utf8");
 const packaged = JSON.parse(readFileSync(new URL("./document.json", import.meta.url), "utf8"));
@@ -186,6 +187,60 @@ test("given the page's sign images, each obstacle becomes its own canvas collage
       else assert.ok([...kinds].every((kind) => kind !== "stand" && kind !== "cylinder"), "large obstacles are 세로 and 학원 signs only");
     }
   }
+});
+
+test("life stages: new obstacles take the sprites of the stage the age clock is in", () => {
+  const stages = [{ id: "birth", from: 0 }, { id: "school", from: 8 }, { id: "old", from: 65 }];
+  const signs = [
+    { image: "birth-stand", width: 40, height: 120, kind: "stand", stages: ["birth"] },
+    { image: "birth-tall", width: 30, height: 120, kind: "vertical", stages: ["birth"] },
+    { image: "school-stand", width: 40, height: 120, kind: "stand", stages: ["school"] },
+    { image: "school-hagwon", width: 400, height: 120, kind: "hagwon", stages: ["school"] },
+  ];
+  const elements = new Map(
+    ["1x-obstacle-small", "2x-obstacle-small", "1x-obstacle-large", "2x-obstacle-large"].map((id) => [id, { id, replaceWith(next) { elements.set(id, next); } }]),
+  );
+  const view = { devicePixelRatio: 2 };
+  const fakeDocument = {
+    defaultView: view,
+    getElementById: (id) => elements.get(id),
+    createElement: () => {
+      const draws = [];
+      return {
+        draws,
+        getContext: () => ({ scale() {}, save() {}, restore() {}, beginPath() {}, moveTo() {}, lineTo() {}, ellipse() {}, closePath() {}, clip() {}, drawImage: (image) => draws.push(image) }),
+      };
+    },
+  };
+  installLifeGamePresentation(fakeDocument, signs, stages);
+  const drawn = (canvas) => new Set(canvas.draws);
+  // Birth: the stage-0 sprites in the document hold birth signs only.
+  for (const id of elements.keys()) assert.ok([...drawn(elements.get(id))].every((image) => image.startsWith("birth")));
+  assert.equal(view.spoonClassStageAt(0), 0);
+  assert.equal(view.spoonClassStageAt(9.5), 1);
+  assert.equal(view.spoonClassStageAt(70), 2);
+  const horizon = { obstacleImgs: { CACTUS_SMALL: "first-small", CACTUS_LARGE: "first-large" } };
+  let updates = 0;
+  view.Runner = { instance_: { horizon, update() { updates += 1; } } };
+  view.spoonClassAge = 0;
+  installLifeStages(view);
+  view.Runner.instance_.update();
+  assert.equal(updates, 1);
+  assert.ok([...drawn(horizon.obstacleImgs.CACTUS_SMALL)].every((image) => image.startsWith("birth")));
+  view.spoonClassAge = 9 * 2000;
+  view.Runner.instance_.update();
+  assert.ok([...drawn(horizon.obstacleImgs.CACTUS_SMALL)].every((image) => image.startsWith("school")));
+  assert.ok(drawn(horizon.obstacleImgs.CACTUS_LARGE).has("school-hagwon"));
+  // A stage without signs of its own borrows the nearest earlier stage's.
+  view.spoonClassAge = 70 * 2000;
+  view.Runner.instance_.update();
+  assert.ok([...drawn(horizon.obstacleImgs.CACTUS_LARGE)].every((image) => image.startsWith("school")));
+  // A restart returns the age, and the stage, to birth.
+  const atSchool = horizon.obstacleImgs.CACTUS_SMALL;
+  view.spoonClassAge = 0;
+  view.Runner.instance_.update();
+  assert.notEqual(horizon.obstacleImgs.CACTUS_SMALL, atSchool);
+  assert.ok([...drawn(horizon.obstacleImgs.CACTUS_SMALL)].every((image) => image.startsWith("birth")));
 });
 
 test("the module document removes standalone text and forwards only player keys", () => {

@@ -1,12 +1,11 @@
-import { ATLAS_DPR, CAPSULE, GROUND, PROBE, RIVER, type Scene, type Sprite } from "./scene";
+import { ATLAS_DPR, CAPSULE, type Cell, GROUND, RIVER, type Scene } from "./scene";
 
-// One frame of the deformed map. Lines are one batched path per line (two
-// strokes for hollow and dashed lines); offsets for lines running side by side
-// follow the deformed centreline's normals; dots are one path per ring colour;
-// every glyph and badge is a drawImage from an immutable atlas bitmap under
-// the local Jacobian. Nothing is rasterised from text per frame.
-
-type Source = CanvasImageSource;
+// One frame of the moving network. Lines are one batched path per line (two
+// strokes for hollow and dashed lines) through their cords' current nodes,
+// lines sharing a link offset along the cord's own normals; dots are one path
+// per ring colour; capsules turn with the cord leaving their station; names
+// and badges are drawImage calls from an immutable atlas, carried by their
+// stations. Nothing is rasterised from text per frame.
 
 function trace(path: Path2D, p: Float32Array, ids: number[], offset: number) {
   const count = ids.length;
@@ -15,7 +14,6 @@ function trace(path: Path2D, p: Float32Array, ids: number[], offset: number) {
     let x = p[i];
     let y = p[i + 1];
     if (offset !== 0) {
-      // Normal from the neighbours (one-sided at the ends).
       const a = ids[Math.max(0, j - 1)] * 2;
       const b = ids[Math.min(count - 1, j + 1)] * 2;
       const tx = p[b] - p[a];
@@ -29,26 +27,15 @@ function trace(path: Path2D, p: Float32Array, ids: number[], offset: number) {
   }
 }
 
-function sprite(ctx: CanvasRenderingContext2D, atlas: Source, p: Float32Array, s: Sprite, dpr: number, upright: boolean, width: number, height: number) {
-  const cx = p[s.point * 2];
-  const cy = p[s.point * 2 + 1];
-  const w = s.sw / ATLAS_DPR;
-  const h = s.sh / ATLAS_DPR;
-  if (cx < -w || cy < -h || cx > width + w || cy > height + h) return;
-  if (upright) {
-    ctx.setTransform(dpr, 0, 0, dpr, dpr * cx, dpr * cy);
-  } else {
-    const a = (p[s.px * 2] - cx) / PROBE;
-    const b = (p[s.px * 2 + 1] - cy) / PROBE;
-    const c = (p[s.py * 2] - cx) / PROBE;
-    const d = (p[s.py * 2 + 1] - cy) / PROBE;
-    ctx.setTransform(dpr * a, dpr * b, dpr * c, dpr * d, dpr * cx, dpr * cy);
-  }
-  ctx.drawImage(atlas, s.sx, s.sy, s.sw, s.sh, -w / 2, -h / 2, w, h);
+function blit(ctx: CanvasRenderingContext2D, atlas: CanvasImageSource, c: Cell, x: number, y: number, dpr: number, width: number, height: number) {
+  const w = c.sw / ATLAS_DPR;
+  const h = c.sh / ATLAS_DPR;
+  if (x < -w || y < -h || x > width + w || y > height + h) return;
+  ctx.drawImage(atlas, c.sx, c.sy, c.sw, c.sh, (x - w / 2) * dpr, (y - h / 2) * dpr, w * dpr, h * dpr);
 }
 
-export function draw(ctx: CanvasRenderingContext2D, scene: Scene, atlas: Source, dpr: number) {
-  const p = scene.points;
+export function draw(ctx: CanvasRenderingContext2D, scene: Scene, atlas: CanvasImageSource, dpr: number) {
+  const p = scene.net.pos;
   const { width, height } = scene;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.fillStyle = GROUND;
@@ -57,13 +44,23 @@ export function draw(ctx: CanvasRenderingContext2D, scene: Scene, atlas: Source,
   ctx.lineJoin = "round";
   ctx.setLineDash([]);
 
-  // 한강.
+  // 한강, on the paper.
   {
-    const path = new Path2D();
-    trace(path, p, scene.river.ids, 0);
+    const r = scene.river.points;
+    ctx.beginPath();
+    ctx.moveTo(r[0], r[1]);
+    for (let i = 2; i < r.length; i += 2) ctx.lineTo(r[i], r[i + 1]);
     ctx.strokeStyle = RIVER;
     ctx.lineWidth = scene.river.width;
-    ctx.stroke(path);
+    ctx.stroke();
+    const t = scene.riverText;
+    if (t) {
+      const w = t.sw / ATLAS_DPR;
+      const h = t.sh / ATLAS_DPR;
+      ctx.setTransform(dpr * Math.cos(t.angle), dpr * Math.sin(t.angle), -dpr * Math.sin(t.angle), dpr * Math.cos(t.angle), dpr * t.x, dpr * t.y);
+      ctx.drawImage(atlas, t.sx, t.sy, t.sw, t.sh, -w / 2, -h / 2, w, h);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
   }
 
   // Lines.
@@ -91,14 +88,18 @@ export function draw(ctx: CanvasRenderingContext2D, scene: Scene, atlas: Source,
     }
   });
 
-  // Ordinary stations: white dots, ringed on lighter lines.
+  // Ordinary stations.
   {
     const plain = new Path2D();
     const ringed = new Map<string, Path2D>();
     for (const dot of scene.dots) {
-      const x = p[dot.point * 2];
-      const y = p[dot.point * 2 + 1];
-      const target = dot.ring ? (ringed.get(dot.ring) ?? ringed.set(dot.ring, new Path2D()).get(dot.ring)!) : plain;
+      const x = p[dot.node * 2];
+      const y = p[dot.node * 2 + 1];
+      let target = plain;
+      if (dot.ring) {
+        target = ringed.get(dot.ring) ?? new Path2D();
+        ringed.set(dot.ring, target);
+      }
       target.moveTo(x + dot.radius, y);
       target.arc(x, y, dot.radius, 0, Math.PI * 2);
     }
@@ -112,15 +113,17 @@ export function draw(ctx: CanvasRenderingContext2D, scene: Scene, atlas: Source,
     }
   }
 
-  // Interchanges: traffic-light capsules, turned with the space they sit in.
+  // Interchanges: traffic-light capsules across the cord leaving the station.
   for (const c of scene.capsules) {
-    const x = p[c.point * 2];
-    const y = p[c.point * 2 + 1];
-    const angle = Math.atan2(p[c.probe * 2 + 1] - y, p[c.probe * 2] - x);
+    const x = p[c.node * 2];
+    const y = p[c.node * 2 + 1];
+    const dx = p[c.toward * 2] - x;
+    const dy = p[c.toward * 2 + 1] - y;
+    const len = Math.hypot(dx, dy) || 1;
+    const ux = -dy / len;
+    const uy = dx / len;
     const span = (c.colours.length - 1) * c.step;
-    const cos = Math.cos(angle);
-    const sin = Math.sin(angle);
-    ctx.setTransform(dpr * cos, dpr * sin, -dpr * sin, dpr * cos, dpr * x, dpr * y);
+    ctx.setTransform(dpr * ux, dpr * uy, -dpr * uy, dpr * ux, dpr * x, dpr * y);
     ctx.beginPath();
     ctx.roundRect(-span / 2 - c.r - c.pad, -c.r - c.pad, span + 2 * (c.r + c.pad), 2 * (c.r + c.pad), c.r + c.pad);
     ctx.fillStyle = "#ffffff";
@@ -136,7 +139,17 @@ export function draw(ctx: CanvasRenderingContext2D, scene: Scene, atlas: Source,
     });
   }
 
-  for (const b of scene.badges) sprite(ctx, atlas, p, b, dpr, true, width, height);
-  for (const g of scene.glyphs) sprite(ctx, atlas, p, g, dpr, false, width, height);
+  // Badges and names, carried by their stations.
   ctx.setTransform(1, 0, 0, 1, 0, 0);
+  for (const b of scene.badges) {
+    const x = p[b.node * 2];
+    const y = p[b.node * 2 + 1];
+    const dx = x - p[b.toward * 2];
+    const dy = y - p[b.toward * 2 + 1];
+    const len = Math.hypot(dx, dy) || 1;
+    blit(ctx, atlas, b, x + (dx / len) * b.reach, y + (dy / len) * b.reach, dpr, width, height);
+  }
+  for (const l of scene.labels) {
+    blit(ctx, atlas, l, p[l.node * 2] + l.dx, p[l.node * 2 + 1] + l.dy, dpr, width, height);
+  }
 }
