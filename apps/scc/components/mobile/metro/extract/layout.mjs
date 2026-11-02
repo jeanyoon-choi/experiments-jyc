@@ -353,9 +353,9 @@ relax(linksOf(chains), keys, ITER / 2, {
 // network reaches the frame's edge all round — even density, no empty side.
 // Pre-rotation x (east) becomes the screen's height, y (north) its width.
 const ASPECT = 2.05;
-const CIRCLE_SHARE = Number(process.env.CSH ?? 0.52);
+const CIRCLE_SHARE = 0.46;
 // Below 1, the band just outside the circle opens up and the far tails fold.
-const GAMMA = Number(process.env.GM ?? 0.7);
+const GAMMA = 0.6;
 const halfW = circle.radius / CIRCLE_SHARE;
 const halfH = halfW * ASPECT;
 const BINS = 72;
@@ -385,7 +385,7 @@ const warpAt = (t, rd) => {
   const b1 = (b0 + 1) % BINS;
   const w = f - Math.floor(f);
   const e = smooth[b0] * (1 - w) + smooth[b1] * w;
-  const reach = reachOf(t) * 0.94;
+  const reach = reachOf(t) * 0.97;
   const u = Math.min(1, (rd - circle.radius) / Math.max(1e-6, e - circle.radius));
   return circle.radius + (reach - circle.radius) * Math.pow(u, GAMMA);
 };

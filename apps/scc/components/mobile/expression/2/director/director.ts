@@ -122,7 +122,7 @@ export function createDirector(store: ChatStore, random: () => number = Math.ran
       for (const trigger of TRIGGERS) {
         if (levels[trigger] < ONSET || previous[trigger] >= ONSET) continue;
         const ranked = ROOMS
-          .map((room) => ({ room, score: (room.sensitivity[trigger] ?? 0) * (0.5 + random()) }))
+          .map((room) => ({ room, score: (room.sensitivity[trigger] ?? 0) * (0.5 + random()) + (store.openId === room.id ? 1 : 0) }))
           .filter((entry) => entry.score > 0.3)
           .sort((a, b) => b.score - a.score)
           .slice(0, BURST[trigger] + Math.round(levels[trigger] * 2));
@@ -146,9 +146,11 @@ export function createDirector(store: ChatStore, random: () => number = Math.ran
             strongest = trigger;
           }
         }
-        drive = Math.min(3, drive);
+        // The room on screen watches hardest.
+        const watching = store.openId === room.id;
+        drive = Math.min(3, drive * (watching ? 2 : 1));
         state.pressure = Math.max(0, Math.min(3, state.pressure + (drive * 0.35 - 0.1) * seconds));
-        const rate = room.base / 60 + drive * 0.06 * (1 + 0.9 * state.pressure);
+        const rate = room.base * (watching ? 3 : 1) / 60 + drive * 0.06 * (1 + 0.9 * state.pressure);
         if (random() < 1 - Math.exp(-rate * seconds)) {
           schedule(state, { due: now, kind: drive > 0.15 && strongest ? "trigger" : "idle", trigger: strongest });
         }

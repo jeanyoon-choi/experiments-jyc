@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import { buildAtlas, type SignCell } from "./atlas";
-import { FLYERS, Play, SHARDS, type SignRecord } from "./play";
+import { buildAtlas, buildGlyphs, WINDOW_WORDS, type SignCell } from "./atlas";
+import { CAR_FLYERS, FISH_FLYERS, Play, SHARDS, type SignRecord } from "./play";
 import {
   BUILDING_FRAG, BUILDING_VERT, CAR_FRAG, CAR_VERT, COMMON, FLARE_FRAG, FLARE_VERT,
   GROUND_FRAG, GROUND_VERT, HALO_FRAG, HALO_VERT,
@@ -301,8 +301,8 @@ export function createDaechi(container: HTMLElement): DaechiScene {
   const props = new PropBuilder();
   const treeSpots: THREE.Vector3[] = [];
 
-  const block = (cx: number, cz: number, w: number, depth: number, h: number, seed: number) => {
-    const geo = new THREE.BoxGeometry(depth, h, w).translate(cx, h / 2, cz);
+  const block = (cx: number, cz: number, w: number, depth: number, h: number, seed: number, y0 = 0) => {
+    const geo = new THREE.BoxGeometry(depth, h, w).translate(cx, y0 + h / 2, cz);
     geo.setAttribute("aSeed", new THREE.Float32BufferAttribute(new Array(geo.attributes.position.count).fill(seed), 1));
     buildings.push(geo);
   };
@@ -315,12 +315,17 @@ export function createDaechi(container: HTMLElement): DaechiScene {
     const along = new THREE.Vector3(1, 0, 0);
     let z = Z_NEAR;
     while (z > Z_FAR) {
-      const w = range(r, 9, 22);
-      const floors = Math.floor(range(r, 4, z < -150 ? 15 : 11));
+      // Daechi's academy buildings: five to ten floors of tile and ribbon windows.
+      const w = range(r, 10, 20);
+      const floors = Math.floor(range(r, 5, z < -150 ? 12 : 10.5));
       const h = 4.2 + floors * 3.4 + 0.8;
-      const depth = range(r, 18, 28);
+      const depth = range(r, 18, 26);
       const cz = z - w / 2;
-      block(facade - (out * depth) / 2, cz, w, depth, h, r());
+      const seed = r() * 0.999;
+      block(facade - (out * depth) / 2, cz, w, depth, h, seed);
+      // Stair penthouse and water tank on the roof.
+      if (r() < 0.7) block(facade - out * range(r, 6, 12), cz + range(r, -w / 4, w / 4), range(r, 3, 5), range(r, 3, 5), 3, -seed - 0.01, h);
+      if (r() < 0.4) block(facade - out * range(r, 4, 14), cz + range(r, -w / 3, w / 3), 2.2, 2.2, 1.8, -0.5, h);
 
       const zLo = cz - w / 2 + 0.6;
       const zHi = cz + w / 2 - 0.6;
@@ -331,28 +336,33 @@ export function createDaechi(container: HTMLElement): DaechiScene {
         const c = pick(r, atlas.horizontal);
         signs.add(at(4.15, s - 2.8), right, 5.4, 0.95, c, signAnim(r, true), 1, 0);
       }
-      // Floor signs, mostly on 2F–7F, the floors that are academies.
-      for (let f = 0; f < Math.min(floors, 7); f++) {
-        if (r() > 0.72) continue;
-        const sh = range(r, 1.25, 1.7);
-        const sw = sh * 4;
-        if (sw > w - 1.2) continue;
-        const y = 4.2 + f * 3.4 + 1.72;
-        const s = range(r, zLo + sw / 2, zHi - sw / 2);
-        if (r() < 0.12) {
+      // Floor signs hang on the band under every floor's ribbon window,
+      // packed edge to edge: one academy (or several) per floor.
+      for (let f = 0; f < floors; f++) {
+        if (r() > 0.9) continue;
+        const y = 4.2 + f * 3.4 + 0.62;
+        if (r() < 0.08) {
           const lw = Math.min(w - 1.4, 10);
           const lh = 0.6;
           const c = pick(r, atlas.led);
-          signs.add(at(y, cz), right, lw, lh, c, [3, 0, range(r, 0.025, 0.045), 1.25], (lw / lh) / (2048 / 62), 0.3);
-        } else {
-          signs.add(at(y, s), right, sw, sh, pick(r, atlas.horizontal), signAnim(r, true));
+          signs.add(at(y, cz), right, lw, lh, c, [3, 0, range(r, 0.025, 0.045), 1.25], (lw / lh) / (2048 / 62), 0.25);
+          continue;
+        }
+        let s = zHi + range(r, -0.6, 0);
+        while (true) {
+          const sh = range(r, 0.85, 1.1);
+          const sw = sh * 4;
+          if (s - sw < zLo) break;
+          signs.add(at(y, s - sw / 2), right, sw, sh, pick(r, atlas.horizontal), signAnim(r, true), 1, 0.25);
+          s -= sw + range(r, 0.12, 0.7);
         }
       }
       // Projecting vertical stacks, one academy per unit.
-      const stacks = r() < 0.85 ? (r() < 0.5 ? 2 : 1) : 0;
-      for (let k = 0; k < stacks; k++) {
-        const sz = k === 0 ? zHi - 0.2 : zLo + 0.2;
-        const units = Math.min(Math.floor(range(r, 2, 5.5)), Math.max(1, Math.floor(floors / 1.4)));
+      const spots = [zHi - 0.2, zLo + 0.2];
+      if (w > 14) spots.push(cz + range(r, -1, 1));
+      for (const sz of spots) {
+        if (r() < 0.12) continue;
+        const units = Math.min(Math.floor(range(r, 2, 6)), Math.max(1, Math.floor(floors / 1.2)));
         let y = 4.9;
         const vw = 0.95;
         for (let u = 0; u < units; u++) {
@@ -363,7 +373,7 @@ export function createDaechi(container: HTMLElement): DaechiScene {
         }
       }
       // Rooftop board facing the road, with running bulbs.
-      if (r() < 0.3) {
+      if (r() < 0.45) {
         signs.add(new THREE.Vector3(facade - out * 1.2, h + 1.6, cz), right, Math.min(w - 2, 9), 2.2, pick(r, atlas.horizontal), [4, r() * 5, 1, 1.1], 1, 0.6);
       }
 
@@ -371,14 +381,14 @@ export function createDaechi(container: HTMLElement): DaechiScene {
     }
   }
 
-  // Far skyline closing the street.
+  // Apartment slabs close the street.
   for (let i = 0; i < 18; i++) {
     const x = range(r, -70, 90);
     const zz = range(r, -270, -340);
-    const w = range(r, 16, 34);
-    const h = range(r, 40, 140);
-    const geo = new THREE.BoxGeometry(w, h, range(r, 16, 30)).translate(x, h / 2, zz);
-    geo.setAttribute("aSeed", new THREE.Float32BufferAttribute(new Array(geo.attributes.position.count).fill(r()), 1));
+    const w = range(r, 36, 60);
+    const h = range(r, 42, 75);
+    const geo = new THREE.BoxGeometry(w, h, range(r, 11, 14)).translate(x, h / 2, zz);
+    geo.setAttribute("aSeed", new THREE.Float32BufferAttribute(new Array(geo.attributes.position.count).fill(2 + r()), 1));
     buildings.push(geo);
     if (r() < 0.4) {
       signs.add(new THREE.Vector3(x, h + 3, zz + 8), new THREE.Vector3(1, 0, 0), 14, 3.5, pick(r, atlas.horizontal), [0, 0, 1, 1.2], 1, 0);
@@ -387,7 +397,16 @@ export function createDaechi(container: HTMLElement): DaechiScene {
 
   const buildingGeo = mergeGeometries(buildings)!;
   buildings.forEach((g) => g.dispose());
-  add(new THREE.Mesh(buildingGeo, material(BUILDING_VERT, BUILDING_FRAG))).renderOrder = 5;
+  if (WINDOW_WORDS.length !== 20) throw new Error("BUILDING_FRAG expects 20 window words");
+  const glyphs = buildGlyphs();
+  const glyphTexture = new THREE.CanvasTexture(glyphs.canvas);
+  glyphTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  disposables.push(glyphTexture);
+  add(new THREE.Mesh(buildingGeo, material(BUILDING_VERT, BUILDING_FRAG, {
+    uGlyphs: { value: glyphTexture },
+    uWords: { value: glyphs.words },
+    uWordLen: { value: glyphs.lengths },
+  }))).renderOrder = 5;
 
   const { sign, halo } = signs.geometries();
   add(new THREE.Mesh(sign, material(SIGN_VERT, SIGN_FRAG, { uAtlas: { value: texture } }, { side: THREE.DoubleSide }))).renderOrder = 4;
@@ -503,7 +522,7 @@ export function createDaechi(container: HTMLElement): DaechiScene {
   // Lifted fish, drawn from their own matrices.
   const flyGeo = fishGeometry();
   const dynamic = (size: number) => {
-    const a = new THREE.InstancedBufferAttribute(new Float32Array(FLYERS * size), size);
+    const a = new THREE.InstancedBufferAttribute(new Float32Array(FISH_FLYERS * size), size);
     a.setUsage(THREE.DynamicDrawUsage);
     return a;
   };
@@ -513,7 +532,7 @@ export function createDaechi(container: HTMLElement): DaechiScene {
   flyGeo.setAttribute("aBag", dynamic(3));
   const flyMesh = new THREE.InstancedMesh(flyGeo, material(FISH_VERT, FISH_FRAG, {
     uZMin: { value: WRAP_MIN }, uZLen: { value: WRAP_LEN },
-  }, { side: THREE.DoubleSide, defines: { FLY: "" } }), FLYERS);
+  }, { side: THREE.DoubleSide, defines: { FLY: "" } }), FISH_FLYERS);
   flyMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   add(flyMesh).renderOrder = 0;
 
@@ -529,11 +548,11 @@ export function createDaechi(container: HTMLElement): DaechiScene {
   shardMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   add(shardMesh).renderOrder = 1;
 
-  const play = new Play(camera, {
+  const playArgs = {
     x: crowdX, z: crowdZ, speed: walk.filter((_, k) => k % 4 === 0), phase: walk.filter((_, k) => k % 4 === 1),
     sway: walk.filter((_, k) => k % 4 === 2), scale: crowdScale, hide: hideAttr, zMin: WRAP_MIN, zLen: WRAP_LEN,
     scales, patches, bags: bag,
-  }, signs.records, sign.getAttribute("aBroken") as THREE.BufferAttribute, halo.getAttribute("aBroken") as THREE.BufferAttribute, flyMesh, shardMesh);
+  };
 
   // Traffic: two lanes toward us (the curb lane is the 학원차 queue), three away.
   type Car = { x: number; z: number; speed: number; phase: number; amp: number; kind: number; color: [number, number, number] };
@@ -578,11 +597,48 @@ export function createDaechi(container: HTMLElement): DaechiScene {
     carBody.set(c.color, i * 3);
   });
   const carInstance = new THREE.InstancedBufferAttribute(carAttr, 4);
+  const carHide = new THREE.InstancedBufferAttribute(new Float32Array(cars.length), 1);
+  carHide.setUsage(THREE.DynamicDrawUsage);
   carGeo.setAttribute("aCar", carInstance);
   carGeo.setAttribute("aBody", new THREE.InstancedBufferAttribute(carBody, 3));
+  carGeo.setAttribute("aHide", carHide);
   flareGeo.setAttribute("aCar", carInstance);
+  flareGeo.setAttribute("aHide", carHide);
   add(carMesh).renderOrder = 1;
   add(flareMesh).renderOrder = 8;
+
+  // Flying cars, drawn from their own matrices.
+  const carFlyGeo = carGeometry();
+  const carDyn = (size: number) => {
+    const a = new THREE.InstancedBufferAttribute(new Float32Array(CAR_FLYERS * size), size);
+    a.setUsage(THREE.DynamicDrawUsage);
+    return a;
+  };
+  carFlyGeo.setAttribute("aCar", carDyn(4));
+  carFlyGeo.setAttribute("aBody", carDyn(3));
+  const carFlyMesh = new THREE.InstancedMesh(carFlyGeo, material(CAR_VERT, CAR_FRAG, {
+    uZMin: { value: WRAP_MIN }, uZLen: { value: WRAP_LEN },
+  }, { defines: { FLY: "" } }), CAR_FLYERS);
+  carFlyMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  add(carFlyMesh).renderOrder = 1;
+
+  const carX = new Float32Array(cars.length);
+  const carZ = new Float32Array(cars.length);
+  const carSize = new Float32Array(cars.length * 3);
+  const carYaw = new Float32Array(cars.length);
+  const tmpPos = new THREE.Vector3();
+  for (let i = 0; i < cars.length; i++) {
+    carMesh.getMatrixAt(i, m4);
+    m4.decompose(tmpPos, q, s3);
+    carX[i] = tmpPos.x;
+    carZ[i] = tmpPos.z;
+    s3.toArray(carSize, i * 3);
+    carYaw[i] = e.setFromQuaternion(q).y;
+  }
+  const play = new Play(camera, playArgs, {
+    x: carX, z: carZ, car: carAttr, body: carBody, size: carSize, yaw: carYaw, hide: carHide, zMin: WRAP_MIN, zLen: WRAP_LEN,
+  }, signs.records, sign.getAttribute("aBroken") as THREE.BufferAttribute, halo.getAttribute("aBroken") as THREE.BufferAttribute,
+  [flyMesh, carFlyMesh], shardMesh);
 
   // Camera: fixed, high above the left sidewalk, looking down the street.
   camera.lookAt(-2.5, 0, -60);

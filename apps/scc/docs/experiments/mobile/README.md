@@ -20,9 +20,9 @@ Removed 2026-10-07: `finger-skating/2` (skated curve read back as a formula); it
 
 `hangman/1` is English hangman whose 졸라맨 is dressed stroke by stroke as Trump, at [`/mobile/hangman/1`](../../../app/mobile/hangman/[experiment]/page.tsx). See [hangman](hangman.md).
 
-`metro/1` draws the whole 수도권 전철 network — 24 lines, 656 stations, topology from OpenStreetMap — as an octilinear 노선도 turned 90° to stand in a phone, at [`/mobile/metro/1`](../../../app/mobile/metro/[experiment]/page.tsx). See [수도권 전철 노선도](metro.md).
+`metro/1` draws the whole 수도권 전철 network — 24 lines, 656 stations, topology from OpenStreetMap — in 서울시's 2023 노선도 grammar with 2호선 as a circle at the centre, turned 90° to stand in a phone, at [`/mobile/metro/1`](../../../app/mobile/metro/[experiment]/page.tsx). See [수도권 전철 노선도](metro.md). `metro/2` copies it as a rubber sheet: drag a station and the network bends around it without tearing or crossing, text included.
 
-`daechi/1` is a Daechi-dong academy street at 10 p.m. in three.js — stacked academy signs, LED tickers, 학원차 hazards and 1,050 upright backpacked goldfish walking on two legs; a lifted fish swims off and smashes the signs — at [`/mobile/daechi/1`](../../../app/mobile/daechi/[experiment]/page.tsx). See [대치동](daechi.md).
+`daechi/1` is a Daechi-dong academy street at 10 p.m. in three.js — stacked academy signs, LED tickers, 학원차 hazards and 1,050 upright backpacked goldfish walking on two legs; tiled academy buildings lettered pane by pane; a lifted fish or car smashes the signs and knocks the street into the air — at [`/mobile/daechi/1`](../../../app/mobile/daechi/[experiment]/page.tsx). See [대치동](daechi.md).
 
 `no-longer-human/1` sets the opening of Dazai's 인간 실격 — the preface and the first notebook's beginning — as a paged phone e-book whose letters, skated by vertical strokes, come loose and collide with each other and the page edges, at [`/mobile/no-longer-human/1`](../../../app/mobile/no-longer-human/[experiment]/page.tsx). See [인간 실격](no-longer-human.md).
 

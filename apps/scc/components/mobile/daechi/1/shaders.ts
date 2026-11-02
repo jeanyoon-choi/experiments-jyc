@@ -112,19 +112,77 @@ void main() {
 }
 `;
 
+// vSeed in [0, 1): Daechi commercial building — tiled walls, a band under each
+// floor's aluminium ribbon window (where the floor signs hang), fluorescent
+// classrooms, cut-vinyl words on the glass one character per pane.
+// vSeed >= 2: apartment slab on the horizon. vSeed < 0: plain rooftop box.
 export const BUILDING_FRAG = /* glsl */ `
+#define WORDS 20
+uniform sampler2D uGlyphs;
+uniform float uWords[WORDS * 6];
+uniform float uWordLen[WORDS];
 varying vec3 vPos;
 varying vec3 vN;
 varying float vSeed;
+
+vec3 tileColor(float s) {
+  float k = floor(fract(s * 7.13) * 5.0);
+  if (k < 1.0) return vec3(0.50, 0.44, 0.36);
+  if (k < 2.0) return vec3(0.36, 0.24, 0.18);
+  if (k < 3.0) return vec3(0.42, 0.42, 0.43);
+  if (k < 4.0) return vec3(0.58, 0.56, 0.52);
+  return vec3(0.44, 0.30, 0.26);
+}
+
 void main() {
   vec3 n = normalize(vN);
+  vec3 rightV = vec3(n.z, 0.0, -n.x);
+  float u = dot(vPos, rightV);
+  float y = vPos.y;
+  const float PANE = 1.15;
+  // Glyph lookup is prepared outside any branch so its derivatives hold.
+  float fu = u / PANE;
+  float cu = floor(fu);
+  float fuf = fract(fu);
+  float fy = (y - 4.2) / 3.4;
+  float fl = floor(fy);
+  float fyf = fract(fy);
+  float wi = floor(hash21(vec2(fl, vSeed * 17.0)) * float(WORDS));
+  int w = int(clamp(wi, 0.0, float(WORDS - 1)));
+  float len = uWordLen[w];
+  float start = floor(hash21(vec2(fl + 2.0, vSeed)) * 4.0);
+  float k = mod(cu - start, len + 1.0);
+  float g = k < len ? uWords[w * 6 + int(min(k, 5.0))] : -1.0;
+  // Glass inside the frame, glyph square across the pane width.
+  vec2 lp = vec2((fuf - 0.05) / 0.9, (fyf - 0.4) / 0.44);
+  float aspect = (PANE * 0.9) / (3.4 * 0.44);
+  vec2 qg = vec2(lp.x, (lp.y - 0.5) / aspect + 0.5);
+  vec2 cell = vec2(mod(max(g, 0.0), 8.0), floor(max(g, 0.0) / 8.0));
+  vec2 guv = vec2((cell.x + clamp(qg.x, 0.0, 1.0)) / 8.0, 1.0 - (cell.y + 1.0 - clamp(qg.y, 0.0, 1.0)) / 8.0);
+  float gscale = 1.0 / (PANE * 0.9 * 8.0);
+  vec2 gdx = vec2(dFdx(u), dFdx(y)) * gscale;
+  vec2 gdy = vec2(dFdy(u), dFdy(y)) * gscale;
+  float glyph = textureGrad(uGlyphs, guv, gdx, gdy).r;
+  glyph *= step(0.0, g) * step(0.0, qg.y) * step(qg.y, 1.0) * step(0.0, qg.x) * step(qg.x, 1.0);
+
   vec3 col;
   if (abs(n.y) > 0.5) {
-    col = vec3(0.03, 0.03, 0.04);
+    col = vec3(0.035, 0.035, 0.04);
+  } else if (vSeed < 0.0) {
+    col = tileColor(-vSeed) * 0.6 * streetLight(vPos, n) * 1.6;
+  } else if (vSeed >= 2.0) {
+    // Apartment slab: off-white walls, rows of homes.
+    float ay = y / 2.8;
+    float ax = u / 3.2;
+    float win = step(0.3, fract(ay)) * step(fract(ay), 0.78) * step(0.15, fract(ax)) * step(fract(ax), 0.85);
+    float home = hash21(floor(vec2(ax, ay)) + vSeed);
+    vec3 lit = mix(vec3(1.0, 0.8, 0.55), vec3(0.85, 0.9, 1.0), step(0.75, home)) * 0.75;
+    col = mix(vec3(0.16, 0.16, 0.17), home > 0.45 ? lit : vec3(0.03, 0.035, 0.05), win);
   } else {
-    float u = abs(n.x) > 0.5 ? vPos.z : vPos.x;
-    float y = vPos.y;
-    vec3 wall = mix(vec3(0.13, 0.13, 0.14), vec3(0.2, 0.18, 0.16), vSeed);
+    vec3 tile = tileColor(vSeed);
+    vec2 tg = fract(vec2(u / 0.3, y / 0.15));
+    float grout = step(0.06, tg.x) * step(0.1, tg.y);
+    vec3 wall = tile * mix(0.72, 1.0, grout);
     col = wall * streetLight(vPos, n) * 1.8;
     if (y < 4.2) {
       float glass = step(0.25, y) * step(y, 3.5) * step(0.07, fract(u / 3.0));
@@ -134,19 +192,23 @@ void main() {
       light *= step(0.12, shop);
       col = mix(col, light, glass);
     } else {
-      float fy = (y - 4.2) / 3.4;
-      float fl = floor(fy);
-      float fyf = fract(fy);
-      float fu = u / 2.3;
-      float fuf = fract(fu);
-      float win = step(0.2, fyf) * step(fyf, 0.84) * step(0.07, fuf) * step(fuf, 0.93);
-      float room = floor(floor(fu) / 3.0);
+      // Concrete band under the ribbon window.
+      col *= fyf < 0.36 ? 0.78 : 1.0;
+      float ribbon = step(0.37, fyf) * step(fyf, 0.87);
+      float glass = step(0.05, fuf) * step(fuf, 0.95) * step(0.4, fyf) * step(fyf, 0.84);
+      float room = floor(cu / 4.0);
       float r = hash21(vec2(room, fl) + vSeed * 31.7);
-      // Classes run late: most classrooms are still lit.
-      vec3 fluo = mix(vec3(0.78, 0.9, 1.0), vec3(1.0, 0.95, 0.84), step(0.7, hash21(vec2(room * 3.1, fl + vSeed))));
-      float blind = 0.5 + 0.5 * step(0.5, fract(fyf * 9.0)) * step(0.6, r);
-      vec3 inside = r > 0.22 ? fluo * blind * (0.75 + 0.25 * r) : vec3(0.02, 0.025, 0.04);
-      col = mix(col, inside, win);
+      vec3 fluo = mix(vec3(0.8, 0.92, 1.0), vec3(1.0, 0.95, 0.84), step(0.72, hash21(vec2(room * 3.1, fl + vSeed))));
+      float blind = 0.55 + 0.45 * step(0.5, fract(fyf * 11.0)) * step(0.7, r);
+      vec3 inside = r > 0.16 ? fluo * blind * (0.78 + 0.22 * r) : vec3(0.02, 0.025, 0.04);
+      vec3 frame = vec3(0.5, 0.52, 0.55) * streetLight(vPos, n) * 1.6;
+      vec3 win = mix(frame, inside, glass);
+      // Most academy floors letter their glass.
+      float lettered = step(0.3, hash21(vec2(fl * 3.7, vSeed * 91.0)));
+      float hue = hash21(vec2(fl, vSeed * 5.0));
+      vec3 vinyl = hue < 0.3 ? vec3(0.9, 0.12, 0.08) : hue < 0.55 ? vec3(0.1, 0.25, 0.85) : hue < 0.8 ? vec3(0.97) : vec3(1.0, 0.8, 0.1);
+      win = mix(win, vinyl * (r > 0.16 ? 0.95 : 0.3), glyph * glass * lettered);
+      col = mix(col, win, ribbon);
     }
   }
   gl_FragColor = vec4(mix(col, uFogColor, fogFactor(vPos)), 1.0);
@@ -433,13 +495,23 @@ export const CAR_VERT = /* glsl */ `
 ${CAR_MOTION}
 attribute float aPart;
 attribute vec3 aBody;
+#ifndef FLY
+attribute float aHide;
+#endif
 varying vec3 vPos;
 varying vec3 vN;
 varying vec3 vCol;
 varying float vEmit;
 void main() {
+#ifndef FLY
+  if (aHide > 0.5) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
+#endif
   vec4 w = instanceMatrix * vec4(position, 1.0);
+#ifdef FLY
+  vPos = w.xyz;
+#else
   vPos = travelled(w, aCar);
+#endif
   vN = normalize(mat3(instanceMatrix) * normal);
   int part = int(aPart + 0.5);
   vec3 body = aBody;
@@ -468,11 +540,13 @@ export const FLARE_VERT = /* glsl */ `
 ${CAR_MOTION}
 attribute vec3 aLight;   // light position in the car's local frame
 attribute vec3 aFlare;   // corner x, corner y, kind (0 head, 1 tail, 2 head streak, 3 tail streak)
+attribute float aHide;
 varying vec2 vCorner;
 varying vec3 vCol;
 varying float vKind;
 varying vec3 vPos;
 void main() {
+  if (aHide > 0.5) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
   vec4 w = instanceMatrix * vec4(aLight, 1.0);
   vec3 c = travelled(w, aCar);
   vec3 fwd = normalize(mat3(instanceMatrix) * vec3(0.0, 0.0, -1.0));

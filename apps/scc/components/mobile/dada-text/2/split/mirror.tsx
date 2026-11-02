@@ -10,6 +10,8 @@ const PROPERTY = `--${PREFIX}-`;
 const FOLLOW = "data-split-follow";
 /** On a copied scroller's sticky child: held in place, as the live one is. */
 const PIN = "data-split-pin";
+/** On a copied scroller's child: its stickiness has been read. */
+const PINNED = "data-split-read";
 /** Custom properties on a copied scroller: the live scroller's timeline and its scroll range. */
 const TIMELINE = "--split-timeline";
 const RANGE = "--split-range";
@@ -54,33 +56,52 @@ export default function Mirror({ source }: { source: RefObject<HTMLElement | nul
     if (!live || !mirror) return;
     const root = document.documentElement;
     const pairs = new WeakMap<Node, Node>();
+    const origins = new WeakMap<Node, Node>();
     // Copies made since the last pass: values, playback and scroll positions are set once the copy is in the document.
     let fresh: [Node, Node][] = [];
     // Live scroller → its timeline's name and axis; the names are scoped on <html> so the copy, outside the scroller, can use them.
-    const followed = new Map<Element, { name: string; axis: "x" | "y" }>();
+    const followed = new Map<Element, { name: string; axis: "x" | "y"; range?: string }>();
     let count = 0;
 
-    /** A copy's scroller made to follow its live scroller's timeline, and its direct sticky children pinned. */
-    const decorate = (from: Element, to: HTMLElement) => {
+    // Ranges are measured when a live scroller or one of its children changes size, after layout, never forcing it.
+    const sizes = new ResizeObserver((entries) => {
+      const scrollers = new Set<Element>();
+      for (const { target } of entries) scrollers.add(followed.has(target) ? target : target.parentElement!);
+      for (const scroller of scrollers) {
+        const copy = pairs.get(scroller);
+        if (copy instanceof HTMLElement) measure(scroller, copy);
+      }
+    });
+    /** The copy's own marks on a scroller: its axis, the live timeline's name and range. Set again after its style is copied. */
+    const own = (from: Element, to: HTMLElement) => {
       const follow = followed.get(from);
       if (!follow) return;
-      to.setAttribute(FOLLOW, follow.axis);
-      to.style.setProperty(TIMELINE, follow.name);
-      to.scrollTop = 0;
-      to.scrollLeft = 0;
+      if (to.getAttribute(FOLLOW) !== follow.axis) to.setAttribute(FOLLOW, follow.axis);
+      if (to.style.getPropertyValue(TIMELINE) !== follow.name) to.style.setProperty(TIMELINE, follow.name);
+      if (follow.range && to.style.getPropertyValue(RANGE) !== follow.range) to.style.setProperty(RANGE, follow.range);
+    };
+    /** A copy's scroller made to follow its live scroller's timeline, and its direct sticky children pinned. */
+    const decorate = (from: Element, to: HTMLElement) => {
+      if (!followed.has(from)) return;
+      own(from, to);
+      if (to.scrollTop) to.scrollTop = 0;
+      if (to.scrollLeft) to.scrollLeft = 0;
       measure(from, to);
-      for (const child of to.children) pin(from, child);
+      for (const child of to.children) pin(child);
     };
     const measure = (from: Element, to: HTMLElement) => {
-      const axis = followed.get(from)?.axis;
-      const range = axis === "x" ? from.scrollWidth - from.clientWidth : from.scrollHeight - from.clientHeight;
-      const value = `${Math.max(0, range)}px`;
-      if (to.style.getPropertyValue(RANGE) !== value) to.style.setProperty(RANGE, value);
+      const follow = followed.get(from);
+      if (!follow) return;
+      const range = follow.axis === "x" ? from.scrollWidth - from.clientWidth : from.scrollHeight - from.clientHeight;
+      follow.range = `${Math.max(0, range)}px`;
+      own(from, to);
     };
-    const pin = (scroller: Element, child: Element) => {
-      const liveChild = Array.from(scroller.children).find((c) => pairs.get(c) === child);
-      const sticky = liveChild ? getComputedStyle(liveChild).position === "sticky" : false;
+    const pin = (child: Element) => {
+      const liveChild = origins.get(child);
+      if (!(liveChild instanceof Element)) return;
+      const sticky = getComputedStyle(liveChild).position === "sticky";
       if (sticky !== child.hasAttribute(PIN)) child.toggleAttribute(PIN, sticky);
+      sizes.observe(liveChild);
     };
 
     const copyState = (from: Node, to: Node) => {
@@ -106,6 +127,7 @@ export default function Mirror({ source }: { source: RefObject<HTMLElement | nul
 
     const pair = (from: Node, to: Node) => {
       pairs.set(from, to);
+      origins.set(to, from);
       if (to instanceof Element) strip(to);
       if (from instanceof HTMLInputElement || from instanceof HTMLTextAreaElement || from instanceof HTMLVideoElement || followed.has(from as Element)) fresh.push([from, to]);
       for (let a = from.firstChild, b = to.firstChild; a && b; a = a.nextSibling, b = b.nextSibling) pair(a, b);
@@ -131,29 +153,50 @@ export default function Mirror({ source }: { source: RefObject<HTMLElement | nul
         to.removeChild(to.lastChild!);
         moved = true;
       }
-      if (moved && from instanceof Element && followed.has(from)) for (const child of (to as Element).children) pin(from, child);
+      if (moved && from instanceof Element && followed.has(from)) for (const child of (to as Element).children) if (!child.hasAttribute(PINNED)) { child.setAttribute(PINNED, ""); pin(child); }
     };
     const settle = () => {
       for (const [from, to] of fresh) copyState(from, to);
       fresh = [];
     };
 
-    /** A live scroller that moved for the first time names its timeline; from then on its copy follows without script. */
-    const follow = (scroller: Element) => {
-      const style = getComputedStyle(scroller);
-      const axis = scroller.scrollWidth > scroller.clientWidth && /auto|scroll/.test(style.overflowX) && !(scroller.scrollHeight > scroller.clientHeight && /auto|scroll/.test(style.overflowY)) ? "x" : "y";
-      const name = `--split-${count++}`;
-      followed.set(scroller, { name, axis });
-      (scroller as HTMLElement).style.setProperty("scroll-timeline", `${name} ${axis === "x" ? "inline" : "block"}`);
-      root.style.setProperty("timeline-scope", Array.from(followed.values(), (f) => f.name).join(", "));
-      const copy = pairs.get(scroller);
-      if (copy instanceof HTMLElement) decorate(scroller, copy);
+    /** The scroll axis an element scrolls on, or null when it is not a scroller. */
+    const axisOf = (element: Element): "x" | "y" | null => {
+      const style = getComputedStyle(element);
+      if (/auto|scroll/.test(style.overflowY) && style.overflowY !== style.overflowX && /hidden|clip/.test(style.overflowX)) return "y";
+      if (/auto|scroll/.test(style.overflowX) && /hidden|clip|visible/.test(style.overflowY)) return "x";
+      if (/auto|scroll/.test(style.overflowY)) return element.scrollWidth > element.clientWidth && element.scrollHeight <= element.clientHeight ? "x" : "y";
+      return null;
+    };
+    /**
+     * Live scrollers name their timelines before they move (at mount, and on the touch or wheel that starts a scroll), so the
+     * copy follows from the first frame; the names are scoped on <html> in one write.
+     */
+    const follow = (scrollers: Iterable<Element>) => {
+      let added = false;
+      for (const scroller of scrollers) {
+        if (followed.has(scroller)) continue;
+        const axis = axisOf(scroller);
+        if (!axis) continue;
+        const name = `--split-${count++}`;
+        followed.set(scroller, { name, axis });
+        (scroller as HTMLElement).style.setProperty("scroll-timeline", `${name} ${axis === "x" ? "inline" : "block"}`);
+        sizes.observe(scroller);
+        const copy = pairs.get(scroller);
+        if (copy instanceof HTMLElement) decorate(scroller, copy);
+        added = true;
+      }
+      if (added) root.style.setProperty("timeline-scope", Array.from(followed.values(), (f) => f.name).join(", "));
+    };
+    const ancestorsOf = function* (node: Element | null) {
+      for (let element = node; element && element !== live; element = element.parentElement) yield element;
     };
 
     mirror.replaceChildren();
     pairs.set(live, mirror);
     reconcile(live, mirror);
     settle();
+    if (timelines) follow(live.querySelectorAll("*"));
 
     const observer = new MutationObserver((records) => {
       const parents = new Set<Node>();
@@ -172,8 +215,12 @@ export default function Mirror({ source }: { source: RefObject<HTMLElement | nul
             const value = raw === null ? "" : strippedStyle(raw);
             const ownBefore = element.getAttribute("style") ?? "";
             if (followed.has(record.target as Element)) {
-              element.setAttribute("style", value);
-              decorate(record.target as Element, element);
+              // The copy's own properties sit in the same attribute: compare without them.
+              const withoutOwn = strippedStyle(ownBefore.replace(/--split-[a-z]+:[^;]*;?/g, ""));
+              if (withoutOwn !== value) {
+                element.setAttribute("style", value);
+                own(record.target as Element, element);
+              }
             } else if (ownBefore !== value) {
               if (value) element.setAttribute("style", value);
               else element.removeAttribute("style");
@@ -192,10 +239,9 @@ export default function Mirror({ source }: { source: RefObject<HTMLElement | nul
         const copy = pairs.get(field);
         if (copy) copyState(field, copy);
       }
-      for (const [scroller] of followed) {
-        const copy = pairs.get(scroller);
-        if (scroller.isConnected && copy instanceof HTMLElement) measure(scroller, copy);
-        else if (!scroller.isConnected) followed.delete(scroller);
+      for (const [scroller] of followed) if (!scroller.isConnected) {
+        followed.delete(scroller);
+        sizes.unobserve(scroller);
       }
     });
     observer.observe(live, { subtree: true, childList: true, characterData: true, attributes: true });
@@ -203,29 +249,24 @@ export default function Mirror({ source }: { source: RefObject<HTMLElement | nul
     const onEvent = (event: Event) => {
       const target = event.target;
       if (!(target instanceof Element) || !live.contains(target)) return;
-      if (event.type === "scroll") {
-        if (timelines) {
-          if (!followed.has(target)) follow(target);
-          return;
-        }
+      if (event.type === "touchstart" || event.type === "wheel" || event.type === "pointerdown") {
+        if (timelines) follow(ancestorsOf(target));
+        return;
+      }
+      if (event.type === "scroll" && timelines) {
+        if (!followed.has(target)) follow([target]);
+        return;
       }
       const copy = pairs.get(target);
       if (copy) copyState(target, copy);
     };
-    const kinds = ["scroll", "input", "change", "play", "pause", "seeked"] as const;
+    const kinds = ["touchstart", "wheel", "pointerdown", "scroll", "input", "change", "play", "pause", "seeked"] as const;
     for (const kind of kinds) document.addEventListener(kind, onEvent, { capture: true, passive: true });
-    const onResize = () => {
-      for (const [scroller] of followed) {
-        const copy = pairs.get(scroller);
-        if (copy instanceof HTMLElement) measure(scroller, copy);
-      }
-    };
-    window.addEventListener("resize", onResize);
 
     return () => {
       observer.disconnect();
       for (const kind of kinds) document.removeEventListener(kind, onEvent, { capture: true });
-      window.removeEventListener("resize", onResize);
+      sizes.disconnect();
       for (const [scroller] of followed) (scroller as HTMLElement).style.removeProperty("scroll-timeline");
       root.style.removeProperty("timeline-scope");
       mirror.replaceChildren();

@@ -331,8 +331,14 @@ export function draw(ctx: CanvasRenderingContext2D, width: number, height: numbe
     const line = lineById.get(t.line)!;
     const marker = markers.get(s.id);
     const reach = marker ? Math.abs(t.out[0]) * (marker.w / 2) + Math.abs(t.out[1]) * (marker.h / 2) : W;
-    const cx = x + t.out[0] * (reach + W * 0.6 + badgeR);
-    const cy = y + t.out[1] * (reach + W * 0.6 + badgeR);
+    // Step further out along the line's direction until the badge is clear.
+    let cx = 0;
+    let cy = 0;
+    for (const extra of [0, 1.2, 2.4, 3.6]) {
+      cx = x + t.out[0] * (reach + W * 0.6 + badgeR * (1 + extra));
+      cy = y + t.out[1] * (reach + W * 0.6 + badgeR * (1 + extra));
+      if (!occupancy.hits({ x: cx - badgeR, y: cy - badgeR, w: 2 * badgeR, h: 2 * badgeR })) break;
+    }
     ctx.beginPath();
     ctx.arc(cx, cy, badgeR, 0, Math.PI * 2);
     ctx.fillStyle = line.colour;

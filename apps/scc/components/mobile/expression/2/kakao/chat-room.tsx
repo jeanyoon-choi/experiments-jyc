@@ -8,11 +8,12 @@ import styles from "./kakao.module.css";
 type Props = {
   store: ChatStore;
   roomId: string;
+  closing: boolean;
   onBack: () => void;
   onSend: (text: string) => void;
 };
 
-export function ChatRoom({ store, roomId, onBack, onSend }: Props) {
+export function ChatRoom({ store, roomId, closing, onBack, onSend }: Props) {
   const view = store.view(roomId);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pinnedRef = useRef(true);
@@ -42,16 +43,16 @@ export function ChatRoom({ store, roomId, onBack, onSend }: Props) {
   };
 
   return (
-    <section className={styles.room}>
+    <section className={styles.room} data-closing={closing}>
       <header className={styles.roomHeader}>
-        <button type="button" aria-label="뒤로" onClick={onBack}><BackIcon /></button>
+        <button type="button" className={styles.glassButton} aria-label="뒤로" onClick={onBack}><BackIcon size={24} /></button>
         <h2>
           <span>{room.name}</span>
           {room.kind === "group" && <small>{room.size}</small>}
         </h2>
-        <div className={styles.headerActions}>
-          <button type="button" aria-label="대화 검색"><SearchIcon /></button>
-          <button type="button" aria-label="채팅방 메뉴"><MenuIcon /></button>
+        <div className={styles.glassPill}>
+          <button type="button" aria-label="대화 검색"><SearchIcon size={22} /></button>
+          <button type="button" aria-label="채팅방 메뉴"><MenuIcon size={22} /></button>
         </div>
       </header>
       <div
@@ -77,7 +78,7 @@ export function ChatRoom({ store, roomId, onBack, onSend }: Props) {
           const member = mine ? null : memberOf(message.sender);
           return (
             <div key={message.id}>
-              {newDay && <p className={styles.day}><span>{dayLabel(message.at)}</span></p>}
+              {newDay && <p className={styles.day}>{dayLabel(message.at)}</p>}
               <div className={styles.line} data-mine={mine} data-start={startsRun}>
                 {!mine && (
                   <span className={styles.lineFace}>{startsRun && member && <Face member={member} size={38} />}</span>
@@ -85,7 +86,7 @@ export function ChatRoom({ store, roomId, onBack, onSend }: Props) {
                 <div className={styles.lineBody}>
                   {!mine && startsRun && member && <span className={styles.sender}>{member.name}</span>}
                   <div className={styles.bubbleRow}>
-                    <p className={styles.bubble} data-tail={startsRun}>{message.text}</p>
+                    <p className={styles.bubble}>{message.text}</p>
                     <span className={styles.stamp}>
                       {mine && message.unread > 0 && <span className={styles.readCount}>{message.unread}</span>}
                       {endsRun && <span>{clock(message.at)}</span>}
@@ -118,10 +119,11 @@ export function ChatRoom({ store, roomId, onBack, onSend }: Props) {
           send();
         }}
       >
-        <button type="button" className={styles.composerPlus} aria-label="더보기"><PlusIcon /></button>
+        <button type="button" className={styles.composerCircle} aria-label="더보기"><PlusIcon size={20} /></button>
         <textarea
           rows={1}
           value={draft}
+          placeholder="메시지 입력"
           aria-label="메시지 입력"
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={(event) => {
@@ -131,11 +133,11 @@ export function ChatRoom({ store, roomId, onBack, onSend }: Props) {
             }
           }}
         />
-        <button type="button" className={styles.composerIcon} aria-label="이모티콘"><SmileIcon /></button>
+        <button type="button" className={styles.composerIcon} aria-label="이모티콘"><SmileIcon size={22} /></button>
         {draft.trim() ? (
           <button type="submit" className={styles.sendButton} aria-label="전송"><SendIcon /></button>
         ) : (
-          <button type="button" className={styles.composerIcon} aria-label="샵검색"><HashIcon /></button>
+          <button type="button" className={styles.composerCircle} aria-label="샵검색"><HashIcon size={18} /></button>
         )}
       </form>
     </section>

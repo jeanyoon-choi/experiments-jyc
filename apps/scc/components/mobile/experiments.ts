@@ -19,6 +19,7 @@ export const mobileExperiments = [
   { key: "suneung/math", label: "수능 수학", href: "/mobile/suneung/math" },
   { key: "hangman/1", label: "hangman/1", href: "/mobile/hangman/1" },
   { key: "metro/1", label: "수도권 전철 노선도", href: "/mobile/metro/1" },
+  { key: "metro/2", label: "수도권 전철 노선도 /2", href: "/mobile/metro/2" },
   { key: "daechi/1", label: "대치동 /1", href: "/mobile/daechi/1" },
   { key: "no-longer-human/1", label: "인간 실격 /1", href: "/mobile/no-longer-human/1" },
   { key: "samdasoo/1", label: "삼다수 /1", href: "/mobile/samdasoo/1" },

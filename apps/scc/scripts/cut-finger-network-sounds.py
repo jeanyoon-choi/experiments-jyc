@@ -21,7 +21,9 @@ takes["shatter-2"] = ("bsb-1591-champagne-glass.wav", 0, 1.34, -1, 0.3, 32000, 5
 takes["breath-1"] = ("bsb-1405-sigh.wav", 0.44, 4.22, -4, 0.5, 32000, 48)
 takes["breath-2"] = ("bsb-1103-breathless-man.wav", 7.65, 9.05, -4, 0.25, 32000, 48)
 takes["breath-3"] = ("bsb-1103-breathless-man.wav", 4.85, 6.25, -4, 0.25, 32000, 48)
-takes["requiem-1"] = ("chopin-funeral-march-pitman.ogg", 2.4, 16.4, -3, 3.0, 32000, 48)
+takes["lie-1"] = ("embraceable-you-tenor-sax.ogg", 5.2, 7.9, -2, 0.45, 32000, 48)
+takes["lie-2"] = ("embraceable-you-tenor-sax.ogg", 17.7, 20.4, -2, 0.45, 32000, 48)
+# death-*.mp3 are rendered by scripts/render-finger-network-death-jingle.py, not cut from a recording.
 for name, (src, a, b, peak, fade, rate, kbps) in takes.items():
     length = b - a
     probe = subprocess.run(["ffmpeg", "-hide_banner", "-ss", str(a), "-t", str(length), "-i", f"{raw}/{src}", "-af", "volumedetect", "-f", "null", "-"], capture_output=True, text=True).stderr

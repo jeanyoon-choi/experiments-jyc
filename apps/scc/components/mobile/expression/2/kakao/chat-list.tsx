@@ -14,6 +14,7 @@ const WORK = new Set(["boss", "teamroom", "notice", "peers", "junior", "senior"]
 
 export function ChatList({ store, now, onOpen }: { store: ChatStore; now: number; onOpen: (id: string) => void }) {
   const [folder, setFolder] = useState<(typeof FOLDERS)[number]["id"]>("all");
+  const total = store.totalUnread();
   const views = store.ordered().filter((view) => (
     folder === "all" || (folder === "unread" ? view.unread > 0 : WORK.has(view.room.id))
   ));
@@ -30,14 +31,17 @@ export function ChatList({ store, now, onOpen }: { store: ChatStore; now: number
       </header>
       <nav className={styles.folders} aria-label="채팅 폴더">
         {FOLDERS.map((entry) => (
-          <button key={entry.id} type="button" data-active={folder === entry.id} onClick={() => setFolder(entry.id)}>{entry.label}</button>
+          <button key={entry.id} type="button" data-active={folder === entry.id} onClick={() => setFolder(entry.id)}>
+            {entry.label}
+            {entry.id === "all" && total > 0 && <span className={styles.chipCount}>{badge(total)}</span>}
+          </button>
         ))}
       </nav>
       <ul className={styles.rooms}>
         {views.map((view) => (
           <li key={view.room.id}>
             <button type="button" className={styles.roomRow} onClick={() => onOpen(view.room.id)}>
-              <RoomFace room={view.room} size={50} />
+              <RoomFace room={view.room} size={46} />
               <span className={styles.roomText}>
                 <span className={styles.roomName}>
                   <span className={styles.roomTitle}>{view.room.name}</span>

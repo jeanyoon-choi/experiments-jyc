@@ -221,3 +221,49 @@ export function buildAtlas(): SignAtlas {
 
   return { canvas, vertical, horizontal, led };
 }
+
+// --- Window lettering -------------------------------------------------------
+// Cut-vinyl words on classroom glass, one character per pane: 수 학 학 원.
+
+export const WINDOW_WORDS = [
+  "수학학원", "영어학원", "국어학원", "수학전문", "의대반", "입시학원", "논술", "과학탐구",
+  "내신대비", "수능만점", "최상위반", "선행반", "클리닉", "독서실", "특강모집", "상담환영",
+  "물리화학", "영재교육", "SKY", "수학",
+];
+export const WORD_SLOTS = 6;
+const GLYPH_CELL = 128;
+const GLYPH_GRID = 8;
+
+export type Glyphs = {
+  canvas: HTMLCanvasElement;
+  /** WINDOW_WORDS.length × WORD_SLOTS glyph indices (−1 beyond the word). */
+  words: Float32Array;
+  lengths: Float32Array;
+};
+
+export function buildGlyphs(): Glyphs {
+  const chars = [...new Set(WINDOW_WORDS.flatMap((w) => [...w]))];
+  const canvas = document.createElement("canvas");
+  canvas.width = GLYPH_CELL * GLYPH_GRID;
+  canvas.height = GLYPH_CELL * GLYPH_GRID;
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#fff";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `900 ${GLYPH_CELL * 0.78}px ${FONT}`;
+  chars.forEach((c, i) => {
+    const x = (i % GLYPH_GRID) * GLYPH_CELL + GLYPH_CELL / 2;
+    const y = Math.floor(i / GLYPH_GRID) * GLYPH_CELL + GLYPH_CELL / 2 + 4;
+    ctx.fillText(c, x, y);
+  });
+  const words = new Float32Array(WINDOW_WORDS.length * WORD_SLOTS).fill(-1);
+  const lengths = new Float32Array(WINDOW_WORDS.length);
+  WINDOW_WORDS.forEach((w, i) => {
+    const glyphs = [...w];
+    lengths[i] = glyphs.length;
+    glyphs.forEach((c, k) => (words[i * WORD_SLOTS + k] = chars.indexOf(c)));
+  });
+  return { canvas, words, lengths };
+}

@@ -62,6 +62,7 @@ export type SocietyEvent =
   | { kind: "birth"; time: number; child: number; x: number; y: number }
   | { kind: "death"; time: number; id: number; x: number; y: number }
   | { kind: "kiss"; time: number; a: number; b: number; x: number; y: number }
+  | { kind: "lie"; time: number; a: number; b: number; x: number; y: number }
   | { kind: "slap"; time: number; hitter: number; victim: number; x: number; y: number };
 
 export type Society = {
@@ -342,6 +343,7 @@ export function stepSociety(society: Society, elapsed: number, bounds: { width: 
     if (fertile && !expecting && agent.age - agent.lastBirth >= parameters.birthSpacing && chance(parameters.birthRate * (0.5 + agent.satisfaction))) {
       // The couple lie down together for a moment; the child is born one model year after they get up.
       play(society, agent, partner, "lie");
+      society.events.push({ kind: "lie", time: society.time, a: agent.id, b: partner.id, x: (agent.x + partner.x) / 2, y: (agent.y + partner.y) / 2 });
       agent.pregnancy = {
         due: society.time + ACT_SECONDS.lie + SECONDS_PER_YEAR,
         with: partner.id,

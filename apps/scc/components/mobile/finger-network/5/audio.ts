@@ -6,17 +6,19 @@
 // - shatter: a betrayal breaks the heart like glass;
 // - cry: a newborn, a year after its parents lay down together;
 // - breath: a touch-born person's first breath as it settles;
-// - requiem: the opening of Chopin's funeral march when someone dies.
+// - lie: a slow, sultry tenor-sax phrase (2.7 s) while a couple lies together before a child;
+// - death: a short original 8-bit "you died" jingle (1.7 s), game-style.
+// Every cue lasts about as long as the moment it marks.
 // Playback picks a take other than the last one, varies its speed slightly, and pans it to where the event
 // happens. Each kind is spaced and voices are capped, so a population explosion thins the sound instead of
 // piling it up.
 
-type Kind = "kiss" | "slap" | "shatter" | "cry" | "breath" | "requiem";
+type Kind = "kiss" | "slap" | "shatter" | "cry" | "breath" | "lie" | "death";
 
-const takes: Record<Kind, number> = { kiss: 8, slap: 6, shatter: 2, cry: 4, breath: 3, requiem: 1 };
-const minimumGap: Record<Kind, number> = { kiss: 0.09, slap: 0.06, shatter: 0.15, cry: 0.3, breath: 0.1, requiem: 12 };
-const level: Record<Kind, number> = { kiss: 1, slap: 0.9, shatter: 0.7, cry: 0.6, breath: 0.8, requiem: 0.55 };
-const speedSpread: Record<Kind, number> = { kiss: 0.05, slap: 0.06, shatter: 0.06, cry: 0.03, breath: 0.03, requiem: 0 };
+const takes: Record<Kind, number> = { kiss: 8, slap: 6, shatter: 2, cry: 4, breath: 3, lie: 2, death: 3 };
+const minimumGap: Record<Kind, number> = { kiss: 0.09, slap: 0.06, shatter: 0.15, cry: 0.3, breath: 0.1, lie: 1.5, death: 0.9 };
+const level: Record<Kind, number> = { kiss: 1, slap: 0.9, shatter: 0.7, cry: 0.6, breath: 0.8, lie: 0.7, death: 0.45 };
+const speedSpread: Record<Kind, number> = { kiss: 0.05, slap: 0.06, shatter: 0.06, cry: 0.03, breath: 0.03, lie: 0, death: 0 };
 const maximumVoices = 10;
 const folder = "/assets/finger-network/sound";
 
@@ -31,7 +33,7 @@ export function createLifeSound() {
   const lastTake = new Map<Kind, AudioBuffer>();
   const lastPlayed = new Map<Kind, number>();
 
-  // Fetch the files right away (about 280 KB in all); decoding waits for an AudioContext.
+  // Fetch the files right away (about 270 KB in all); decoding waits for an AudioContext.
   for (const kind of Object.keys(takes) as Kind[]) {
     for (let index = 1; index <= takes[kind]; index += 1) {
       const name = `${kind}-${index}`;
@@ -89,7 +91,7 @@ export function createLifeSound() {
     const gain = context.createGain();
     gain.gain.value = level[kind];
     const panner = context.createStereoPanner();
-    panner.pan.value = kind === "requiem" ? 0 : Math.max(-0.8, Math.min(0.8, pan));
+    panner.pan.value = Math.max(-0.8, Math.min(0.8, pan));
     source.connect(gain).connect(panner).connect(output);
     voices += 1;
     source.onended = () => {
@@ -106,7 +108,8 @@ export function createLifeSound() {
     shatter: (pan: number) => play("shatter", pan),
     cry: (pan: number) => play("cry", pan),
     breath: (pan: number) => play("breath", pan),
-    requiem: () => play("requiem", 0),
+    lie: (pan: number) => play("lie", pan),
+    death: (pan: number) => play("death", pan),
     close: () => {
       void context?.close();
       context = null;

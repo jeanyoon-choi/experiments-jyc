@@ -31,29 +31,32 @@ Couples now act out three short scenes. During a scene both people stop walking 
 - **Slaps on divorce (1.7 s):** the leaver slaps first, at 0.4 s, and the one left slaps back, at 1.0 s. Each slap swings the inner arm across to the other's face and snaps the struck head away (a 16° recoil). Then each turns its back on the other and walks off.
 - **Betrayal:** no slaps. The betrayer kisses the new partner straight away.
 
-### Sound (`synth.ts`, `synth-worker.ts`, `audio.ts`)
+### Sound: recorded takes (`audio.ts`)
 
-The first version used Web Audio oscillators (sine pops, a sawtooth voice). The user heard it as too computer-like. Every sound is now rendered sample by sample from a physical model:
+**Superseded synthesis.** Two synthesized versions came first: Web Audio oscillators, then sample-level physical models (glottal pulses with Klatt formants, modal resonator banks) rendered in a worker. The user judged both computer-like and stranger than real sound and asked for sound files instead, so the synthesis code was removed.
 
-- **Kiss:** a soft low lip press. Then the wet release: one pop plus 3–8 micro clicks ringing a mouth cavity whose resonance rises from about 0.8 to 2.3 kHz as it opens. A nasal exhale follows.
-- **Slap:** a short air whoosh, then a 2.5–4 ms skin contact that rings five damped flesh modes (160–700 Hz) and a cheek-cavity resonance.
-- **Betrayal:** glass shattering. Accelerating fracture crackles, a 12-mode body, a low knock, and 10–16 shards, each with its own modes, landing and bouncing with shrinking gaps.
-- **Newborn cry:** a Rosenberg glottal pulse at about 400–530 Hz with cycle jitter and shimmer and a period-doubling stretch of roughness. Open-phase aspiration and a cascade of four Klatt formants open from "w" into an infant "a". An inspiratory squeak follows each cry, and 40% of cries have two syllables.
-- **Touch-born first breath:** a formant-shaped gasp with flutter and a throat catch, then a breathy, voiced sigh.
-- **Death:** a few bars of slow, humanised minor piano (three variants). Each note is built from stretched partials with hammer-position weighting, a two-stage decay, and beating unison strings.
+**The takes.** Every sound is now a real recording, cut into short takes by [`scripts/cut-finger-network-sounds.py`](../../../scripts/cut-finger-network-sounds.py). Each take is peak-normalized, given a short fade, and encoded as a mono MP3 at 32 kHz and 48–56 kbps. There are 28 files in `public/assets/finger-network/sound/`, about 270 KB in all: a kiss or a slap is about 3 KB, a death jingle 10 KB, and a sax phrase 16 KB.
 
-Ceramic cracking is still rendered by `renderCrack` but no longer played. Deaths were silent in the first version.
+| Event | Takes | Source (license) |
+|---|---|---|
+| Faces meet (kiss) | 8 | BigSoundBank, Joseph Sardin: [Kisses #1](https://bigsoundbank.com/kisses-s0178.html), [Kiss #3](https://bigsoundbank.com/kiss-3-s2201.html), [Kisses #5](https://bigsoundbank.com/kisses-5-s2202.html) (CC0) |
+| Each slap | 6 | BigSoundBank, Joseph Sardin: [Slaps](https://bigsoundbank.com/slaps-s0597.html) (CC0) |
+| Betrayal | 2 | BigSoundBank, Joseph Sardin: [Glass Burst](https://bigsoundbank.com/glass-burst-s0148.html), [Broken Glass of Champagne](https://bigsoundbank.com/broken-glass-of-champagne-s1591.html) (CC0) |
+| Birth | 4 | BigSoundBank, Joseph Sardin: [1 day old baby crying](https://bigsoundbank.com/one-day-baby-crying-s0873.html) (CC0, 3 takes); the_yura, [Crying newborn baby](https://commons.wikimedia.org/wiki/File:Crying_newborn_baby.ogg) (CC0, 1 take) |
+| Touch-born first breath | 3 | BigSoundBank, Joseph Sardin: [Sigh by the Mouth](https://bigsoundbank.com/sigh-by-the-mouth-s1405.html), [Breathless Man](https://bigsoundbank.com/breathless-man-s1103.html) (CC0) |
+| Lying together (before a birth) | 2 | Tenor-sax phrases (2.7 s each), cut from J.G.G., [Embraceable You, tenor sax](https://commons.wikimedia.org/wiki/File:Embraceable-you-tenor-sax-by-JGrandgagnage.ogg) (CC BY-SA 4.0; Gershwin composition) |
+| Death | 3 | An original 1.7 s 8-bit "you died" jingle (pulse lead, triangle bass, final slide down), rendered by [`scripts/render-finger-network-death-jingle.py`](../../../scripts/render-finger-network-death-jingle.py) |
 
-**Rendering and playback.** A module worker renders a small pool of takes per kind after the first touch, so the animation never waits on synthesis. Measured in Node: the cry takes 13–31 ms, glass 33–39 ms, and each piano variant about 290 ms at 48 kHz; the piano is rendered at half rate. Playback picks a take other than the last one, varies its speed by up to ±8%, pans it to the event's position, and sends it through a generated room and a limiter. Each kind has a minimum gap, and the requiem plays at most once every 7 s. There are at most 10 voices at once.
+**Playback.** The files are fetched when the page mounts, and they are decoded once the first touch has unlocked audio. Playback picks a take other than the last one and varies its speed by ±3–6%. It pans the take to the event's position on screen and runs it through a limiter. Each kind of sound has a minimum gap. There are at most 10 voices at once.
 
-**Checks.**
-- All takes render with no non-finite samples.
-- A test covers the scene rules: every birth comes one model year after its parents get up from lying down, and slaps come in returned pairs.
-- In Chrome, kisses with hearts, lying couples, and births were seen on screen, and the audio context ran.
-- Nobody has listened to the new sounds yet.
+**Checks.** In Chrome, all 24 files loaded (255 KB transferred) and the audio context ran. The takes were cut at boundaries from ffmpeg silence detection and loudness curves; nobody has listened to them yet.
+
+**Death cue and sax (2026-11-02).** The first death sound was the 14 s opening of Chopin's funeral march (Paul Pitman, public domain), played at most once every 12 s. Deaths are frequent, so it played almost constantly and read as background music for a 1–2 s moment; the user rejected it. Every cue now lasts about as long as its moment. A death plays a short game-style jingle, as the user asked ("like Mario's death"): an original melody, not Nintendo's. When a couple lies down before a birth, a 2.7 s sultry tenor-sax phrase plays, and the model emits a `lie` event for it.
+
+**Lying-together pose.** On 2026-11-02 the user asked for the pose to read as an act rather than as lying flat. Both bodies now lean back to about 75° instead of 90°. They rock against each other at 3.4 Hz, the upper body out of phase with the lower, with ±7° of sway, a 4 px thrust, and swinging arms and legs.
 
 ## Unresolved
 
 - What, if anything, should end the explosion now that there is no ceiling: deaths, space, resources, or nothing.
-- Whether the synthesized sounds read as real at phone-speaker size; recorded samples would be the next step if not.
+- Whether the recorded takes sit well at phone-speaker size, and whether deaths during a population explosion make the jingle too frequent (minimum gap 0.9 s).
 - Whether the step should be made sub-quadratic (e.g. a spatial grid for the local scans) so the growth can be watched for longer.

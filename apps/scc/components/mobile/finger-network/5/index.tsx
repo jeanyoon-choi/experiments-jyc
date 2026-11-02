@@ -94,7 +94,8 @@ export default function MobileFingerNetworkFive() {
     const politics = createPolitics((Math.random() * 2 ** 31) | 0);
     let arriving: Arriving[] = [];
     const citizenGroups = new Map<number, Stick[]>();
-    // Faces meeting kiss, partings slap (betrayals shatter), newborns cry, touch-born people breathe, deaths get a few bars of piano.
+    // Faces meeting kiss, lying together gets a sax phrase, partings slap (betrayals shatter), newborns cry,
+    // touch-born people breathe, and a death plays a short game-style jingle.
     const sound = createLifeSound();
     const panOf = (x: number) => (x / width) * 2 - 1;
 
@@ -391,7 +392,8 @@ export default function MobileFingerNetworkFive() {
           else if (event.kind === "slap") sound.slap(panOf(event.x));
           else if (event.kind === "split" && event.betrayal) sound.shatter(panOf(event.x));
           else if (event.kind === "birth") sound.cry(panOf(event.x));
-          else if (event.kind === "death") sound.requiem();
+          else if (event.kind === "lie") sound.lie(panOf(event.x));
+          else if (event.kind === "death") sound.death(panOf(event.x));
         }
         lastEventTime = society.time;
         while (recent.length > 0 && society.time - recent[0]!.time > rateYears * SECONDS_PER_YEAR) recent.shift();

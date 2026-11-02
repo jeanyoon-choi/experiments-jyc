@@ -141,12 +141,18 @@ drawing, panel and defaults are unchanged.
   against the live node's, attributes and text copied), with the renderer's `data-dada-text*` attributes and `--dada-text-*`
   properties stripped. Typed values, ticks and video playback, which attributes do not carry, are copied on their events.
 - Scrolling never passes through script (2026-11-02, later; user: copying `scrollTop` on scroll events was not smooth at all).
-  A live scroller, the first time it moves, names a scroll timeline (`scroll-timeline`, scoped by `timeline-scope` on `<html>`);
-  its copy stops scrolling (`data-split-follow`) and its children are translated by an animation on that timeline across the
-  live scroll range (`--split-range`, re-measured after each mutation pass and on resize), so both halves move in the same
-  compositor frame, momentum and snapping included. Direct sticky children (`.subHeader`, `.exploreHeader`) are pinned. Where
-  scroll-driven animations are missing, the copy falls back to copying scroll positions. Style records that only carry the
-  renderer's cell properties leave the copy untouched.
+  Every live scroller names a scroll timeline before it moves (all of them at mount, later ones on the touch, wheel or pointer
+  that starts a scroll; `scroll-timeline`, scoped by `timeline-scope` on `<html>`); its copy stops scrolling
+  (`data-split-follow`) and its children are translated by an animation on that timeline across the live scroll range
+  (`--split-range`, measured by a ResizeObserver on the scroller and its children, never by a forced layout), so both halves
+  move in the same compositor frame, momentum and snapping included. Direct sticky children (`.subHeader`, `.exploreHeader`)
+  are pinned. Where scroll-driven animations are missing, the copy falls back to copying scroll positions. Style records that
+  only carry the renderer's cell properties leave the copy untouched.
+- Check (2026-11-02, headless Chrome 156 at 390 × 844, touch scroll gestures through CDP; a sampler reading a live element and its
+  copy every frame): home feed, stories row (sideways), Explore grid and the reels pager all 0.00 px apart on every frame,
+  the Explore header pinned at 0 in both. A first build that named the timeline on the first scroll event was 35 px off for
+  one frame, and one that re-measured ranges in each mutation pass doubled the renderer's `readFacts`/`collect` time; both
+  fixed. Main-thread long frames while scrolling (~67 ms, the renderer's 100 ms reads) match `/default`'s.
 - The mirror carries the `UI` mark, so the renderer neither reads it nor hides it and it keeps the clone's own paint. It is
   fixed over the whole screen, clipped to the left half (`clip-path: inset(0 50% 0 0)`, `split/split.css`), `inert` and
   without pointer events: every touch falls through to the live clone. No line is drawn between the halves.
