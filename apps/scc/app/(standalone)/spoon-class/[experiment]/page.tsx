@@ -5,6 +5,7 @@ import SpoonClassOne from "@/components/standalone/spoon-class/1";
 import SpoonClassTwo from "@/components/standalone/spoon-class/2";
 import SpoonClassThree from "@/components/standalone/spoon-class/3";
 import SpoonClassFour from "@/components/standalone/spoon-class/4";
+import SpoonClassFive from "@/components/standalone/spoon-class/5";
 import {
   isSpoonClassExperimentSlug,
   spoonClassExperiments,
@@ -31,6 +32,8 @@ export async function generateMetadata({
             ? "A mobile stack of full-width synchronized human-life games."
             : experiment === "4"
               ? "The mobile stack with obstacles collaged from photographed Korean street signs."
+              : experiment === "5"
+                ? "Sign collages that follow the age clock through the Korean life course."
           : "The original Chrome Dino source preserved as a standalone experiment.",
   };
 }
@@ -47,5 +50,6 @@ export default async function SpoonClassExperimentPage({
   if (experiment === "2") return <SpoonClassTwo />;
   if (experiment === "3") return <SpoonClassThree />;
   if (experiment === "4") return <SpoonClassFour />;
+  if (experiment === "5") return <SpoonClassFive />;
   return <SpoonClassDefault />;
 }

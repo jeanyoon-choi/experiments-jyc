@@ -1,0 +1,152 @@
+.stack {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(var(--spoon-class-rows), minmax(0, 1fr));
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+  background: #f7f7f7;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.row {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  contain: layout paint;
+  background: #f7f7f7;
+  /* 수명순 moves rows by transform, never in the DOM (that reloads a game). */
+  transition: transform 360ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.play {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  display: block;
+  padding: 16px;
+  border: 0;
+  background: none;
+  transform: translate(-50%, -50%);
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.playGlyph {
+  display: block;
+  width: 76px;
+  height: 76px;
+  transition: transform 120ms ease-out;
+}
+
+.play:active .playGlyph {
+  transform: scale(0.94);
+}
+
+.playDisc {
+  fill: #535353;
+}
+
+.playMark {
+  fill: #f7f7f7;
+  stroke: #f7f7f7;
+  stroke-width: 6;
+  stroke-linejoin: round;
+}
+
+.controls {
+  position: fixed;
+  z-index: 10;
+  right: calc(12px + env(safe-area-inset-right));
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  pointer-events: none;
+}
+
+/* An opaque sheet over the games, so every option reads on any row. */
+.menu {
+  display: grid;
+  gap: 2px;
+  padding: 8px 6px 8px 14px;
+  border: 2px solid #535353;
+  border-radius: 12px;
+  background: #f7f7f7;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+  pointer-events: auto;
+}
+
+.menuRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 40px;
+}
+
+.menuLabel {
+  min-width: 52px;
+  color: #535353;
+  font: 400 12px/1.4 Arial, "Apple SD Gothic Neo", sans-serif;
+  opacity: 0.55;
+}
+
+.choice {
+  min-width: 44px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: #535353;
+  font: 700 14px/1.4 Arial, "Apple SD Gothic Neo", sans-serif;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.choice[aria-pressed="true"] {
+  background: #535353;
+  color: #f7f7f7;
+}
+
+.choice:disabled {
+  opacity: 0.3;
+}
+
+.toggle {
+  min-width: 72px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 2px solid #535353;
+  border-radius: 999px;
+  background: #f7f7f7;
+  color: #535353;
+  font: 700 14px/1.4 Arial, "Apple SD Gothic Neo", sans-serif;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.16);
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.toggle[aria-expanded="true"] {
+  background: #535353;
+  color: #f7f7f7;
+}
+
+.performance {
+  margin: 0;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #f7f7f7;
+  color: #535353;
+  font: 400 10px/1.5 ui-monospace, "SF Mono", Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: pre;
+}

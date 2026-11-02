@@ -181,6 +181,7 @@ export const sccExperiments: readonly SccExperiment[] = [
   { key: "spoon-class/2", area: "standalone", family: "spoon-class", date: "2026-09-08", phrase: "Dino field where a pixel human ages past tests and life blocks, less dense or dense" },
   { key: "spoon-class/3", area: "standalone", family: "spoon-class", date: "2026-10-03", updated: "2026-10-26", phrase: "Mobile stack of full-width human-life dino games, eight to a screen by default" },
   { key: "spoon-class/4", area: "standalone", family: "spoon-class", date: "2026-10-26", updated: "2026-11-02", phrase: "Mobile stack of human-life dino games jumping collages of photographed 입간판, neon and 학원 signs" },
+  { key: "spoon-class/5", area: "standalone", family: "spoon-class", date: "2026-11-02", phrase: "Human-life dino stack whose sign collages follow the age clock from 산후조리원 to 장례식장" },
   { key: "swarm/1", area: "standalone", family: "swarm", date: "2026-07-14", phrase: "Neutral flock field with adjustable separation, alignment and cohesion" },
   { key: "swarm/2", area: "standalone", family: "swarm", date: "2026-07-14", phrase: "Flock confined to a world coastline map with a latitude-longitude graticule" },
   { key: "swarm/3", area: "standalone", family: "swarm", date: "2026-07-17", phrase: "Map clicks launch missile salvos that the flock steers away from" },
