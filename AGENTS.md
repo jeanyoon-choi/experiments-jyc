@@ -10,8 +10,9 @@
 
 ## Model and token policy
 
-- Respect the user's model selection, including mid-session switches. Current preference: `gpt-6-astra` for important composition, architecture, difficult diagnosis, and integration; `gpt-5.6-terra` for everyday work. Do not force a primary-model switch or change global configuration.
-- Delegate independent, bounded tasks to `gpt-5.6-terra` when this saves total work. Keep composition and final review with the lead. Use a stronger subagent only when needed; if model selection is unavailable, disclose the fallback.
+- Respect the user's model selection, including mid-session switches. Current preference: Claude Opus 5.5 class or stronger (`claude-opus-5-5`, or `claude-fable-5-1` where available) for all work — composition, architecture, diagnosis, integration and everyday edits alike. Do not force a primary-model switch or change global configuration.
+- Delegate independent, bounded tasks to subagents of Opus 5.5 class or stronger, never a weaker model, when this saves total work. Keep composition and final review with the lead; if model selection is unavailable, disclose the fallback.
+- The lead gatekeeps every update, delegated or not, for visual and performance quality: verify it yourself in the browser (captures against the stated criteria and references) and by measurement (frame timing before/after under the same conditions). Below standard is never reported as done: fix it yourself or send it back to the agent with the specific failures until it passes, and report remaining gaps plainly.
 - Give subagents only the objective, owned paths, relevant constraints, and acceptance criteria; avoid full-history forks. Request concise findings/diffs/checks. Avoid delegation for trivial tasks, overlapping edits, or recursive fan-out without concrete benefit.
 - Search narrowly, load task-relevant docs, and summarize routine output. Verify proportionately; stop after sufficient checks. Keep updates/handoffs concise. In reference or precedent research reports, link each work inline where it is named, not only in a trailing source list. The user can replace these model preferences.
 

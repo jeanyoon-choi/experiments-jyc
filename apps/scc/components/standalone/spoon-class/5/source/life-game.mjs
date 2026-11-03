@@ -72,11 +72,28 @@ export function installLifeGamePresentation(document, signs, stages) {
   };
 
   // The signs of the stage being composed. A stage without signs of a group
-  // borrows the stage's other signs, so every stage fills both obstacles.
+  // borrows its narrow signs (pavement and blade signs stand in for each
+  // other), then any of its signs, so every stage fills both obstacles.
+  // A group with fewer than three signs of its own stage also takes that
+  // group's signs from the stages just before and after, never further, so
+  // a row or facade repeats less and still belongs to its age.
   let pool = [];
+  let stageIndex = 0;
+  const ofGroup = (list, group) => list.filter((sign) => KINDS[group].includes(sign.kind));
   function ofKinds(group) {
-    const matching = pool.filter((sign) => KINDS[group].includes(sign.kind));
-    return matching.length ? matching : pool;
+    let matching = ofGroup(pool, group);
+    [stageIndex - 1, stageIndex + 1].forEach((at) => {
+      if (at < 0 || at >= stageList.length || matching.length >= 3) return;
+      matching = matching.concat(ofGroup(poolOf(at), group).filter((sign) => !matching.includes(sign)));
+    });
+    return matching;
+  }
+  // Pavement and blade signs stand in for each other, then any sign.
+  function narrow(first, second) {
+    const list = ofKinds(first);
+    if (list.length) return list;
+    const other = ofKinds(second);
+    return other.length ? other : pool;
   }
 
   function choose(list) {
@@ -138,9 +155,20 @@ export function installLifeGamePresentation(document, signs, stages) {
 
   let unitLarge = 25;
   function composeLarge(x0, width, height) {
-    const vertical = ofKinds("vertical");
+    const vertical = narrow("vertical", "stand");
     const hagwon = ofKinds("hagwon");
-    const mode = width <= unitLarge ? "vertical" : choose(width >= 3 * unitLarge ? ["vertical", "facade", "mixed", "mixed"] : ["vertical", "facade"]);
+    // A stage with few 세로간판 builds its wide segments mostly as facades,
+    // so a row of blade signs does not repeat one sign.
+    const blades = ofKinds("vertical").length;
+    const wide = width >= 3 * unitLarge;
+    const modes = !hagwon.length
+      ? ["vertical"]
+      : blades === 0
+        ? ["facade"]
+        : blades < 3
+          ? wide ? ["facade", "mixed"] : ["facade"]
+          : wide ? ["vertical", "facade", "mixed", "mixed"] : ["vertical", "facade"];
+    const mode = width <= unitLarge ? "vertical" : choose(modes);
     if (mode === "vertical") return row(vertical, x0, width, height, 0.84);
     if (mode === "facade") return facade(hagwon, x0, width, height);
     const split = Math.round(width * (0.45 + Math.random() * 0.15));
@@ -152,7 +180,7 @@ export function installLifeGamePresentation(document, signs, stages) {
   }
 
   function composeSmall(x0, width, height) {
-    return row(ofKinds("stand"), x0, width, height, 0.88);
+    return row(narrow("stand", "vertical"), x0, width, height, 0.88);
   }
 
   function signSprite(unit, height, compose) {
@@ -231,6 +259,7 @@ export function installLifeGamePresentation(document, signs, stages) {
   unitLarge = largeType.width;
   function composeStage(index) {
     pool = poolOf(index);
+    stageIndex = index;
     return {
       small: signSprite(smallType.width, smallType.height, composeSmall),
       large: signSprite(largeType.width, largeType.height, composeLarge),

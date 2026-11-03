@@ -298,6 +298,14 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     load: () => import("./screen/bubble/7"),
   },
   {
+    key: "screen/bubble/8",
+    area: "screen",
+    section: "dated",
+    date: "2026-11-03",
+    phrase: "bubble/7 in a liquid film instead of coated steel — bubble/1's soap film over every bubble and object — with its objects in groups, a third of tech logos",
+    load: () => import("./screen/bubble/8"),
+  },
+  {
     key: "pc/mobiles/1",
     area: "pc",
     section: "dated",

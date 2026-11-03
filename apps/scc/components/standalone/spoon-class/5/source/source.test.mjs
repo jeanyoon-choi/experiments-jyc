@@ -191,11 +191,15 @@ test("given the page's sign images, each obstacle becomes its own canvas collage
 
 test("life stages: new obstacles take the sprites of the stage the age clock is in", () => {
   const stages = [{ id: "birth", from: 0 }, { id: "school", from: 8 }, { id: "old", from: 65 }];
+  // Three signs of each group birth uses, so birth borrows nothing.
+  const three = (stage, kind, width) => [1, 2, 3].map((n) => ({ image: `${stage}-${kind}-${n}`, width, height: 120, kind, stages: [stage] }));
   const signs = [
-    { image: "birth-stand", width: 40, height: 120, kind: "stand", stages: ["birth"] },
-    { image: "birth-tall", width: 30, height: 120, kind: "vertical", stages: ["birth"] },
-    { image: "school-stand", width: 40, height: 120, kind: "stand", stages: ["school"] },
-    { image: "school-hagwon", width: 400, height: 120, kind: "hagwon", stages: ["school"] },
+    ...three("birth", "stand", 40),
+    ...three("birth", "vertical", 30),
+    ...three("birth", "hagwon", 400),
+    ...three("school", "stand", 40),
+    ...three("school", "hagwon", 400),
+    { image: "school-vertical", width: 30, height: 120, kind: "vertical", stages: ["school"] },
   ];
   const elements = new Map(
     ["1x-obstacle-small", "2x-obstacle-small", "1x-obstacle-large", "2x-obstacle-large"].map((id) => [id, { id, replaceWith(next) { elements.set(id, next); } }]),
@@ -230,11 +234,14 @@ test("life stages: new obstacles take the sprites of the stage the age clock is 
   view.spoonClassAge = 9 * 2000;
   view.Runner.instance_.update();
   assert.ok([...drawn(horizon.obstacleImgs.CACTUS_SMALL)].every((image) => image.startsWith("school")));
-  assert.ok(drawn(horizon.obstacleImgs.CACTUS_LARGE).has("school-hagwon"));
+  // School has a single 세로간판: its rows also take birth's, never repeating one.
+  assert.ok(
+    [...drawn(horizon.obstacleImgs.CACTUS_LARGE)].every((image) => image.startsWith("school") || image.startsWith("birth-vertical")),
+  );
   // A stage without signs of its own borrows the nearest earlier stage's.
   view.spoonClassAge = 70 * 2000;
   view.Runner.instance_.update();
-  assert.ok([...drawn(horizon.obstacleImgs.CACTUS_LARGE)].every((image) => image.startsWith("school")));
+  assert.ok([...drawn(horizon.obstacleImgs.CACTUS_SMALL)].every((image) => image.startsWith("school")));
   // A restart returns the age, and the stage, to birth.
   const atSchool = horizon.obstacleImgs.CACTUS_SMALL;
   view.spoonClassAge = 0;

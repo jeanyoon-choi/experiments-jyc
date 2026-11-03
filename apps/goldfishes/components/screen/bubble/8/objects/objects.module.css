@@ -1,0 +1,11 @@
+/* 오브제's panel: each set's kinds folded away under a rule. */
+.set {
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.set summary {
+  margin: 0 2px 6px;
+  font-weight: 600;
+  cursor: pointer;
+}

@@ -1,0 +1,84 @@
+/* bubble/7's mode switch at the bottom left, its mode's settings folding out above it. */
+.modes {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 10;
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  color: #171717;
+  font: 13px Arial, Helvetica, sans-serif;
+}
+
+.modes * { box-sizing: border-box; }
+.modes, .modes * { -webkit-text-fill-color: currentColor !important; }
+
+.switch {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 23px;
+  background: #171717;
+  box-shadow: 0 3px 16px #0003;
+}
+
+.switch button {
+  min-width: 48px;
+  height: 36px;
+  border: 0;
+  border-radius: 18px;
+  padding: 0 12px;
+  background: transparent;
+  color: #fff;
+  font: 600 13px Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.switch button[aria-pressed="true"] { background: #fff; color: #171717; }
+.switch .fold { min-width: 36px; padding: 0; }
+.switch button:focus-visible { outline: 2px solid #1469d8; outline-offset: 2px; }
+
+/* 전파: the colours, the chosen one ringed and raised. */
+.strains {
+  display: flex;
+  gap: 8px;
+  padding: 2px 2px 8px;
+}
+
+.strain {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px #d4d4d4;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.strain[aria-pressed="true"] {
+  transform: scale(1.12);
+  box-shadow: 0 0 0 3px #fff, 0 0 0 5px #171717;
+}
+
+.strain:focus-visible { outline: 2px solid #1469d8; outline-offset: 4px; }
+
+/* What a tap brings in, in its colour. */
+.armed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  border: 2px solid;
+  border-radius: 9px;
+  padding: 8px 10px;
+  font-weight: 600;
+}
+
+.armed span {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}

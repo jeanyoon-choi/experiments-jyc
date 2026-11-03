@@ -47,23 +47,69 @@ import seumWhite from "./source/signs/seum-white.jpg";
 import aramWhite from "./source/signs/aram-white.jpg";
 import gnbEnglish from "./source/signs/gnb-english.jpg";
 import haebeopMath from "./source/signs/haebeop-math.jpg";
+import dusanDaycare from "./source/signs/dusan-daycare.jpg";
+import dusanDoor from "./source/signs/dusan-door.jpg";
+import yunsooTaekwondo from "./source/signs/yunsoo-taekwondo.jpg";
+import subinPiano from "./source/signs/subin-piano.jpg";
+import haebeopEnglish from "./source/signs/haebeop-english.jpg";
+import dokkaebiPiano from "./source/signs/dokkaebi-piano.jpg";
+import jisomRealty from "./source/signs/jisom-realty.jpg";
+import pianoLibre from "./source/signs/piano-libre.jpg";
+import torActing from "./source/signs/tor-acting.jpg";
+import torBox from "./source/signs/tor-box.jpg";
+import dsSports from "./source/signs/ds-sports.jpg";
+import beableStudy from "./source/signs/beable-study.jpg";
+import cheongjeonHouse from "./source/signs/cheongjeon-house.jpg";
+import cheongjeonV from "./source/signs/cheongjeon-v.jpg";
+import salonWedding from "./source/signs/salon-wedding.jpg";
+import yegaBubu from "./source/signs/yega-bubu.jpg";
+import soriHearing from "./source/signs/sori-hearing.jpg";
+import samsungOrtho from "./source/signs/samsung-ortho.jpg";
+import sanbu from "./source/signs/sanbu.jpg";
+import seongmoEye from "./source/signs/seongmo-eye.jpg";
+import saebitPharmacy from "./source/signs/saebit-pharmacy.jpg";
+import funeralHall from "./source/signs/funeral-hall.jpg";
+import bossChicken from "./source/signs/boss-chicken.jpg";
+import chakhanFuneral from "./source/signs/chakhan-funeral.jpg";
+import cheonsaLife from "./source/signs/cheonsa-life.jpg";
+import hangyeolLabor from "./source/signs/hangyeol-labor.jpg";
+import yoyangPlaque from "./source/signs/yoyang-plaque.jpg";
+import hanyangPlaque from "./source/signs/hanyang-plaque.jpg";
+import gcovaStand from "./source/signs/gcova-stand.jpg";
+import gcovaBand from "./source/signs/gcova-band.jpg";
+import yoyangEdu from "./source/signs/yoyang-edu.jpg";
+import sionV from "./source/signs/sion-v.jpg";
+import bohoCenter from "./source/signs/boho-center.jpg";
+import tileCognitive from "./source/signs/tile-cognitive.jpg";
+import tileRehab from "./source/signs/tile-rehab.jpg";
+import tileVisitCare from "./source/signs/tile-visit-care.jpg";
+import tileVisitBath from "./source/signs/tile-visit-bath.jpg";
+import picassoBox from "./source/signs/picasso-box.jpg";
+import picassoBand from "./source/signs/picasso-band.jpg";
+import jayeonArt from "./source/signs/jayeon-art.jpg";
+import gwangjangPhoto from "./source/signs/gwangjang-photo.jpg";
+import beerChicken from "./source/signs/beer-chicken.jpg";
+import gamaekBox from "./source/signs/gamaek-box.jpg";
+import beerBox from "./source/signs/beer-box.jpg";
+import sanhuPoster from "./source/signs/sanhu-poster.jpg";
+import sanmoPoster from "./source/signs/sanmo-poster.jpg";
 
 // Life stages and the age, in years, each begins. A stage without signs of
 // its own borrows the nearest earlier stage's.
 export const STAGES = [
-  { id: "birth", from: 0 }, // 산후조리원, 산부인과, 백일·돌잔치, 돌사진
-  { id: "daycare", from: 2 }, // 어린이집 대기, 소아청소년과, 키즈카페
-  { id: "kinder", from: 5 }, // 영어유치원, 유치원, 학습지, 태권도, 피아노
+  { id: "birth", from: 0 }, // 산부인과, 산후관리사, 사진관
+  { id: "daycare", from: 2 }, // 어린이집
+  { id: "kinder", from: 5 }, // 영어교실, 피아노, 태권도, 아동미술
   { id: "elementary", from: 8 }, // 초등 학원가: 영어·수학, 태권도, 미술
-  { id: "middle", from: 13 }, // 내신 학원, 독서실
-  { id: "high", from: 16 }, // 입시학원, 독서실, 수능
-  { id: "twenties", from: 19 }, // 재수학원, 원룸텔·고시텔, 공무원·어학원, 술집
-  { id: "marriage", from: 25 }, // 취업, 예식장·웨딩홀, 결혼정보, 회식
-  { id: "family", from: 30 }, // 부동산, 은행, 생활 간판
-  { id: "work", from: 40 }, // 승진과 회식: 횟집, 노래방, 호프
-  { id: "retire", from: 55 }, // 치킨집 창업, 부동산
-  { id: "oldage", from: 65 }, // 요양원, 한의원, 정형외과, 약국
-  { id: "hospital", from: 80 }, // 요양병원, 병원, 장례식장
+  { id: "middle", from: 13 }, // 내신 학원
+  { id: "high", from: 16 }, // 입시학원, 연기 입시, 스터디카페
+  { id: "twenties", from: 19 }, // 체대·공무원 입시, 고시텔, 술집
+  { id: "marriage", from: 25 }, // 웨딩 메이크업·드레스, 부부 한의원, 회식
+  { id: "family", from: 30 }, // 부동산, 생활 간판
+  { id: "work", from: 40 }, // 정형외과, 횟집, 노래방, 호프
+  { id: "retire", from: 55 }, // 치킨집 창업, 인력사무소, 부동산
+  { id: "oldage", from: 65 }, // 보청기, 주야간보호·방문요양, 안과, 약국
+  { id: "hospital", from: 80 }, // 요양병원, 대학병원, 장례식장, 상조
 ] as const;
 
 export type StageId = (typeof STAGES)[number]["id"];
@@ -123,4 +169,50 @@ export const SIGNS: {
   { id: "aram-white", image: aramWhite, kind: "hagwon", stages: ["high"] },
   { id: "gnb-english", image: gnbEnglish, kind: "hagwon", stages: ["kinder", "elementary"] },
   { id: "haebeop-math", image: haebeopMath, kind: "hagwon", stages: ["elementary"] },
+  { id: "dusan-daycare", image: dusanDaycare, kind: "hagwon", stages: ["daycare"] },
+  { id: "dusan-door", image: dusanDoor, kind: "lightbox", stages: ["daycare"] },
+  { id: "yunsoo-taekwondo", image: yunsooTaekwondo, kind: "hagwon", stages: ["kinder", "elementary"] },
+  { id: "subin-piano", image: subinPiano, kind: "hagwon", stages: ["kinder"] },
+  { id: "haebeop-english", image: haebeopEnglish, kind: "hagwon", stages: ["kinder", "elementary"] },
+  { id: "dokkaebi-piano", image: dokkaebiPiano, kind: "hagwon", stages: ["kinder"] },
+  { id: "jisom-realty", image: jisomRealty, kind: "hagwon", stages: ["family", "retire"] },
+  { id: "piano-libre", image: pianoLibre, kind: "cylinder", stages: ["kinder", "elementary"] },
+  { id: "tor-acting", image: torActing, kind: "hagwon", stages: ["high"] },
+  { id: "tor-box", image: torBox, kind: "lightbox", stages: ["high", "middle"] },
+  { id: "ds-sports", image: dsSports, kind: "hagwon", stages: ["high", "twenties"] },
+  { id: "beable-study", image: beableStudy, kind: "hagwon", stages: ["high", "twenties"] },
+  { id: "cheongjeon-house", image: cheongjeonHouse, kind: "hagwon", stages: ["twenties"] },
+  { id: "cheongjeon-v", image: cheongjeonV, kind: "vertical", stages: ["twenties"] },
+  { id: "salon-wedding", image: salonWedding, kind: "hagwon", stages: ["marriage"] },
+  { id: "yega-bubu", image: yegaBubu, kind: "hagwon", stages: ["marriage"] },
+  { id: "sori-hearing", image: soriHearing, kind: "hagwon", stages: ["oldage"] },
+  { id: "samsung-ortho", image: samsungOrtho, kind: "hagwon", stages: ["work", "oldage"] },
+  { id: "sanbu", image: sanbu, kind: "hagwon", stages: ["birth"] },
+  { id: "seongmo-eye", image: seongmoEye, kind: "hagwon", stages: ["oldage"] },
+  { id: "saebit-pharmacy", image: saebitPharmacy, kind: "lightbox", stages: ["oldage", "hospital"] },
+  { id: "funeral-hall", image: funeralHall, kind: "hagwon", stages: ["hospital"] },
+  { id: "boss-chicken", image: bossChicken, kind: "hagwon", stages: ["retire"] },
+  { id: "chakhan-funeral", image: chakhanFuneral, kind: "hagwon", stages: ["hospital"] },
+  { id: "cheonsa-life", image: cheonsaLife, kind: "hagwon", stages: ["hospital"] },
+  { id: "hangyeol-labor", image: hangyeolLabor, kind: "hagwon", stages: ["retire"] },
+  { id: "yoyang-plaque", image: yoyangPlaque, kind: "lightbox", stages: ["oldage", "hospital"] },
+  { id: "hanyang-plaque", image: hanyangPlaque, kind: "lightbox", stages: ["hospital"] },
+  { id: "gcova-stand", image: gcovaStand, kind: "stand", stages: ["retire"] },
+  { id: "gcova-band", image: gcovaBand, kind: "hagwon", stages: ["retire"] },
+  { id: "yoyang-edu", image: yoyangEdu, kind: "hagwon", stages: ["oldage"] },
+  { id: "sion-v", image: sionV, kind: "vertical", stages: ["oldage"] },
+  { id: "boho-center", image: bohoCenter, kind: "hagwon", stages: ["oldage"] },
+  { id: "tile-cognitive", image: tileCognitive, kind: "hagwon", stages: ["oldage"] },
+  { id: "tile-rehab", image: tileRehab, kind: "hagwon", stages: ["oldage"] },
+  { id: "tile-visit-care", image: tileVisitCare, kind: "hagwon", stages: ["oldage"] },
+  { id: "tile-visit-bath", image: tileVisitBath, kind: "hagwon", stages: ["oldage"] },
+  { id: "picasso-box", image: picassoBox, kind: "lightbox", stages: ["kinder", "elementary"] },
+  { id: "picasso-band", image: picassoBand, kind: "hagwon", stages: ["kinder", "elementary"] },
+  { id: "jayeon-art", image: jayeonArt, kind: "hagwon", stages: ["elementary"] },
+  { id: "gwangjang-photo", image: gwangjangPhoto, kind: "hagwon", stages: ["birth"] },
+  { id: "beer-chicken", image: beerChicken, kind: "hagwon", stages: ["work", "retire"] },
+  { id: "gamaek-box", image: gamaekBox, kind: "lightbox", stages: ["work"] },
+  { id: "beer-box", image: beerBox, kind: "lightbox", stages: ["twenties", "work"] },
+  { id: "sanhu-poster", image: sanhuPoster, kind: "lightbox", stages: ["birth"] },
+  { id: "sanmo-poster", image: sanmoPoster, kind: "lightbox", stages: ["birth"] },
 ];
