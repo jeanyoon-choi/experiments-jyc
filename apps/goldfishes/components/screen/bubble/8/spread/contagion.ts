@@ -52,7 +52,8 @@ export type SpreadParameters = {
 };
 
 // Measured at 0.6 and 2.5 s (2026-10-27): the whole raft in 20 s; now a hop takes several seconds.
-export const SPREAD_DEFAULTS: SpreadParameters = { rate: 0.1, takeOn: 3.5, keep: 0, strain: 0, pick: "heart", unit: groupBit("sns"), route: 0, shape: 1 };
+// Every page catching it fades again after 20 s on average (user, 2026-11-04); bubble/7 kept it for ever.
+export const SPREAD_DEFAULTS: SpreadParameters = { rate: 0.1, takeOn: 3.5, keep: 20, strain: 0, pick: "heart", unit: groupBit("sns"), route: 0, shape: 1 };
 
 export type SpreadControl = { key: "rate" | "takeOn" | "keep"; label: string; min: number; max: number; step: number };
 

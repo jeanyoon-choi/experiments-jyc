@@ -44,7 +44,7 @@ import type { MaterialEntry } from "./surface";
 const defaults = {
   serumHue: 0.63,
   serumChroma: 0.85,
-  serumDensity: 2.8,
+  serumDensity: 2.2,
   serumMurk: 0.18,
   serumCoat: 0,
   serumIor: 1.38,
@@ -132,13 +132,18 @@ vec4 serumBubbleLayer(vec2 q, vec2 shift, float cell, float salt, float clusterS
   float inside = 1.0 - smoothstep(1.0 - aa, 1.0, d);
   // Deeper bubbles are seen through more liquid: softer, less contrast.
   float near = mix(1.0, 0.5, fract(h1 * 13.7 + h4));
-  float ringWidth = max(0.14, 1.6 * aa);
-  float ring = smoothstep(1.0 - 2.2 * ringWidth, 1.0 - 0.6 * ringWidth, d) * inside;
+  // Air in gel is a diverging lens: its rim turns the light away (a soft dark band, deepest on the side towards
+  // the key) and focuses it on the far side (a bright rim) — never an even outline.
+  float ringWidth = max(0.22, 2.0 * aa);
+  float rimBand = smoothstep(1.0 - 2.4 * ringWidth, 1.0 - 0.3 * ringWidth, d) * inside;
+  float side = dot(b / max(d, 1e-3), toKey);
+  float ring = rimBand * (0.35 + 0.65 * smoothstep(-0.6, 0.8, side));
+  float brightRim = rimBand * smoothstep(0.0, -0.9, side);
   float core = sqrt(max(1.0 - d * d, 0.0)) * inside;
   vec2 g1 = b - toKey * 0.5;
   float glint = exp(-dot(g1, g1) * mix(25.0, 140.0, smoothstep(3.0, 20.0, rpx))) * inside;
   vec2 g2 = b + toKey * 0.42;
-  lit = 0.5 * exp(-dot(g2, g2) * 5.0) * (1.0 - ring) * inside * near;
+  lit = (0.35 * exp(-dot(g2, g2) * 5.0) * (1.0 - rimBand) + 0.9 * brightRim) * inside * near;
   return vec4(ring * near, core * near, glint * near, inside);
 }
 
@@ -184,7 +189,9 @@ vec3 serumOf(Surface s) {
   float chord = max(-2.0 * dot(n, dir), 0.0);
   vec3 exitN = normalize(mix(normalize(n + dir * chord), base, serumBase));
   // A resting body's rounded edge: looking down there one looks through its bulging side, the longest way through.
-  float travelled = mix(chord * 0.6, thickness / max(dot(dir, base), 0.4) + 1.8 * pow(1.0 - clamp(s.nS.z, 0.0, 1.0), 1.5), serumBase);
+  // The rounded side is the longest way through: deep there, so no pale halo forms round the body.
+  float bulge = 1.8 * pow(1.0 - clamp(s.nS.z, 0.0, 1.0), 1.5);
+  float travelled = mix(chord * 0.6, thickness / max(dot(dir, base), 0.4), serumBase) + bulge;
   // Where the way out closes (total internal reflection) the ray turns back inside, blended over a narrow band of
   // angles: the face deepens into the wall smoothly, with no seam.
   float cosOut = dot(dir, exitN);
@@ -246,14 +253,15 @@ vec3 serumOf(Surface s) {
   vec2 hit = s.q + toQ * out3.xy * 0.6 * s.relief;
   vec2 focusAt = -keyQ * 0.25 * clamp(length(keyScreen.xy) * 1.5, 0.0, 1.0);
   float focus = exp(-dot(hit - focusAt, hit - focusAt) * 1.6) * smoothstep(0.0, 0.45, s.relief);
-  vec3 gathered = serumCaustic * 1.3 * focus * keyStrength * exp(-sigma * path * 0.7);
+  // Focused light has crossed little of the liquid: near-white at its hottest, tinted where it spreads.
+  vec3 gathered = serumCaustic * 1.6 * focus * keyStrength * exp(-sigma * path * mix(0.6, 0.15, focus));
   vec3 colour = ((room * (1.0 - seenGround) + ground * seenGround) * absorbed + gathered * seenGround) * through;
   // A little light scattered inside the gel, coloured by what it crossed.
   colour += serumHaze * 0.5 * irradiance(s.o, s.n) * (1.0 - exp(-vec3(path))) * exp(-sigma * path * 0.5) * (1.0 - fIn);
 
   // Bubbles: the liquid's own colour, ringed deeper, lighter in the core, a focused crescent and one tiny glint.
-  colour = mix(colour, colour * exp(-sigma * 0.9) * 0.75, bub.x);
-  colour *= 1.0 + lit * (0.3 + serumCaustic * 0.2);
+  colour = mix(colour, colour * exp(-sigma * 0.6) * 0.8, bub.x);
+  colour = mix(colour, mix(colour, vec3(1.0) * dot(colour, vec3(0.33)) * 1.8 + colour, 0.5), clamp(lit, 0.0, 1.0) * 0.6);
 
   // The meniscus: a thin deep line along the outline.
   float line = (1.0 - smoothstep(0.7, 3.0, s.edge)) * serumMeniscus * smoothstep(40.0, 80.0, px);
@@ -270,7 +278,9 @@ vec3 serumOf(Surface s) {
   }
   mirrored += 0.5 * groundLight * background * (1.0 - smoothstep(-0.1, 0.1, r.z));
   // Capped at grazing: a full mirror there would lay a pale halo round the body instead of a thin bright line.
-  colour += lightColour * mirrored * min(fIn, 0.3) * serumGloss;
+  // Weak over the turned-away band (else a grey halo lies round a dark body), full only in the last pixels.
+  float edgeLine = 1.0 - smoothstep(0.5, 2.0, s.edge);
+  colour += lightColour * mirrored * (min(fIn, 0.1) + 0.6 * edgeLine * fIn) * serumGloss;
   vec3 c = normalize(keyAt - s.o);
   float facingKey = dot(r, c);
   if (facingKey > 0.2 && serumBox > 0.0) {

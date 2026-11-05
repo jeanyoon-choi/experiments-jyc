@@ -41,6 +41,13 @@ const INSTANCE_FLOATS = BUBBLE_FLOATS * (1 + NEIGHBOURS) + 12;
 const LAYERS = FIELD_KINDS.length;
 /** Pages tracked for their morphs. */
 const MAX_TRACKED = 4096;
+/**
+ * A page's turn springs towards where it should face: it gathers speed (never starting at full speed) and settles
+ * with a slight give. Per second, and its damping ratio; a half turn peaks near 23 rad/s (22° a frame at 60 fps), is
+ * done in 0.3 s and overshoots by about 1° (user, 2026-11-04: 조금 더 찰지게, then faster still while it never jumps).
+ */
+const TURN_SPRING = 16;
+const TURN_DAMPING = 0.75;
 
 const VERTEX = /* glsl */ `#version 300 es
 layout(location = 0) in vec2 corner;
@@ -335,6 +342,12 @@ export type ObjectPass = {
   drawLab(lab: LabFrame, parameters: ObjectParameters): void;
   /** Whether a layer's field is ready. */
   ready(layer: number): boolean;
+  /**
+   * Per page, last frame: how far its drawn object reaches, as a share of its
+   * disc (size × its outline; 1 while it is the raft's sphere). The goldfish
+   * keep out of that disc, not the bare bubble's.
+   */
+  pageExtent: Float32Array;
   dispose(): void;
 };
 
@@ -392,6 +405,13 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
   const baked = new Array<boolean>(LAYERS).fill(false);
   /** Per layer, how far its outline reaches (the bubble's until it is baked). */
   const reach = new Float32Array(LAYERS).fill(1.05);
+  /** Per layer, how far its outline reaches in any direction. */
+  const outline = new Float32Array(LAYERS).fill(1.05);
+  const pageExtent = new Float32Array(MAX_TRACKED).fill(1);
+  /** Per page, the turn it was drawn at last frame (radians, not wrapped) and how fast it was turning. */
+  const pageTurn = new Float32Array(MAX_TRACKED);
+  const pageSpin = new Float32Array(MAX_TRACKED);
+  let lastTime = 0;
   const upload = (layer: number, field: Field, albedo: Uint8ClampedArray | null = null) => {
     if (albedo && scanSlot[layer]! >= 0) {
       gl.bindTexture(gl.TEXTURE_2D_ARRAY, portraits);
@@ -401,6 +421,7 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
     }
     baked[layer] = true;
     reach[layer] = field.reach;
+    outline[layer] = field.outline;
     gl.bindTexture(gl.TEXTURE_2D_ARRAY, fields);
     gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, layer, FIELD_SIZE, FIELD_SIZE, 1, gl.RGBA, gl.FLOAT, field.data);
     gl.generateMipmap(gl.TEXTURE_2D_ARRAY);
@@ -634,6 +655,8 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
       const kind: ObjectKind | null = caught && caught[page]! >= 0 ? (FIELD_KINDS[caught[page]!] as ObjectKind) : pageKind(page, parameters, time);
       return layerOf(kind);
     };
+    const dt = Math.min(0.1, Math.max(0, time - lastTime));
+    lastTime = time;
     const total = Math.min(count, maxBubbles);
     findNeighbours(total, parameters.size);
     let drawn = 0;
@@ -665,7 +688,9 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
         const want = wantOf(page);
         const state = pageLayer(page, want, time, parameters);
         // While the pages are spheres, one that is a bubble and stays one is the raft's: not drawn here.
-        if (!pageObjects && state.from === 0 && state.to === 0) continue;
+        const raft = !pageObjects && state.from === 0 && state.to === 0;
+        if (page < MAX_TRACKED) pageExtent[page] = raft ? 1 : parameters.size * Math.max(outline[state.from]!, outline[state.to]!);
+        if (raft) continue;
         flowFrom = state.from;
         flowTo = state.to;
         ({ shape, melt } = envelope((time - state.start) / parameters.duration, parameters));
@@ -682,9 +707,20 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
       // Its turn: none, its own fixed one (from its seed), or where it is heading.
       const spin = seed * 97.13;
       let turn = facing === 1 ? (spin - Math.floor(spin)) * Math.PI * 2 : facing === 2 ? headingOf[index]! : 0;
-      if (upright[flowTo]! || upright[flowFrom]!) {
-        const wrapped = Math.atan2(Math.sin(turn), Math.cos(turn));
-        turn = Math.max(-0.35, Math.min(0.35, wrapped)) * 0.5;
+      // Heads stay near upright, leaning a little the way they head, eased in and out with the morph into or out of a head.
+      const s = Math.min(1, Math.max(0, shape));
+      const keep = upright[flowFrom]! * (1 - s) + upright[flowTo]! * s;
+      if (keep > 0) {
+        const lean = Math.sin(turn) * 0.175;
+        turn = Math.atan2((1 - keep) * Math.sin(turn) + keep * Math.sin(lean), (1 - keep) * Math.cos(turn) + keep * Math.cos(lean));
+      }
+      // A page turns towards that, never in one frame: a heading that swings round, a morph into a head, a change of 각도.
+      if (index >= pageStartIndex && page < MAX_TRACKED) {
+        const was = pageTurn[page]!;
+        const spin = pageSpin[page]! + (TURN_SPRING * TURN_SPRING * Math.atan2(Math.sin(turn - was), Math.cos(turn - was)) - 2 * TURN_DAMPING * TURN_SPRING * pageSpin[page]!) * dt;
+        turn = was + spin * dt;
+        pageSpin[page] = spin;
+        pageTurn[page] = turn;
       }
       write(slot, flowFrom, flowTo, shape, melt, turn, frame.tints, page, parameters.brand);
       drawn += 1;
@@ -719,5 +755,5 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
     gl.deleteProgram(program);
   };
 
-  return { draw, drawLab, ready, dispose };
+  return { draw, drawLab, ready, pageExtent, dispose };
 }

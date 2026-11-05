@@ -302,7 +302,8 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     area: "screen",
     section: "dated",
     date: "2026-11-03",
-    phrase: "bubble/7 in a liquid film instead of coated steel — bubble/1's soap film over every bubble and object — with its objects in groups, a third of tech logos",
+    updated: "2026-11-04",
+    phrase: "bubble/7 beyond Koons's steel: materials to switch (liquid, gel, plaster and marble, concrete, glass, a maximal mix), objects in groups (tech logos, celebrity heads, currency signs) and up to 1,000 goldfish",
     load: () => import("./screen/bubble/8"),
   },
   {

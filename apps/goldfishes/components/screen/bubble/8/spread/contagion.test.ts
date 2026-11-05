@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createRankedWeb, MAX_PAGES } from "../web/model.ts";
-import { Contagion, SPREAD_DEFAULTS } from "./contagion.ts";
+import { Contagion, SPREAD_DEFAULTS as OPENING } from "./contagion.ts";
+
+// Spreading on its own: nothing fades (the opening fades after 20 s; that is tested below with 유지 시간).
+const SPREAD_DEFAULTS = { ...OPENING, keep: 0 };
 
 /** A row of pages, each pressed against the next. */
 function row(count: number) {

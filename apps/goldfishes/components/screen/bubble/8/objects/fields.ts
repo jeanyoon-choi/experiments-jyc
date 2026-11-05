@@ -41,6 +41,8 @@ export type Field = {
   membrane: Float32Array;
   /** How far the outline reaches from the centre along x or y at most (the square it is drawn in). */
   reach: number;
+  /** How far the outline reaches from the centre in any direction: the disc the goldfish keep out of. */
+  outline: number;
 };
 
 /** What the fields are kept for: the bubble (layer 0), then every kind. */
@@ -288,20 +290,24 @@ function fieldOfSurface(height: Float32Array, normal: Float32Array): Field {
       peak = Math.max(peak, data[at]!);
     }
   }
-  return { data, thickness, peak, membrane: membraneOf(data), reach: reachOf(data) };
+  return { data, thickness, peak, membrane: membraneOf(data), ...reachOf(data) };
 }
 
-/** The furthest texel inside the outline from the centre, along x or y (object units, a texel's margin). */
+/** The furthest texel inside the outline from the centre, along x or y (reach) and in any direction (outline); object units, a texel's margin. */
 function reachOf(data: Float32Array) {
   const unit = (FIELD_EXTENT * 2) / FIELD_SIZE;
   let reach = 0;
+  let outline = 0;
   for (let y = 0; y < FIELD_SIZE; y += 1) {
     for (let x = 0; x < FIELD_SIZE; x += 1) {
       if (data[(y * FIELD_SIZE + x) * 4 + 1]! >= 0) continue;
-      reach = Math.max(reach, Math.abs((x + 0.5) * unit - FIELD_EXTENT), Math.abs((y + 0.5) * unit - FIELD_EXTENT));
+      const px = Math.abs((x + 0.5) * unit - FIELD_EXTENT);
+      const py = Math.abs((y + 0.5) * unit - FIELD_EXTENT);
+      reach = Math.max(reach, px, py);
+      outline = Math.max(outline, px * px + py * py);
     }
   }
-  return Math.min(FIELD_EXTENT, reach + 2 * unit);
+  return { reach: Math.min(FIELD_EXTENT, reach + 2 * unit), outline: Math.sqrt(outline) + 2 * unit };
 }
 
 /** The bubble's field, exactly and at once (the raft's first frames need it): a unit sphere over its disc. */
@@ -329,7 +335,7 @@ function bubbleField(): Field {
       membrane[y * MEMBRANE_SIZE + x] = r < 1 ? Math.sqrt(1 - r * r) : 0;
     }
   }
-  return { data, thickness: 1, peak: 1, membrane, reach: 1 + 2 * unit };
+  return { data, thickness: 1, peak: 1, membrane, reach: 1 + 2 * unit, outline: 1 + 2 * unit };
 }
 
 /** The membrane over the outline (negative distance) in `data`, by over-relaxed Gauss–Seidel on a coarse grid. */

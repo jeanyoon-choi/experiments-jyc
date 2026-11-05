@@ -239,7 +239,8 @@ export const PRESET_3 = {
   // bubble/8: bubble/7's opening (크롬: its white ground, studio, light and view) with only the material turned to
   // the liquid film (user, 2026-11-03: nothing else was asked to change).
   // bubble/8 opens on 맥시멀 믹스 with every object group on (user, 2026-11-03).
-  visual: { ...LOOK_BASE, ...CHROME, ...materialLook(MIX_MATERIAL, MIX_MATERIAL.looks[0]!.look) } satisfies Visual,
+  // 버블 면적 0.55 (user, 2026-11-04).
+  visual: { ...LOOK_BASE, ...CHROME, ...materialLook(MIX_MATERIAL, MIX_MATERIAL.looks[0]!.look), area: 0.55 } satisfies Visual,
   fishCount: 380,
   fish: { ...FISH_DEFAULTS, scale: 0.65, speed: 2.2, follow: 0.6, novelty: 1, habituation: 1.75, span: 0.5, schooling: 2, patrol: 1 } satisfies FishParameters,
   fishPalette: "rose" as FishPaletteId,

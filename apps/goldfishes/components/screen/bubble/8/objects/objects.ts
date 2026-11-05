@@ -77,7 +77,8 @@ export const OBJECT_DEFAULTS = {
   pages: GROUPS.reduce((mask, group) => mask | groupBit(group), 0),
   // 왔다갔다 하는 것: SNS, hearts and likes only (user, 2026-10-25).
   portions: PORTION_SHOWS.indexOf("sns"),
-  size: 1,
+  // 1.2 (user, 2026-11-04): the goldfish keep out of the drawn outline, not the bubble's disc (ObjectPass.pageExtent).
+  size: 1.2,
   // 부풂 1.5 (user, 2026-10-25; bubble/5 opens at 0.2).
   puff: 1.5,
   // 각도: 움직이는 방향 (user, 2026-10-25).

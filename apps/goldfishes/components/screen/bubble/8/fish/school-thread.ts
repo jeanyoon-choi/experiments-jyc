@@ -376,6 +376,7 @@ export class SchoolThread {
     pageCount: number,
     parameters: FishParameters,
     life?: LifeContext,
+    pageExtent: Float32Array | null = null,
   ) {
     this.touchCount = 0;
     this.pending += seconds;
@@ -388,7 +389,7 @@ export class SchoolThread {
     const frame = this.frame;
     // Still with the worker: these seconds wait for the next frame.
     if (!frame) return;
-    this.fill(frame, web, shown, bubbles, bubbleCount, pageStart, pageCount, parameters, life);
+    this.fill(frame, web, shown, bubbles, bubbleCount, pageStart, pageCount, parameters, life, pageExtent);
     if (this.worker) {
       this.frame = null;
       this.worker.postMessage(frame, buffersOf(frame));
@@ -407,6 +408,7 @@ export class SchoolThread {
     pageCount: number,
     parameters: FishParameters,
     life: LifeContext | undefined,
+    pageExtent: Float32Array | null,
   ) {
     frame.width = this.width;
     frame.height = this.height;
@@ -433,6 +435,8 @@ export class SchoolThread {
     let links = 0;
     for (let page = 0; page < pageCount; page += 1) {
       frame.shown[page] = shown[page]!;
+      // The fish keep out of what is drawn there: an object reaches past its bubble's disc (size × its outline).
+      if (pageExtent && page < pageExtent.length) frame.bubbles[(pageStart + page) * 4 + 2] = bubbles[(pageStart + page) * 4 + 2]! * pageExtent[page]!;
       if (life) {
         life.colourOf(pageStart + page, colour);
         frame.coats[page * 3] = colour[0];

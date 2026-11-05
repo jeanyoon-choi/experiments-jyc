@@ -149,6 +149,8 @@ class RaftLoop implements FrameLoop {
   /** Time that stands still under reduced motion: the portions and the fish run on it. */
   private motionTime = 0;
   private bubbleCount = 0;
+  /** Per page, how far last frame's object reached past its disc (ObjectPass.pageExtent); null while none was drawn. */
+  private pageExtent: Float32Array | null = null;
   /** 오브제: the page each bubble belongs to (a portion, its source). */
   private readonly pageOf = new Int32Array(MAX_BUBBLES);
   /** 오브제 (각도 · 움직이는 방향): each bubble's heading, the angle that turns an object's top towards where it is going. */
@@ -345,6 +347,7 @@ class RaftLoop implements FrameLoop {
     else if (pageObjects) this.renderer.render(pageStart, look);
     else if (portionObjects) this.renderer.render(this.bubbleCount, look, pageStart);
     else this.renderer.render(this.bubbleCount, look);
+    this.pageExtent = pageObjects || portionObjects ? this.objectPass.pageExtent : null;
     if (pageObjects || portionObjects) {
       const frame: ObjectFrame = {
         time: raft.time,
@@ -561,7 +564,7 @@ class RaftLoop implements FrameLoop {
     const drawnPages = this.bubbleCount - pageStart;
     this.lifeContext.parameters = settings.life;
     const schoolStart = MEASURE ? performance.now() : 0;
-    school.step(step, web, shown, bubbles, this.bubbleCount, pageStart, drawnPages, settings.fish, this.lifeContext);
+    school.step(step, web, shown, bubbles, this.bubbleCount, pageStart, drawnPages, settings.fish, this.lifeContext, this.pageExtent);
     if (MEASURE) this.schoolCost = this.schoolCost * 0.95 + (performance.now() - schoolStart) * 0.05;
     school.drainContact(drawnPages, attention);
     // 연결: what each fish has just reached, for pc/mobiles (link/feed.ts).
