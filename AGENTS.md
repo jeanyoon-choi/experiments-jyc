@@ -39,6 +39,7 @@
 - Data/math/input/transport changes do not authorize visual changes. Preserve unmentioned geometry, typography, spacing, interaction, and domain language; reuse existing visual primitives.
 - Derive new interfaces from the participant's perceptual/action task. Avoid generic themed dashboards, fake live/debug chrome, decorative labels, captions, footers, badges, and dividers. Use spacing and typography for hierarchy.
 - Non-scrollable content fits the viewport. Fixed-format artifacts scale internal text, spacing, and controls with their container at usable visual size.
+- Goldfishes bubble objects (any new object or sign group): the object is only a volume and the chosen material covers every object whole — no own colours, lines or textures, no flat slabs, slightly abstracted rather than super-real; accept only in the running raft under 쿤스 and 맥시멀 믹스. Read [object party rules](apps/goldfishes/docs/agent-onboarding.md#object-party-rules) first.
 - Never add unmeasured GPU/particle cost that risks freezing the device. Read the particle safety budget before particle/compute work.
 - Never use iframes to show clones, apps, or experiments inside another page (grids, side-by-side, multi-phone fields). Render the components directly; scope viewport units, pointer scale, and document-wide effects to each instance.
 

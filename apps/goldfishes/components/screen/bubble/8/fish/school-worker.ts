@@ -1,7 +1,7 @@
 // The goldfish school's own thread (school-thread.ts): each frame message is
 // stepped and sent straight back, its buffers handed over rather than copied.
 
-import { SchoolCore, type SchoolFrame } from "./school-thread.ts";
+import { SchoolCore, type SchoolFrame } from "./school-core.ts";
 
 let core: SchoolCore | null = null;
 

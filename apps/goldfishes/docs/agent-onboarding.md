@@ -25,6 +25,16 @@ Unmentioned properties are invariants. A geometry change does not authorize new 
 - Preserve legible fish anatomy, heading, tail motion, gathering, and collision behavior. Materials must not stretch, seam, flip, crop unintentionally, or flicker identity.
 - Stable identities stay stable across redraw, resize, and theme changes unless the experiment explicitly resamples them. Keep workload bounded; distinguish an architectural bound from an FPS result.
 
+## Object party rules
+
+For any new object or sign group in the bubble family (bubble/5 onward: 기호의 파티, 오브제 대잔치, any new kinds). Learnt from bubble/9's failed first catalogue ([record](./screen/bubble/9.md#failure-the-first-catalogue-broke-the-objectmaterial-contract-2026-11-05)).
+
+- **Object and material are decomposed, never bound.** An object is only a shape (a field: height and normal). Its look is the material chosen in 비주얼 → 재질, the same for every object: under 쿤스 (코팅) every object is that coating, under 맥시멀 믹스 each takes its coat colour over its whole body. A new kind never carries its own colours, printed lines, textures or a separate albedo path. The photo colour of 유명인 얼굴 and the brand colour of 테크 로고 are opt-in sliders at 0, and nothing new adds to them.
+- **Volume first.** Every kind is a volume. Flat signs (icons, logos, glyphs) are blown up as a balloon over their outline, as 테크 로고, 통화 기호 and SNS are (`fields.ts`, membrane ∇²u = −1, height 2√u). Never a flat slab with engraved lines, since reflective materials show one patch of room on a flat face. A sign with no possible volume (line diagrams, notation, charts) is not a kind.
+- **Slightly abstracted, not super-real.** Keep the silhouette and the main masses that make the thing recognisable. Drop grilles, vents, lettering, lattices, wires and hairlines; thin structures become plump parts. Match the chunkiness of bubble/5–8's models (rocket, robot, GPU card), not CAD.
+- **Check in the raft, under the materials.** Before passing a kind, look at it in the running route in 쿤스 (코팅) and 맥시멀 믹스 beside bubble/5–8's objects (통화 기호 and 유명인 얼굴 are the reference that passed). A plaster-lit contact sheet is not acceptance.
+- **Never decide for the user.** Do not leave out, swap or rename kinds the user asked for, or switch some off; report doubts instead.
+
 ## Archive workflow
 
 1. Inspect status, the registry, target date folder, and untracked files. Treat all concurrent work as owned.

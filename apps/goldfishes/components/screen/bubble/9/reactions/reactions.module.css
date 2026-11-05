@@ -1,0 +1,13 @@
+/* 반응's kinds in the fish panel: each fold's title led by its glyph. */
+.kindHeading {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  vertical-align: middle;
+}
+
+.kindHeading span {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
