@@ -35,7 +35,7 @@
 // were replaced by 017 Mustafa Suleyman and 078 Bill Gates; 002 Zuckerberg is
 // the only portrait of him in the set and stays turned.
 
-import type { FaceKind } from "./groups.ts";
+import type { FaceKind } from "../kinds/groups.ts";
 
 /** A face in its portrait: centre x, y and height chin to hairline, image pixels; `turn`, where its nose points when the face is turned, face heights right of the centre. */
 export type FaceBox = { readonly x: number; readonly y: number; readonly h: number; readonly turn?: number };
@@ -112,7 +112,7 @@ function bump(x: number, y: number, x0: number, y0: number, sx: number, sy: numb
  * A sculptor's face, height in face heights at x, y (face heights, the face's centre at the origin, the eyes
  * 0.08 above it): the nose and what is between brow and chin moved `turn` sideways.
  */
-export function formAt(x: number, y: number, turn = 0) {
+function formAt(x: number, y: number, turn = 0) {
   const nose = x - turn;
   const middle = x - turn * 0.6;
   let h = 0;

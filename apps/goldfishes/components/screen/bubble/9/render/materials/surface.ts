@@ -25,6 +25,10 @@ export type MaterialEntry<Values extends Record<string, number>> = {
   defaults: Values;
   controls: readonly MaterialControl[];
   looks: readonly { id: string; label: string; look: Partial<Values> & Record<string, number | Colour> }[];
+  /** Its own colour chips (user, 2026-11-05), shown after the shared coats and before 섞음. */
+  coats?: readonly { id: string; label: string; colour: Colour }[];
+  /** What choosing a colour (a chip, 섞음 or the picker) also sets, so the colour takes (젤: 코팅 색 사용 1). */
+  coatChosen?: Partial<Values>;
 };
 
 export const SURFACE = /* glsl */ `

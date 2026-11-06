@@ -41,7 +41,7 @@ import {
   siUbereats, siVenmo, siViber, siVinted, siWaze, siWebtoon, siWechat, siWhatsapp, siWise, siX, siXiaohongshu,
   siYoutube, siZhihu, siZomato,
 } from "simple-icons";
-import { subpathsOf } from "../marks.ts";
+import { subpathsOf } from "../shapes/marks.ts";
 import type { CatalogueGroup, CatalogueKind, Paint, ReliefLayer } from "./types.ts";
 
 // ── marks copied from @lobehub/icons-static-svg (MIT) ──

@@ -10,7 +10,7 @@
 // This file is the single registry. Each kind names how its field is made
 // (fields.ts):
 //   inflated — a flat outline blown up as a balloon (shapes.ts),
-//   model    — a hard-surface mesh (models.ts, gpu.ts),
+//   model    — a hard-surface mesh (models.ts, gpu-card.ts),
 //   mark     — an SVG mark filled and blown up as one membrane (marks.ts),
 //   face     — a person's head (두상) as a 3D scan: their silhouette, volume and photo colour (faces.ts),
 //   glyph    — a type glyph's outline, made bold and blown up as a mark is (currency.ts).
@@ -26,8 +26,8 @@
 // (`sub`, the panels' folds). They start off in the pages' mask, so the opening is bubble/8's. Their kinds' ids are
 // plain strings: ObjectKind keeps the five groups' literal ids and admits any other.
 
-import { CATALOGUE } from "./catalogue/index.ts";
-import type { CatalogueGroup, ModelMake, ReliefMake } from "./catalogue/types.ts";
+import { CATALOGUE } from "../catalogue/index.ts";
+import type { CatalogueGroup, ModelMake, ReliefMake } from "../catalogue/types.ts";
 
 export type KindSource = "inflated" | "model" | "mark" | "face" | "glyph" | "relief";
 
@@ -137,7 +137,7 @@ export type CurrencyKind = keyof (typeof OBJECT_GROUPS)["currency"]["kinds"];
 
 export const BASE_GROUPS = Object.keys(OBJECT_GROUPS) as BaseGroup[];
 
-/** Ids a catalogue kind may not take: the bubble's, and the objects' own settings (objects.ts) and their `On` keys. */
+/** Ids a catalogue kind may not take: the bubble's, and the objects' own settings (parameters.ts) and their `On` keys. */
 const RESERVED = new Set(["bubble", "page", "pages", "portions", "size", "puff", "facing", "change", "portionMorph", "brand", "faceColour", "duration", "melt", "soften", "wobble", "ripple", "overshoot", "swell", "mercury"]);
 
 export type MergedGroup = { id: string; label: string; kinds: { id: string; entry: KindEntry }[] };

@@ -2,10 +2,10 @@
 
 // bubble/9: bubble/8 copied whole (2026-11-05): its bugs fixed first, then a new vocabulary of signs (docs/screen/bubble/9.md).
 // bubble/8: bubble/7 copied (2026-11-03), its material a liquid film (bubble/1's soap film: render/film.ts, 비주얼 → 재질)
-// instead of Koons's coated steel, and its objects in formal groups (objects/groups.ts), a third of tech logos.
+// instead of Koons's coated steel, and its objects in formal groups (objects/kinds/groups.ts), a third of tech logos.
 // bubble/7: bubble/6 copied, with modes at the bottom left (panels/mode-control.tsx):
 // 군집 (the raft), 전파 (strains spreading through it, spread/) and 랩 (one object at
-// a time on the liquid morph, objects/morph.ts). bubble/6: bubble/5 copied, the web's attention bounded and tiring so it
+// a time on the liquid morph, objects/morph/morph.ts). bubble/6: bubble/5 copied, the web's attention bounded and tiring so it
 // keeps churning without a few pages taking it all (web/model.ts). bubble/5:
 // bubble/4 copied, its pages shown as 3D objects in the bubbles' material (objects/). bubble/4 was bubble/3's material lab, copied as the
 // start of the goldfish's lifecycle. This component holds the panels' state and the pointer. Folders: web/ (model), raft/ (layout, views, shared
@@ -16,7 +16,7 @@ import styles from "./bubble-three.module.css";
 import { startFrameLoop, type FrameLoop, type LoopSettings } from "./render/frame-loop";
 import { BubbleFeed, FEED_ENABLED } from "./link/feed"; // 연결
 import { ModeControl, type Mode } from "./panels/mode-control"; // 모드
-import { LAB_DEFAULTS, type LabSettings } from "./objects/lab"; // 랩
+import { LAB_DEFAULTS, type LabSettings } from "./objects/morph/lab"; // 랩
 import { SPREAD_DEFAULTS, type SpreadParameters } from "./spread/contagion"; // 전파
 import { FISH_DEFAULTS, type FishPaletteId, type FishParameters } from "./fish/goldfish";
 import type { LifeParameters } from "./fish/lifecycle";
@@ -26,14 +26,14 @@ import { NetworkPanel, type Rates } from "./panels/network-panel";
 import { PanelTriggers } from "./panels/panel-triggers";
 import { SoundPanel } from "./panels/sound-panel";
 import { VisualPanel } from "./panels/visual-panel";
-import { ObjectPanel } from "./objects/object-panel"; // 오브제
+import { ObjectPanel } from "./objects/panel/object-panel"; // 오브제
 import { Raft } from "./raft/raft";
 import { DEFAULT_FISH_PALETTE, DEFAULT_INFLUENCE, FEEDBACK_DEFAULTS, FIRST_BACKGROUND, lookOf, PRESET_3, saveSnapshot, SECOND_BACKGROUND, type Feedback, type PanelId, type Visual } from "./settings";
 import { SOUND_DEFAULTS, type SoundParameters } from "./sound/sound";
 import { useTouchSound } from "./sound/use-touch-sound";
 import type { ViewId } from "./raft/views";
 import type { ReactionParameters } from "./reactions/reactions"; // 반응
-import type { ObjectParameters } from "./objects/objects"; // 오브제
+import type { ObjectParameters } from "./objects/kinds/parameters"; // 오브제
 
 const DRAG_THRESHOLD = 6;
 /** 전파: a stroke brings in a newcomer every this many CSS px of its path (finger skating). */

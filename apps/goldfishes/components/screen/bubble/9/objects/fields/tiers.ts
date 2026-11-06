@@ -27,7 +27,7 @@ const FULL_PAINT = 256;
 
 export type Tier = 0 | 1 | 2 | 3;
 export const TIERS: readonly Tier[] = [0, 1, 2, 3];
-export const TOP_TIER: Tier = 3;
+const TOP_TIER: Tier = 3;
 /** Each tier's field, membrane and paint, texels per side. */
 export const TIER_FIELD = [64, 128, 256, 512] as const;
 export const TIER_MEMBRANE = [32, 64, 128, 128] as const;
@@ -46,7 +46,7 @@ export const ADDRESS_BRAND = 16384;
 export const levelsOf = (size: number) => Math.log2(size) + 1;
 
 /** Bytes of a mip chain of `size`² texels of `bytes` each. */
-export function chainBytes(size: number, bytes: number) {
+function chainBytes(size: number, bytes: number) {
   let total = 0;
   for (let side = size; side >= 1; side /= 2) total += side * side * bytes;
   return total;

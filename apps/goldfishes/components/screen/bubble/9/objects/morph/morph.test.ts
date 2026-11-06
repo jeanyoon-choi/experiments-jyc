@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { FIELD_EXTENT, FIELD_SIZE, fieldOf, MEMBRANE_SIZE } from "./fields.ts";
-import { KIND } from "./groups.ts";
+import { FIELD_EXTENT, FIELD_SIZE, fieldOf, MEMBRANE_SIZE } from "../fields/fields.ts";
+import { KIND } from "../kinds/groups.ts";
 import { LIQUID_DEFAULTS } from "./liquid.ts";
 import { envelope, FIELD_KINDS, nextInSequence, passage, retarget, spring } from "./morph.ts";
 

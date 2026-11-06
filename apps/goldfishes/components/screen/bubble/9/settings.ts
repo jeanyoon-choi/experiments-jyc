@@ -8,7 +8,7 @@ import { FISH_DEFAULTS, type FishPaletteId, type FishParameters } from "./fish/g
 import { LIFE_DEFAULTS, type LifeParameters } from "./fish/lifecycle";
 import { ATTENDED_QUALITY, DEFAULT_DAMPING, DEFAULT_PARAMETERS, FLOOR_RANGE } from "./web/model";
 import { REACTION_DEFAULTS } from "./reactions/reactions"; // 반응
-import { OBJECT_DEFAULTS } from "./objects/objects"; // 오브제
+import { OBJECT_DEFAULTS } from "./objects/kinds/parameters"; // 오브제
 
 /** Share of the field's area that all pages together cover; area = displayed rank × this. 0.4 (user, 2026-10-12; /2 keeps 0.3). */
 export const AREA_BUDGET = 0.4;
@@ -106,7 +106,7 @@ export const PHOTO_ROOMS = [
   { mode: 6, label: "일론 머스크" },
 ] as const;
 
-/** Coats; 섞음 gives each sphere one of five (magenta, yellow, blue, orange, red). */
+/** Coats; 섞음 gives each sphere one of its own (render/materials/coats.ts: a palette spread in OKLab). */
 export const COATINGS: readonly { id: string; label: string; colour: Colour | null }[] = [
   { id: "crimson", label: "크림슨", colour: [0.82, 0.04, 0.1] },
   { id: "magenta", label: "마젠타", colour: [0.92, 0.1, 0.48] },
@@ -118,6 +118,17 @@ export const COATINGS: readonly { id: string; label: string; colour: Colour | nu
   { id: "porcelain", label: "흰색", colour: [0.93, 0.89, 0.86] },
   { id: "mix", label: "섞음", colour: null },
 ];
+
+/** The colour chips under a material: the shared coats, the material's own (액체, 젤, 유리), then 섞음. */
+export function coatingsOf(material: number): readonly { id: string; label: string; colour: Colour | null }[] {
+  const own = materialOf(material)?.coats ?? [];
+  return [...COATINGS.filter((option) => option.colour !== null), ...own, ...COATINGS.filter((option) => option.colour === null)];
+}
+
+/** What choosing a colour under a material also sets so that it takes (젤: 코팅 색 사용). */
+export function coatChosenOf(material: number): Partial<Visual> {
+  return (materialOf(material)?.coatChosen ?? {}) as Partial<Visual>;
+}
 
 export const COLOUR_CONTROLS = [
   { key: "lightColour", label: "빛" },

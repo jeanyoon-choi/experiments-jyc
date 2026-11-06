@@ -14,7 +14,7 @@
 // Pure CPU state per page, stepped by the frame loop; the object pass tints the
 // coat by it (and morphs the shape, 모양도 전파).
 
-import { groupBit } from "../objects/objects.ts";
+import { groupBit } from "../objects/kinds/parameters.ts";
 import { MAX_PAGES, type RankedWeb } from "../web/model.ts";
 
 /** The strains' colours, one per newcomer in turn: Squid Game's pink and teal, acid yellow, electric blue, orange. */

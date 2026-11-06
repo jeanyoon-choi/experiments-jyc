@@ -234,7 +234,11 @@ vec3 serumOf(Surface s) {
   vec3 hueRgb = clamp(abs(mod(serumHue * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
   vec3 tint = mix(vec3(1.0), hueRgb, serumChroma);
   tint = mix(tint, clamp(s.albedo, vec3(0.03), vec3(1.0)), max(serumCoat, s.dyed));
-  vec3 sigma = -log(clamp(tint, vec3(0.03), vec3(1.0))) * serumDensity + vec3(serumMurk);
+  // A chosen coat (코팅 색 사용) shows in every look: a clear drop's thin dye is held up to the blue gel's depth, an
+  // oil's murk eased so its colour still reads through the dark (user, 2026-11-05). Off (each look's own colour), unchanged.
+  float coatOn = clamp(serumCoat, 0.0, 1.0);
+  float density = mix(serumDensity, max(serumDensity, 2.2), coatOn);
+  vec3 sigma = -log(clamp(tint, vec3(0.03), vec3(1.0))) * density + vec3(serumMurk * mix(1.0, 0.5, coatOn));
   // Marbled serums carry denser and thinner streams of the colour itself.
   sigma *= mix(1.0, 0.45 + 1.1 * marble, serumSwirl * serumSwirl * 0.8);
   float scale = clamp(pow(px / 60.0, 0.15), 0.85, 1.2);
@@ -300,6 +304,9 @@ vec3 serumOf(Surface s) {
 `,
   call: "serumOf",
   defaults,
+  // Its own colour is 색상 · 채도 until a colour is chosen: choosing one turns 코팅 색 사용 on, or the coat would only
+  // dye a logo's brand and the body would stay the look's blue (user, 2026-11-05: "젤/세럼 색 선택이 안 먹음").
+  coatChosen: { serumCoat: 1 },
   controls: [
     { key: "serumHue", label: "색상", min: 0, max: 1, step: 0.005 },
     { key: "serumChroma", label: "채도 (0 맑음 · 1 진한 색)", min: 0, max: 1, step: 0.01 },

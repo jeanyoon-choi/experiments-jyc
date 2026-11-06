@@ -6,8 +6,8 @@
 
 import type * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import { FIELD_EXTENT, FIELD_SIZE, fieldOfSurface, rasterise, SUPERSAMPLE, type Field } from "../fields.ts";
-import { fitted } from "../shapes.ts";
+import { FIELD_EXTENT, FIELD_SIZE, fieldOfSurface, rasterise, SUPERSAMPLE, type Field } from "../fields/fields.ts";
+import { fitted } from "../shapes/shapes.ts";
 import type { ModelMake } from "./types.ts";
 
 function plain(geometry: THREE.BufferGeometry) {
@@ -18,7 +18,7 @@ function plain(geometry: THREE.BufferGeometry) {
 }
 
 /** The model's mesh in the raft's frame, fitted to the disc. */
-export function meshOfModel(make: ModelMake, detailed = true) {
+function meshOfModel(make: ModelMake, detailed = true) {
   const parts = make.parts(detailed).map(plain);
   const merged = mergeGeometries(parts, false);
   if (!merged) throw new Error("model: its parts do not merge (mixed attributes?)");

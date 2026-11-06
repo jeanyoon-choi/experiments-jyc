@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BoxGeometry, CylinderGeometry } from "three";
-import { bakeMake, tiersOf } from "./bake.ts";
-import type { CatalogueGroup } from "./catalogue/types.ts";
-import { FIELD_SIZE } from "./fields.ts";
-import { BASE_GROUPS, GROUPS, KIND, KINDS_OF, mergedCatalogue, OBJECT_KINDS, SUBGROUPS_OF } from "./groups.ts";
-import { groupBit, hashOf, kindIn, kindsInUse, OBJECT_DEFAULTS, onCount, pageKind, type ObjectParameters, withKinds } from "./objects.ts";
-import { TIER_FIELD, TIER_MEMBRANE, TIER_PAINT, TIERS } from "./tiers.ts";
+import { bakeMake, tiersOf } from "../fields/bake.ts";
+import type { CatalogueGroup } from "./types.ts";
+import { FIELD_SIZE } from "../fields/fields.ts";
+import { BASE_GROUPS, GROUPS, KIND, KINDS_OF, mergedCatalogue, OBJECT_KINDS, SUBGROUPS_OF } from "../kinds/groups.ts";
+import { groupBit, hashOf, kindIn, kindsInUse, OBJECT_DEFAULTS, onCount, pageKind, type ObjectParameters, withKinds } from "../kinds/parameters.ts";
+import { TIER_FIELD, TIER_MEMBRANE, TIER_PAINT, TIERS } from "../fields/tiers.ts";
 
 const TILE = "M2 2H22V22H2Z";
 const SAMPLE: CatalogueGroup = {

@@ -2,16 +2,16 @@
 // bubble/6), 전파 (the raft, strains of colour and object spreading through it)
 // and 랩 (one object at a time, to tune the liquid morph and the material).
 // Each mode's own settings fold out above the switch, the less used folded again (2026-11-05); the liquid's are the
-// objects' (objects.ts), so whatever is tuned in the 랩 is what the raft does.
+// objects' (objects/kinds/parameters.ts), so whatever is tuned in the 랩 is what the raft does.
 
 import { useState, type Dispatch, type SetStateAction } from "react";
 import base from "../bubble-three.module.css";
 import { Chip, Chips, Note, Reset, Section, Slider } from "./controls";
-import { LAB_DEFAULTS, type LabSettings } from "../objects/lab";
-import { LIQUID_CONTROLS, LIQUID_DEFAULTS, type LiquidControl } from "../objects/liquid";
-import { BASE_PANEL_GROUPS, KindChips } from "../objects/kind-chips";
-import { LAB_SEQUENCE_LABELS, LAB_SEQUENCES } from "../objects/morph";
-import { GROUPS, hasGroup, KINDS_OF, OBJECT_LABELS, SHOW_LABELS, toggledGroup, type ObjectKind, type ObjectParameters } from "../objects/objects";
+import { LAB_DEFAULTS, type LabSettings } from "../objects/morph/lab";
+import { LIQUID_CONTROLS, LIQUID_DEFAULTS, type LiquidControl } from "../objects/morph/liquid";
+import { BASE_PANEL_GROUPS, KindChips } from "../objects/panel/kind-chips";
+import { LAB_SEQUENCE_LABELS, LAB_SEQUENCES } from "../objects/morph/morph";
+import { GROUPS, hasGroup, KINDS_OF, OBJECT_LABELS, SHOW_LABELS, toggledGroup, type ObjectKind, type ObjectParameters } from "../objects/kinds/parameters";
 import { SPREAD_CONTROLS, SPREAD_DEFAULTS, SPREAD_ROUTE_LABELS, SPREAD_ROUTES, STRAINS, type SpreadControl, type SpreadParameters } from "../spread/contagion";
 import styles from "./mode-control.module.css";
 

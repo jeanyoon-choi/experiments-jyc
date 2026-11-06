@@ -29,15 +29,15 @@
 
 import { BUBBLE_FLOATS, type FoamRenderer } from "../render/foam";
 import { SHADING } from "../render/shading";
-import { tiersOf, type TierData } from "./bake";
-import { FIELD_EXTENT, FIELD_SIZE, fieldOf } from "./fields";
-import type { FieldAnswer, FieldRequest } from "./field-worker";
-import type { Liquid } from "./liquid";
-import { envelope, FIELD_KINDS, layerOf, passage, retarget, type Morph } from "./morph";
-import { KIND, type LogoKind } from "./groups";
-import { brandOf } from "./marks";
-import { kindsInUse, pageKind, pagesAreObjects, portionKind, type ObjectKind, type ObjectParameters } from "./objects";
-import { ADDRESS_BRAND, ADDRESS_TIER, levelsOf, poolsFor, Residency, TIER_FIELD, TIER_MEMBRANE, TIER_PAINT, TIERS, type Tier } from "./tiers";
+import { tiersOf, type TierData } from "./fields/bake";
+import { FIELD_EXTENT, FIELD_SIZE, fieldOf } from "./fields/fields";
+import type { FieldAnswer, FieldRequest } from "./fields/field-worker";
+import type { Liquid } from "./morph/liquid";
+import { envelope, FIELD_KINDS, layerOf, passage, retarget, type Morph } from "./morph/morph";
+import { KIND, type LogoKind } from "./kinds/groups";
+import { brandOf } from "./shapes/marks";
+import { kindsInUse, pageKind, pagesAreObjects, portionKind, type ObjectKind, type ObjectParameters } from "./kinds/parameters";
+import { ADDRESS_BRAND, ADDRESS_TIER, levelsOf, poolsFor, Residency, TIER_FIELD, TIER_MEMBRANE, TIER_PAINT, TIERS, type Tier } from "./fields/tiers";
 
 /** Neighbours each object mirrors, nearest first. */
 const NEIGHBOURS = 4;
@@ -547,7 +547,7 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
     }
   };
   for (let index = 0; index < workerCount; index += 1) {
-    const worker = new Worker(new URL("./field-worker.ts", import.meta.url), { type: "module" });
+    const worker = new Worker(new URL("./fields/field-worker.ts", import.meta.url), { type: "module" });
     worker.onmessage = (event: MessageEvent<FieldAnswer>) => {
       if (disposed) return;
       baking[event.data.layer] = 0;
@@ -629,21 +629,22 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
   };
   const findNeighbours = (count: number, size: number) => {
     const bubbles = foam.bubbles;
+    const grown = Math.max(1, size);
     nearIds.fill(-1, 0, count * NEIGHBOURS);
     for (let index = 0; index < count; index += 1) {
       order[index] = index;
-      lefts[index] = bubbles[index * 4]! - bubbles[index * 4 + 2]! * Math.max(1, size) * 1.4;
+      lefts[index] = bubbles[index * 4]! - bubbles[index * 4 + 2]! * grown * 1.4;
     }
     const sorted = order.subarray(0, count).sort((a, b) => lefts[a]! - lefts[b]!);
     for (let at = 0; at < count; at += 1) {
       const a = sorted[at]!;
       const ax = bubbles[a * 4]!;
       const ay = bubbles[a * 4 + 1]!;
-      const ar = bubbles[a * 4 + 2]! * Math.max(1, size) * 1.4;
+      const ar = bubbles[a * 4 + 2]! * grown * 1.4;
       for (let next = at + 1; next < count; next += 1) {
         const b = sorted[next]!;
         if (lefts[b]! > ax + ar) break;
-        const br = bubbles[b * 4 + 2]! * Math.max(1, size) * 1.4;
+        const br = bubbles[b * 4 + 2]! * grown * 1.4;
         const dx = bubbles[b * 4]! - ax;
         const dy = bubbles[b * 4 + 1]! - ay;
         const reach = ar + br;
@@ -660,9 +661,14 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
   const pageTo = new Int16Array(MAX_TRACKED).fill(-1);
   const pageStart = new Float64Array(MAX_TRACKED);
   const morph: Morph = { from: 0, to: 0, start: 0 };
+  /** pageLayer's answer, reused: it is read at once, per page per frame. */
+  const answer: Morph = { from: 0, to: 0, start: 0 };
   /** The layer a page is shown as now, its morph moved on if what it should be has changed. */
-  const pageLayer = (page: number, want: number, time: number, liquid: Liquid) => {
-    if (page >= MAX_TRACKED) return { from: want, to: want, start: -Infinity };
+  const pageLayer = (page: number, want: number, time: number, liquid: Liquid): Morph => {
+    answer.from = want;
+    answer.to = want;
+    answer.start = -Infinity;
+    if (page >= MAX_TRACKED) return answer;
     if (pageTo[page]! < 0) {
       pageFrom[page] = want;
       pageTo[page] = want;
@@ -676,7 +682,10 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
       pageTo[page] = morph.to;
       pageStart[page] = morph.start;
     }
-    return { from: pageFrom[page]!, to: pageTo[page]!, start: pageStart[page]! };
+    answer.from = pageFrom[page]!;
+    answer.to = pageTo[page]!;
+    answer.start = pageStart[page]!;
+    return answer;
   };
 
   // Each logo's brand colour by layer (테크 로고; marks.ts), the others none.
@@ -784,6 +793,8 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
       const kind: ObjectKind | null = caught && caught[page]! >= 0 ? (FIELD_KINDS[caught[page]!] as ObjectKind) : pageKind(page, parameters, time);
       return layerOf(kind);
     };
+    /** The layer a page is shown as: where its morph is going, or what it should be if not tracked yet. */
+    const shownAs = (other: number) => (other < MAX_TRACKED && pageTo[other]! >= 0 ? pageTo[other]! : wantOf(other));
     const dt = Math.min(0.1, Math.max(0, time - lastTime));
     lastTime = time;
     const total = Math.min(count, maxBubbles);
@@ -802,7 +813,6 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
         if (portionMorph && target >= 0) {
           // Its source page's shape → its own (bubble, heart, tech, …) → the shape of the page it reaches.
           const own = layerOf(portionKind(page, seed, parameters));
-          const shownAs = (other: number) => (other < MAX_TRACKED && pageTo[other]! >= 0 ? pageTo[other]! : wantOf(other));
           ({ from: flowFrom, to: flowTo, shape, melt } = passage(frame.travelOf[index]!, shownAs(page), own, shownAs(target), parameters));
           // All bubbles, end to end: the raft's own sphere.
           if (flowFrom === 0 && flowTo === 0 && !pageObjects) continue;

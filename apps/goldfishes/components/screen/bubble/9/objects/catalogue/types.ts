@@ -1,5 +1,5 @@
 // 기호의 파티 (bubble/9, user 2026-11-05): the catalogue of new object groups — UI icons as shipped, app icons,
-// AI start-ups' marks, stock tickers, and the dollar and cent.
+// AI start-ups' marks and stock tickers.
 // Each group is one module in this folder exporting a CatalogueGroup; index.ts lists them and groups.ts
 // merges them with bubble/5–8's groups, so a group's agent edits only its own module.
 //
@@ -42,9 +42,6 @@ export type ReliefMake = {
   readonly layers: readonly ReliefLayer[];
   /** How far the object reaches from its centre, in disc radii (MARK_FILL 1.18 by default). */
   readonly fill?: number;
-  /** A relief over the whole viewBox added to the balloons where they cover (a coin's die, a note's print): 8-bit
-   * heights, 128 = 0, base64, row-major; `depth` the height of ±127 in object units. */
-  readonly detail?: { readonly width: number; readonly height: number; readonly data: string; readonly depth: number };
 };
 
 export type ModelMake = {

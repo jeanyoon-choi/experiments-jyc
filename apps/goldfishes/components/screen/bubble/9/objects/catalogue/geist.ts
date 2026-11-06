@@ -1,8 +1,8 @@
 // Geist Regular outlines (Vercel, SIL Open Font License 1.1; the copy that ships with Next.js,
 // next/dist/compiled/@vercel/og/Geist-Regular.ttf), read from its glyf table (quadratic contours as written): per
-// character its advance and path, em 100, y down, baseline 0. For the catalogue's lettering (tickers.ts, money.ts).
+// character its advance and path, em 100, y down, baseline 0. For the catalogue's lettering (tickers.ts).
 
-export const GEIST: Record<string, readonly [number, string]> = {
+const GEIST: Record<string, readonly [number, string]> = {
   "0": [66.3, "M33.1 1.6Q24.5 1.6 18.2 -2.9Q11.9 -7.4 8.5 -15.7Q5 -24 5 -35.4Q5 -46.8 8.5 -55.1Q11.9 -63.5 18.2 -68Q24.5 -72.6 33.1 -72.6Q41.8 -72.6 48.1 -68Q54.4 -63.5 57.9 -55.2Q61.3 -46.9 61.3 -35.4Q61.3 -24 57.9 -15.7Q54.4 -7.4 48.1 -2.9Q41.8 1.6 33.1 1.6ZM33.1 -6.8Q42.3 -6.8 47.3 -14.2Q52.3 -21.7 52.3 -35.4Q52.3 -49.2 47.3 -56.7Q42.3 -64.2 33.1 -64.2Q24 -64.2 19 -56.7Q14 -49.2 14 -35.4Q14 -21.7 19 -14.2Q24 -6.8 33.1 -6.8Z"],
   "1": [38.4, "M18.8 0L18.8 -52.6L4 -52.6L4 -60L10 -60Q15.9 -60 18.3 -62.3Q20.6 -64.7 20.6 -71L27.4 -71L27.4 0L18.8 0Z"],
   "2": [61.9, "M6 0Q6 -7.5 8.4 -13.5Q10.7 -19.6 16.7 -25.1Q22.6 -30.6 33.2 -36.2Q38.1 -38.8 41.1 -41Q44.1 -43.2 45.5 -45.7Q46.9 -48.2 46.9 -51.8Q46.9 -57.3 43.4 -60.7Q39.8 -64.2 32.7 -64.2Q25.2 -64.2 20.9 -60.3Q16.5 -56.4 15.4 -49.2L6.4 -49.8Q7.6 -60.2 14.4 -66.4Q21.2 -72.6 32.7 -72.6Q43.7 -72.6 49.8 -66.9Q55.9 -61.2 55.9 -52Q55.9 -46.6 54.1 -42.7Q52.3 -38.7 48.1 -35.3Q43.8 -31.9 36.4 -28Q26.8 -22.9 21.9 -17.7Q16.9 -12.5 16.6 -8.4L55.9 -8.4L55.9 0L6 0Z"],

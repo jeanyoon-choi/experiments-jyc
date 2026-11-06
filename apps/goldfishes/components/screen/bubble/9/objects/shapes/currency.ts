@@ -9,7 +9,7 @@
 // y 20.4. Geist has no ₩ or ₿; they are constructed from its W and B as noted.
 // Regular is thin; the weight comes from GLYPH_BOLD, not from a bolder font.
 
-import type { CurrencyKind } from "./groups";
+import type { CurrencyKind } from "../kinds/groups";
 
 /** How far a glyph's fill grows all round before it is blown up, object units (the disc's radius is 1). */
 export const GLYPH_BOLD = 0.072;

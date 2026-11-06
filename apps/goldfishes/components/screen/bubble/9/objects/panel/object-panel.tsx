@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { Chip, Chips, Note, Panel, Reset, Section, Slider } from "../panels/controls";
+import { Chip, Chips, Note, Panel, Reset, Section, Slider } from "../../panels/controls";
 import { BASE_PANEL_GROUPS, CATALOGUE_PANEL_GROUPS, Fold } from "./kind-chips";
 import {
   OBJECT_CONTROLS,
@@ -20,7 +20,7 @@ import {
   toggledGroup,
   type ObjectControl,
   type ObjectParameters,
-} from "./objects";
+} from "../kinds/parameters";
 
 type Props = {
   objects: ObjectParameters;

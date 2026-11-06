@@ -3,13 +3,13 @@
 // re-render as the 랩's morph moves on). bubble/5–8's kinds stay as they were, one row of chips.
 
 import type { ReactNode } from "react";
-import { Chip, Chips, Section } from "../panels/controls";
-import { CATALOGUE_GROUP_IDS, GROUP_LABEL, GROUPS, KINDS_OF, SUBGROUPS_OF, type ObjectGroup, type ObjectKind } from "./objects";
+import { Chip, Chips, Section } from "../../panels/controls";
+import { CATALOGUE_GROUP_IDS, GROUP_LABEL, GROUPS, KINDS_OF, SUBGROUPS_OF, type ObjectGroup, type ObjectKind } from "../kinds/parameters";
 
 /** A fold under a rule (오브제's 세부), its content made only while open; `id` keeps it open or closed per viewer. */
 export function Fold({ id, summary, children }: { id: string; summary: ReactNode; children: () => ReactNode }) {
   return (
-    <Section id={id} title={summary}>
+    <Section id={id} title={summary} defaultOpen={false}>
       {children}
     </Section>
   );

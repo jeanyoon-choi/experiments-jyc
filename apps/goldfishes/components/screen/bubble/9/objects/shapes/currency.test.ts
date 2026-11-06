@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { GLYPHS } from "./currency.ts";
-import { FIELD_SIZE, fieldOf } from "./fields.ts";
-import { KIND, KINDS_OF } from "./groups.ts";
+import { FIELD_SIZE, fieldOf } from "../fields/fields.ts";
+import { KIND, KINDS_OF } from "../kinds/groups.ts";
 import { polygonsOf } from "./marks.ts";
 
 test("every currency sign parses into closed polygons inside its 24 box", () => {

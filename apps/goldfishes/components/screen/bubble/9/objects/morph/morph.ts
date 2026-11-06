@@ -12,8 +12,8 @@
 //          settles (말랑말랑), so the liquid seems to have mass.
 // The shader (object-pass.ts) turns (from, to, shape, melt) into a surface.
 
-import { OBJECT_KINDS, type ObjectKind } from "./objects.ts";
-import type { FieldKind } from "./fields";
+import { OBJECT_KINDS, type ObjectKind } from "../kinds/parameters.ts";
+import type { FieldKind } from "../fields/fields";
 import type { Liquid } from "./liquid.ts";
 
 /** The fields' layers: the bubble first, then every kind. */
@@ -66,7 +66,7 @@ const PASSAGE_LEG = 0.42;
 export type Morph = { from: number; to: number; start: number };
 
 /** The layer the morph shows most of at `time`: where a new morph starts from. */
-export function dominant(morph: Morph, time: number, liquid: Liquid) {
+function dominant(morph: Morph, time: number, liquid: Liquid) {
   return (time - morph.start) / liquid.duration >= 0.45 ? morph.to : morph.from;
 }
 

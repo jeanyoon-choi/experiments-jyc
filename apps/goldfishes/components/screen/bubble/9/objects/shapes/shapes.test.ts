@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GROUPS, KIND, KINDS_OF, type ObjectGroup } from "./groups.ts";
+import { GROUPS, KIND, KINDS_OF, type ObjectGroup } from "../kinds/groups.ts";
 import { polygonsOf, MARKS } from "./marks.ts";
-import { groupBit, OBJECT_DEFAULTS, OBJECT_KINDS, pageKind, pagesAreObjects, PORTION_SHOWS, portionKind, type ObjectParameters } from "./objects.ts";
+import { groupBit, OBJECT_DEFAULTS, OBJECT_KINDS, pageKind, pagesAreObjects, PORTION_SHOWS, portionKind, type ObjectParameters } from "../kinds/parameters.ts";
 import { shapeOf, type MeshKind } from "./shapes.ts";
 
 test("every object builds, in both levels, rising from z 0 within its reach of the disc", () => {

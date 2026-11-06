@@ -14,7 +14,7 @@
 // https://developer.apple.com/design/human-interface-guidelines/color (systemRed #FF3B30, systemGreen #34C759) and
 // https://m3.material.io/styles/color/roles (error #B3261E, primary #6750A4).
 
-import { MARK_FILL, subpathsOf } from "../marks.ts";
+import { MARK_FILL, subpathsOf } from "../shapes/marks.ts";
 import type { CatalogueGroup, CatalogueKind, Paint, ReliefMake } from "./types.ts";
 
 const BOX = [0, 0, 24, 24] as const;

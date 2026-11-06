@@ -3,12 +3,12 @@
 // catalogue/model.ts) with their own paint. Kept apart from fields.ts so the catalogue's modules, which build on
 // fields.ts, never import it back. The workers (field-worker.ts) and the tests bake through here.
 
-import { fieldOfModel } from "./catalogue/model.ts";
-import { fieldOfRelief } from "./catalogue/relief.ts";
-import type { ModelMake, ReliefMake } from "./catalogue/types.ts";
-import { ALBEDO_SIZE, FACES, headAlbedo, loadPortrait, type Portrait } from "./faces.ts";
+import { fieldOfModel } from "../catalogue/model.ts";
+import { fieldOfRelief } from "../catalogue/relief.ts";
+import type { ModelMake, ReliefMake } from "../catalogue/types.ts";
+import { ALBEDO_SIZE, FACES, headAlbedo, loadPortrait, type Portrait } from "../shapes/faces.ts";
 import { FIELD_EXTENT, FIELD_SIZE, fieldOf, fieldOfHead, MEMBRANE_SIZE, type Field, type FieldKind } from "./fields.ts";
-import { KIND, type FaceKind } from "./groups.ts";
+import { KIND, type FaceKind } from "../kinds/groups.ts";
 import { chainOf, fieldLevel, membraneLevel, paintChainOf, paintLevel, sliceChain, toHalf, type Tier } from "./tiers.ts";
 
 /** What its paint is: a face's photograph (얼굴 사진 색), a catalogue kind's own colours (브랜드 색), or none. */
@@ -26,7 +26,7 @@ export function bakeMake(make: ReliefMake | ModelMake): Baked {
 }
 
 /** A catalogue kind's field and paint, at once. */
-export function bakeCatalogue(kind: FieldKind): Baked {
+function bakeCatalogue(kind: FieldKind): Baked {
   const make = kind === "bubble" ? undefined : KIND[kind]?.make;
   if (!make) throw new Error(`${kind}: not a catalogue kind`);
   return bakeMake(make);

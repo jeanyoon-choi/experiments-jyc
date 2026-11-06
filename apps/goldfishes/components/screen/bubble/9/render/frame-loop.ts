@@ -18,9 +18,9 @@ import { Reactions } from "../reactions/reaction-state"; // 반응
 import type { ReactionMeshes } from "../reactions/reaction-meshes"; // 반응
 import type { ReactionParameters } from "../reactions/reactions"; // 반응
 import { createObjectPass, type ObjectFrame, type ObjectPass } from "../objects/object-pass"; // 오브제
-import { OBJECT_KINDS, pagesAreObjects, PORTION_SHOWS, type ObjectParameters } from "../objects/objects"; // 오브제
-import { FIELD_KINDS, layerOf, nextInSequence, retarget, type Morph } from "../objects/morph"; // 랩
-import type { LabSettings } from "../objects/lab"; // 랩
+import { OBJECT_KINDS, pagesAreObjects, PORTION_SHOWS, type ObjectParameters } from "../objects/kinds/parameters"; // 오브제
+import { FIELD_KINDS, layerOf, nextInSequence, retarget, type Morph } from "../objects/morph/morph"; // 랩
+import type { LabSettings } from "../objects/morph/lab"; // 랩
 import type { BubbleFeed } from "../link/feed"; // 연결
 import { Contagion, type SpreadParameters } from "../spread/contagion"; // 전파
 
@@ -194,7 +194,7 @@ class RaftLoop implements FrameLoop {
       const visual = this.settings.current.visual;
       const seed = this.renderer.bubbles[bubble * BUBBLE_FLOATS + 3]!;
       const pick = seed * 7.31 - Math.floor(seed * 7.31);
-      const coat = visual.coatingMix > 0.5 ? MIXED_COATS[Math.min(4, Math.floor(pick * 5))]! : visual.coating;
+      const coat = visual.coatingMix > 0.5 ? MIXED_COATS[Math.min(MIXED_COATS.length - 1, Math.floor(pick * MIXED_COATS.length))]! : visual.coating;
       out[0] = coat[0];
       out[1] = coat[1];
       out[2] = coat[2];

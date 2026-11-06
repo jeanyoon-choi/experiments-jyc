@@ -1,5 +1,5 @@
 // 랩 (user, 2026-10-27): instead of the raft's thousand bubbles, one object at a
-// time, large, in the same material and on the same liquid (objects.ts's
+// time, large, in the same material and on the same liquid (parameters.ts's
 // parameters, which the raft reads too): a place to fine-tune shapes and the
 // morph between them, and to try materials, whose every change the raft (군집)
 // takes on at once.

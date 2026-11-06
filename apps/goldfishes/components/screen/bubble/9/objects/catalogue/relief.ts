@@ -5,8 +5,8 @@
 // a little bolder first); the first is the body, later ones swell on it (0.5) or
 // press into it (negative heights, 0.3). Paint-only layers (height 0) and `paint` make no volume and are ignored:
 // the object is one material.
-import { distanceTo, FIELD_EXTENT, FIELD_SIZE, fieldOfSurface, MARK_HEIGHT, MARK_MEMBRANE, solveMembrane, SUPERSAMPLE, type Field } from "../fields.ts";
-import { MARK_FILL, subpathsOf } from "../marks.ts";
+import { distanceTo, FIELD_EXTENT, FIELD_SIZE, fieldOfSurface, MARK_HEIGHT, MARK_MEMBRANE, solveMembrane, SUPERSAMPLE, type Field } from "../fields/fields.ts";
+import { MARK_FILL, subpathsOf } from "../shapes/marks.ts";
 import type { ReliefMake } from "./types.ts";
 
 type Point = [number, number];
@@ -125,30 +125,9 @@ function balloonOf(coverage: Uint8Array) {
   return out;
 }
 
-/** The make's detail relief (types.ts) as a height at a fine texel, read bilinearly over the viewBox; null if none. */
-function detailOf(make: ReliefMake, toBox: (gx: number, gy: number) => Point) {
-  const detail = make.detail;
-  if (!detail) return null;
-  const bytes = Uint8Array.from(atob(detail.data), (c) => c.charCodeAt(0));
-  const [vx, vy, vw, vh] = make.viewBox;
-  const { width, height, depth } = detail;
-  const at = (x: number, y: number) => (bytes[Math.min(height - 1, Math.max(0, y)) * width + Math.min(width - 1, Math.max(0, x))]! - 128) / 127;
-  return (gx: number, gy: number) => {
-    const [bx, by] = toBox(gx, gy);
-    const u = ((bx - vx) / vw) * width - 0.5;
-    const v = ((by - vy) / vh) * height - 0.5;
-    if (u < -0.5 || v < -0.5 || u > width - 0.5 || v > height - 0.5) return 0;
-    const x = Math.floor(u);
-    const y = Math.floor(v);
-    const tx = u - x;
-    const ty = v - y;
-    return depth * ((at(x, y) * (1 - tx) + at(x + 1, y) * tx) * (1 - ty) + (at(x, y + 1) * (1 - tx) + at(x + 1, y + 1) * tx) * ty);
-  };
-}
-
 /** A relief's field (no paint: the material covers it whole). */
 export function fieldOfRelief(make: ReliefMake): { field: Field; albedo: null } {
-  const { scale, toGrid, toBox } = frameOf(make);
+  const { scale, toGrid } = frameOf(make);
   const size = MARK_MEMBRANE;
   const ratio = FINE / size;
   const bold = BOLD / UNIT;
@@ -180,7 +159,6 @@ export function fieldOfRelief(make: ReliefMake): { field: Field; albedo: null } 
     return MARK_HEIGHT * Math.max(0, value);
   };
   const step = (FIELD_EXTENT * 2) / size;
-  const detailAt = detailOf(make, toBox);
   const height = new Float32Array(FINE * FINE).fill(-Infinity);
   const normal = new Float32Array(FINE * FINE * 2);
   for (let y = 0; y < FINE; y += 1) {
@@ -189,16 +167,10 @@ export function fieldOfRelief(make: ReliefMake): { field: Field; albedo: null } 
       if (!covered[at]) continue;
       const gx = (x + 0.5) / ratio - 0.5;
       const gy = (y + 0.5) / ratio - 0.5;
-      let hx = (heightAt(gx + 0.5, gy) - heightAt(gx - 0.5, gy)) / step;
-      let hy = (heightAt(gx, gy + 0.5) - heightAt(gx, gy - 0.5)) / step;
-      let h = heightAt(gx, gy);
-      if (detailAt) {
-        h += detailAt(x, y);
-        hx += (detailAt(x + 1, y) - detailAt(x - 1, y)) / (2 * UNIT);
-        hy += (detailAt(x, y + 1) - detailAt(x, y - 1)) / (2 * UNIT);
-      }
+      const hx = (heightAt(gx + 0.5, gy) - heightAt(gx - 0.5, gy)) / step;
+      const hy = (heightAt(gx, gy + 0.5) - heightAt(gx, gy - 0.5)) / step;
       const length = Math.hypot(hx, hy, 1);
-      height[at] = h;
+      height[at] = heightAt(gx, gy);
       normal[at * 2] = -hx / length;
       normal[at * 2 + 1] = -hy / length;
     }

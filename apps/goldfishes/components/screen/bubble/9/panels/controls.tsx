@@ -114,7 +114,8 @@ type SectionProps = {
 };
 
 /** A fold under a rule, its arrow the disclosure marker; children made only while open. */
-export function Section({ id, title, value, defaultOpen = false, children }: SectionProps) {
+// Open by default (user, 2026-11-05: what was open before the folds stays open); only 세부 folds start closed.
+export function Section({ id, title, value, defaultOpen = true, children }: SectionProps) {
   const [open, setOpen] = useState(() => storedOpen(id, defaultOpen));
   return (
     <details

@@ -15,11 +15,11 @@
 // coarser in a field of its own: a height made from the distance to the edge
 // alone creases along the shape's middle (its medial axis), the membrane never does.
 
-import { headSurface, type FaceBox, type Portrait } from "./faces.ts";
-import { GLYPHS, GLYPH_BOLD } from "./currency.ts";
-import { KIND, type CurrencyKind, type LogoKind, type ObjectKind } from "./groups.ts";
-import { coverageOf, MARK_FILL, MARKS } from "./marks.ts";
-import { shapeOf, type MeshKind, type ShapeMesh } from "./shapes.ts";
+import { headSurface, type FaceBox, type Portrait } from "../shapes/faces.ts";
+import { GLYPHS, GLYPH_BOLD } from "../shapes/currency.ts";
+import { KIND, type CurrencyKind, type LogoKind, type ObjectKind } from "../kinds/groups.ts";
+import { coverageOf, MARK_FILL, MARKS } from "../shapes/marks.ts";
+import { shapeOf, type MeshKind, type ShapeMesh } from "../shapes/shapes.ts";
 
 /** The field covers [−EXTENT, EXTENT]² of the object's frame (objects reach at most 1.4 of the disc). */
 export const FIELD_EXTENT = 1.5;
@@ -156,7 +156,7 @@ export function distanceTo(target: (at: number) => boolean, size: number) {
 }
 
 /** A mesh's field (see the header). */
-export function fieldOfMesh(mesh: ShapeMesh): Field {
+function fieldOfMesh(mesh: ShapeMesh): Field {
   const fine = FIELD_SIZE * SUPERSAMPLE;
   const { height, normal } = rasterise(mesh, fine);
   return fieldOfSurface(height, normal);

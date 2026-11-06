@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { ALBEDO_SIZE, FACES, HEAD_REACH, headAlbedo, headFrame, headSurface, type Portrait } from "./faces.ts";
-import { FIELD_EXTENT, fieldOfHead } from "./fields.ts";
-import { KINDS_OF } from "./groups.ts";
+import { FIELD_EXTENT, fieldOfHead } from "../fields/fields.ts";
+import { KINDS_OF } from "../kinds/groups.ts";
 
 const SIZE = 192;
 

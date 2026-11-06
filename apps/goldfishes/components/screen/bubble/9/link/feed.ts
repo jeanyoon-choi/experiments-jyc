@@ -10,15 +10,15 @@
 // link (slots.mjs), so tuning them is a reload.
 //
 // The keyword vocabulary is this screen's own: a later bubble/N with other
-// objects changes objects/groups.ts (each kind's `feed`) and nothing else.
+// objects changes objects/kinds/groups.ts (each kind's `feed`) and nothing else.
 
 import { FeedScreenLink, type FeedKeyword } from "@/components/transport/feed/1";
 import type { Fish } from "../fish/goldfish";
-import { FIELD_KINDS } from "../objects/morph";
-import { KIND, OBJECT_KINDS } from "../objects/groups";
-import { pageKind, type ObjectParameters } from "../objects/objects";
+import { FIELD_KINDS } from "../objects/morph/morph";
+import { KIND, OBJECT_KINDS } from "../objects/kinds/groups";
+import { pageKind, type ObjectParameters } from "../objects/kinds/parameters";
 
-/** Every kind with the keyword the feed shows for it (objects/groups.ts), then the bubble. */
+/** Every kind with the keyword the feed shows for it (objects/kinds/groups.ts), then the bubble. */
 export const VOCABULARY: FeedKeyword[] = [
   ...OBJECT_KINDS.map((kind) => ({ id: kind, label: KIND[kind].feed, set: KIND[kind].group })),
   { id: "bubble", label: "Bubble", set: "bubble" },

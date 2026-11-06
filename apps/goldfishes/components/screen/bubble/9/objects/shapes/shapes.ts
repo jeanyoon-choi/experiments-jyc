@@ -11,9 +11,9 @@
 // few parts in one material: a part laid on another (the robot's eyes, the
 // GPU's fans) rises from its height there.
 
-import { gpuGeometry } from "./gpu.ts";
+import { gpuGeometry } from "./gpu-card.ts";
 import { isModel, modelGeometry } from "./models.ts";
-import type { BaseKind, CurrencyKind, FaceKind, LogoKind } from "./groups";
+import type { BaseKind, CurrencyKind, FaceKind, LogoKind } from "../kinds/groups";
 
 /** The kinds built as meshes (the logos are marks: marks.ts; the faces are heads: faces.ts; the currency signs glyphs: currency.ts). */
 export type MeshKind = Exclude<BaseKind, LogoKind | FaceKind | CurrencyKind>;
@@ -100,7 +100,7 @@ function partsOf(kind: MeshKind): Part[] {
       return [part(cloud, 1.1, { height: 0.8, profile: 2.2, sectors: 96, rings: 12 })];
     }
     case "gpu":
-      // Hard-surface, not inflated: gpu.ts.
+      // Hard-surface, not inflated: gpu-card.ts.
       return [];
     case "chat": {
       // A chatbot's speech bubble, its tail to the lower left, three dots on it (typing).

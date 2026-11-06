@@ -14,12 +14,15 @@
 // then (변신), portions under way morph from their source page into what they carry and on into the page they reach
 // (모핑), and the 랩 shows one object at a time to tune the liquid on.
 //
-// The whole feature is this folder; object-pass.ts draws the objects on the
+// The whole feature is objects/: kinds/ (this file and the registry, groups.ts),
+// catalogue/ (bubble/9's groups), shapes/ (how each source makes its volume),
+// fields/ (the bakes, their tiers and the workers), morph/ (the liquid and the
+// 랩), panel/ (오브제's controls); object-pass.ts draws the objects on the
 // raft's canvas with the raft's own shading (render/shading.ts), so every look
 // and material carries over unchanged.
 
 import { BASE_GROUPS, CATALOGUE_GROUP_IDS, type BaseKind, GROUP_LABEL, GROUPS, KIND, KINDS_OF, OBJECT_GROUPS, OBJECT_KINDS, SUBGROUPS_OF, type ObjectGroup, type ObjectKind } from "./groups.ts";
-import { LIQUID_DEFAULTS, type Liquid } from "./liquid.ts";
+import { LIQUID_DEFAULTS, type Liquid } from "../morph/liquid.ts";
 
 export { CATALOGUE_GROUP_IDS, GROUP_LABEL, GROUPS, KINDS_OF, OBJECT_GROUPS, OBJECT_KINDS, SUBGROUPS_OF, type ObjectGroup, type ObjectKind };
 

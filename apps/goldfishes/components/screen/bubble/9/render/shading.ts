@@ -5,20 +5,15 @@
 // parameter is a uniform of the same name, set by FoamRenderer.shade.
 
 import { MATERIAL_DEFAULTS, MATERIAL_GLSL, type MaterialValues } from "./materials";
+import { MIXED_COAT_GLSL, MIXED_COATS } from "./materials/coats";
 
 // A sphere's coat: chosen, its hue drifting a little by 구슬마다 차이. (Uses hash.)
 export const COAT = /* glsl */ `
 uniform vec3 coating;                 // the coat's colour
-uniform float coatingMix;             // 1: each sphere takes one of five coats instead
+uniform float coatingMix;             // 1: each sphere takes one of 섞음's coats instead
 uniform float variety;                // each sphere a little its own: its turn to the light, roughness, hue
-// Five coats for 섞음: magenta, yellow, blue, orange, red.
-vec3 mixedCoat(float pick) {
-  if (pick < 0.2) return vec3(0.92, 0.1, 0.48);
-  if (pick < 0.4) return vec3(1.0, 0.78, 0.1);
-  if (pick < 0.6) return vec3(0.08, 0.26, 0.95);
-  if (pick < 0.8) return vec3(1.0, 0.4, 0.06);
-  return vec3(0.95, 0.07, 0.08);
-}
+// 섞음's coats (materials/coats.ts): a palette spread in OKLab, any two far apart.
+${MIXED_COAT_GLSL}
 vec3 coatOf(float seed) {
   vec3 coat = coatingMix > 0.5 ? mixedCoat(fract(seed * 7.31)) : coating;
   // A slight drift of hue and depth, as between batches of paint.
@@ -220,14 +215,9 @@ export const FACE_ENVIRONMENT = 6;
 
 export type Colour = readonly [number, number, number];
 
-/** 섞음's five coats (magenta, yellow, blue, orange, red), as the shader's mixedCoat picks them by fract(seed × 7.31). */
-export const MIXED_COATS: readonly Colour[] = [
-  [0.92, 0.1, 0.48],
-  [1, 0.78, 0.1],
-  [0.08, 0.26, 0.95],
-  [1, 0.4, 0.06],
-  [0.95, 0.07, 0.08],
-];
+/** 섞음's coats (materials/coats.ts), as the shader's mixedCoat picks them by fract(seed × 7.31). */
+export { MIXED_COATS };
+export { mixedCoatOf } from "./materials/coats";
 
 /** The renderer's visual parameters; every one is a uniform of the same name (see the shader for each). */
 export type Look = {

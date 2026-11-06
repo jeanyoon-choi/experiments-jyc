@@ -8,7 +8,7 @@ import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { deflateSync } from "node:zlib";
-import { FIELD_SIZE } from "../fields.ts";
+import { FIELD_SIZE } from "../fields/fields.ts";
 import { fieldOfModel } from "./model.ts";
 import { fieldOfRelief } from "./relief.ts";
 import type { CatalogueGroup, CatalogueKind } from "./types.ts";

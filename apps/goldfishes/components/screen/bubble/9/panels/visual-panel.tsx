@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import styles from "../bubble-three.module.css";
 import {
-  COATINGS,
+  coatChosenOf,
   COLOUR_CONTROLS,
   fromHex,
   FAMILY_OPENING,
@@ -19,6 +19,9 @@ import {
 } from "../settings";
 import { materialOf } from "../render/materials";
 import { Chip, Chips, Note, Panel, Reset, Section, Slider } from "./controls";
+import { useState } from "react";
+import { hsl, hslOf } from "../render/materials/coats";
+import folds from "./panels.module.css";
 
 type Props = {
   visual: Visual;
@@ -26,6 +29,42 @@ type Props = {
   /** Saves every panel's current values as a JSON file (a look to add as a 연출 button). */
   onExport: () => void;
 };
+
+/**
+ * The coat by HSL (user, 2026-11-06: no named palettes): 색상, 채도 and 명도 sliders, and 섞음 (each sphere and object
+ * its own, render/materials/coats.ts). Moving a slider picks one colour for all; the hue is kept while the colour is grey.
+ */
+function HslCoat({ visual, setVisual }: { visual: Visual; setVisual: Dispatch<SetStateAction<Visual>> }) {
+  const [h, sat, light] = hslOf(visual.coating);
+  const [kept, setKept] = useState(h);
+  const hue = sat > 0.001 && light > 0.001 && light < 0.999 ? h : kept;
+  const set = (next: [number, number, number]) =>
+    setVisual((current) => ({ ...current, ...coatChosenOf(current.material), coatingMix: 0, coating: [...hsl(...next)] as Visual["coating"] }));
+  const mixed = visual.coatingMix === 1;
+  return (
+    <>
+      <Chips label="섞음">
+        <Chip pressed={mixed} onClick={() => setVisual((current) => ({ ...current, ...coatChosenOf(current.material), coatingMix: mixed ? 0 : 1 }))}>
+          섞음
+        </Chip>
+      </Chips>
+      <div className={folds.hsl}>
+        <label title={`${Math.round(hue)}°`}>
+          H
+          <input aria-label="H" type="range" min={0} max={360} step={1} value={Math.round(hue)} onChange={(event) => { const value = Number(event.target.value); setKept(value); set([value, sat, light]); }} />
+        </label>
+        <label title={`${Math.round(sat * 100)}%`}>
+          S
+          <input aria-label="S" type="range" min={0} max={100} step={1} value={Math.round(sat * 100)} onChange={(event) => set([hue, Number(event.target.value) / 100, light])} />
+        </label>
+        <label title={`${Math.round(light * 100)}%`}>
+          L
+          <input aria-label="L" type="range" min={0} max={100} step={1} value={Math.round(light * 100)} onChange={(event) => set([hue, sat, Number(event.target.value) / 100])} />
+        </label>
+      </div>
+    </>
+  );
+}
 
 /** The look a 연출 button gives: the opening values, then its own. The raft's area and flow stay unless the look sets them. */
 function withLook(current: Visual, look: Partial<Visual>): Visual {
@@ -102,19 +141,7 @@ export function VisualPanel({ visual, setVisual, onExport }: Props) {
       </Chips>
       <Section id="visual/colour" title="색">
         <Note>{colourLabel === "코팅" ? "코팅" : `${colourLabel} 색`}</Note>
-        <Chips label="코팅">
-          {COATINGS.map((option) => (
-            <Chip
-              key={option.id}
-              pressed={option.colour === null ? visual.coatingMix === 1 : visual.coatingMix === 0 && toHex(visual.coating) === toHex(option.colour)}
-              onClick={() =>
-                setVisual((current) => (option.colour === null ? { ...current, coatingMix: 1 } : { ...current, coatingMix: 0, coating: option.colour }))
-              }
-            >
-              {option.label}
-            </Chip>
-          ))}
-        </Chips>
+        <HslCoat visual={visual} setVisual={setVisual} />
         <div className={styles.colours}>
           <label>
             <input
@@ -123,7 +150,7 @@ export function VisualPanel({ visual, setVisual, onExport }: Props) {
               value={toHex(visual.coating)}
               onChange={(event) => {
                 const coating = fromHex(event.target.value);
-                setVisual((current) => ({ ...current, coating, coatingMix: 0 }));
+                setVisual((current) => ({ ...current, ...coatChosenOf(current.material), coating, coatingMix: 0 }));
               }}
             />
             {colourLabel}
