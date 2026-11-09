@@ -6,6 +6,7 @@ import { TRACED, type TracedKey } from "./traced";
 
 const TAU = Math.PI * 2;
 const rad = (deg: number) => (deg * Math.PI) / 180;
+const len0 = (size: number) => 50 * size;
 
 /** Line weight of the cut rubber: about 0.4 mm on a 20 mm stamp. */
 export const LW = 18;
@@ -206,11 +207,21 @@ export class Pen {
         ctx.lineWidth = opts.outline;
         ctx.strokeText(g, gx, 0);
       } else {
-        ctx.fillText(g, gx, 0);
+        this.glyph(key, size, g, gx, 0);
       }
       cursor += widths[i] + tracking;
     });
     ctx.restore();
+  }
+
+  /** Cut rubber never holds a hairline: thin faces are cut a little bolder. */
+  private glyph(key: FontKey, size: number, g: string, x: number, y: number) {
+    const { ctx } = this;
+    ctx.fillText(g, x, y);
+    if (key === "dodum") {
+      ctx.lineWidth = size * 0.07;
+      ctx.strokeText(g, x, y);
+    }
   }
 
   /**
@@ -239,7 +250,7 @@ export class Pen {
       ctx.save();
       ctx.translate(500 + Math.cos(a) * r, 500 + Math.sin(a) * r);
       ctx.rotate(side === "top" ? a + Math.PI / 2 : a - Math.PI / 2);
-      ctx.fillText(g, 0, 0);
+      this.glyph(key, size, g, 0, 0);
       ctx.restore();
     });
   }
@@ -1031,42 +1042,71 @@ export class Pen {
     this.star(x, y, r * 0.5, true);
   }
 
-  laurel(r: number, from = 205, to = 335, leaves = 9, size = 1, lw = LW) {
+  /**
+   * Two leafy branches rising from the base to either side of the crown.
+   * Angles run from the bottom centre (0°) up the right side to the top (180°);
+   * the left branch mirrors the right.
+   */
+  laurel(r: number, from = 25, to = 150, leaves = 9, size = 1, lw = LW, bow = true) {
     const { ctx } = this;
-    for (const side of [-1, 1]) {
-      // Stem.
+    for (const side of [1, -1]) {
+      ctx.save();
+      ctx.translate(500, 0);
+      ctx.scale(side, 1);
+      ctx.translate(-500, 0);
+      const at = (deg: number) => [500 + Math.sin(rad(deg)) * r, 500 + Math.cos(rad(deg)) * r] as const;
       ctx.beginPath();
       for (let i = 0; i <= 60; i += 1) {
-        const deg = from + ((to - from) * i) / 60;
-        const a = rad(side === 1 ? deg : 180 - deg);
-        const px = 500 + Math.cos(a) * r;
-        const py = 500 - Math.sin(a) * r;
+        const [px, py] = at(from + ((to - from) * i) / 60);
         if (i === 0) ctx.moveTo(px, py);
         else ctx.lineTo(px, py);
       }
       this.stroke(lw * 0.7);
       for (let i = 0; i < leaves; i += 1) {
-        const deg = from + ((to - from) * (i + 0.5)) / leaves;
-        const a = rad(side === 1 ? deg : 180 - deg);
-        const px = 500 + Math.cos(a) * r;
-        const py = 500 - Math.sin(a) * r;
-        // Tangent pointing up the branch (towards its tip).
-        const tx = -Math.sin(a) * side;
-        const ty = -Math.cos(a) * side;
-        const ang = Math.atan2(ty, tx);
-        const len = 46 * size * (1 - (i / leaves) * 0.25);
+        const deg = from + ((to - from) * (i + 0.6)) / leaves;
+        const [px, py] = at(deg);
+        const a = rad(deg);
+        // Direction of growth (towards the tip) and outward normal.
+        const grow = Math.atan2(-Math.sin(a), Math.cos(a));
+        const len = 50 * size * (1 - (i / leaves) * 0.3);
         for (const out of [1, -1]) {
-          const nx = Math.cos(a) * out;
-          const ny = -Math.sin(a) * out;
           ctx.save();
-          ctx.translate(px + nx * len * 0.42, py + ny * len * 0.42);
-          ctx.rotate(ang + (out * side * -0.55));
+          ctx.translate(px + Math.sin(a) * out * len * 0.18, py + Math.cos(a) * out * len * 0.18);
+          ctx.rotate(grow - out * 0.6);
           ctx.beginPath();
-          ctx.ellipse(len * 0.25, 0, len * 0.55, len * 0.2, 0, 0, TAU);
+          ctx.ellipse(len * 0.5, 0, len * 0.55, len * 0.2, 0, 0, TAU);
           ctx.fill();
           ctx.restore();
         }
       }
+      // Tip leaf.
+      const [tx, ty] = at(to);
+      const ta = rad(to);
+      ctx.save();
+      ctx.translate(tx, ty);
+      ctx.rotate(Math.atan2(-Math.sin(ta), Math.cos(ta)));
+      ctx.beginPath();
+      ctx.ellipse(len0(size) * 0.4, 0, len0(size) * 0.45, len0(size) * 0.17, 0, 0, TAU);
+      ctx.fill();
+      ctx.restore();
+      ctx.restore();
+    }
+    if (bow) {
+      const [bx, by] = [500, 500 + r * Math.cos(rad(from)) + 4];
+      const s = 34 * size;
+      ctx.beginPath();
+      ctx.moveTo(bx, by);
+      ctx.lineTo(bx - s * 1.6, by - s);
+      ctx.lineTo(bx - s * 1.6, by + s);
+      ctx.closePath();
+      ctx.moveTo(bx, by);
+      ctx.lineTo(bx + s * 1.6, by - s);
+      ctx.lineTo(bx + s * 1.6, by + s);
+      ctx.closePath();
+      this.stroke(lw * 0.8);
+      ctx.beginPath();
+      ctx.arc(bx, by, s * 0.45, 0, TAU);
+      ctx.fill();
     }
   }
 

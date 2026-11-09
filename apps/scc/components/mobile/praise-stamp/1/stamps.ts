@@ -113,7 +113,7 @@ export const STAMPS: readonly Stamp[] = [
     size: 0.78,
     draw: (p) => {
       if (i < 3) {
-        p.laurel(370, 200, 338, 8, 1.2);
+        p.laurel(390, 30, 158, 9, 2.1);
         p.text(grade, 500, 470, "hansans", 400);
       } else {
         p.ring(R, LW * 1.2);
@@ -206,7 +206,7 @@ export const STAMPS: readonly Stamp[] = [
       p.heart(500, 400, 170, true);
       p.heart(330, 330, 60, false, LW * 0.8);
       p.heart(680, 320, 50, true);
-      p.text("사랑해요", 500, 720, "gaegu", 150);
+      p.text("사랑해요", 500, 730, "gaegu", 185);
     },
   },
   {
@@ -262,7 +262,7 @@ export const STAMPS: readonly Stamp[] = [
       p.ring(R, LW);
       p.ring(R - 40, LW * 0.6, 500, 500);
       p.pencil(500, 380, 430, -30);
-      p.text("다시 해봐요", 500, 680, "gaegu", 120);
+      p.text("다시 해봐요", 500, 700, "gaegu", 160);
     },
   },
   {
@@ -406,7 +406,7 @@ export const STAMPS: readonly Stamp[] = [
     ink: "violet",
     size: 0.96,
     draw: (p) => {
-      p.laurel(400, 200, 300, 7, 1.1);
+      p.laurel(415, 30, 140, 7, 1.8, LW, false);
       p.ribbonBanner(560, 520, 170);
       p.text("우수", 500, 548, "hansans", 140, { tracking: 30 });
       p.starRow(3, 300, 120, 50, 20);
@@ -504,7 +504,7 @@ export const STAMPS: readonly Stamp[] = [
     draw: (p) => {
       p.ring(R, LW);
       p.face(500, 400, 160, { hair: "bald", eyes: "happy", mouth: "open", cheeks: true });
-      p.arcText("Very Good!", 360, "jua", 116, "bottom", { tracking: 2 });
+      p.arcText("Very Good!", 355, "jua", 130, "bottom", { tracking: 4 });
     },
   },
   {

@@ -46,7 +46,7 @@ function valueNoise(n: number, cell: number, random: () => number) {
 function blur(src: Float32Array, n: number, r: number) {
   if (r < 1) return src.slice();
   const tmp = new Float32Array(n * n);
-  let a = src.slice();
+  const a = src.slice();
   const norm = 1 / (2 * r + 1);
   for (let pass = 0; pass < 2; pass += 1) {
     for (let y = 0; y < n; y += 1) {

@@ -28,6 +28,8 @@ Removed 2026-10-07: `finger-skating/2` (skated curve read back as a formula); it
 
 `samdasoo/1` sets one bare, unlabelled 500 mL 제주삼다수 bottle on a studio floor in three.js, turning slowly and by drag, at [`/mobile/samdasoo/1`](../../../app/mobile/samdasoo/[experiment]/page.tsx). See [삼다수](samdasoo.md).
 
+`praise-stamp/1` lays sixty-four Korean classroom 칭찬도장 — 참 잘했어요, 검, 수우미양가, 최고예요 and the rest — on a sheet at about life size, each pressed in pad ink, at [`/mobile/praise-stamp/1`](../../../app/mobile/praise-stamp/[experiment]/page.tsx). See [칭찬도장](praise-stamp.md).
+
 `escalator/1` builds a three.js block of running escalators in every heading and storey phase, orbited and pinched by the viewer from the whole structure down to a single step, at [`/mobile/escalator/1`](../../../app/mobile/escalator/[experiment]/page.tsx). See [escalator](escalator.md).
 
 `brain/1` is a hyper-real human brain from MRI, turning on black, swiped like reels: each reel down is the same brain with brain rot spreading from more patches, at [`/mobile/brain/1`](../../../app/mobile/brain/[experiment]/page.tsx). See [brain](brain.md).
