@@ -30,6 +30,8 @@ Removed 2026-10-07: `finger-skating/2` (skated curve read back as a formula); it
 
 `escalator/1` builds a three.js block of running escalators in every heading and storey phase, orbited and pinched by the viewer from the whole structure down to a single step, at [`/mobile/escalator/1`](../../../app/mobile/escalator/[experiment]/page.tsx). See [escalator](escalator.md).
 
+`brain/1` is a hyper-real human brain from MRI, turning on black, swiped like reels: each reel down is the same brain with brain rot spreading from more patches, at [`/mobile/brain/1`](../../../app/mobile/brain/[experiment]/page.tsx). See [brain](brain.md).
+
 `life-conveyor/1` lays a hundred years over ten conveyor belts — 0 at the bottom left, 100 at the top right, each row ten years left to right — where 졸라맨 couples ride hand in hand and send their children down to the start, everyone hears the same scripted Korean life events in speech bubbles, and each falls off when they die, at [`/mobile/life-conveyor/1`](../../../app/mobile/life-conveyor/[experiment]/page.tsx). See [인생 컨베이어](life-conveyor.md).
 
 `colour/1` is a black screen that strobes black and white every frame while touched anywhere, and for a moment after the finger lifts, at [`/mobile/colour/1`](../../../app/mobile/colour/[experiment]/page.tsx).

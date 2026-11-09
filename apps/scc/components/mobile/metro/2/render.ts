@@ -1,4 +1,4 @@
-import type { LabelCache } from "./labels";
+import type { LabelCache, Sprite } from "./labels";
 import { ground, lineById } from "./model";
 import type { Run, Scene } from "./scene";
 import { BRANCH_DOT, DASH, DISC, DOT_R, DOUBLE, GROUND, NAME, RING, RING_DOT, RIVER, SEOUL, WIDTH, tint } from "./style";
@@ -176,15 +176,15 @@ export function draw(
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
-  const blit = (canvas: HTMLCanvasElement, mx: number, my: number, mw: number, mh: number) => {
-    ctx.drawImage(canvas, (mx * cam.s + cam.tx) * dpr, (my * cam.s + cam.ty) * dpr, mw * k, mh * k);
+  const blit = (sp: Sprite, mx: number, my: number) => {
+    ctx.drawImage(sp.canvas, sp.sx, sp.sy, sp.sw, sp.sh, (mx * cam.s + cam.tx) * dpr, (my * cam.s + cam.ty) * dpr, sp.w * k, sp.h * k);
   };
   for (const b of scene.badges) {
     const x = p[b.node * 2] + b.dx;
     const y = p[b.node * 2 + 1] + b.dy;
     if (!inView(x, y)) continue;
     const sp = labels.badge(lineById.get(b.line)!, k);
-    blit(sp.canvas, x + sp.x, y + sp.y, sp.w, sp.h);
+    blit(sp, x + sp.x, y + sp.y);
   }
   const plainVisible = NAME.plain.size * cam.s >= MIN_NAME_PX;
   for (const m of scene.marks) {
@@ -195,7 +195,7 @@ export function draw(
     if (!inView(x, y)) continue;
     const sp = labels.name(m, k);
     if (!sp) continue;
-    blit(sp.canvas, x + sp.x, y + sp.y, sp.w, sp.h);
+    blit(sp, x + sp.x, y + sp.y);
   }
   return labels.missing > 0;
 }

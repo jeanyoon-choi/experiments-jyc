@@ -31,6 +31,10 @@
   - A swing to the other side cuts a running thread.
   - When the phone is level, rooms return to small talk.
 - **UI**: the expression/2 clone, plus KakaoTalk's join and leave notices as a centred grey pill.
+- **Party colour.** The background follows the tilt. Left mixes toward 민주당 blue `#004EA2`, right toward 국민의힘 red `#E61E2B`, by |lean|.
+  - The list background and rows go up to 34% at full tilt; the room ground (#B6C9DA) up to 46%.
+  - Level is plain KakaoTalk. The `--tint` custom property eases over 140 ms.
+  - Bubbles, badges and the readout keep their colours.
 
 ## KakaoTalk behaviour (revised 2026-11-09 by request)
 

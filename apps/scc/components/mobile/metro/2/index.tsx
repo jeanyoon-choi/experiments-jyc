@@ -16,6 +16,8 @@ const REST_PX = 0.05;
 const DPR_CAP = 3;
 // Zoom: the whole map's width at the least; names at 4.5× their map size at the most.
 const MAX_SCALE = 4.5;
+// Names are re-rasterised for a new zoom once it has held still this long.
+const ZOOM_SETTLE_MS = 160;
 // Opening view: 시청 at the centre, plain names about 9 CSS px tall.
 const OPEN_SCALE = 0.9;
 const OPEN_AT = "시청";
@@ -51,6 +53,9 @@ export default function MetroTwo() {
     let moving = false;
     let opened = false;
     let alive = true;
+    let zoomedAt = -Infinity;
+    let lastScale = cam.s;
+    let settleTimer = 0;
 
     const minScale = () => Math.min(view.width / size[0], view.height / size[1]);
     const clamp = () => {
@@ -66,7 +71,15 @@ export default function MetroTwo() {
       if (!alive) return;
       for (const p of pointers.values()) if (p.kind === "station") hold(scene.net, p.node, (p.x - cam.tx) / cam.s + p.ox, (p.y - cam.ty) / cam.s + p.oy);
       const moved = moving ? step(scene.net) : 0;
-      const unfinished = draw(ctx, scene, labels, cam, view);
+      const now = performance.now();
+      if (cam.s !== lastScale) {
+        lastScale = cam.s;
+        zoomedAt = now;
+        window.clearTimeout(settleTimer);
+        settleTimer = window.setTimeout(() => wake(), ZOOM_SETTLE_MS + 10);
+      }
+      labels.frozen = now - zoomedAt < ZOOM_SETTLE_MS;
+      const unfinished = draw(ctx, scene, labels, cam, view) && !labels.frozen;
       const holding = [...pointers.values()].some((p) => p.kind === "station");
       if (holding || moved * cam.s > REST_PX || unfinished) {
         moving = holding || moved * cam.s > REST_PX;
@@ -228,6 +241,7 @@ export default function MetroTwo() {
       alive = false;
       observer.disconnect();
       cancelAnimationFrame(pending);
+      window.clearTimeout(settleTimer);
       page.removeEventListener("pointerdown", onDown);
       page.removeEventListener("pointermove", onMove);
       page.removeEventListener("pointerup", onUp);
