@@ -17,17 +17,17 @@ function mulberry32(seed: number) {
   };
 }
 
-// The reel at which seed i appears: three on the first reel, then two per reel.
+// The reel at which seed i appears: four on the first reel, then two per reel.
 export function seedBirth(i: number) {
-  if (i < 3) return 0.12 + i * 0.06;
-  const k = Math.floor((i - 3) / 2) + 1;
-  return k + 0.12 + ((i - 3) % 2) * 0.1;
+  if (i < 4) return 0.05 + i * 0.05;
+  const k = Math.floor((i - 4) / 2) + 1;
+  return k + 0.12 + ((i - 4) % 2) * 0.1;
 }
 
 // Patch radius in metres, t reels after its birth.
 export function rotRadius(t: number) {
   if (t <= 0) return 0;
-  return Math.min(0.05, 0.005 + 0.011 * Math.pow(t, 0.75));
+  return Math.min(0.05, 0.008 + 0.012 * Math.pow(t, 0.75));
 }
 
 /** Pick seeds on exposed cortex (low fine cavity), kept apart from each other. */

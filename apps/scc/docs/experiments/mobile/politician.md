@@ -32,23 +32,21 @@ Brave, 2026-11-09, visible tab, 558×690 viewport at 2× (canvas 1116×1380):
 
 ## Contract
 
-- Material: four frontal portraits from Wikimedia Commons, aligned like `/1` (`public/images/politician/2/`). Any part of the frame the rotated photo leaves uncovered continues the photo's own border pixels (edge clamp), instead of `/1`'s stretched underlay, which ghosted 문재인's tightly cropped photo.
-  - 문재인: [Moon Jae-in 2017 (cropped)](https://commons.wikimedia.org/wiki/File:Moon_Jae-in_2017_(cropped).jpg), Korea.net (Jeon Han), CC BY-SA 2.0.
-  - 박근혜: [Park Geun-hye presidential portrait](https://commons.wikimedia.org/wiki/File:Park_Geun-hye_presidential_portrait.png), 대한민국 국가기록원, KOGL Type 1.
-  - 이재명: [President Lee Jae-myung 2025 (cropped)](https://commons.wikimedia.org/wiki/File:President_Lee_Jae-myung_2025_(cropped).jpg), Republic of Korea, CC BY-SA 2.0.
-  - 윤석열: [South Korea President Yoon Suk Yeol portrait](https://commons.wikimedia.org/wiki/File:South_Korea_President_Yoon_Suk_Yeol_portrait.jpg), Office of the President, CC BY-SA 3.0.
+- Material: four press photos from market and food stops, chosen at the user's request ("포멀한 사진 말고 구수한 사진", 2026-11-09). They replaced the official portraits used first that day. Rights stay with the photographers and outlets, and the photos are used here only in this private experiment.
+  - Each face was picked by Vision (yaw, pitch, size) from that day's candidates: [박근혜](https://www.segye.com/newsView/20260523505617), waving at 서문시장 (세계일보, 2026-05-23); [문재인](https://www.ytn.co.kr/_ln/0101_202002121430513555), at a 남대문시장 갈치 restaurant (YTN, 2020-02-12, turned about 39°); [이재명](https://www.hankyung.com/article/2025050649667), eating noodles, the middle panel of the outlet's three-photo collage (한국경제, 2025-05-06); [윤석열](https://m.seoul.co.kr/news/2023/12/06/20231206500086), eating 떡볶이 at 부산 깡통시장 (서울신문, 2023-12-06).
+  - All four are aligned as in `/1`, in `public/images/politician/2/`. A face hint picks the right person in group photos. Any part of the frame the rotated photo leaves uncovered continues the photo's own border pixels (edge clamp), instead of `/1`'s stretched underlay.
 - Corners: 문재인 top left, 박근혜 top right, 이재명 bottom left, 윤석열 bottom right. Left is 진보 and right is 보수, as in `/1`. Earlier presidents are on top.
 - Geometry: the same 87 Vision landmarks per face. Four thin-plate fields V_k = face_k − mean are placed at the mean geometry and packed into two RGBA16F textures. For weights w, a pixel reads face k at x + V_k − Σ w_j V_j. With two faces this reduces to `/1`'s formula.
 - Finger: each coordinate is shaped by a smoothstep over 0.16–0.84 of the screen, and the corner weights are bilinear in those coordinates. Within 16% of a corner, that face is held whole. Along an edge, two faces morph; in the middle, all four do.
 - Lattice disagreement: spread = 1.1 · (1 − largest weight) / 0.75, which is zero at a corner and 1.1 in the middle. Each site multiplies its four weights by e^(±1.6·spread) on private phases, then renormalises. A one-hot corner therefore stays whole for every site, and the middle becomes a patchwork of the four.
 - Before the first touch, the point wanders slowly past all four corners.
-- 얼굴 and 격자 modes, control and budgets are as in `/1`. 격자 mixes colour over the nearest 3×3 sites only: each site costs up to four portrait reads, and beyond 3×3 a site's share is below 1e-8.
+- One composite face only: `/1`'s 격자 mode and its option control were removed at the user's request ("'격자' 버젼은 필요 없음", 2026-11-09). Budgets are as in `/1`.
 
 ## Observed
 
 Brave, 2026-11-09, visible tab, canvas 1116×1380:
 
-- Each corner showed exactly its own portrait. The centre showed one plausible four-way face in 얼굴 and a creased lattice of four-way composites in 격자.
+- With the market photos, each corner showed exactly its own photo (checked again in a 1315×639 window, canvas 2631×1278: 16.7 ms median, 0 black pixels in either mode). The first version used official portraits; the centre showed one plausible four-way face. After 격자 was removed, the page loaded with no console errors and 0 black pixels.
 - Both modes held a 16.7 ms median frame (p95 ≤ 17.7 ms).
 - Useful failure: additive swings (weight ± spread/2, clamped at 0) sometimes zeroed all four weights of a site, which left black holes in single frames (4,558 px). The multiplicative swing replaced them. Across 16 sampled frames per mode, the readback found 0 black pixels.
 - Unverified: phone GPU cost, and the layout of a landscape window.

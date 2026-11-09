@@ -5,11 +5,8 @@ import type { DisplacementGrid } from "./morph";
 // 윤석열): the finger's corner weights plus a private swing whose size grows
 // toward the middle of the screen and vanishes at the corners. A pixel reads
 // all four portraits through the thin-plate offsets at its weights, so
-// geometry and colour change together.
-//   face    — one composite face; the lattice only decides who is where.
-//   lattice — face-voronoi/3's face-gradient 3: sites agree on one shared
-//             face coordinate, then every site's own composite is sampled
-//             there and mixed in linear light, so eyes meet eyes.
+// geometry and colour change together. One composite face; the lattice only
+// decides who is where.
 
 const VERTEX_SHADER = `#version 300 es
 in vec2 a_position;
@@ -24,7 +21,6 @@ uniform vec2 u_resolution;
 uniform float u_time;
 uniform vec4 u_weights;
 uniform float u_spread;
-uniform float u_mode;
 uniform vec2 u_lens;
 uniform float u_lensStrength;
 // Screen → frame: frame = (screenTopLeft - u_frameOrigin) / u_frameSize.
@@ -41,11 +37,6 @@ uniform sampler2D u_flowB;
 out vec4 outputColor;
 
 const float TAU = 6.28318530718;
-// The part of the frame each lattice tile shows: forehead to chin, cheek to
-// cheek. Its clamped edge is skin, so folded seams never reach the collar.
-const vec2 TILE_ORIGIN = vec2(0.22, 0.2);
-const vec2 TILE_SIZE = vec2(0.56, 0.42);
-
 vec2 random2(vec2 point) {
   return fract(sin(vec2(
     dot(point, vec2(127.1, 311.7)),
@@ -96,66 +87,29 @@ void main() {
   float swirl = exp(-length(fromLens) * 4.0) * u_lensStrength;
   view += 0.65 * swirl * vec2(fromLens.y, -fromLens.x) * 0.35;
 
-  bool lattice = u_mode > 0.5;
-  vec2 point = view * (lattice ? 3.4 : 4.2) + vec2(0.0, u_time * 0.035);
+  vec2 point = view * 4.2 + vec2(0.0, u_time * 0.035);
   vec2 cell = floor(point);
   vec2 local = fract(point);
-  float falloff = lattice ? 8.2 : 6.0;
+  const float falloff = 6.0;
 
-  vec3 linearColour;
-  if (!lattice) {
-    float totalWeight = 0.0;
-    vec4 weightSum = vec4(0.0);
-    for (int row = -2; row <= 2; row++) {
-      for (int column = -2; column <= 2; column++) {
-        vec2 offset = vec2(float(column), float(row));
-        vec2 cellId = cell + offset;
-        vec2 feature = 0.5 + 0.5 * sin(u_time * 0.6 + TAU * random2(cellId));
-        vec2 featureVector = offset + feature - local;
-        float weight = exp(-falloff * dot(featureVector, featureVector));
-        totalWeight += weight;
-        weightSum += siteWeights(cellId) * weight;
-      }
+  float totalWeight = 0.0;
+  vec4 weightSum = vec4(0.0);
+  for (int row = -2; row <= 2; row++) {
+    for (int column = -2; column <= 2; column++) {
+      vec2 offset = vec2(float(column), float(row));
+      vec2 cellId = cell + offset;
+      vec2 feature = 0.5 + 0.5 * sin(u_time * 0.6 + TAU * random2(cellId));
+      vec2 featureVector = offset + feature - local;
+      float weight = exp(-falloff * dot(featureVector, featureVector));
+      totalWeight += weight;
+      weightSum += siteWeights(cellId) * weight;
     }
-    // Far from every site the weights are tiny but still exact ratios; a
-    // coarse floor here would divide by too much and leave black gaps.
-    vec4 weights = weightSum / max(totalWeight, 1e-30);
-    vec2 frame = clamp((pixel - u_frameOrigin) / u_frameSize, 0.0, 1.0);
-    linearColour = composite(frame, texture(u_flowA, frame), texture(u_flowB, frame), weights);
-  } else {
-    float totalWeight = 0.0;
-    vec2 coordinateSum = vec2(0.0);
-    for (int row = -2; row <= 2; row++) {
-      for (int column = -2; column <= 2; column++) {
-        vec2 offset = vec2(float(column), float(row));
-        vec2 feature = 0.5 + 0.5 * sin(u_time * 0.6 + TAU * random2(cell + offset));
-        vec2 featureVector = offset + feature - local;
-        float weight = exp(-falloff * dot(featureVector, featureVector));
-        totalWeight += weight;
-        coordinateSum += (0.5 - featureVector * 0.86) * weight;
-      }
-    }
-    vec2 shared = clamp(coordinateSum / max(totalWeight, 1e-30), vec2(0.04), vec2(0.96));
-    vec2 frame = TILE_ORIGIN + shared * TILE_SIZE;
-    vec4 flowA = texture(u_flowA, frame);
-    vec4 flowB = texture(u_flowB, frame);
-    // Colour from the nearest 3×3 sites: beyond them a site's share is below
-    // 1e-8 at this falloff, and each site costs up to four portrait reads.
-    float colourWeight = 0.0;
-    linearColour = vec3(0.0);
-    for (int row = -1; row <= 1; row++) {
-      for (int column = -1; column <= 1; column++) {
-        vec2 offset = vec2(float(column), float(row));
-        vec2 cellId = cell + offset;
-        vec2 feature = 0.5 + 0.5 * sin(u_time * 0.6 + TAU * random2(cellId));
-        vec2 featureVector = offset + feature - local;
-        float weight = exp(-falloff * dot(featureVector, featureVector));
-        colourWeight += weight;
-        linearColour += composite(frame, flowA, flowB, siteWeights(cellId)) * weight;
-      }
-    }
-    linearColour /= max(colourWeight, 1e-30);
   }
+  // Far from every site the weights are tiny but still exact ratios; a
+  // coarse floor here would divide by too much and leave black gaps.
+  vec4 weights = weightSum / max(totalWeight, 1e-30);
+  vec2 frame = clamp((pixel - u_frameOrigin) / u_frameSize, 0.0, 1.0);
+  vec3 linearColour = composite(frame, texture(u_flowA, frame), texture(u_flowB, frame), weights);
   outputColor = vec4(sqrt(linearColour), 1.0);
 }`;
 
@@ -190,7 +144,6 @@ export type FieldState = {
   time: number;
   weights: [number, number, number, number];
   spread: number;
-  mode: "face" | "lattice";
   lens: [number, number];
   lensStrength: number;
 };
@@ -231,7 +184,6 @@ export function createPoliticianField(gl: WebGL2RenderingContext, grid: Displace
     time: location("u_time"),
     weights: location("u_weights"),
     spread: location("u_spread"),
-    mode: location("u_mode"),
     lens: location("u_lens"),
     lensStrength: location("u_lensStrength"),
     frameOrigin: location("u_frameOrigin"),
@@ -276,7 +228,6 @@ export function createPoliticianField(gl: WebGL2RenderingContext, grid: Displace
       gl.uniform1f(uniforms.time, state.time);
       gl.uniform4f(uniforms.weights, ...state.weights);
       gl.uniform1f(uniforms.spread, state.spread);
-      gl.uniform1f(uniforms.mode, state.mode === "lattice" ? 1 : 0);
       gl.uniform2f(uniforms.lens, state.lens[0], state.lens[1]);
       gl.uniform1f(uniforms.lensStrength, state.lensStrength);
       gl.uniform2f(uniforms.frameOrigin, originX, originY);

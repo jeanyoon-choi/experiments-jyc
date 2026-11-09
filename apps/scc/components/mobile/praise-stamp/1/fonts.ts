@@ -1,25 +1,15 @@
-import { Black_Han_Sans, Do_Hyeon, Gaegu, Gowun_Dodum, Jua } from "next/font/google";
-
-// Faces cut into Korean classroom stamps: rounded display (Jua, Do Hyeon),
-// heavy grade letters (Black Han Sans), the thin gothic of the old rubber
-// stamps (Gowun Dodum) and a teacher's hand (Gaegu).
-const jua = Jua({ weight: "400", preload: false, display: "block" });
-const doHyeon = Do_Hyeon({ weight: "400", preload: false, display: "block" });
-const hanSans = Black_Han_Sans({ weight: "400", preload: false, display: "block" });
-const dodum = Gowun_Dodum({ weight: "400", preload: false, display: "block" });
-const gaegu = Gaegu({ weight: "700", preload: false, display: "block" });
-
+// Faces cut into Korean classroom stamps. Temporarily system faces while the
+// self-hosted set is prepared.
 export const FONTS = {
-  jua: jua.style.fontFamily,
-  dohyeon: doHyeon.style.fontFamily,
-  hansans: hanSans.style.fontFamily,
-  dodum: dodum.style.fontFamily,
-  gaegu: `${gaegu.style.fontFamily}`,
+  jua: "'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
+  dohyeon: "'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
+  hansans: "'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
+  dodum: "'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
+  gaegu: "'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif",
 } as const;
 
 export const GAEGU_WEIGHT = 700;
 
 export type FontKey = keyof typeof FONTS;
 
-/** Class names that declare every face on the page, so their @font-face rules exist. */
-export const fontClassNames = [jua, doHyeon, hanSans, dodum, gaegu].map((font) => font.className).join(" ");
+export const fontClassNames = "";

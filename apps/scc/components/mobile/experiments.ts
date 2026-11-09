@@ -28,6 +28,7 @@ export const mobileExperiments = [
   { key: "escalator/1", label: "에스컬레이터 /1", href: "/mobile/escalator/1" },
   { key: "brain/1", label: "뇌 /1", href: "/mobile/brain/1" },
   { key: "life-conveyor/1", label: "인생 컨베이어 /1", href: "/mobile/life-conveyor/1" },
+  { key: "praise-stamp/1", label: "칭찬도장 /1", href: "/mobile/praise-stamp/1" },
   { key: "colour/1", label: "colour/1", href: "/mobile/colour/1" },
   { key: "face-trace/1", label: "face-trace/1", href: "/mobile/face-trace/1" },
   { key: "expression/1", label: "expression/1", href: "/mobile/expression/1" },

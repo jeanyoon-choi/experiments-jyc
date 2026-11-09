@@ -152,7 +152,11 @@ export function createBrain(host: HTMLElement) {
   };
 
   const onDown = (e: PointerEvent) => {
-    host.setPointerCapture(e.pointerId);
+    try {
+      host.setPointerCapture(e.pointerId);
+    } catch {
+      // synthetic or already-released pointer: gestures still work without capture
+    }
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.size === 1) {
       mode = "none";

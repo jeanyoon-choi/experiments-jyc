@@ -1,17 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { createPoliticianField, type FieldState } from "./field";
+import { useEffect, useRef } from "react";
+import { createPoliticianField } from "./field";
 import { LEE_LANDMARKS, MOON_LANDMARKS, PARK_LANDMARKS, YOON_LANDMARKS } from "./landmarks";
 import { buildDisplacements, cornerWeights } from "./morph";
 import styles from "./screen.module.css";
-
-type Mode = FieldState["mode"];
-
-const MODES: readonly { id: Mode; label: string }[] = [
-  { id: "face", label: "얼굴" },
-  { id: "lattice", label: "격자" },
-];
 
 // In CORNER_ORDER: 문재인 top left, 박근혜 top right, 이재명 bottom left, 윤석열
 // bottom right.
@@ -39,9 +32,6 @@ function loadImage(src: string) {
 
 export default function PoliticianTwo() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const modeRef = useRef<Mode>("face");
-  const [mode, setMode] = useState<Mode>("face");
-  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -142,7 +132,6 @@ export default function PoliticianTwo() {
         time: clock,
         weights,
         spread,
-        mode: modeRef.current,
         lens: [finger.x, finger.y],
         lensStrength: eased.lens,
       });
@@ -162,11 +151,6 @@ export default function PoliticianTwo() {
     };
   }, []);
 
-  const select = (next: Mode) => {
-    modeRef.current = next;
-    setMode(next);
-  };
-
   return (
     <main className={styles.stage}>
       <canvas
@@ -175,33 +159,6 @@ export default function PoliticianTwo() {
         role="img"
         aria-label="박근혜, 문재인, 윤석열, 이재명의 얼굴이 움직이는 보로노이 격자 안에서 합성된다. 손가락이 왼쪽 위로 가면 문재인, 오른쪽 위는 박근혜, 왼쪽 아래는 이재명, 오른쪽 아래는 윤석열로 고정되고, 가운데에서는 네 얼굴이 조각조각 모핑된다."
       />
-      <div className={styles.control}>
-        {open && (
-          <div id="politician-two-options" className={styles.panel} role="group" aria-label="합성">
-            <p className={styles.heading}>합성</p>
-            <div className={styles.chips} role="group" aria-label="합성 방식">
-              {MODES.map((option) => (
-                <button key={option.id} type="button" aria-pressed={mode === option.id} onClick={() => select(option.id)}>
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        <button
-          type="button"
-          className={styles.trigger}
-          aria-label="합성 옵션"
-          aria-expanded={open}
-          aria-controls="politician-two-options"
-          onClick={() => setOpen((current) => !current)}
-        >
-          <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
-            <circle cx="7.5" cy="10" r="4.6" fill="none" stroke="currentColor" strokeWidth="1.4" />
-            <circle cx="12.5" cy="10" r="4.6" fill="none" stroke="currentColor" strokeWidth="1.4" />
-          </svg>
-        </button>
-      </div>
     </main>
   );
 }
