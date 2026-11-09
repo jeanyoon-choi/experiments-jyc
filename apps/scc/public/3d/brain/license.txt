@@ -1,0 +1,15 @@
+Model Information:
+* title:	3D Model of Brain (3DPX-003765), from MRI data
+* source:	https://commons.wikimedia.org/wiki/File:3DPX-003765_3DModel_of_Brain_Nevit_Dilmen.stl
+* author:	Nevit Dilmen (https://commons.wikimedia.org/wiki/User:Nevit)
+
+Model License:
+* license type:	CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/)
+* requirements:	Credit the author; derivatives of the model share alike.
+
+Changes: brain.glb is the STL welded, centred, scaled to metres, with smooth
+quantised normals and sulcus depth baked into COLOR_0 (R fine, G deep) by
+apps/scc/components/mobile/brain/1/build-model.mjs. brain.glb is shared under
+CC BY-SA 3.0.
+
+Credit: "3D Model of Brain" by Nevit Dilmen, CC BY-SA 3.0, via Wikimedia Commons.

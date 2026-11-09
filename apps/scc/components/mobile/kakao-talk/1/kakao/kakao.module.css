@@ -1,0 +1,674 @@
+/* KakaoTalk on iOS 26, read from the 2025 App Store captures: white list
+   screens with grey chips, a blue-grey chat ground under floating glass
+   controls, pill bubbles without tails, a floating capsule composer. The
+   button reset uses :where() so every class below outranks it. */
+
+.app {
+  --kakao-yellow: #fee500;
+  /* Party colour by tilt: 민주당 blue to the left, 국민의힘 red to the right,
+     deeper the further the phone leans (--tint 0–1, set by the stage). */
+  --ground: color-mix(in srgb, var(--party, #fff) calc(var(--tint, 0) * 34%), #fff);
+  --kakao-room: color-mix(in srgb, var(--party, #b6c9da) calc(var(--tint, 0) * 46%), #b6c9da);
+  --kakao-text: #191919;
+  --kakao-sub: #8c8c8c;
+  --kakao-red: #ff4a2e;
+  --glass: rgb(255 255 255 / 0.62);
+  --glass-edge: rgb(255 255 255 / 0.75);
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+  position: fixed;
+  inset: 0 0 var(--readout-height, 0px);
+  overflow: hidden;
+  background: var(--ground);
+  color: var(--kakao-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  letter-spacing: -0.015em;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app :where(button) {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Chat list */
+
+.tabs {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--ground);
+  transition: transform 0.32s var(--ease-ios), filter 0.32s var(--ease-ios);
+}
+
+/* Under a pushed room the list slides a third left and dims, as in UIKit. */
+.tabs[data-covered="true"] {
+  transform: translateX(-30%);
+  filter: brightness(0.92);
+}
+
+.tabScreen,
+.thread {
+  scrollbar-width: none;
+}
+
+.tabScreen::-webkit-scrollbar,
+.thread::-webkit-scrollbar {
+  display: none;
+}
+
+.tabScreen {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-top: env(safe-area-inset-top);
+}
+
+.tabHeader {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  padding: 0 12px 0 18px;
+  background: var(--ground);
+}
+
+.tabHeader h1 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.headerActions {
+  display: flex;
+  gap: 2px;
+}
+
+.headerActions button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+}
+
+.folders {
+  display: flex;
+  gap: 8px;
+  padding: 4px 18px 10px;
+}
+
+.folders button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 17px;
+  background: #f2f2f2;
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.folders button[data-active="true"] {
+  background: #191919;
+  color: #fff;
+  font-weight: 600;
+}
+
+.chipCount {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--kakao-red);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+.rooms {
+  margin: 0;
+  padding: 0 0 calc(12px + env(safe-area-inset-bottom));
+  list-style: none;
+}
+
+/* Opaque cells: a row moving up slides over the rows it passes. */
+.rooms > li {
+  position: relative;
+  background: var(--ground);
+}
+
+.rooms > li[data-rising] {
+  z-index: 1;
+}
+
+.roomRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 7px 18px;
+  text-align: left;
+}
+
+.roomRow:active {
+  background: #f5f5f5;
+}
+
+.roomText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.roomName {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.roomTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roomCount {
+  flex: none;
+  color: #999;
+  font-weight: 400;
+}
+
+.roomMark {
+  flex: none;
+  display: inline-flex;
+  color: #a8a8a8;
+}
+
+.roomLast {
+  overflow: hidden;
+  color: var(--kakao-sub);
+  font-size: 13px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roomMeta {
+  flex: none;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  padding-top: 3px;
+}
+
+.roomTime {
+  color: #9a9a9a;
+  font-size: 11px;
+}
+
+.unread {
+  min-width: 20px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 9px;
+  background: var(--kakao-red);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+.unread[data-muted="true"] {
+  background: #c4c4c4;
+}
+
+/* Profiles */
+
+.face {
+  flex: none;
+  display: inline-block;
+  overflow: hidden;
+  border-radius: 36%;
+  background: #a9bccf;
+}
+
+.face img,
+.defaultFace {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.groupFace {
+  flex: none;
+  position: relative;
+  display: inline-block;
+}
+
+.groupFace > .face {
+  position: absolute;
+  border: 1.5px solid #fff;
+}
+
+.groupFace[data-count="2"] > .face:nth-child(1) { left: 0; top: 0; }
+.groupFace[data-count="2"] > .face:nth-child(2) { right: 0; bottom: 0; }
+.groupFace[data-count="3"] > .face:nth-child(1) { left: 26%; top: 0; }
+.groupFace[data-count="3"] > .face:nth-child(2) { left: 0; bottom: 0; }
+.groupFace[data-count="3"] > .face:nth-child(3) { right: 0; bottom: 0; }
+.groupFace[data-count="4"] > .face:nth-child(1) { left: 0; top: 0; }
+.groupFace[data-count="4"] > .face:nth-child(2) { right: 0; top: 0; }
+.groupFace[data-count="4"] > .face:nth-child(3) { left: 0; bottom: 0; }
+.groupFace[data-count="4"] > .face:nth-child(4) { right: 0; bottom: 0; }
+
+/* Room */
+
+.room {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: var(--kakao-room);
+  box-shadow: -8px 0 24px rgb(0 0 0 / 0.08);
+  animation: push 0.34s var(--ease-ios) both;
+}
+
+.room[data-closing="true"] {
+  animation: pop 0.3s var(--ease-ios) both;
+}
+
+@keyframes push {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes pop {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+/* Glass controls float over the thread. */
+.roomHeader {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: calc(6px + env(safe-area-inset-top)) 12px 10px;
+  background: linear-gradient(var(--kakao-room) 50%, transparent);
+  pointer-events: none;
+}
+
+.roomHeader > * {
+  pointer-events: auto;
+}
+
+.glassButton,
+.glassPill {
+  border: 1px solid var(--glass-edge);
+  background: var(--glass);
+  box-shadow: 0 2px 10px rgb(40 60 80 / 0.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.4);
+}
+
+.glassButton {
+  justify-self: start;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+
+.glassPill {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 5px;
+  border-radius: 22px;
+}
+
+.glassPill button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+}
+
+.roomHeader h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+  max-width: calc(100vw - 200px);
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.roomHeader h2 span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roomHeader h2 small {
+  flex: none;
+  color: #56687a;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.thread {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: calc(64px + env(safe-area-inset-top)) 0 calc(76px + env(safe-area-inset-bottom));
+}
+
+.day {
+  margin: 16px 0 8px;
+  color: #56687a;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* A message that arrives while the room is open rises into place. */
+.line[data-fresh],
+.notice[data-fresh] {
+  animation: arrive 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line[data-fresh],
+  .notice[data-fresh] {
+    animation: none;
+  }
+}
+
+/* Joins and departures: KakaoTalk's centred grey notice. */
+.notice {
+  width: fit-content;
+  max-width: calc(100% - 48px);
+  margin: 10px auto 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.2);
+  color: #fff;
+  font-size: 12px;
+  text-align: center;
+}
+
+.line {
+  display: flex;
+  gap: 8px;
+  padding: 4px 14px 0 12px;
+}
+
+.line[data-start="true"] {
+  padding-top: 10px;
+}
+
+.line[data-mine="true"] {
+  justify-content: flex-end;
+  padding-left: 64px;
+}
+
+.line[data-mine="false"] {
+  padding-right: 56px;
+}
+
+.lineFace {
+  flex: none;
+  width: 36px;
+}
+
+.lineBody {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sender {
+  color: #44515e;
+  font-size: 12px;
+}
+
+.bubbleRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.line[data-mine="true"] .bubbleRow {
+  flex-direction: row-reverse;
+}
+
+.bubble {
+  margin: 0;
+  padding: 8px 13px;
+  border-radius: 18px;
+  background: #fff;
+  font-size: 14.5px;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.line[data-mine="true"] .bubble {
+  background: var(--kakao-yellow);
+}
+
+.stamp {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding-bottom: 1px;
+  color: #56687a;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.line[data-mine="true"] .stamp {
+  align-items: flex-end;
+}
+
+.readCount {
+  color: #e6c400;
+  font-weight: 700;
+}
+
+.behind {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: calc(72px + env(safe-area-inset-bottom));
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 20px;
+  background: rgb(255 255 255 / 0.92);
+  box-shadow: 0 2px 10px rgb(40 60 80 / 0.12);
+  font-size: 13px;
+  text-align: left;
+}
+
+.behind strong {
+  flex: none;
+  font-weight: 600;
+}
+
+.behind span:last-child {
+  overflow: hidden;
+  color: #555;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Floating capsule composer. */
+.composer {
+  position: absolute;
+  z-index: 2;
+  left: 10px;
+  right: 10px;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 52px;
+  padding: 6px;
+  border: 1px solid var(--glass-edge);
+  border-radius: 26px;
+  background: rgb(255 255 255 / 0.72);
+  box-shadow: 0 2px 12px rgb(40 60 80 / 0.12);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.4);
+}
+
+.composer textarea {
+  flex: 1;
+  min-width: 0;
+  max-height: 96px;
+  padding: 8px 4px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.3;
+  resize: none;
+  outline: none;
+}
+
+.composer textarea::placeholder {
+  color: #9aa3ab;
+}
+
+.composerCircle,
+.sendButton {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+}
+
+.composerCircle {
+  background: #fff;
+  color: #222;
+}
+
+.sendButton {
+  background: var(--kakao-yellow);
+  color: #191919;
+}
+
+.composerIcon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 38px;
+  color: #444;
+}
+
+/* In-app notification banner */
+
+.banner {
+  position: absolute;
+  z-index: 5;
+  top: calc(60px + env(safe-area-inset-top));
+  left: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--glass-edge);
+  border-radius: 22px;
+  background: rgb(255 255 255 / 0.86);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.16);
+  text-align: left;
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
+  animation: drop 0.36s var(--ease-ios);
+}
+
+.banner > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.banner strong {
+  overflow: hidden;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.banner > span > span {
+  overflow: hidden;
+  color: #444;
+  font-size: 13.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes drop {
+  from { transform: translateY(-130%); }
+  to { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabs,
+  .room,
+  .room[data-closing="true"],
+  .banner {
+    transition: none;
+    animation: none;
+  }
+}

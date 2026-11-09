@@ -5,11 +5,10 @@ import test from "node:test";
 import { Script, runInNewContext } from "node:vm";
 import { installRunnerCompatibility } from "./compatibility.mjs";
 import { installAudioCompatibility, restoreBrowserReplacements } from "./browser.mjs";
-import { installLifeAgeMeter } from "./life-age.mjs";
+import { installScoreMeter } from "./score.mjs";
 import { installJumpCeiling } from "./jump-ceiling.mjs";
 import { installLifeGamePresentation } from "./life-game.mjs";
 import { installScale } from "./scale.mjs";
-import { installLifeStages } from "./life-stages.mjs";
 
 const original = readFileSync(new URL("./dino.html", import.meta.url), "utf8");
 const packaged = JSON.parse(readFileSync(new URL("./document.json", import.meta.url), "utf8"));
@@ -22,8 +21,8 @@ test("vendored HTML matches the pinned upstream bytes", () => {
 
 test("packaging preserves the upstream document outside its explicit integration additions", () => {
   assert.ok(packaged.html.includes(`(${installRunnerCompatibility.toString()})(window.Runner, window);`));
-  assert.ok(packaged.html.includes(`(${installLifeAgeMeter.toString()})(window);`));
-  assert.ok(packaged.html.includes(`(${installLifeGamePresentation.toString()})(document, window.parent !== window ? window.parent.spoonClassSigns : null, window.parent !== window ? window.parent.spoonClassStages : null);`));
+  assert.ok(packaged.html.includes(`(${installScoreMeter.toString()})(window);`));
+  assert.ok(packaged.html.includes(`(${installLifeGamePresentation.toString()})(document, window.parent !== window ? window.parent.spoonClassSigns : null);`));
   assert.match(packaged.html, /data-spoon-class-module-style/);
   assert.match(packaged.html, /data-spoon-class-module-presentation/);
   const restored = packaged.html
@@ -33,10 +32,8 @@ test("packaging preserves the upstream document outside its explicit integration
     .replace(/<script data-spoon-class-compatibility>[\s\S]*?<\/script>\n/, "")
     .replace(/<script data-spoon-class-audio>[\s\S]*?<\/script>\n/, "")
     .replace(/<script data-spoon-class-life-presentation>[\s\S]*?<\/script>\n/, "")
-    .replace(/<script data-spoon-class-life-age>[\s\S]*?<\/script>\n/, "")
+    .replace(/<script data-spoon-class-score>[\s\S]*?<\/script>\n/, "")
     .replace(/<script data-spoon-class-jump-ceiling>[\s\S]*?<\/script>\n/, "")
-    .replace(/<script data-spoon-class-growth>[\s\S]*?<\/script>\n/, "")
-    .replace(/<script data-spoon-class-life-stages>[\s\S]*?<\/script>\n/, "")
     .replace(/<script data-spoon-class-scale>[\s\S]*?<\/script>\n/, "")
     .replace("\n    Runner.spoonClassObstacle = Obstacle;\n    Runner.spoonClassTrex = Trex;", "");
   const sourceRestored = restored.replace(
@@ -86,33 +83,45 @@ test("/4 enlarges both obstacle types on the same ground line and strengthens th
   assert.ok(packaged.html.indexOf("data-spoon-class-scale") < packaged.html.indexOf("data-spoon-class-life-presentation"));
 });
 
-test("age meter replaces score with an editable six-months-per-second clock", () => {
-  const calls = [];
-  const context = {
-    save() {},
-    restore() {},
-    fillRect(...args) {
-      calls.push(args);
-    },
-  };
-  const meter = { canvasCtx: context, x: 100, y: 5 };
-  const runner = {
-    started: true,
-    playingIntro: false,
-    crashed: false,
-    distanceMeter: meter,
-    restart() {},
-  };
-  installLifeAgeMeter({ Runner: { instance_: runner } });
-  meter.update(0);
-  const atBirth = JSON.stringify(calls);
-  calls.length = 0;
-  meter.update(1000 / 6);
-  assert.notEqual(JSON.stringify(calls), atBirth);
-  assert.equal(meter.update(0), false);
+test("score keeps the upstream meter, moves it below a cropped sky and publishes time alive", () => {
+  const drawn = [];
+  const meter = { x: 100, y: 5, update(deltaTime) { drawn.push(deltaTime); return "upstream"; } };
+  const runner = { started: true, playingIntro: false, crashed: false, distanceMeter: meter, restart() {} };
+  const window = { Runner: { instance_: runner }, spoonClassClockTop: 12 };
+  installScoreMeter(window);
+  assert.equal(meter.y, 11);
+  assert.equal(meter.update(500), "upstream");
+  assert.deepEqual(drawn, [500]);
+  assert.equal(window.spoonClassAge, 500);
+  runner.crashed = true;
+  meter.update(500);
+  assert.equal(window.spoonClassAge, 500);
+  runner.restart();
+  assert.equal(window.spoonClassAge, 0);
 });
 
-test("life presentation replaces the runner, test and large-life-obstacle sprites", () => {
+test("HI is the best score of every game on the page", () => {
+  const parent = { spoonClassHighScore: 0 };
+  function game() {
+    const meter = { x: 100, y: 5, highScore: [], update() {}, setHighScore(value) { this.highScore = [value]; } };
+    const runner = { started: true, playingIntro: false, crashed: false, highestScore: 0, distanceMeter: meter, restart() {}, gameOver() {} };
+    installScoreMeter({ parent, Runner: { instance_: runner } });
+    return { meter, runner };
+  }
+  const a = game();
+  const b = game();
+  a.runner.highestScore = 800;
+  a.runner.gameOver();
+  assert.equal(parent.spoonClassHighScore, 800);
+  b.meter.update(16);
+  assert.equal(b.runner.highestScore, 800);
+  assert.deepEqual(b.meter.highScore, [800]);
+  b.runner.highestScore = 500;
+  b.runner.gameOver();
+  assert.equal(parent.spoonClassHighScore, 800, "a lower score never lowers HI");
+});
+
+test("life presentation keeps the upstream T-Rex and replaces only the obstacle sprites", () => {
   const images = new Map(
     [
       "1x-trex",
@@ -124,8 +133,9 @@ test("life presentation replaces the runner, test and large-life-obstacle sprite
     ].map((id) => [id, { src: "upstream" }]),
   );
   installLifeGamePresentation({ getElementById: (id) => images.get(id) });
-  for (const image of images.values()) {
-    assert.match(image.src, /^data:image\/svg\+xml;charset=utf-8,/);
+  for (const [id, image] of images) {
+    if (id.endsWith("trex")) assert.equal(image.src, "upstream");
+    else assert.match(image.src, /^data:image\/svg\+xml;charset=utf-8,/);
   }
 });
 
@@ -187,67 +197,6 @@ test("given the page's sign images, each obstacle becomes its own canvas collage
       else assert.ok([...kinds].every((kind) => kind !== "stand" && kind !== "cylinder"), "large obstacles are 세로 and 학원 signs only");
     }
   }
-});
-
-test("life stages: new obstacles take the sprites of the stage the age clock is in", () => {
-  const stages = [{ id: "birth", from: 0 }, { id: "school", from: 8 }, { id: "old", from: 65 }];
-  // Three signs of each group birth uses, so birth borrows nothing.
-  const three = (stage, kind, width) => [1, 2, 3].map((n) => ({ image: `${stage}-${kind}-${n}`, width, height: 120, kind, stages: [stage] }));
-  const signs = [
-    ...three("birth", "stand", 40),
-    ...three("birth", "vertical", 30),
-    ...three("birth", "hagwon", 400),
-    ...three("school", "stand", 40),
-    ...three("school", "hagwon", 400),
-    { image: "school-vertical", width: 30, height: 120, kind: "vertical", stages: ["school"] },
-  ];
-  const elements = new Map(
-    ["1x-obstacle-small", "2x-obstacle-small", "1x-obstacle-large", "2x-obstacle-large"].map((id) => [id, { id, replaceWith(next) { elements.set(id, next); } }]),
-  );
-  const view = { devicePixelRatio: 2 };
-  const fakeDocument = {
-    defaultView: view,
-    getElementById: (id) => elements.get(id),
-    createElement: () => {
-      const draws = [];
-      return {
-        draws,
-        getContext: () => ({ scale() {}, save() {}, restore() {}, beginPath() {}, moveTo() {}, lineTo() {}, ellipse() {}, closePath() {}, clip() {}, drawImage: (image) => draws.push(image) }),
-      };
-    },
-  };
-  installLifeGamePresentation(fakeDocument, signs, stages);
-  const drawn = (canvas) => new Set(canvas.draws);
-  // Birth: the stage-0 sprites in the document hold birth signs only.
-  for (const id of elements.keys()) assert.ok([...drawn(elements.get(id))].every((image) => image.startsWith("birth")));
-  assert.equal(view.spoonClassStageAt(0), 0);
-  assert.equal(view.spoonClassStageAt(9.5), 1);
-  assert.equal(view.spoonClassStageAt(70), 2);
-  const horizon = { obstacleImgs: { CACTUS_SMALL: "first-small", CACTUS_LARGE: "first-large" } };
-  let updates = 0;
-  view.Runner = { instance_: { horizon, update() { updates += 1; } } };
-  view.spoonClassAge = 0;
-  installLifeStages(view);
-  view.Runner.instance_.update();
-  assert.equal(updates, 1);
-  assert.ok([...drawn(horizon.obstacleImgs.CACTUS_SMALL)].every((image) => image.startsWith("birth")));
-  view.spoonClassAge = 9 * 2000;
-  view.Runner.instance_.update();
-  assert.ok([...drawn(horizon.obstacleImgs.CACTUS_SMALL)].every((image) => image.startsWith("school")));
-  // School has a single 세로간판: its rows also take birth's, never repeating one.
-  assert.ok(
-    [...drawn(horizon.obstacleImgs.CACTUS_LARGE)].every((image) => image.startsWith("school") || image.startsWith("birth-vertical")),
-  );
-  // A stage without signs of its own borrows the nearest earlier stage's.
-  view.spoonClassAge = 70 * 2000;
-  view.Runner.instance_.update();
-  assert.ok([...drawn(horizon.obstacleImgs.CACTUS_SMALL)].every((image) => image.startsWith("school")));
-  // A restart returns the age, and the stage, to birth.
-  const atSchool = horizon.obstacleImgs.CACTUS_SMALL;
-  view.spoonClassAge = 0;
-  view.Runner.instance_.update();
-  assert.notEqual(horizon.obstacleImgs.CACTUS_SMALL, atSchool);
-  assert.ok([...drawn(horizon.obstacleImgs.CACTUS_SMALL)].every((image) => image.startsWith("birth")));
 });
 
 test("the module document removes standalone text and forwards only player keys", () => {
@@ -363,48 +312,4 @@ test("a cropped row lowers only the jump apex, never below the visible edge", ()
     assert.equal(config.DROP_VELOCITY, -5);
     if (ceiling === 0) assert.deepEqual(config, trex.config);
   }
-});
-
-test("growth: a grown human is taller and wider on the same ground, with rescaled frames", async () => {
-  const { installGrowth } = await import("./growth.mjs");
-  const table = { CRASHED: [220], JUMPING: [0], RUNNING: [88, 132], WAITING: [44, 0] };
-  const trex = {
-    status: "WAITING",
-    jumping: false,
-    yPos: 93,
-    groundYPos: 93,
-    config: { WIDTH: 44, HEIGHT: 47, MIN_JUMP_HEIGHT: 30 },
-    update(_, status) {
-      if (status) {
-        this.status = status;
-        this.currentAnimFrames = table[status];
-      }
-    },
-  };
-  const images = [{ id: "1x-trex", src: "" }, { id: "2x-trex", src: "" }];
-  let update = 0;
-  const window = {
-    spoonClassGrowth: true,
-    spoonClassAge: 0,
-    Runner: { instance_: { tRex: trex, update() { update += 1; } } },
-    document: { getElementById: (id) => images.find((image) => image.id === id) },
-    Image: class {
-      set src(value) {
-        this.value = value;
-        this.onload();
-      }
-    },
-  };
-  installGrowth(window);
-  assert.equal(trex.status, "WAITING");
-  assert.equal(trex.config.HEIGHT, 47, "a newborn keeps the /3 size");
-  window.spoonClassAge = 18 * 2000;
-  window.Runner.instance_.update();
-  assert.equal(update, 1);
-  assert.ok(trex.config.HEIGHT > 70);
-  assert.ok(trex.config.WIDTH > 44);
-  assert.equal(trex.groundYPos, 150 - trex.config.HEIGHT - 10);
-  assert.equal(trex.yPos, trex.groundYPos);
-  assert.deepEqual(table.RUNNING, [2 * trex.config.WIDTH, 3 * trex.config.WIDTH]);
-  for (const image of images) assert.match(image.src, /^data:image\/svg\+xml/);
 });

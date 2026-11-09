@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { applyContactChanges, createNetwork, isLinked, lifeOf, pruneFaded, type ContactEvent, type NetworkNode, type Point } from "./model/network";
 import { buildPose, createPerson, restEndpoints, toWorld, updatePerson, type Endpoints, type Figure, type Frame, type Person, type Point as BodyPoint, type Pose } from "./model/rig";
 import { addCitizen, createPolitics, foundPolitics, leaningOf, measurePolitics, opinionAt, stepPolitics, type Citizen, type Politics } from "./model/politics";
-import { ADULT_AGE, DEFAULT_SOCIETY, SECONDS_PER_YEAR, SLAP_HITS, addAgent, createSociety, partnerOf, stepSociety, type Agent, type Society } from "./model/society";
+import { ADULT_AGE, DEFAULT_SOCIETY, SECONDS_PER_YEAR, addAgent, createSociety, partnerOf, stepSociety, type Agent, type Society } from "./model/society";
 import { createLifeSound } from "./audio";
 import styles from "./screen.module.css";
 
@@ -94,8 +94,7 @@ export default function MobileFingerNetworkFive() {
     const politics = createPolitics((Math.random() * 2 ** 31) | 0);
     let arriving: Arriving[] = [];
     const citizenGroups = new Map<number, Stick[]>();
-    // Faces meeting kiss, lying together gets a sax phrase, partings slap (betrayals shatter), newborns cry,
-    // touch-born people breathe, and a death plays a short game-style jingle.
+    // 사랑 events sound where they happen (see audio.ts); 정치 only hears each touch-born first breath.
     const sound = createLifeSound();
     const panOf = (x: number) => (x / width) * 2 - 1;
 
@@ -325,7 +324,7 @@ export default function MobileFingerNetworkFive() {
         for (const list of agentGroups.values()) list.length = 0;
         const sticks = new Map<number, Stick>();
         for (const agent of agents) {
-          const stick = sceneStick(agent, society, stickFor(agent, growthOf(agent), partnerOf(society, agent)?.x ?? null));
+          const stick = stickFor(agent, growthOf(agent), partnerOf(society, agent)?.x ?? null);
           sticks.set(agent.id, stick);
           if (settlingIds.has(agent.id) || agent.diedAt !== null) continue;
           const key = colorKey(agent);
@@ -362,7 +361,6 @@ export default function MobileFingerNetworkFive() {
         for (const agent of agents) {
           const partner = partnerOf(society, agent);
           if (!partner || agent.id > partner.id || settlingIds.has(agent.id) || settlingIds.has(partner.id)) continue;
-          if ((agent.act && agent.act.until > society.time) || (partner.act && partner.act.until > society.time)) continue;
           const [left, right] = agent.x <= partner.x ? [agent, partner] : [partner, agent];
           const leftStick = sticks.get(left.id)!;
           const rightStick = sticks.get(right.id)!;
@@ -388,11 +386,9 @@ export default function MobileFingerNetworkFive() {
         for (const event of society.events) {
           if (event.time <= lastEventTime) continue;
           recent.push({ kind: event.kind === "split" && event.betrayal ? "betrayal" : event.kind, time: event.time });
-          if (event.kind === "kiss") sound.kiss(panOf(event.x));
-          else if (event.kind === "slap") sound.slap(panOf(event.x));
-          else if (event.kind === "split" && event.betrayal) sound.shatter(panOf(event.x));
+          if (event.kind === "union") sound.kiss(panOf(event.x));
+          else if (event.kind === "split") (event.betrayal ? sound.shatter : sound.slap)(panOf(event.x));
           else if (event.kind === "birth") sound.cry(panOf(event.x));
-          else if (event.kind === "lie") sound.lie(panOf(event.x));
           else if (event.kind === "death") sound.death(panOf(event.x));
         }
         lastEventTime = society.time;
@@ -560,70 +556,6 @@ function walkEndpoints(walker: Walker, partnerX: number | null): Endpoints {
     else endpoints.leftHand = { x: -125, y: 255 };
   }
   return endpoints;
-}
-
-const smooth = (t: number) => {
-  const x = Math.max(0, Math.min(1, t));
-  return x * x * (3 - 2 * x);
-};
-const TAU = Math.PI * 2;
-const degrees = (value: number) => (value * Math.PI) / 180;
-const mixPoint = (a: BodyPoint, b: BodyPoint, t: number): BodyPoint => ({ x: mix(a.x, b.x, t), y: mix(a.y, b.y, t) });
-const feetLevel = restEndpoints.leftFoot.y;
-const bodyMiddle = (restEndpoints.head.y + restEndpoints.leftFoot.y) / 2;
-
-// Turns a stick about a point on its centre line (body units from the head), then shifts it in pixels.
-function pivoted(stick: Stick, angle: number, pivotY: number, dx = 0, dy = 0): Stick {
-  const pivot = toWorld(stick.frame, { x: 0, y: pivotY });
-  const scale = stick.frame.scale;
-  return { pose: stick.pose, frame: { x: pivot.x + Math.sin(angle) * pivotY * scale + dx, y: pivot.y - Math.cos(angle) * pivotY * scale + dy, angle, scale } };
-}
-
-// Scenes two people play together: a kiss leans both bodies 15° in from the feet until the faces meet;
-// lying down lays both flat, one over the other; a slap swings the inner arm across and snaps the struck head away.
-function sceneStick(agent: Agent, society: Society, stick: Stick): Stick {
-  const act = agent.act;
-  if (!act || act.until <= society.time) return stick;
-  const other = society.byId.get(act.with);
-  if (!other) return stick;
-  const t = society.time - act.from;
-  const length = act.until - act.from;
-  const side = other.x >= agent.x ? 1 : -1;
-  const endpoints = walkEndpoints({ ...agent, vx: 0, vy: 0 }, null);
-  const inner = side > 0 ? "rightHand" : "leftHand";
-  const outer = side > 0 ? "leftHand" : "rightHand";
-  if (act.kind === "kiss") {
-    const lean = smooth(t / 0.25) * (1 - smooth((t - length + 0.3) / 0.3));
-    endpoints[inner] = mixPoint(endpoints[inner], { x: side * 150, y: 120 }, lean);
-    endpoints[outer] = mixPoint(endpoints[outer], { x: side * 30, y: 190 }, lean);
-    return pivoted({ frame: stick.frame, pose: buildPose(endpoints) }, side * degrees(15) * lean, feetLevel);
-  }
-  if (act.kind === "lie") {
-    // Not flat: both lean back to about 75° so the bodies stay readable, and rock hard against each other,
-    // the one on top out of phase with the one below.
-    const down = smooth(t / 0.4) * (1 - smooth((t - length + 0.45) / 0.45));
-    const beat = Math.sin(TAU * 3.4 * t + (act.lead ? 0 : Math.PI)) * down;
-    const shiver = Math.sin(TAU * 6.8 * t + agent.id) * down;
-    endpoints.leftHand = mixPoint(endpoints.leftHand, { x: -95 + 30 * shiver, y: 150 + 60 * beat }, down);
-    endpoints.rightHand = mixPoint(endpoints.rightHand, { x: 95 - 30 * shiver, y: 150 - 60 * beat }, down);
-    endpoints.leftFoot = mixPoint(endpoints.leftFoot, { x: -95 + 35 * beat, y: 420 }, down);
-    endpoints.rightFoot = mixPoint(endpoints.rightFoot, { x: 95 - 35 * beat, y: 420 }, down);
-    const scale = stick.frame.scale;
-    const angle = -degrees(75) * down + degrees(7) * beat;
-    const ground = bodyMiddle * scale * 0.7 * down;
-    const thrust = 4 * beat;
-    return pivoted({ frame: stick.frame, pose: buildPose(endpoints) }, angle, bodyMiddle, thrust, ground - (act.lead ? 0 : 7 * down) + 2 * shiver);
-  }
-  const strike = t - (act.lead ? SLAP_HITS[0] : SLAP_HITS[1]);
-  const rest = endpoints[inner];
-  const raised = { x: side * -10, y: -40 };
-  const landed = { x: side * 215, y: 20 };
-  if (strike > -0.2 && strike < 0.4) {
-    endpoints[inner] = strike < 0 ? mixPoint(rest, raised, smooth((strike + 0.2) / 0.2)) : strike < 0.07 ? mixPoint(raised, landed, smooth(strike / 0.07)) : mixPoint(landed, rest, smooth((strike - 0.07) / 0.33));
-  }
-  const struck = t - (act.lead ? SLAP_HITS[1] : SLAP_HITS[0]);
-  const recoil = struck < 0 ? 0 : smooth(struck / 0.04) * Math.exp(-struck / 0.3);
-  return pivoted({ frame: stick.frame, pose: buildPose(endpoints) }, -side * degrees(16) * recoil, feetLevel);
 }
 
 // Children grow from about half size to adult size at 16.

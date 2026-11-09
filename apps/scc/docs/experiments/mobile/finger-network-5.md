@@ -1,7 +1,7 @@
 # Mobile finger-network/5
 
 - **Route:** `/mobile/finger-network/5`
-- **Date:** 2026-11-02
+- **Date:** 2026-11-02; rebased on `/4` on 2026-11-09
 - **Baseline:** [`/mobile/finger-network/4`](finger-network-4.md), copied whole (touch network, people, `사랑`/`정치` option, readouts). `/4` remains independently addressable.
 
 ## Changed variable: no population upper bound
@@ -54,6 +54,14 @@ Couples now act out three short scenes. During a scene both people stop walking 
 **Death cue and sax (2026-11-02).** The first death sound was the 14 s opening of Chopin's funeral march (Paul Pitman, public domain), played at most once every 12 s. Deaths are frequent, so it played almost constantly and read as background music for a 1–2 s moment; the user rejected it. Every cue now lasts about as long as its moment. A death plays a short game-style jingle, as the user asked ("like Mario's death"): an original melody, not Nintendo's. When a couple lies down before a birth, a 2.7 s sultry tenor-sax phrase plays, and the model emits a `lie` event for it.
 
 **Lying-together pose.** On 2026-11-02 the user asked for the pose to read as an act rather than as lying flat. Both bodies now lean back to about 75° instead of 90°. They rock against each other at 3.4 Hz, the upper body out of phase with the lower, with ±7° of sway, a 4 px thrust, and swinging arms and legs.
+
+## Rebase on `/4`, cap removal and sound reconsidered (2026-11-09)
+
+The user had `/5` deleted and recopied whole from `/4`, then asked again for no population upper bound and for the sound to be reconsidered. The scenes above (kiss, lying together, slaps) are therefore gone, and the sections above are history.
+
+- **No upper bound:** the same removals as before. 사랑 has no 120 hard cap and no crowding brake on births; 정치 has no 120 cap. Tests: `/4`'s suite minus the cap assertion, plus the two 200-person tests.
+- **Sound on `/4`'s own events** (`audio.ts`, same recorded takes): union (pink heart) → kiss; divorce (grey heart) → one slap; betrayal (red heart) → glass shatter, then the new union's kiss; newborn → cry; death → the 8-bit jingle; a touch-born person settling, in either model → a breath. There is no lying scene, so the sax phrase is no longer played (`lie-*.mp3` stays in the asset folder, unfetched).
+- **Thinning for the explosion:** without a ceiling, events per second grow with the population. Minimum gaps were widened (kiss 0.2 s, slap 0.25 s, shatter 0.4 s, cry 0.45 s, death 1.2 s, breath 0.1 s), and at most 6 voices play at once, so a large crowd sounds like a steady texture instead of a pile-up.
 
 ## Unresolved
 

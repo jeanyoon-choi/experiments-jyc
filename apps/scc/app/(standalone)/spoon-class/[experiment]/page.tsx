@@ -33,7 +33,7 @@ export async function generateMetadata({
             : experiment === "4"
               ? "The mobile stack with obstacles collaged from photographed Korean street signs."
               : experiment === "5"
-                ? "Sign collages that follow the age clock through the Korean life course."
+                ? "The original Chrome T-Rex in the mobile stack, jumping collages of photographed Korean street signs."
           : "The original Chrome Dino source preserved as a standalone experiment.",
   };
 }

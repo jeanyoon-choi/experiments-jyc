@@ -6,14 +6,17 @@
   position: fixed;
   inset: 0;
   overflow: hidden;
-  background: #fff;
+  background: #fcfcfc;
   overscroll-behavior: none;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .map {
+  position: absolute;
+  inset: 0;
   display: block;
   touch-action: none;
 }

@@ -1,6 +1,6 @@
 # 수도권 전철 노선도
 
-`/mobile/metro/1` (2026-11-02) at [`/mobile/metro/[experiment]`](../../../app/mobile/metro/[experiment]/page.tsx).
+`/mobile/metro/1` (2026-11-02; elastic version since 2026-11-09) at [`/mobile/metro/[experiment]`](../../../app/mobile/metro/[experiment]/page.tsx).
 
 - Relation tested: the whole capital-area network as an official-grammar 노선도, turned 90° clockwise (west at the top, north to the right) so its long east–west extent stands in a portrait phone. Station names stay upright.
 - Topology: OpenStreetMap as of 2026-11-02, all-stop route variants only (express services would add false adjacencies). 24 lines — 1–9호선, 수인분당, 신분당, 경의중앙, 경춘, 공항철도, 경강, 서해, GTX-A, 인천 1·2, 의정부, 에버라인, 우이신설, 김포골드, 신림 — 656 stations, 119 interchanges. Stations merge across lines by name within 700 m (신촌 2호선/경의중앙, 용산/신용산, 의정부/경전철의정부 stay apart, as on the official map). Every line's ends, branches (1호선 광명·서동탄·인천/신창, 2호선 성수·신정지선, 5호선 마천, 경의중앙 서울역·도라산, 경춘 광운대), and the 6호선 응암 one-way loop were checked by hand. Corrections over OSM: 용문–지평 (the 지평 shuttle lists only two stops), GTX-A 성남, and skip edges from routes missing a stop member. Pipeline: [`components/mobile/metro/extract`](../../../components/mobile/metro/extract/README.md).
@@ -12,9 +12,9 @@
 - History (2026-11-02): first drawn in the older grammar (white discs ringed in line colour, near-black-ringed interchange discs, bounding-box fit); replaced by the 2023 grammar at the user's request. A first circle sized for 1.2-unit spacing crushed the 시청–을지로 arc; a centred circle without side constraints put 종로3가 inside the loop and tangled lines.
 - Open: the north-east wedge (청량리–상봉–회기, 의정부 and the 1호선 tail to 연천) is still the densest part; badges pushed clear of crowding can sit far from their terminus; the 한강 is a polyline through bridge midpoints and may cross a line between bridges; whether labels should turn with the map is undecided.
 
-## /2 — elastic network
+## Elastic network (now /1)
 
-`/mobile/metro/2` (2026-11-02) copies /1's map (model, layout, drawing grammar) and lets a finger take hold of a station.
+First published as `/mobile/metro/2` (2026-11-02), a copy of the static map (model, layout, drawing grammar) that lets a finger take hold of a station. On 2026-11-09 the static version was removed at the user's request and this one took its place at `/mobile/metro/1`; `/mobile/metro/2` no longer exists. The sections above describe the shared map; the static version's "Interaction: none" no longer applies.
 
 - Relation tested: one point moved — 사당 put somewhere else — and the network answering point by point and line by line in real time, its connections unchanged. The paper does not move: the 한강, its name and every part not pulled stay put.
 - Model (`physics.ts`): every station is a node; every link is a cord of nodes every 10 px, joined by distance constraints (stiffness 0.5) and bending constraints two nodes apart and through a station along one line (0.2); stations are pulled home by 0.04 per frame, cord nodes by 0.02. Position-based dynamics: Verlet step with damping 0.82, then six constraint passes; 1,441 nodes and 3,076 constraints on a 390×844 screen.

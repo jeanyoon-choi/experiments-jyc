@@ -1,25 +1,24 @@
 // Life-event sounds for the love society, played from real recordings (small mono MP3 takes in
 // /assets/finger-network/sound, cut by scripts/cut-finger-network-sounds.py; sources in the experiment doc).
 //
-// - kiss: when a new couple's faces meet;
-// - slap: each of the two slaps when a couple parts;
-// - shatter: a betrayal breaks the heart like glass;
-// - cry: a newborn, a year after its parents lay down together;
+// Each cue sits on an event /4 already shows, and lasts about as long as that moment:
+// - kiss: a union, as its pink heart rises (a betrayer's new union kisses too);
+// - slap: a divorce, as the grey heart splits;
+// - shatter: a betrayal, as the red heart breaks;
+// - cry: a newborn appearing;
 // - breath: a touch-born person's first breath as it settles;
-// - lie: a slow, sultry tenor-sax phrase (2.7 s) while a couple lies together before a child;
 // - death: a short original 8-bit "you died" jingle (1.7 s), game-style.
-// Every cue lasts about as long as the moment it marks.
-// Playback picks a take other than the last one, varies its speed slightly, and pans it to where the event
-// happens. Each kind is spaced and voices are capped, so a population explosion thins the sound instead of
-// piling it up.
+// With no population ceiling, events per second grow with the crowd. Each kind therefore keeps a minimum
+// gap and the mix is capped at a few voices, so an explosion thins to a steady texture instead of piling up.
+// Playback picks a take other than the last one, varies its speed slightly, and pans it to the event.
 
-type Kind = "kiss" | "slap" | "shatter" | "cry" | "breath" | "lie" | "death";
+type Kind = "kiss" | "slap" | "shatter" | "cry" | "breath" | "death";
 
-const takes: Record<Kind, number> = { kiss: 8, slap: 6, shatter: 2, cry: 4, breath: 3, lie: 2, death: 3 };
-const minimumGap: Record<Kind, number> = { kiss: 0.09, slap: 0.06, shatter: 0.15, cry: 0.3, breath: 0.1, lie: 1.5, death: 0.9 };
-const level: Record<Kind, number> = { kiss: 1, slap: 0.9, shatter: 0.7, cry: 0.6, breath: 0.8, lie: 0.7, death: 0.45 };
-const speedSpread: Record<Kind, number> = { kiss: 0.05, slap: 0.06, shatter: 0.06, cry: 0.03, breath: 0.03, lie: 0, death: 0 };
-const maximumVoices = 10;
+const takes: Record<Kind, number> = { kiss: 8, slap: 6, shatter: 2, cry: 4, breath: 3, death: 3 };
+const minimumGap: Record<Kind, number> = { kiss: 0.2, slap: 0.25, shatter: 0.4, cry: 0.45, breath: 0.1, death: 1.2 };
+const level: Record<Kind, number> = { kiss: 1, slap: 0.9, shatter: 0.7, cry: 0.6, breath: 0.8, death: 0.45 };
+const speedSpread: Record<Kind, number> = { kiss: 0.05, slap: 0.06, shatter: 0.06, cry: 0.03, breath: 0.03, death: 0 };
+const maximumVoices = 6;
 const folder = "/assets/finger-network/sound";
 
 export type LifeSound = ReturnType<typeof createLifeSound>;
@@ -33,7 +32,7 @@ export function createLifeSound() {
   const lastTake = new Map<Kind, AudioBuffer>();
   const lastPlayed = new Map<Kind, number>();
 
-  // Fetch the files right away (about 270 KB in all); decoding waits for an AudioContext.
+  // Fetch the files right away (about 240 KB in all); decoding waits for an AudioContext.
   for (const kind of Object.keys(takes) as Kind[]) {
     for (let index = 1; index <= takes[kind]; index += 1) {
       const name = `${kind}-${index}`;
@@ -108,7 +107,6 @@ export function createLifeSound() {
     shatter: (pan: number) => play("shatter", pan),
     cry: (pan: number) => play("cry", pan),
     breath: (pan: number) => play("breath", pan),
-    lie: (pan: number) => play("lie", pan),
     death: (pan: number) => play("death", pan),
     close: () => {
       void context?.close();

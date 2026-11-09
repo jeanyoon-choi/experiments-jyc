@@ -1,0 +1,73 @@
+@property --tint {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+.stage {
+  --readout-height: calc(52px + env(safe-area-inset-bottom));
+  transition: --tint 140ms linear;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* Sensor readout under the app, by request: raw roll, lean, heat, rate. */
+.readout {
+  position: absolute;
+  z-index: 8;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--readout-height);
+  padding: 5px 10px env(safe-area-inset-bottom);
+  box-sizing: border-box;
+  border-top: 1px solid #e6e6e6;
+  background: #fafafa;
+  color: #3c3c3c;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10.5px;
+  line-height: 14px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.readout > div {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sheet {
+  position: absolute;
+  z-index: 10;
+  left: 16px;
+  right: 16px;
+  bottom: calc(76px + var(--readout-height));
+  padding: 18px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 6px 28px rgb(0 0 0 / 0.18);
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  text-align: center;
+}
+
+.sheet p {
+  margin: 0 0 12px;
+  color: #555;
+  font-size: 14px;
+}
+
+.sheet button {
+  width: 100%;
+  height: 46px;
+  border: 0;
+  border-radius: 10px;
+  background: #fee500;
+  color: #191919;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}

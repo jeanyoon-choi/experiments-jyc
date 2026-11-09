@@ -1,155 +1,201 @@
-import { ATLAS_DPR, CAPSULE, type Cell, GROUND, RIVER, type Scene } from "./scene";
+import type { LabelCache } from "./labels";
+import { ground, lineById } from "./model";
+import type { Run, Scene } from "./scene";
+import { BRANCH_DOT, DASH, DISC, DOT_R, DOUBLE, GROUND, NAME, RING, RING_DOT, RIVER, SEOUL, WIDTH, tint } from "./style";
 
-// One frame of the moving network. Lines are one batched path per line (two
-// strokes for hollow and dashed lines) through their cords' current nodes,
-// lines sharing a link offset along the cord's own normals; dots are one path
-// per ring colour; capsules turn with the cord leaving their station; names
-// and badges are drawImage calls from an immutable atlas, carried by their
-// stations. Nothing is rasterised from text per frame.
+// One frame at device resolution. The camera maps map units to CSS px:
+// screen = map · s + (tx, ty); the canvas transform adds the device pixel
+// ratio, so every stroke and fill is vector-sharp at any zoom. Names and
+// badges are bitmaps from LabelCache at the frame's device scale.
 
-function trace(path: Path2D, p: Float32Array, ids: number[], offset: number) {
-  const count = ids.length;
-  for (let j = 0; j < count; j += 1) {
-    const i = ids[j] * 2;
-    let x = p[i];
-    let y = p[i + 1];
-    if (offset !== 0) {
-      const a = ids[Math.max(0, j - 1)] * 2;
-      const b = ids[Math.min(count - 1, j + 1)] * 2;
-      const tx = p[b] - p[a];
-      const ty = p[b + 1] - p[a + 1];
-      const len = Math.hypot(tx, ty) || 1;
-      x += (-ty / len) * offset;
-      y += (tx / len) * offset;
-    }
-    if (j === 0) path.moveTo(x, y);
-    else path.lineTo(x, y);
+export type Camera = { s: number; tx: number; ty: number };
+
+// Plain names smaller than this (CSS px) are left out; nothing is legible below it.
+const MIN_NAME_PX = 3.2;
+
+const KIND_ORDER = { light: 0, dashed: 1, double: 2, metro: 3 } as const;
+
+function trace(path: Path2D, p: Float32Array, r: Run) {
+  const ids = r.ids;
+  const last = ids.length - 1;
+  path.moveTo(p[ids[0] * 2] + r.ax, p[ids[0] * 2 + 1] + r.ay);
+  for (let j = 1; j < last; j += 1) path.lineTo(p[ids[j] * 2], p[ids[j] * 2 + 1]);
+  path.lineTo(p[ids[last] * 2] + r.bx, p[ids[last] * 2 + 1] + r.by);
+}
+
+function polygons(path: Path2D, list: number[][]) {
+  for (const poly of list) {
+    path.moveTo(poly[0], poly[1]);
+    for (let i = 2; i < poly.length; i += 2) path.lineTo(poly[i], poly[i + 1]);
+    path.closePath();
   }
 }
 
-function blit(ctx: CanvasRenderingContext2D, atlas: CanvasImageSource, c: Cell, x: number, y: number, dpr: number, width: number, height: number) {
-  const w = c.sw / ATLAS_DPR;
-  const h = c.sh / ATLAS_DPR;
-  if (x < -w || y < -h || x > width + w || y > height + h) return;
-  ctx.drawImage(atlas, c.sx, c.sy, c.sw, c.sh, (x - w / 2) * dpr, (y - h / 2) * dpr, w * dpr, h * dpr);
+let groundPaths: { seoul: Path2D; water: Path2D } | null = null;
+function groundPath() {
+  if (!groundPaths) {
+    const seoul = new Path2D();
+    polygons(seoul, ground.seoul);
+    const water = new Path2D();
+    polygons(water, ground.river);
+    polygons(water, ground.sea);
+    groundPaths = { seoul, water };
+  }
+  return groundPaths;
 }
 
-export function draw(ctx: CanvasRenderingContext2D, scene: Scene, atlas: CanvasImageSource, dpr: number) {
+/** Draws one frame; returns true while some names still wait for their bitmaps. */
+export function draw(
+  ctx: CanvasRenderingContext2D,
+  scene: Scene,
+  labels: LabelCache,
+  cam: Camera,
+  view: { width: number; height: number; dpr: number },
+): boolean {
+  const { width, height, dpr } = view;
   const p = scene.net.pos;
-  const { width, height } = scene;
+  const k = cam.s * dpr;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.fillStyle = GROUND;
   ctx.fillRect(0, 0, width, height);
+  ctx.setTransform(k, 0, 0, k, cam.tx * dpr, cam.ty * dpr);
+
+  // Visible map rectangle, with a margin for names.
+  const margin = 80;
+  const vx0 = -cam.tx / cam.s - margin;
+  const vy0 = -cam.ty / cam.s - margin;
+  const vx1 = (width - cam.tx) / cam.s + margin;
+  const vy1 = (height - cam.ty) / cam.s + margin;
+  const inView = (x: number, y: number) => x > vx0 && x < vx1 && y > vy0 && y < vy1;
+
+  const g = groundPath();
+  ctx.fillStyle = SEOUL;
+  ctx.fill(g.seoul);
+  ctx.fillStyle = RIVER;
+  ctx.fill(g.water);
+
+  // Lines, lightest grammar underneath.
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  ctx.setLineDash([]);
-
-  // 한강, on the paper.
-  {
-    const r = scene.river.points;
-    ctx.beginPath();
-    ctx.moveTo(r[0], r[1]);
-    for (let i = 2; i < r.length; i += 2) ctx.lineTo(r[i], r[i + 1]);
-    ctx.strokeStyle = RIVER;
-    ctx.lineWidth = scene.river.width;
-    ctx.stroke();
-    const t = scene.riverText;
-    if (t) {
-      const w = t.sw / ATLAS_DPR;
-      const h = t.sh / ATLAS_DPR;
-      ctx.setTransform(dpr * Math.cos(t.angle), dpr * Math.sin(t.angle), -dpr * Math.sin(t.angle), dpr * Math.cos(t.angle), dpr * t.x, dpr * t.y);
-      ctx.drawImage(atlas, t.sx, t.sy, t.sw, t.sh, -w / 2, -h / 2, w, h);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
-  }
-
-  // Lines.
-  scene.styles.forEach((style, si) => {
+  const order = [...scene.byLine.keys()].sort(
+    (a, b) => KIND_ORDER[lineById.get(a)!.kind] - KIND_ORDER[lineById.get(b)!.kind],
+  );
+  for (const id of order) {
+    const runs = scene.byLine.get(id)!;
+    const line = lineById.get(id)!;
     const path = new Path2D();
-    for (const ri of scene.runsOf[si]) {
-      const run = scene.runs[ri];
-      trace(path, p, run.ids, run.offsets[run.lines.indexOf(si)]);
-    }
+    for (const r of runs) trace(path, p, r);
+    const w = WIDTH[line.kind];
+    ctx.setLineDash([]);
     ctx.lineCap = "round";
-    ctx.strokeStyle = style.colour;
-    ctx.lineWidth = style.width;
+    ctx.strokeStyle = line.colour;
+    ctx.lineWidth = w;
     ctx.stroke(path);
-    if (style.kind === "double") {
-      ctx.strokeStyle = GROUND;
-      ctx.lineWidth = style.width * 0.44;
+    if (line.kind === "double") {
+      ctx.strokeStyle = tint(line.colour, DOUBLE.tint);
+      ctx.lineWidth = w - 2 * DOUBLE.stroke;
       ctx.stroke(path);
-    } else if (style.kind === "dashed") {
+    } else if (line.kind === "dashed") {
       ctx.lineCap = "butt";
-      ctx.strokeStyle = GROUND;
-      ctx.lineWidth = style.width * 0.3;
-      ctx.setLineDash([style.width * 1.3, style.width * 1.3]);
+      ctx.strokeStyle = SEOUL;
+      ctx.lineWidth = DASH.width;
+      ctx.setLineDash([DASH.on, DASH.off]);
       ctx.stroke(path);
       ctx.setLineDash([]);
     }
-  });
-
-  // Ordinary stations.
-  {
-    const plain = new Path2D();
-    const ringed = new Map<string, Path2D>();
-    for (const dot of scene.dots) {
-      const x = p[dot.node * 2];
-      const y = p[dot.node * 2 + 1];
-      let target = plain;
-      if (dot.ring) {
-        target = ringed.get(dot.ring) ?? new Path2D();
-        ringed.set(dot.ring, target);
-      }
-      target.moveTo(x + dot.radius, y);
-      target.arc(x, y, dot.radius, 0, Math.PI * 2);
-    }
-    ctx.fillStyle = "#ffffff";
-    ctx.fill(plain);
-    ctx.lineWidth = Math.max(0.8, scene.W * 0.13);
-    for (const [colour, path] of ringed) {
-      ctx.fill(path);
-      ctx.strokeStyle = colour;
-      ctx.stroke(path);
-    }
   }
 
-  // Interchanges: traffic-light capsules across the cord leaving the station.
-  for (const c of scene.capsules) {
-    const x = p[c.node * 2];
-    const y = p[c.node * 2 + 1];
-    const dx = p[c.toward * 2] - x;
-    const dy = p[c.toward * 2 + 1] - y;
-    const len = Math.hypot(dx, dy) || 1;
-    const ux = -dy / len;
-    const uy = dx / len;
-    const span = (c.colours.length - 1) * c.step;
-    ctx.setTransform(dpr * ux, dpr * uy, -dpr * uy, dpr * ux, dpr * x, dpr * y);
-    ctx.beginPath();
-    ctx.roundRect(-span / 2 - c.r - c.pad, -c.r - c.pad, span + 2 * (c.r + c.pad), 2 * (c.r + c.pad), c.r + c.pad);
-    ctx.fillStyle = "#ffffff";
-    ctx.fill();
-    ctx.lineWidth = c.ring;
-    ctx.strokeStyle = CAPSULE;
-    ctx.stroke();
-    c.colours.forEach((colour, i) => {
-      ctx.beginPath();
-      ctx.arc(-span / 2 + i * c.step, 0, c.r * 0.86, 0, Math.PI * 2);
-      ctx.fillStyle = colour;
-      ctx.fill();
-    });
+  // Plain stations: white dots in solid lines, ringed dots on double and
+  // dashed lines and where a line branches.
+  const dots = new Path2D();
+  const rings = new Map<string, { path: Path2D; width: number }>();
+  for (const m of scene.marks) {
+    if (m.transfer) continue;
+    const x = p[m.node * 2];
+    const y = p[m.node * 2 + 1];
+    if (!inView(x, y)) continue;
+    const line = lineById.get(m.line!)!;
+    if (m.branch || line.kind === "double" || line.kind === "dashed") {
+      const spec = m.branch ? BRANCH_DOT : RING_DOT;
+      const key = `${line.colour}|${spec.stroke}`;
+      const entry = rings.get(key) ?? { path: new Path2D(), width: spec.stroke };
+      rings.set(key, entry);
+      entry.path.moveTo(x + spec.r, y);
+      entry.path.arc(x, y, spec.r, 0, Math.PI * 2);
+    } else {
+      dots.moveTo(x + DOT_R, y);
+      dots.arc(x, y, DOT_R, 0, Math.PI * 2);
+    }
+  }
+  ctx.fillStyle = "#ffffff";
+  ctx.fill(dots);
+  for (const [key, { path, width: lw }] of rings) {
+    ctx.fill(path);
+    ctx.strokeStyle = key.split("|")[0];
+    ctx.lineWidth = lw;
+    ctx.stroke(path);
   }
 
-  // Badges and names, carried by their stations.
+  // Interchanges: dark rings, then white, then line discs — the rings of
+  // neighbouring discs merge into one outline like an "8".
+  const outer = new Path2D();
+  const inner = new Path2D();
+  const byColour = new Map<string, Path2D>();
+  const ro = DISC.r + DISC.white + DISC.ring;
+  const ri = DISC.r + DISC.white;
+  for (const m of scene.marks) {
+    if (!m.transfer) continue;
+    const x = p[m.node * 2];
+    const y = p[m.node * 2 + 1];
+    if (!inView(x, y)) continue;
+    for (const d of m.discs!) {
+      const cx = x + d.dx;
+      const cy = y + d.dy;
+      outer.moveTo(cx + ro, cy);
+      outer.arc(cx, cy, ro, 0, Math.PI * 2);
+      inner.moveTo(cx + ri, cy);
+      inner.arc(cx, cy, ri, 0, Math.PI * 2);
+      const colour = lineById.get(d.line)!.colour;
+      const path = byColour.get(colour) ?? new Path2D();
+      byColour.set(colour, path);
+      path.moveTo(cx + DISC.r, cy);
+      path.arc(cx, cy, DISC.r, 0, Math.PI * 2);
+    }
+  }
+  ctx.fillStyle = RING;
+  ctx.fill(outer);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill(inner);
+  for (const [colour, path] of byColour) {
+    ctx.fillStyle = colour;
+    ctx.fill(path);
+  }
+
+  // Bitmaps: badges and names, in device pixels.
+  labels.frame();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  const blit = (canvas: HTMLCanvasElement, mx: number, my: number, mw: number, mh: number) => {
+    ctx.drawImage(canvas, (mx * cam.s + cam.tx) * dpr, (my * cam.s + cam.ty) * dpr, mw * k, mh * k);
+  };
   for (const b of scene.badges) {
-    const x = p[b.node * 2];
-    const y = p[b.node * 2 + 1];
-    const dx = x - p[b.toward * 2];
-    const dy = y - p[b.toward * 2 + 1];
-    const len = Math.hypot(dx, dy) || 1;
-    blit(ctx, atlas, b, x + (dx / len) * b.reach, y + (dy / len) * b.reach, dpr, width, height);
+    const x = p[b.node * 2] + b.dx;
+    const y = p[b.node * 2 + 1] + b.dy;
+    if (!inView(x, y)) continue;
+    const sp = labels.badge(lineById.get(b.line)!, k);
+    blit(sp.canvas, x + sp.x, y + sp.y, sp.w, sp.h);
   }
-  for (const l of scene.labels) {
-    blit(ctx, atlas, l, p[l.node * 2] + l.dx, p[l.node * 2 + 1] + l.dy, dpr, width, height);
+  const plainVisible = NAME.plain.size * cam.s >= MIN_NAME_PX;
+  for (const m of scene.marks) {
+    if (!m.transfer && !plainVisible) continue;
+    if (m.transfer && NAME.transfer.size * cam.s < MIN_NAME_PX) continue;
+    const x = p[m.node * 2];
+    const y = p[m.node * 2 + 1];
+    if (!inView(x, y)) continue;
+    const sp = labels.name(m, k);
+    if (!sp) continue;
+    blit(sp.canvas, x + sp.x, y + sp.y, sp.w, sp.h);
   }
+  return labels.missing > 0;
 }

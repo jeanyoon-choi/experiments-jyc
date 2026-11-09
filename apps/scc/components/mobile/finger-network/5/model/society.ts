@@ -14,19 +14,6 @@
 export const SECONDS_PER_YEAR = 1.5;
 export const ADULT_AGE = 16;
 
-/**
- * A short scene two people play out together, in seconds of society time:
- * - kiss: a new couple leans in, faces meeting;
- * - lie: a couple lies down together, overlapped, then gets up; a child follows one year later;
- * - slap: a parting couple slap each other once each, the leaver first, then walk away.
- * `lead` marks the one who stays put (and, in a slap, strikes first).
- */
-export type Act = { kind: "kiss" | "lie" | "slap"; with: number; from: number; until: number; lead: boolean };
-export const ACT_SECONDS = { kiss: 1.5, lie: 2.6, slap: 1.7 } as const;
-/** Moments inside an act, in seconds from its start: the faces meet, and each slap lands. */
-export const KISS_CONTACT = 0.28;
-export const SLAP_HITS = [0.4, 1.0] as const;
-
 export type Agent = {
   id: number;
   x: number;
@@ -51,19 +38,13 @@ export type Agent = {
   stride: number;
   /** Society time of death; the browser fades the body before removal. */
   diedAt: number | null;
-  act: Act | null;
-  /** A child on the way: born to this agent at `due`, with `with` as the other parent. */
-  pregnancy: { due: number; with: number; trait: number } | null;
 };
 
 export type SocietyEvent =
   | { kind: "union"; time: number; a: number; b: number; x: number; y: number }
   | { kind: "split"; time: number; a: number; b: number; x: number; y: number; betrayal: boolean }
   | { kind: "birth"; time: number; child: number; x: number; y: number }
-  | { kind: "death"; time: number; id: number; x: number; y: number }
-  | { kind: "kiss"; time: number; a: number; b: number; x: number; y: number }
-  | { kind: "lie"; time: number; a: number; b: number; x: number; y: number }
-  | { kind: "slap"; time: number; hitter: number; victim: number; x: number; y: number };
+  | { kind: "death"; time: number; id: number; x: number; y: number };
 
 export type Society = {
   agents: Agent[];
@@ -102,8 +83,6 @@ export type SocietyParameters = {
   personalSpace: number;
   coupleSpacing: number;
   walkSpeed: number;
-  /** Feet apart while kissing, so two bodies leaning 15° toward each other meet at the face. */
-  kissSpacing: number;
   /** Seconds a death or other event stays in `events` for the browser to draw. */
   eventMemory: number;
 };
@@ -126,7 +105,6 @@ export const DEFAULT_SOCIETY: SocietyParameters = {
   personalSpace: 48,
   coupleSpacing: 30,
   walkSpeed: 20,
-  kissSpacing: 28,
   eventMemory: 1.6,
 };
 
@@ -189,8 +167,6 @@ export function addAgent(
     lastBirth: -Infinity,
     stride: 0,
     diedAt: null,
-    act: null,
-    pregnancy: null,
   };
   society.agents.push(agent);
   society.byId.set(agent.id, agent);
@@ -206,17 +182,8 @@ function unite(society: Society, a: Agent, b: Agent) {
   a.partner = b.id;
   b.partner = a.id;
   a.satisfaction = b.satisfaction = 0.45 + 0.5 * fit;
-  play(society, a, b, "kiss");
   society.events.push({ kind: "union", time: society.time, a: a.id, b: b.id, x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
 }
-
-function play(society: Society, lead: Agent, other: Agent, kind: Act["kind"]) {
-  const until = society.time + ACT_SECONDS[kind];
-  lead.act = { kind, with: other.id, from: society.time, until, lead: true };
-  other.act = { kind, with: lead.id, from: society.time, until, lead: false };
-}
-
-const acting = (agent: Agent, time: number) => agent.act !== null && agent.act.until > time;
 
 function separate(society: Society, a: Agent, b: Agent, betrayal: boolean, parameters: SocietyParameters) {
   a.partner = null;
@@ -230,8 +197,6 @@ function separate(society: Society, a: Agent, b: Agent, betrayal: boolean, param
 function die(society: Society, agent: Agent) {
   if (!alive(agent)) return;
   agent.diedAt = society.time;
-  agent.act = null;
-  agent.pregnancy = null;
   const partner = partnerOf(society, agent);
   if (partner) {
     partner.partner = null;
@@ -247,7 +212,6 @@ export function stepSociety(society: Society, elapsed: number, bounds: { width: 
   const years = elapsed / SECONDS_PER_YEAR;
   const chance = (ratePerYear: number) => random(society) < 1 - Math.exp(-ratePerYear * years);
   const living = society.agents.filter(alive);
-  const before = society.time - elapsed;
 
   for (const agent of living) {
     if (!alive(agent)) continue;
@@ -255,35 +219,6 @@ export function stepSociety(society: Society, elapsed: number, bounds: { width: 
     if (chance(parameters.mortalityBase * Math.exp(parameters.mortalityGrowth * agent.age))) {
       die(society, agent);
       continue;
-    }
-    if (agent.pregnancy && society.time >= agent.pregnancy.due) {
-      const { with: other, trait } = agent.pregnancy;
-      agent.pregnancy = null;
-      const child = addAgent(society, { x: agent.x + 10, y: agent.y + 12, trait, age: 0, parents: [agent.id, other] });
-      society.events.push({ kind: "birth", time: society.time, child: child.id, x: child.x, y: child.y });
-    }
-    if (agent.act) {
-      const act = agent.act;
-      const other = society.byId.get(act.with);
-      // The lead announces the act's moments: the faces meeting, each slap landing.
-      if (act.lead && other) {
-        const crossed = (moment: number) => before < act.from + moment && society.time >= act.from + moment;
-        if (act.kind === "kiss" && crossed(KISS_CONTACT)) {
-          society.events.push({ kind: "kiss", time: society.time, a: agent.id, b: other.id, x: (agent.x + other.x) / 2, y: (agent.y + other.y) / 2 });
-        }
-        if (act.kind === "slap") {
-          SLAP_HITS.forEach((moment, index) => {
-            if (!crossed(moment)) return;
-            const [hitter, victim] = index === 0 ? [agent, other] : [other, agent];
-            society.events.push({ kind: "slap", time: society.time, hitter: hitter.id, victim: victim.id, x: victim.x, y: victim.y });
-          });
-        }
-      }
-      if (society.time >= act.until || !other || !alive(other)) {
-        // After the slaps, each turns its back on the other and walks off.
-        if (act.kind === "slap" && other) agent.heading = Math.atan2(agent.y - other.y, agent.x - other.x || (act.lead ? -1 : 1));
-        agent.act = null;
-      } else continue;
     }
     if (!isAdult(agent)) continue;
     const partner = partnerOf(society, agent);
@@ -294,7 +229,7 @@ export function stepSociety(society: Society, elapsed: number, bounds: { width: 
       // Court the most compatible single within reach, if each finds the other good enough.
       let best: Agent | null = null;
       for (const other of living) {
-        if (other === agent || !alive(other) || !isAdult(other) || other.partner !== null || acting(other, society.time)) continue;
+        if (other === agent || !alive(other) || !isAdult(other) || other.partner !== null) continue;
         if (distance(agent, other) > parameters.meetRadius || related(agent, other)) continue;
         if (!best || compatibility(agent, other) > compatibility(agent, best)) best = other;
       }
@@ -305,7 +240,7 @@ export function stepSociety(society: Society, elapsed: number, bounds: { width: 
       continue;
     }
 
-    if (agent.id > partner.id || acting(partner, society.time)) continue; // each couple is handled once, by its lower id
+    if (agent.id > partner.id) continue; // each couple is handled once, by its lower id
     const fit = compatibility(agent, partner);
     // Satisfaction leans toward how well the two fit, slowly wears with time, and wobbles.
     const target = 0.25 + 0.7 * fit;
@@ -314,9 +249,7 @@ export function stepSociety(society: Society, elapsed: number, bounds: { width: 
 
     if (chance(parameters.divorceRate * (1 - agent.satisfaction) ** 2)) {
       const leaver = random(society) < 0.5 ? agent : partner;
-      const left = leaver === agent ? partner : agent;
-      separate(society, leaver, left, false, parameters);
-      play(society, leaver, left, "slap");
+      separate(society, leaver, leaver === agent ? partner : agent, false, parameters);
       continue;
     }
 
@@ -324,7 +257,7 @@ export function stepSociety(society: Society, elapsed: number, bounds: { width: 
     let betrayed = false;
     for (const [self, other] of [[agent, partner], [partner, agent]] as const) {
       for (const stranger of living) {
-        if (stranger === self || stranger === other || !alive(stranger) || !isAdult(stranger) || stranger.partner !== null || acting(stranger, society.time)) continue;
+        if (stranger === self || stranger === other || !alive(stranger) || !isAdult(stranger) || stranger.partner !== null) continue;
         if (distance(self, stranger) > parameters.meetRadius || related(self, stranger)) continue;
         const pull = compatibility(self, stranger);
         if (pull < self.satisfaction + 0.15 || pull < stranger.pickiness) continue;
@@ -339,19 +272,21 @@ export function stepSociety(society: Society, elapsed: number, bounds: { width: 
     if (betrayed) continue;
 
     const fertile = [agent, partner].every((p) => p.age >= parameters.fertileFrom && p.age <= parameters.fertileUntil);
-    const expecting = agent.pregnancy !== null || partner.pregnancy !== null;
-    if (fertile && !expecting && agent.age - agent.lastBirth >= parameters.birthSpacing && chance(parameters.birthRate * (0.5 + agent.satisfaction))) {
-      // The couple lie down together for a moment; the child is born one model year after they get up.
-      play(society, agent, partner, "lie");
-      society.events.push({ kind: "lie", time: society.time, a: agent.id, b: partner.id, x: (agent.x + partner.x) / 2, y: (agent.y + partner.y) / 2 });
-      agent.pregnancy = {
-        due: society.time + ACT_SECONDS.lie + SECONDS_PER_YEAR,
-        with: partner.id,
-        trait: blendTraits(agent.trait, partner.trait) + gaussian(society) * parameters.mutation,
-      };
+    if (fertile && agent.age - agent.lastBirth >= parameters.birthSpacing && chance(parameters.birthRate * (0.5 + agent.satisfaction))) {
+      const child = addAgent(
+        society,
+        {
+          x: (agent.x + partner.x) / 2,
+          y: (agent.y + partner.y) / 2 + 12,
+          trait: blendTraits(agent.trait, partner.trait) + gaussian(society) * parameters.mutation,
+          age: 0,
+          parents: [agent.id, partner.id],
+        },
+      );
       agent.lastBirth = agent.age;
       partner.lastBirth = partner.age;
       agent.satisfaction = partner.satisfaction = Math.min(1, agent.satisfaction + 0.08);
+      society.events.push({ kind: "birth", time: society.time, child: child.id, x: child.x, y: child.y });
     }
   }
 
@@ -380,18 +315,7 @@ function move(society: Society, elapsed: number, bounds: { width: number; height
       goalY = (y - agent.y) * gain;
     };
 
-    const act = agent.act && agent.act.until > society.time ? agent.act : null;
-    const scene = act ? society.byId.get(act.with) : undefined;
-    if (act) {
-      // In a scene the lead stands still; the other takes its place beside (kiss, slap) or on (lie) the lead.
-      goalX = 0;
-      goalY = 0;
-      if (!act.lead && scene) {
-        const side = agent.x >= scene.x ? 1 : -1;
-        if (act.kind === "lie") steer(scene.x + 4, scene.y, 5);
-        else steer(scene.x + side * (act.kind === "kiss" ? parameters.kissSpacing : parameters.coupleSpacing), scene.y, 5);
-      }
-    } else if (partner && agent.id > partner.id) {
+    if (partner && agent.id > partner.id) {
       // The follower keeps to the leader's side, whichever side it is already on.
       const side = agent.x >= partner.x ? 1 : -1;
       steer(partner.x + side * parameters.coupleSpacing, partner.y, 2.5);
@@ -414,7 +338,7 @@ function move(society: Society, elapsed: number, bounds: { width: number; height
     }
 
     for (const other of living) {
-      if (other === agent || other.id === agent.partner || other.id === act?.with) continue;
+      if (other === agent || other.id === agent.partner) continue;
       const dx = agent.x - other.x;
       const dy = agent.y - other.y;
       const d = Math.hypot(dx, dy);

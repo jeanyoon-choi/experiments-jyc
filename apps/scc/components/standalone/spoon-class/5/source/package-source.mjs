@@ -7,10 +7,8 @@ import {
   browserStyle,
   installAudioCompatibility,
 } from "./browser.mjs";
-import { installLifeAgeMeter } from "./life-age.mjs";
+import { installScoreMeter } from "./score.mjs";
 import { installJumpCeiling } from "./jump-ceiling.mjs";
-import { installGrowth } from "./growth.mjs";
-import { installLifeStages } from "./life-stages.mjs";
 import { installLifeGamePresentation } from "./life-game.mjs";
 import { installScale } from "./scale.mjs";
 
@@ -40,11 +38,9 @@ html, body {
 const adapter = `<script data-spoon-class-compatibility>(${installRunnerCompatibility.toString()})(window.Runner, window);</script>`;
 const audioAdapter = `<script data-spoon-class-audio>(${installAudioCompatibility.toString()})(window);</script>`;
 const scaleAdapter = `<script data-spoon-class-scale>(${installScale.toString()})(window);</script>`;
-const lifeAdapter = `<script data-spoon-class-life-presentation>(${installLifeGamePresentation.toString()})(document, window.parent !== window ? window.parent.spoonClassSigns : null, window.parent !== window ? window.parent.spoonClassStages : null);</script>`;
-const ageAdapter = `<script data-spoon-class-life-age>(${installLifeAgeMeter.toString()})(window);</script>`;
+const lifeAdapter = `<script data-spoon-class-life-presentation>(${installLifeGamePresentation.toString()})(document, window.parent !== window ? window.parent.spoonClassSigns : null);</script>`;
+const ageAdapter = `<script data-spoon-class-score>(${installScoreMeter.toString()})(window);</script>`;
 const jumpAdapter = `<script data-spoon-class-jump-ceiling>(${installJumpCeiling.toString()})(window);</script>`;
-const stagesAdapter = `<script data-spoon-class-life-stages>(${installLifeStages.toString()})(window);</script>`;
-const growthAdapter = `<script data-spoon-class-growth>(${installGrowth.toString()})(window);</script>`;
 const runnerBootstrap = `<script type="text/javascript">
     if (navigator.userAgent.toLowerCase().indexOf('chrome') > -1) {`;
 const runnerBootstrapEnd = `  </script>
@@ -128,7 +124,7 @@ const html = applyBrowserReplacements(
     .replace("<head>", `<head>\n${policy}`)
     .replace("</head>", `${moduleStyles}\n${browserStyle}\n${adapter}\n${audioAdapter}\n</head>`)
     .replace(runnerBootstrap, `${scaleAdapter}\n${lifeAdapter}\n${runnerBootstrap}`)
-    .replace(runnerBootstrapEnd, `  </script>\n${ageAdapter}\n${jumpAdapter}\n${growthAdapter}\n${stagesAdapter}\n\n  <div class="onlyforchrome">`)
+    .replace(runnerBootstrapEnd, `  </script>\n${ageAdapter}\n${jumpAdapter}\n\n  <div class="onlyforchrome">`)
     .replace("</body>", `${modulePresentation}\n</body>`),
 );
 const packaged = {

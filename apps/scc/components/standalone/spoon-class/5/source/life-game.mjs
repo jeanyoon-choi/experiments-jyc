@@ -2,41 +2,18 @@
 // game document before the upstream bootstrap runs.
 //
 // `signs` lists photographed Korean signs cut out of street photographs
-// (the host page's decoded image element, pixel size, kind and the life
-// stages it belongs to; see the docs). `stages` lists the life stages with
-// the age (in years) each begins. When given, both obstacle sprites become
-// collages of the signs of the current stage: 입간판 standing on the pavement
-// for the small obstacles; 세로 and blade signs, and signs stacked up a
-// facade, for the large ones. The stage-0 pair is painted here; later pairs
-// are composed on demand through window.spoonClassStageSprites (life-stages.mjs
-// hands them to new obstacles). Only the images change; obstacle sizes and
-// collision boxes stay those of scale.mjs.
-export function installLifeGamePresentation(document, signs, stages) {
+// (the host page's decoded image element, pixel size and kind; see the docs). When given, both obstacle
+// sprites become collages of them: 입간판 standing on the pavement for the
+// small obstacles; 세로 neon and blade signs, and 학원 signs stacked up a
+// facade, for the large ones. Every game composes its own. Only the images
+// change; obstacle sizes and collision boxes stay the source's. The runner is
+// the upstream T-Rex, untouched.
+export function installLifeGamePresentation(document, signs) {
   const INK = "#535353";
   const PAPER = "#f7f7f7";
 
   function dataUri(svg) {
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-  }
-
-  function human(x, pose) {
-    const legs =
-      pose === "run-left"
-        ? '<rect x="16" y="35" width="5" height="10"/><rect x="24" y="35" width="5" height="6"/>'
-        : pose === "run-right"
-          ? '<rect x="16" y="35" width="5" height="6"/><rect x="24" y="35" width="5" height="10"/>'
-          : pose === "crashed"
-            ? '<rect x="7" y="39" width="18" height="5"/><rect x="3" y="34" width="8" height="5"/>'
-            : '<rect x="16" y="35" width="5" height="10"/><rect x="24" y="35" width="5" height="10"/>';
-    const torso = pose === "crashed" ? '<rect x="15" y="32" width="14" height="6"/>' : '<rect x="15" y="20" width="14" height="16"/>';
-    const head = pose === "crashed" ? '<rect x="28" y="29" width="9" height="9"/>' : '<rect x="17" y="7" width="10" height="11"/>';
-    const arms = pose === "crashed" ? "" : '<rect x="9" y="23" width="7" height="5"/><rect x="28" y="25" width="7" height="5"/>';
-    return `<g transform="translate(${x} 0)" fill="${INK}">${head}${torso}${arms}${legs}</g>`;
-  }
-
-  function trexSprite(scale) {
-    const sprite = `<svg xmlns="http://www.w3.org/2000/svg" width="${262 * scale}" height="${47 * scale}" viewBox="0 0 262 47" shape-rendering="crispEdges">${human(0, "jump")}${human(44, "still")}${human(88, "run-left")}${human(132, "run-right")}${human(220, "crashed")}</svg>`;
-    return dataUri(sprite);
   }
 
   function examSprite(scale) {
@@ -71,29 +48,8 @@ export function installLifeGamePresentation(document, signs, stages) {
     stand: ["stand", "aframe", "cylinder", "lightbox"],
   };
 
-  // The signs of the stage being composed. A stage without signs of a group
-  // borrows its narrow signs (pavement and blade signs stand in for each
-  // other), then any of its signs, so every stage fills both obstacles.
-  // A group with fewer than three signs of its own stage also takes that
-  // group's signs from the stages just before and after, never further, so
-  // a row or facade repeats less and still belongs to its age.
-  let pool = [];
-  let stageIndex = 0;
-  const ofGroup = (list, group) => list.filter((sign) => KINDS[group].includes(sign.kind));
   function ofKinds(group) {
-    let matching = ofGroup(pool, group);
-    [stageIndex - 1, stageIndex + 1].forEach((at) => {
-      if (at < 0 || at >= stageList.length || matching.length >= 3) return;
-      matching = matching.concat(ofGroup(poolOf(at), group).filter((sign) => !matching.includes(sign)));
-    });
-    return matching;
-  }
-  // Pavement and blade signs stand in for each other, then any sign.
-  function narrow(first, second) {
-    const list = ofKinds(first);
-    if (list.length) return list;
-    const other = ofKinds(second);
-    return other.length ? other : pool;
+    return signs.filter((sign) => KINDS[group].includes(sign.kind));
   }
 
   function choose(list) {
@@ -155,20 +111,9 @@ export function installLifeGamePresentation(document, signs, stages) {
 
   let unitLarge = 25;
   function composeLarge(x0, width, height) {
-    const vertical = narrow("vertical", "stand");
+    const vertical = ofKinds("vertical");
     const hagwon = ofKinds("hagwon");
-    // A stage with few 세로간판 builds its wide segments mostly as facades,
-    // so a row of blade signs does not repeat one sign.
-    const blades = ofKinds("vertical").length;
-    const wide = width >= 3 * unitLarge;
-    const modes = !hagwon.length
-      ? ["vertical"]
-      : blades === 0
-        ? ["facade"]
-        : blades < 3
-          ? wide ? ["facade", "mixed"] : ["facade"]
-          : wide ? ["vertical", "facade", "mixed", "mixed"] : ["vertical", "facade"];
-    const mode = width <= unitLarge ? "vertical" : choose(modes);
+    const mode = width <= unitLarge ? "vertical" : choose(width >= 3 * unitLarge ? ["vertical", "facade", "mixed", "mixed"] : ["vertical", "facade"]);
     if (mode === "vertical") return row(vertical, x0, width, height, 0.84);
     if (mode === "facade") return facade(hagwon, x0, width, height);
     const split = Math.round(width * (0.45 + Math.random() * 0.15));
@@ -180,7 +125,7 @@ export function installLifeGamePresentation(document, signs, stages) {
   }
 
   function composeSmall(x0, width, height) {
-    return row(narrow("stand", "vertical"), x0, width, height, 0.88);
+    return row(ofKinds("stand"), x0, width, height, 0.88);
   }
 
   function signSprite(unit, height, compose) {
@@ -195,18 +140,12 @@ export function installLifeGamePresentation(document, signs, stages) {
   function paint(sprite, scale, id) {
     const target = document.getElementById(id);
     if (!target) return;
-    const canvas = paintCanvas(sprite, scale);
-    if (!canvas) return;
-    canvas.id = id;
-    target.replaceWith(canvas);
-  }
-
-  function paintCanvas(sprite, scale) {
     const canvas = document.createElement("canvas");
+    canvas.id = id;
     canvas.width = Math.round(sprite.width * scale);
     canvas.height = Math.round(sprite.height * scale);
     const context = canvas.getContext("2d");
-    if (!context) return null;
+    if (!context) return;
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = "high";
     context.scale(scale, scale);
@@ -228,89 +167,21 @@ export function installLifeGamePresentation(document, signs, stages) {
         context.drawImage(sign.image, x, y, w, h);
       }
     }
-    return canvas;
+    target.replaceWith(canvas);
   }
 
   const collage = Array.isArray(signs) && signs.length > 0;
-  const stageList = Array.isArray(stages) && stages.length ? stages.slice().sort((x, y) => x.from - y.from) : [{ id: "all", from: 0 }];
-  function stageAt(years) {
-    let index = 0;
-    stageList.forEach((stage, at) => {
-      if (years >= stage.from) index = at;
-    });
-    return index;
-  }
-  // A stage's pool: its own signs, or, when it has none yet, the nearest
-  // earlier stage that has some.
-  function poolOf(index) {
-    for (let at = index; at >= 0; at -= 1) {
-      const id = stageList[at].id;
-      const own = signs.filter((sign) => !Array.isArray(sign.stages) || id === "all" || sign.stages.includes(id));
-      if (own.length) return own;
-    }
-    return signs;
-  }
+  // Sprite units follow the obstacle types, which /4 enlarges (scale.mjs).
   const view = document.defaultView;
   const Obstacle = view && view.Runner && view.Runner.spoonClassObstacle;
   const types = (Obstacle && Obstacle.types) || [];
   const typeOf = (name, width, height) => types.find((type) => type.type === name) || { width, height };
   const smallType = typeOf("CACTUS_SMALL", 17, 35);
   const largeType = typeOf("CACTUS_LARGE", 25, 50);
+  const small = collage ? signSprite(smallType.width, smallType.height, composeSmall) : null;
   unitLarge = largeType.width;
-  function composeStage(index) {
-    pool = poolOf(index);
-    stageIndex = index;
-    return {
-      small: signSprite(smallType.width, smallType.height, composeSmall),
-      large: signSprite(largeType.width, largeType.height, composeLarge),
-    };
-  }
-  const first = collage ? composeStage(0) : null;
-  const small = first && first.small;
-  const large = first && first.large;
-  if (collage && view && document.createElement) {
-    // Canvases for later stages at the scale the Runner draws (2x on
-    // high-density screens), composed once per stage per game.
-    const hidpi = (view.devicePixelRatio || 1) > 1;
-    const cache = new Map();
-    view.spoonClassStageAt = (years) => stageAt(years);
-    view.spoonClassStageSprites = (index) => {
-      if (!cache.has(index)) {
-        const pair = composeStage(index);
-        cache.set(index, {
-          CACTUS_SMALL: paintCanvas(pair.small, hidpi ? 2 : 1),
-          CACTUS_LARGE: paintCanvas(pair.large, hidpi ? 2 : 1),
-        });
-      }
-      return cache.get(index);
-    };
-  }
+  const large = collage ? signSprite(largeType.width, largeType.height, composeLarge) : null;
   const sprites = {};
-  // The human is painted once from its SVG into a canvas that replaces the
-  // sprite image (growth.mjs repaints it): the engine then draws a bitmap
-  // every frame rather than an SVG image, which phones rasterise slowly.
-  if (document.createElement && view && view.Image) {
-    for (const [id, scale] of [["1x-trex", 1], ["2x-trex", 2]]) {
-      const target = document.getElementById(id);
-      if (!target) continue;
-      const canvas = document.createElement("canvas");
-      canvas.id = id;
-      canvas.width = 262 * scale;
-      canvas.height = 47 * scale;
-      const loader = new view.Image();
-      loader.onload = function () {
-        const context = canvas.getContext("2d");
-        if (context) context.drawImage(loader, 0, 0, canvas.width, canvas.height);
-        const runner = view.Runner && view.Runner.instance_;
-        if (runner && runner.tRex && !runner.playing) runner.tRex.update(0);
-      };
-      loader.src = trexSprite(scale);
-      target.replaceWith(canvas);
-    }
-  } else {
-    sprites["1x-trex"] = trexSprite(1);
-    sprites["2x-trex"] = trexSprite(2);
-  }
   if (collage) {
     paint(small, 1, "1x-obstacle-small");
     paint(small, 2, "2x-obstacle-small");

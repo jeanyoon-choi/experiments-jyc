@@ -20,9 +20,9 @@ Removed 2026-10-07: `finger-skating/2` (skated curve read back as a formula); it
 
 `hangman/1` is English hangman whose 졸라맨 is dressed stroke by stroke as Trump, at [`/mobile/hangman/1`](../../../app/mobile/hangman/[experiment]/page.tsx). See [hangman](hangman.md).
 
-`metro/1` draws the whole 수도권 전철 network — 24 lines, 656 stations, topology from OpenStreetMap — in 서울시's 2023 노선도 grammar with 2호선 as a circle at the centre, turned 90° to stand in a phone, at [`/mobile/metro/1`](../../../app/mobile/metro/[experiment]/page.tsx). See [수도권 전철 노선도](metro.md). `metro/2` copies it as an elastic network: take hold of a station and its lines stretch like cords and pull the next stations, point by point, in real time.
+`metro/1` draws the whole 수도권 전철 network — 24 lines, 656 stations, topology from OpenStreetMap — in 서울시's 2023 노선도 grammar with 2호선 as a circle at the centre, turned 90° to stand in a phone, at [`/mobile/metro/1`](../../../app/mobile/metro/[experiment]/page.tsx). See [수도권 전철 노선도](metro.md). It is now an elastic network (formerly `metro/2`, which replaced the static map on 2026-11-09): take hold of a station and its lines stretch like cords and pull the next stations, point by point, in real time.
 
-`daechi/1` is a Daechi-dong academy street at 10 p.m. in three.js — stacked academy signs, LED tickers, 학원차 hazards and 1,050 upright backpacked goldfish walking on two legs; tiled academy buildings lettered pane by pane; a lifted fish or car smashes the signs and knocks the street into the air — at [`/mobile/daechi/1`](../../../app/mobile/daechi/[experiment]/page.tsx). See [대치동](daechi.md).
+`daechi/1` is a Daechi-dong academy street at 10 p.m. in three.js — stacked academy signs, LED tickers, 학원차 hazards and 1,050 upright backpacked goldfish walking on two legs; tiled academy buildings lettered pane by pane; a lifted fish or car smashes the signs and knocks the street into the air — at [`/mobile/daechi/1`](../../../app/mobile/daechi/[experiment]/page.tsx). See [대치동](daechi.md). `daechi/2` is `daechi/1` where the strength of a throw breaks signs, breaches walls, collapses a building, its neighbours or the whole street, at [`/mobile/daechi/2`](../../../app/mobile/daechi/[experiment]/page.tsx).
 
 `no-longer-human/1` sets the opening of Dazai's 인간 실격 — the preface and the first notebook's beginning — as a paged phone e-book whose letters, skated by vertical strokes, come loose and collide with each other and the page edges, at [`/mobile/no-longer-human/1`](../../../app/mobile/no-longer-human/[experiment]/page.tsx). See [인간 실격](no-longer-human.md).
 
@@ -30,11 +30,19 @@ Removed 2026-10-07: `finger-skating/2` (skated curve read back as a formula); it
 
 `escalator/1` builds a three.js block of running escalators in every heading and storey phase, orbited and pinched by the viewer from the whole structure down to a single step, at [`/mobile/escalator/1`](../../../app/mobile/escalator/[experiment]/page.tsx). See [escalator](escalator.md).
 
+`life-conveyor/1` lays a hundred years over ten conveyor belts — 0 at the bottom left, 100 at the top right, each row ten years left to right — where 졸라맨 couples ride hand in hand and send their children down to the start, everyone hears the same scripted Korean life events in speech bubbles, and each falls off when they die, at [`/mobile/life-conveyor/1`](../../../app/mobile/life-conveyor/[experiment]/page.tsx). See [인생 컨베이어](life-conveyor.md).
+
+`colour/1` is a black screen that strobes black and white every frame while touched anywhere, and for a moment after the finger lifts, at [`/mobile/colour/1`](../../../app/mobile/colour/[experiment]/page.tsx).
+
 `face-trace/1` keeps the live eye and mouth cutouts inside a full-screen `face-voronoi/3` `face-gradient 3` lattice made only of those features and their short echoes. Opening the mouth swells and melts the lattice outward from the mouth. It is at [`/mobile/face-trace/1`](../../../app/mobile/face-trace/[experiment]/page.tsx). See [face trace](face-trace.md).
 
 `expression/1` reads the front camera, on the device, as 58 named facial conditions (smile to scream, wink to side-eye, turn and tilt), head pose, blink and nod counts, landmark ratios and all 51 raw blendshapes, each lit by its own value over the mirrored face, at [`/mobile/expression/1`](../../../app/mobile/expression/[experiment]/page.tsx). See [expression](expression.md).
 
 `expression/2` is a KakaoTalk clone whose 26 chat rooms read the face through the hidden front camera and nag about it, faster for anger and fake smiles than for a blank face, at [`/mobile/expression/2`](../../../app/mobile/expression/[experiment]/page.tsx). See [expression /2](expression-2.md).
+
+`kakao-talk/1` is a KakaoTalk clone whose 20 chat rooms drift into 진보 or 보수 political talk as the phone rolls left or right, from 온건 to 극단, with dissenters leaving and open chats kicking outsiders; lines are mined from community and news sources, at [`/mobile/kakao-talk/1`](../../../app/mobile/kakao-talk/[experiment]/page.tsx). See [kakao-talk](kakao-talk/README.md).
+
+`politician/1` merges 주호영 and 추미애 in GLSL: a thin-plate morph between their aligned official portraits, whose amount varies site by site in `face-voronoi/3`'s moving lattice — one composite face (얼굴) or a creased lattice of composites (격자); the finger's x tips the balance and its y sets how patchy it is, at [`/mobile/politician/1`](../../../app/mobile/politician/[experiment]/page.tsx). `politician/2` copies it with 박근혜, 문재인, 윤석열 and 이재명: each screen corner holds one face whole (문재인 top left, 박근혜 top right, 이재명 bottom left, 윤석열 bottom right), and toward the middle the finger morphs all four through the lattice. See [정치인](politician.md).
 
 `finger-network/1` maps each active mobile touch to a node and joins every pair at [`/mobile/finger-network/1`](../../../app/mobile/finger-network/[experiment]/page.tsx). See [finger network](finger-network.md).
 

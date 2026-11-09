@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { ACT_SECONDS, ADULT_AGE, DEFAULT_SOCIETY, SECONDS_PER_YEAR, addAgent, compatibility, createSociety, partnerOf, related, stepSociety } from "./society.ts";
+import { ADULT_AGE, DEFAULT_SOCIETY, SECONDS_PER_YEAR, addAgent, compatibility, createSociety, partnerOf, related, stepSociety } from "./society.ts";
 
 const bounds = { width: 390, height: 800 };
 const crowd = (seed, count, trait = (index) => (index * 47) % 360) => {
@@ -82,38 +82,4 @@ test("a single loses pickiness with time; nobody old lives forever", () => {
 test("no population upper bound: touches past the old 120 cap all stay alive", () => {
   const society = crowd(4, 200);
   assert.equal(society.agents.filter((a) => a.diedAt === null).length, 200);
-});
-
-test("a child is born one year after its parents lie down together; partings slap once each; kisses land", () => {
-  const society = crowd(5, 20);
-  const lay = new Map();
-  const slaps = [];
-  const kisses = [];
-  const births = [];
-  for (let step = 0; step < 120 * 60; step += 1) {
-    stepSociety(society, 1 / 60, bounds);
-    for (const agent of society.agents) if (agent.act?.kind === "lie" && agent.act.lead && !lay.has(`${agent.id}:${agent.act.from}`)) lay.set(`${agent.id}:${agent.act.from}`, { id: agent.id, from: agent.act.from });
-    for (const event of society.events) {
-      if (event.time !== society.time) continue;
-      if (event.kind === "slap") slaps.push(event);
-      if (event.kind === "kiss") kisses.push(event);
-      if (event.kind === "birth") births.push(event);
-    }
-  }
-  assert.ok(births.length > 0 && kisses.length > 0 && slaps.length > 0, JSON.stringify({ births: births.length, kisses: kisses.length, slaps: slaps.length }));
-  const lies = [...lay.values()];
-  for (const birth of births) {
-    const child = society.byId.get(birth.child);
-    if (!child) continue;
-    const lie = lies.filter((entry) => child.parents[0] === entry.id && entry.from < birth.time).at(-1);
-    assert.ok(lie, "every birth follows a lie-down");
-    const wait = birth.time - (lie.from + ACT_SECONDS.lie);
-    assert.ok(Math.abs(wait - SECONDS_PER_YEAR) < 0.05, `born ${wait.toFixed(2)} s after getting up`);
-  }
-  // Slaps come in pairs: the second returns the first.
-  const pairs = new Map();
-  for (const slap of slaps) pairs.set([slap.hitter, slap.victim].sort().join(), [...(pairs.get([slap.hitter, slap.victim].sort().join()) ?? []), slap]);
-  for (const list of pairs.values()) {
-    for (let index = 0; index + 1 < list.length; index += 2) assert.equal(list[index + 1].hitter, list[index].victim);
-  }
 });
