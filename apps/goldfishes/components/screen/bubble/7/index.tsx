@@ -13,6 +13,7 @@ import styles from "./bubble-three.module.css";
 import { startFrameLoop, type FrameLoop, type LoopSettings } from "./render/frame-loop";
 import { BubbleFeed, FEED_ENABLED } from "./link/feed"; // 연결
 import { ModeControl, type Mode } from "./panels/mode-control"; // 모드
+import { useHiddenUi } from "./panels/hidden-ui"; // X: 화면의 컨트롤 숨김
 import { LAB_DEFAULTS, type LabSettings } from "./objects/lab"; // 랩
 import { SPREAD_DEFAULTS, type SpreadParameters } from "./spread/contagion"; // 전파
 import { FISH_DEFAULTS, type FishPaletteId, type FishParameters } from "./fish/goldfish";
@@ -57,6 +58,7 @@ export default function RankedWebIteration() {
   const strokesRef = useRef(new Map<number, { x: number; y: number; last: number | null }>());
 
   const [panel, setPanel] = useState<PanelId | null>(null);
+  const uiHidden = useHiddenUi();
   const [summary, setSummary] = useState("");
   const [frameCost, setFrameCost] = useState("");
   // 네트워크
@@ -253,115 +255,117 @@ export default function RankedWebIteration() {
         {summary}
       </p>
 
-      <ModeControl
-        mode={mode}
-        onMode={setMode}
-        objects={objects}
-        setObjects={setObjects}
-        lab={lab}
-        setLab={setLab}
-        labMorph={labMorph}
-        spread={spread}
-        setSpread={setSpread}
-      />
-      <div className={styles.control}>
-        {panel === "network" && (
-          <NetworkPanel
-            view={view}
-            onView={changeView}
-            rates={rates}
-            onRates={(change) => setRates((current) => ({ ...current, ...change }))}
-            damping={damping}
-            onDamping={(value) => {
-              setDamping(value);
-              raft.setDamping(value);
-            }}
-            population={population}
-            onPopulation={(count) => {
-              setPopulation(count);
-              raft.requestRestart(count);
-            }}
-            groups={groups}
-            onGroups={(count) =>
-              restartWith(() => {
-                setGroups(count);
-                raft.setGroups(count);
-              })
-            }
-            diversity={diversity}
-            onDiversity={(value) =>
-              restartWith(() => {
-                setDiversity(value);
-                raft.setDiversity(value);
-              })
-            }
-            onReshuffle={() => restartWith(() => raft.reshuffle())}
-          />
-        )}
-        {panel === "visual" && (
-          <VisualPanel
-            visual={visual}
-            setVisual={setVisual}
-            onExport={() =>
-              saveSnapshot({
-                look: lookOf(visual),
-                raft: { area: visual.area, portions: visual.portions },
-                network: { view, rates, damping, pages: population, groups, diversity },
-                fish: { count: fishCount, parameters: fish, palette: fishPalette, feedback },
-                life,
-                reactions,
-                objects,
-                sound,
-                mode,
-                lab,
-                spread,
-              })
-            }
-          />
-        )}
-        {panel === "objects" && <ObjectPanel objects={objects} setObjects={setObjects} />}
-        {panel === "fish" && (
-          <FishPanel
-            count={fishCount}
-            onCount={setFishCount}
-            fish={fish}
-            setFish={setFish}
-            palette={fishPalette}
-            onPalette={setFishPalette}
-            feedback={feedback}
-            setFeedback={setFeedback}
-            reactions={reactions}
-            setReactions={setReactions}
-            onDefaults={(second) => {
-              setFish(FISH_DEFAULTS);
-              setFishPalette(DEFAULT_FISH_PALETTE);
-              setVisual((current) => ({ ...current, background: second ? SECOND_BACKGROUND : FIRST_BACKGROUND }));
-              setFeedback({ ...FEEDBACK_DEFAULTS, influence: DEFAULT_INFLUENCE });
-            }}
-            onPreset3={() => {
-              setView("network");
-              raft.changeView("network");
-              setRates(PRESET_3.rates);
-              setDamping(PRESET_3.damping);
-              raft.setDamping(PRESET_3.damping);
-              setGroups(PRESET_3.groups);
-              raft.setGroups(PRESET_3.groups);
-              setPopulation(PRESET_3.pages);
-              raft.requestRestart(PRESET_3.pages);
-              setVisual(PRESET_3.visual);
-              setFishCount(PRESET_3.fishCount);
-              setFish(PRESET_3.fish);
-              setFishPalette(PRESET_3.fishPalette);
-              setFeedback(PRESET_3.feedback);
-              setLife(PRESET_3.life);
-              setReactions(PRESET_3.reactions);
-              setObjects(PRESET_3.objects);
-            }}
-          />
-        )}
-        {panel === "life" && <LifePanel life={life} setLife={setLife} />}
-        {panel === "sound" && <SoundPanel on={touchSound.on} onToggle={touchSound.toggle} sound={sound} setSound={setSound} />}
-        <PanelTriggers panel={panel} onToggle={togglePanel} soundOn={touchSound.on} />
+      <div hidden={uiHidden}>
+        <ModeControl
+          mode={mode}
+          onMode={setMode}
+          objects={objects}
+          setObjects={setObjects}
+          lab={lab}
+          setLab={setLab}
+          labMorph={labMorph}
+          spread={spread}
+          setSpread={setSpread}
+        />
+        <div className={styles.control}>
+          {panel === "network" && (
+            <NetworkPanel
+              view={view}
+              onView={changeView}
+              rates={rates}
+              onRates={(change) => setRates((current) => ({ ...current, ...change }))}
+              damping={damping}
+              onDamping={(value) => {
+                setDamping(value);
+                raft.setDamping(value);
+              }}
+              population={population}
+              onPopulation={(count) => {
+                setPopulation(count);
+                raft.requestRestart(count);
+              }}
+              groups={groups}
+              onGroups={(count) =>
+                restartWith(() => {
+                  setGroups(count);
+                  raft.setGroups(count);
+                })
+              }
+              diversity={diversity}
+              onDiversity={(value) =>
+                restartWith(() => {
+                  setDiversity(value);
+                  raft.setDiversity(value);
+                })
+              }
+              onReshuffle={() => restartWith(() => raft.reshuffle())}
+            />
+          )}
+          {panel === "visual" && (
+            <VisualPanel
+              visual={visual}
+              setVisual={setVisual}
+              onExport={() =>
+                saveSnapshot({
+                  look: lookOf(visual),
+                  raft: { area: visual.area, portions: visual.portions },
+                  network: { view, rates, damping, pages: population, groups, diversity },
+                  fish: { count: fishCount, parameters: fish, palette: fishPalette, feedback },
+                  life,
+                  reactions,
+                  objects,
+                  sound,
+                  mode,
+                  lab,
+                  spread,
+                })
+              }
+            />
+          )}
+          {panel === "objects" && <ObjectPanel objects={objects} setObjects={setObjects} />}
+          {panel === "fish" && (
+            <FishPanel
+              count={fishCount}
+              onCount={setFishCount}
+              fish={fish}
+              setFish={setFish}
+              palette={fishPalette}
+              onPalette={setFishPalette}
+              feedback={feedback}
+              setFeedback={setFeedback}
+              reactions={reactions}
+              setReactions={setReactions}
+              onDefaults={(second) => {
+                setFish(FISH_DEFAULTS);
+                setFishPalette(DEFAULT_FISH_PALETTE);
+                setVisual((current) => ({ ...current, background: second ? SECOND_BACKGROUND : FIRST_BACKGROUND }));
+                setFeedback({ ...FEEDBACK_DEFAULTS, influence: DEFAULT_INFLUENCE });
+              }}
+              onPreset3={() => {
+                setView("network");
+                raft.changeView("network");
+                setRates(PRESET_3.rates);
+                setDamping(PRESET_3.damping);
+                raft.setDamping(PRESET_3.damping);
+                setGroups(PRESET_3.groups);
+                raft.setGroups(PRESET_3.groups);
+                setPopulation(PRESET_3.pages);
+                raft.requestRestart(PRESET_3.pages);
+                setVisual(PRESET_3.visual);
+                setFishCount(PRESET_3.fishCount);
+                setFish(PRESET_3.fish);
+                setFishPalette(PRESET_3.fishPalette);
+                setFeedback(PRESET_3.feedback);
+                setLife(PRESET_3.life);
+                setReactions(PRESET_3.reactions);
+                setObjects(PRESET_3.objects);
+              }}
+            />
+          )}
+          {panel === "life" && <LifePanel life={life} setLife={setLife} />}
+          {panel === "sound" && <SoundPanel on={touchSound.on} onToggle={touchSound.toggle} sound={sound} setSound={setSound} />}
+          <PanelTriggers panel={panel} onToggle={togglePanel} soundOn={touchSound.on} />
+        </div>
       </div>
     </main>
   );

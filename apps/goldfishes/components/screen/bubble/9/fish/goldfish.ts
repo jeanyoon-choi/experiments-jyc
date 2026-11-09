@@ -944,7 +944,7 @@ export class GoldfishSchool {
             this.touches[at + 2] = fish.seed;
             this.touchCount += 1;
           }
-          if (life) life.colourOf(this.pageStart + page, this.watched);
+          if (life && lifeParameters.tint >= 0.5) life.colourOf(this.pageStart + page, this.watched);
           this.contact[page] = this.contact[page]! + dt;
           const key = id * 1_000 + page;
           const memory = this.remembered(fish, page);

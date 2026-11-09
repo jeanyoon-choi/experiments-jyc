@@ -33,7 +33,8 @@ import { tiersOf, type TierData } from "./fields/bake";
 import { FIELD_EXTENT, FIELD_SIZE, fieldOf } from "./fields/fields";
 import type { FieldAnswer, FieldRequest } from "./fields/field-worker";
 import type { Liquid } from "./morph/liquid";
-import { envelope, FIELD_KINDS, layerOf, passage, retarget, type Morph } from "./morph/morph";
+import { envelope, FIELD_KINDS, layerOf, motion, passage, retarget, type Morph } from "./morph/morph";
+import { styleOf } from "./morph/liquid";
 import { KIND, type LogoKind } from "./kinds/groups";
 import { brandOf } from "./shapes/marks";
 import { kindsInUse, pageKind, pagesAreObjects, portionKind, type ObjectKind, type ObjectParameters } from "./kinds/parameters";
@@ -45,7 +46,7 @@ const NEIGHBOURS = 4;
  * Per instance: its bubble, its neighbours', then (turn, from layer, to layer, shape), (melt, half its square,
  * the from and to layers' photographs: 유명인 얼굴, −1 none) and its tint (rgb, amount: 전파).
  */
-const INSTANCE_FLOATS = BUBBLE_FLOATS * (1 + NEIGHBOURS) + 12;
+const INSTANCE_FLOATS = BUBBLE_FLOATS * (1 + NEIGHBOURS) + 16;
 const LAYERS = FIELD_KINDS.length;
 /** Pages tracked for their morphs. */
 const MAX_TRACKED = 4096;
@@ -67,6 +68,7 @@ layout(location = 6) in vec4 near3;
 layout(location = 7) in vec4 turning; // its turn in the screen's plane (radians), the layers it flows from and to, how far
 layout(location = 8) in vec4 morph;   // x: how melted, 0–1; y: half the square it is drawn in (object units); z, w: the photographs (−1: none)
 layout(location = 9) in vec4 tint;    // 전파: a colour and how much of the coat it has taken
+layout(location = 10) in vec4 settle; // x: the sway and ripples' strength, y: the mirror's (morph.ts motion); z, w: extra mip levels for the from and to layers while they sharpen into a finer tier (tiers.ts)
 uniform vec2 frame;
 uniform float size;
 uniform float cssPerPixel;
@@ -80,6 +82,7 @@ flat out float detail;   // the finest mip level worth reading at this size
 flat out mat2 turn;
 flat out float radius;
 flat out vec2 scans;     // the photographs of the layers it flows from and to (유명인 얼굴), −1 none
+flat out vec4 motion;    // sway, sheen (morph.ts motion), the from and to layers' extra blur (tiers.ts blurOf)
 void main() {
   neighbours[0] = near0;
   neighbours[1] = near1;
@@ -96,6 +99,7 @@ void main() {
   flow = vec4(turning.yzw, morph.x);
   colouring = tint;
   scans = morph.zw;
+  motion = settle;
   radius = r;
   // Texels of the field per device pixel.
   detail = max(0.0, log2(${(FIELD_SIZE / (2 * FIELD_EXTENT)).toFixed(3)} * cssPerPixel / max(r, 1e-3)));
@@ -117,6 +121,7 @@ flat in float detail;
 flat in mat2 turn;
 flat in float radius;
 flat in vec2 scans;
+flat in vec4 motion;
 // The fields' tiers (tiers.ts): 64² (every kind), 128², 256², 512² (pools); the membranes' 32², 64², and 128² for
 // the 256² pool's slots then the 512² pool's; the paints' (a face's photograph, a catalogue kind's colours) 32²–256².
 uniform sampler2DArray fields0;
@@ -140,6 +145,8 @@ uniform float wobble;
 uniform float ripple;
 uniform float swell;
 uniform float mercury;
+// 시계 (MORPH_STYLES): the melt floor the outline keeps swaying on; 0 under 금붕어.
+uniform float residue;
 out vec4 pixel;
 ${SHADING}
 
@@ -166,7 +173,7 @@ float membraneOf(vec2 uv, float address, float m) {
 float membraneAt(vec2 p, float lod) {
   vec2 uv = p / ${(2 * FIELD_EXTENT).toFixed(2)} + 0.5;
   float m = lod - 2.0;
-  return mix(membraneOf(uv, flow.x, m), membraneOf(uv, flow.y, m), clamp(flow.z, 0.0, 1.0));
+  return mix(membraneOf(uv, flow.x, m + motion.z), membraneOf(uv, flow.y, m + motion.w), clamp(flow.z, 0.0, 1.0));
 }
 
 // A paint at an address (tier × 4096 + slot), at the mip lod of the full 512² field (the full paint is 256²).
@@ -207,7 +214,7 @@ vec3 ownColourOf(vec2 p, float lod, float settled, out float scanned) {
 
 // The outline's distance, blended between the two fields.
 float outlineAt(vec2 p, float lod) {
-  return mix(fieldAt(p, flow.x, lod).g, fieldAt(p, flow.y, lod).g, flow.z);
+  return mix(fieldAt(p, flow.x, lod + motion.z).g, fieldAt(p, flow.y, lod + motion.w).g, flow.z);
 }
 
 // The light leaving the surface, as SHADING's surfaceOf, with its own metalness (수은화 raises it while melted).
@@ -227,18 +234,21 @@ void main() {
   // into shape): the melt here leads or lags the object's by up to a quarter.
   float front = 0.5 + 0.25 * (sin(p.x * 2.3 + p.y * 1.7 + seed * 9.0 + time * 0.9) + sin(p.y * 3.1 - p.x * 1.3 + seed * 5.0 - time * 0.7));
   float melt = flow.w <= 0.0 ? 0.0 : clamp(flow.w * 1.5 - front * 0.5, 0.0, 1.0);
+  // The sway: the melt's, or a ring-down's (morph.ts motion), or the style's floor, breathing per object. It only
+  // displaces the outline; the drop's surface below is worked out only while it really melts.
+  float sway = max(motion.x <= 0.0 ? 0.0 : clamp(motion.x * 1.5 - front * 0.5, 0.0, 1.0), residue * (0.7 + 0.3 * sin(time * 0.5 + seed * 17.0)));
   // Melted, the liquid's outline and everything on it sway: a slow, smooth displacement, its own per object.
-  if (melt > 0.0) {
+  if (sway > 0.0) {
     float phase = seed * 37.0;
-    vec2 sway = vec2(
+    vec2 sway2 = vec2(
       sin(p.y * 3.1 + time * 2.3 + phase) + 0.5 * sin(p.x * 5.3 - time * 3.7 + phase * 1.7),
       cos(p.x * 2.7 - time * 2.9 + phase * 1.3) + 0.5 * sin(p.y * 4.9 + time * 3.3 - phase)
     );
-    p += sway * wobble * melt * 0.67;
+    p += sway2 * wobble * sway * 0.67;
   }
   float lod = max(detail, melt * soften);
-  vec4 a = fieldAt(p, flow.x, lod);
-  vec4 b = flow.y == flow.x ? a : fieldAt(p, flow.y, lod);
+  vec4 a = fieldAt(p, flow.x, lod + motion.z);
+  vec4 b = flow.y == flow.x ? a : fieldAt(p, flow.y, lod + motion.w);
   float s = mix(a.g, b.g, shape);
   if (s > 0.0) discard;
   float settled = clamp(shape, 0.0, 1.0);
@@ -271,7 +281,7 @@ void main() {
     // Ripples running in from the edge, a few, dying out inward (at one amplitude over all of it they were
     // rings parallel to its outline, a contour map; user, 2026-11-05).
     float wave = -s * 26.0 - time * 7.0 + seed * 40.0;
-    float swing = ripple * 0.025 * melt * smoothstep(0.0, 0.05, d) * exp(-d / 0.12);
+    float swing = ripple * 0.025 * sway * smoothstep(0.0, 0.05, d) * exp(-d / 0.12);
     lh += swing * sin(wave);
     grad += inward * swing * 26.0 * cos(wave);
     vec3 nl = normalize(vec3(-grad, 1.0));
@@ -290,7 +300,7 @@ void main() {
   vec3 dir = normalize(2.0 * surfaceNormal.z * surfaceNormal - vec3(0.0, 0.0, 1.0));
   float facing = clamp(surfaceNormal.z, 0.0, 1.0);
   mat3 turnLight = turnOf(seed);
-  float bare = mercury * melt;
+  float bare = mercury * (motion.y <= 0.0 ? 0.0 : clamp(motion.y * 1.5 - front * 0.5, 0.0, 1.0));
   float rough = clamp(roughness * (1.0 + 0.6 * variety * (hash(vec3(seed * 61.3, 5.5, 8.8)) - 0.5)), 0.0, 1.0);
   rough = mix(rough, 0.03, bare);
   vec3 o = toWorld(vec3(surface.xy - frame * 0.5, surface.z));
@@ -299,7 +309,7 @@ void main() {
   // hollows are where its surface lies below its own blurred height (an unsharp mask of the height field: eye
   // sockets, folds, the gaps between a GPU's fans).
   if (material > 0.5) {
-    float around = mix(fieldAt(p, flow.x, lod + 3.5).r, fieldAt(p, flow.y, lod + 3.5).r, settled);
+    float around = mix(fieldAt(p, flow.x, lod + motion.z + 3.5).r, fieldAt(p, flow.y, lod + motion.w + 3.5).r, settled);
     float hollow = max(around - h, 0.0) / max(0.15, around);
     Surface sf;
     sf.o = o;
@@ -365,8 +375,10 @@ void main() {
 
 /** Per page or portion, what the frame loop knows beyond its bubble (전파 and the portions' targets). */
 export type ObjectFrame = {
-  /** Seconds, for the liquid's sway and the pages' 변신. */
+  /** Seconds, for the liquid's sway. */
   time: number;
+  /** Per page: how many times it has moved on to another object (frame-loop.ts pageTurns). */
+  turns: Uint32Array;
   /** A portion's target page (−1 for pages). */
   targetOf: Int32Array;
   /** A portion's share of its way, 0–1. */
@@ -387,6 +399,8 @@ export type ObjectPass = {
    * `headingOf` is each one's direction of travel (각도 · 움직이는 방향).
    */
   draw(pageStart: number, count: number, pageOf: Int32Array, headingOf: Float32Array, parameters: ObjectParameters, frame: ObjectFrame): void;
+  /** Whether a page's morph has set by `time` (or it has none): only then does it move on again. */
+  settled(page: number, time: number, duration: number): boolean;
   /** Draws the 랩's object alone. */
   drawLab(lab: LabFrame, parameters: ObjectParameters): void;
   /** Whether a layer's field is ready. */
@@ -414,6 +428,7 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
     ripple: uniform("ripple"),
     swell: uniform("swell"),
     mercury: uniform("mercury"),
+    residue: uniform("residue"),
     faceColour: uniform("faceColour"),
     brand: uniform("brand"),
     midSlots: uniform("midSlots"),
@@ -597,7 +612,7 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
   const instances = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, instances);
   gl.bufferData(gl.ARRAY_BUFFER, data.byteLength, gl.DYNAMIC_DRAW);
-  for (let slot = 0; slot < NEIGHBOURS + 4; slot += 1) {
+  for (let slot = 0; slot < NEIGHBOURS + 5; slot += 1) {
     gl.enableVertexAttribArray(2 + slot);
     gl.vertexAttribPointer(2 + slot, 4, gl.FLOAT, false, INSTANCE_FLOATS * 4, slot * 16);
     gl.vertexAttribDivisor(2 + slot, 1);
@@ -708,10 +723,14 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
    * Writes one instance's morph, turn and tint (its bubble and neighbours are written first): 전파's tint when
    * the page has one, else its brand colour by `brand`, blended between the two layers it flows between.
    */
-  const write = (slot: number, flowFrom: number, flowTo: number, shape: number, melt: number, turn: number, tints: Float32Array | null, tintPage: number, brand: number, size: number) => {
+  const write = (slot: number, flowFrom: number, flowTo: number, shape: number, melt: number, sway: number, sheen: number, turn: number, tints: Float32Array | null, tintPage: number, brand: number, size: number) => {
     const to = slot * INSTANCE_FLOATS;
     const tail = to + (NEIGHBOURS + 1) * BUBBLE_FLOATS;
     data[tail] = turn;
+    data[tail + 12] = sway;
+    data[tail + 13] = sheen;
+    data[tail + 14] = residency.blurOf(shown(flowFrom));
+    data[tail + 15] = residency.blurOf(shown(flowTo));
     // Its size on screen, for the pools: the kinds it flows between want a tier as fine as that.
     const radius = data[to + 2]! * size;
     seen(flowFrom, radius);
@@ -725,7 +744,8 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
     // The square: both outlines, and room for the melt's sway and the spring's overshoot.
     const fromReach = reach[fromLayer]!;
     const toReach = reach[toLayer]!;
-    const loose = melt > 0 || shape < 0 || shape > 1 ? 0.22 + Math.max(0, shape - 1, -shape) * Math.abs(toReach - fromReach) : 0;
+    // A style's melt floor alone only sways the outline, by at most about wobble × residue.
+    const loose = melt > 0 || sway > 0 || shape < 0 || shape > 1 ? 0.22 + Math.max(0, shape - 1, -shape) * Math.abs(toReach - fromReach) : floorSway;
     data[tail + 5] = Math.min(FIELD_EXTENT, Math.max(fromReach, toReach) + loose);
     data[tail + 6] = paintAddress(fromLayer);
     data[tail + 7] = paintAddress(toLayer);
@@ -762,6 +782,7 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
     gl.uniform1f(at.ripple, parameters.ripple);
     gl.uniform1f(at.swell, parameters.swell);
     gl.uniform1f(at.mercury, parameters.mercury);
+    gl.uniform1f(at.residue, styleOf(parameters).residue);
     gl.uniform1f(at.faceColour, parameters.faceColour ?? 1);
     gl.uniform1f(at.brand, parameters.brand);
     gl.uniform1f(at.midSlots, pools[2]);
@@ -781,7 +802,11 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
     gl.disable(gl.DEPTH_TEST);
   };
 
+  /** The room a set object needs for its style's floor sway (0 under 금붕어). */
+  let floorSway = 0;
   const draw: ObjectPass["draw"] = (pageStartIndex, count, pageOf, headingOf, parameters, frame) => {
+    residency.clock = frame.time;
+    floorSway = styleOf(parameters).residue > 0 ? parameters.wobble * styleOf(parameters).residue * 1.1 + 0.01 : 0;
     const facing = Math.round(parameters.facing);
     const bubbles = foam.bubbles;
     const time = frame.time;
@@ -790,7 +815,7 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
     const pageObjects = pagesAreObjects(parameters);
     /** The layer a page should be now: its 전파 kind, or its own (변신 included). */
     const wantOf = (page: number) => {
-      const kind: ObjectKind | null = caught && caught[page]! >= 0 ? (FIELD_KINDS[caught[page]!] as ObjectKind) : pageKind(page, parameters, time);
+      const kind: ObjectKind | null = caught && caught[page]! >= 0 ? (FIELD_KINDS[caught[page]!] as ObjectKind) : pageKind(page, parameters, frame.turns[page]);
       return layerOf(kind);
     };
     /** The layer a page is shown as: where its morph is going, or what it should be if not tracked yet. */
@@ -808,12 +833,16 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
       let flowTo: number;
       let shape: number;
       let melt: number;
+      let sway: number;
+      let sheen: number;
       if (index < pageStartIndex) {
         const target = frame.targetOf[index]!;
         if (portionMorph && target >= 0) {
           // Its source page's shape → its own (bubble, heart, tech, …) → the shape of the page it reaches.
           const own = layerOf(portionKind(page, seed, parameters));
           ({ from: flowFrom, to: flowTo, shape, melt } = passage(frame.travelOf[index]!, shownAs(page), own, shownAs(target), parameters));
+          sway = melt;
+          sheen = melt;
           // All bubbles, end to end: the raft's own sphere.
           if (flowFrom === 0 && flowTo === 0 && !pageObjects) continue;
         } else {
@@ -822,6 +851,8 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
           flowFrom = flowTo = layerOf(kind);
           shape = 1;
           melt = 0;
+          sway = 0;
+          sheen = 0;
         }
       } else {
         const want = wantOf(page);
@@ -832,7 +863,9 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
         if (raft) continue;
         flowFrom = state.from;
         flowTo = state.to;
-        ({ shape, melt } = envelope((time - state.start) / parameters.duration, parameters));
+        const u = (time - state.start) / parameters.duration;
+        ({ shape, melt } = envelope(u, parameters));
+        ({ sway, sheen } = motion(u, melt, parameters));
       }
       const slot = drawn;
       const to = slot * INSTANCE_FLOATS;
@@ -861,7 +894,7 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
         pageSpin[page] = spin;
         pageTurn[page] = turn;
       }
-      write(slot, flowFrom, flowTo, shape, melt, turn, frame.tints, page, parameters.brand, parameters.size);
+      write(slot, flowFrom, flowTo, shape, melt, sway, sheen, turn, frame.tints, page, parameters.brand, parameters.size);
       drawn += 1;
     }
     plan(time, parameters);
@@ -871,14 +904,17 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
   };
 
   const drawLab: ObjectPass["drawLab"] = (lab, parameters) => {
+    residency.clock = lab.time;
+    floorSway = styleOf(parameters).residue > 0 ? parameters.wobble * styleOf(parameters).residue * 1.1 + 0.01 : 0;
     const u = lab.scrub ?? (lab.time - lab.morph.start) / parameters.duration;
     const { shape, melt } = envelope(u, parameters);
+    const { sway, sheen } = motion(u, melt, parameters);
     data.fill(0, 0, INSTANCE_FLOATS);
     data[0] = lab.x;
     data[1] = lab.y;
     data[2] = lab.radius;
     data[3] = 0.37;
-    write(0, lab.morph.from, lab.morph.to, shape, melt, lab.turn, null, -1, parameters.brand, parameters.size);
+    write(0, lab.morph.from, lab.morph.to, shape, melt, sway, sheen, lab.turn, null, -1, parameters.brand, parameters.size);
     plan(lab.time, parameters);
     begin(parameters, lab.time);
     finish(1);
@@ -894,5 +930,7 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
     gl.deleteProgram(program);
   };
 
-  return { draw, drawLab, ready, pageExtent, dispose };
+  const settled: ObjectPass["settled"] = (page, time, duration) => page >= MAX_TRACKED || pageTo[page]! < 0 || time - pageStart[page]! >= duration;
+
+  return { draw, drawLab, settled, ready, pageExtent, dispose };
 }

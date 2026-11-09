@@ -18,9 +18,27 @@ export type Liquid = {
   swell: number;
   /** While melted, the coat turns to bare mirror (the T-1000's mercury), 0 … 1. */
   mercury: number;
+  /** How pages move on and set: an index into MORPH_STYLES. */
+  style: number;
 };
 
-export const LIQUID_DEFAULTS: Liquid = { duration: 2.4, melt: 1, soften: 3.2, wobble: 0.05, ripple: 0.35, overshoot: 0.18, swell: 0.85, mercury: 0.6 };
+/**
+ * Two ways the raft's objects move on and set, kept side by side while the user decides (2026-11-06; /screen/bubble/9
+ * opens on the first, /screen/bubble/9b on the second; docs/screen/bubble/9.md):
+ *   금붕어 — a page moves on once the goldfish have watched it (frame-loop.ts pageTurns) and sets solid between;
+ *   시계 — every page moves on on its own beat every `change` s, never quite sets (a melt floor `residue` the outline
+ *          sways on) and rings down as it sets (`ring`).
+ */
+export const MORPH_STYLES = [
+  { id: "attention", label: "금붕어가 볼 때", duration: 8, change: 0, residue: 0, ring: false },
+  { id: "clock", label: "시계 · 늘 출렁임", duration: 8, change: 7, residue: 0.45, ring: true },
+] as const;
+export type MorphStyle = (typeof MORPH_STYLES)[number];
+export const styleOf = (liquid: Liquid): MorphStyle => MORPH_STYLES[liquid.style >= 0.5 ? 1 : 0];
+
+// bubble/9 (user, 2026-11-06): 4 s, then 8 s (2026-11-07), no detail washed out (bubble/7–8: 2.4 s, 3.2); and as the user tuned bubble/8: a
+// stronger sway 0.125 and ripples 0.78, no overshoot, the drop 0.91 high (were 0.05, 0.35, 0.18, 0.85).
+export const LIQUID_DEFAULTS: Liquid = { duration: MORPH_STYLES[0].duration, melt: 1, soften: 0, wobble: 0.125, ripple: 0.78, overshoot: 0, swell: 0.91, mercury: 0.6, style: 0 };
 
 export type LiquidControl = { key: keyof Liquid; label: string; min: number; max: number; step: number };
 

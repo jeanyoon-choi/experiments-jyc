@@ -77,7 +77,7 @@ const BASE_SLIDER_GROUPS: readonly SliderGroup[] = [
     controls: [
       { key: "neighbourReflection", label: "이웃 반사", min: 0, max: 1, step: 0.01 },
       { key: "crease", label: "맞닿은 틈", min: 0, max: 1, step: 0.01 },
-      { key: "area", label: "버블 면적", min: 0.1, max: 0.6, step: 0.01 },
+      { key: "area", label: "버블 면적", min: 0.1, max: 1.2, step: 0.01 }, // max 1.2 (user, 2026-11-07; was 0.6)
       { key: "portions", label: "흐름 버블 (적을수록 많이)", min: 0, max: 3, step: 0.05 },
       { key: "exposure", label: "노출", min: 0.3, max: 2.5, step: 0.01 },
     ],
@@ -183,7 +183,7 @@ export const FEEDBACK_CONTROLS: readonly SliderControl<keyof Feedback>[] = [
 // Lifecycle
 
 /** 생애주기's sliders (fish/lifecycle.ts); 켜기 · 끄기 is a pair of chips. */
-export const LIFE_CONTROLS: readonly SliderControl<Exclude<keyof LifeParameters, "enabled">>[] = [
+export const LIFE_CONTROLS: readonly SliderControl<Exclude<keyof LifeParameters, "enabled" | "tint">>[] = [
   { key: "lifespan", label: "수명 (컨텐츠를 볼 수 있는 시간, 초)", min: 2, max: 60, step: 0.5 },
   { key: "idleWear", label: "보지 않고 헤엄칠 때 닳는 정도", min: 0, max: 1, step: 0.01 },
   { key: "spread", label: "수명의 개체차", min: 0, max: 1, step: 0.01 },
@@ -232,30 +232,33 @@ const MILK: Partial<Visual> = { coating: [0.72, 0.015, 0.035], metalness: 1, rou
  * thousand pages, a fast school — with bubble/2's look (연출 갤러리). bubble/4
  * opens with it; 기본값 3 in the goldfish panel brings every panel back to it.
  */
+// The opening is bubble/8 as the user tuned it (user, 2026-11-06; docs/screen/bubble/9.md "Opening"): only the values
+// that differ from bubble/9's are set here, each with what it was.
 export const PRESET_3 = {
   rates: {
-    growth: DEFAULT_PARAMETERS.growth,
+    // 새 페이지 0.85 (was 0.3): the web keeps growing new pages to move between.
+    growth: 0.85,
     volatility: 1.5,
     // 순위 쏠림 0.03, as bubble/5.
     floor: FLOOR_RANGE[0] * (FLOOR_RANGE[1] / FLOOR_RANGE[0]) ** (1 - 0.03),
-    // bubble/6: bubble/5's motion, the extreme bursting (web/model.ts).
+    // bubble/6: bubble/5's motion, the extreme bursting (web/model.ts); 터지는 크기 80 (was 50): a watched page swells further before it bursts.
     dynamics: DEFAULT_PARAMETERS.dynamics,
-    burstAt: DEFAULT_PARAMETERS.burstAt,
+    burstAt: 80,
     recovery: DEFAULT_PARAMETERS.recovery,
   },
   damping: DEFAULT_DAMPING,
   // 800 pages (user, 2026-10-25; 기본값 3 had 1,000).
   pages: 800,
   groups: 1,
-  // bubble/8: bubble/7's opening (크롬: its white ground, studio, light and view) with only the material turned to
-  // the liquid film (user, 2026-11-03: nothing else was asked to change).
-  // bubble/8 opens on 맥시멀 믹스 with every object group on (user, 2026-11-03).
-  // 버블 면적 0.55 (user, 2026-11-04).
-  visual: { ...LOOK_BASE, ...CHROME, ...materialLook(MIX_MATERIAL, MIX_MATERIAL.looks[0]!.look), area: 0.55 } satisfies Visual,
+  // bubble/8: bubble/7's opening (크롬: its white ground, studio, light and view) on 맥시멀 믹스; 버블 면적 0.8 (user,
+  // 2026-11-07; bubble/8 0.6, was 0.55).
+  visual: { ...LOOK_BASE, ...CHROME, ...materialLook(MIX_MATERIAL, MIX_MATERIAL.looks[0]!.look), area: 0.8 } satisfies Visual,
   fishCount: 380,
-  fish: { ...FISH_DEFAULTS, scale: 0.65, speed: 2.2, follow: 0.6, novelty: 1, habituation: 1.75, span: 0.5, schooling: 2, patrol: 1 } satisfies FishParameters,
+  // 속도 3 (was 2.2).
+  fish: { ...FISH_DEFAULTS, scale: 0.65, speed: 3, follow: 0.6, novelty: 1, habituation: 1.75, span: 0.5, schooling: 2, patrol: 1 } satisfies FishParameters,
   fishPalette: "rose" as FishPaletteId,
-  feedback: FEEDBACK_DEFAULTS,
+  // 금붕어 → 버블: 품질에 주는 영향 20 and 영향 상한 9.1 (were 0.52, 1.5): the pages the fish watch swell and burst.
+  feedback: { ...FEEDBACK_DEFAULTS, influence: 20, ceiling: 9.1 } satisfies Feedback,
   life: LIFE_DEFAULTS,
   reactions: REACTION_DEFAULTS, // 반응
   objects: OBJECT_DEFAULTS, // 오브제
@@ -290,6 +293,8 @@ export const LOOKS: readonly { id: string; label: string; family: LookFamily; lo
   // The same, roughness 1 (and no clear coat, whose sharper reflection would still show specks): no reflected
   // surroundings at all, only the light's soft gradient over the coat (user, 2026-10-22).
   { id: "matte", label: "갤러리 · 거칠기 1", family: "koons", look: MATTE },
+  // The same with every sphere and object its own coat (섞음; user, 2026-11-07).
+  { id: "matte-mix", label: "갤러리 · 거칠기 1 · 섞음", family: "koons", look: { ...MATTE, coatingMix: 1 } },
   // bubble/2's look with the blue coat, as in the first lifecycle recording (bubble-4-lifecycle.gif): the
   // goldfish's own colours, the blue they take on and their grey all read against it (user, 2026-10-22).
   { id: "gallery-blue", label: "갤러리 · 블루", family: "koons", look: { coating: [0.08, 0.26, 0.95], coatingMix: 0 } },
@@ -344,6 +349,8 @@ export const LOOKS: readonly { id: string; label: string; family: LookFamily; lo
     label: "크롬", family: "koons",
     look: CHROME,
   },
+  // 크롬 with every sphere and object its own coat (섞음; user, 2026-11-07).
+  { id: "chrome-mix", label: "크롬 · 섞음", family: "koons", look: { ...CHROME, coatingMix: 1 } },
   // Gold in a forest's light, half from the side.
   {
     id: "gold",

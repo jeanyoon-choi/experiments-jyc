@@ -190,7 +190,7 @@ export class SchoolThread {
       frame.shown[page] = shown[page]!;
       // The fish keep out of what is drawn there: an object reaches past its bubble's disc (size × its outline).
       if (pageExtent && page < pageExtent.length) frame.bubbles[(pageStart + page) * 4 + 2] = bubbles[(pageStart + page) * 4 + 2]! * pageExtent[page]!;
-      if (life) {
+      if (life && life.parameters.tint >= 0.5) {
         life.colourOf(pageStart + page, colour);
         frame.coats[page * 3] = colour[0];
         frame.coats[page * 3 + 1] = colour[1];

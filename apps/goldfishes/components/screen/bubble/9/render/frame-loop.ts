@@ -18,7 +18,8 @@ import { Reactions } from "../reactions/reaction-state"; // 반응
 import type { ReactionMeshes } from "../reactions/reaction-meshes"; // 반응
 import type { ReactionParameters } from "../reactions/reactions"; // 반응
 import { createObjectPass, type ObjectFrame, type ObjectPass } from "../objects/object-pass"; // 오브제
-import { OBJECT_KINDS, pagesAreObjects, PORTION_SHOWS, type ObjectParameters } from "../objects/kinds/parameters"; // 오브제
+import { hashOf as pageHash, OBJECT_KINDS, pagesAreObjects, PORTION_SHOWS, type ObjectParameters } from "../objects/kinds/parameters"; // 오브제
+import { styleOf } from "../objects/morph/liquid"; // 모핑 방식
 import { FIELD_KINDS, layerOf, nextInSequence, retarget, type Morph } from "../objects/morph/morph"; // 랩
 import type { LabSettings } from "../objects/morph/lab"; // 랩
 import type { BubbleFeed } from "../link/feed"; // 연결
@@ -30,6 +31,8 @@ const STEP_SECONDS = 1.1;
 const PERIOD = [1.3, 3.2] as const;
 /** Within its own cycle a portion necks off until this phase and is taken in from that one. */
 const DETACHED = 0.35;
+/** Fish-seconds of watching that move a page on to its next object (pageTurns). */
+const TURN_WATCH = 1;
 const TAKEN_IN = 0.62;
 /** A portion's path bows aside by this share of its length (at most BOW_LIMIT px), so crossing flows part. */
 const BOW = 0.08;
@@ -207,7 +210,14 @@ class RaftLoop implements FrameLoop {
   private spreadObjects: ObjectParameters | null = null;
   private spreadFrom: { objects: ObjectParameters; unit: ObjectParameters["pages"] } | null = null;
   /** 오브제: the frame handed to the object pass, filled in place each frame. */
-  private readonly objectFrame: ObjectFrame = { time: 0, targetOf: this.targetOf, travelOf: this.travelOf, tints: null, caught: null };
+  /**
+   * Per page: how many times it has moved on to another object, and the goldfish's watching (fish-seconds) since.
+   * bubble/9 (user, 2026-11-06): no clock — a page moves on once the fish have watched it for TURN_WATCH and its last
+   * morph has set, so the watched flow from one object into the next and the unwatched stay what they are.
+   */
+  private readonly pageTurns = new Uint32Array(MAX_PAGES);
+  private readonly pageWatched = new Float32Array(MAX_PAGES);
+  private readonly objectFrame: ObjectFrame = { time: 0, turns: this.pageTurns, targetOf: this.targetOf, travelOf: this.travelOf, tints: null, caught: null };
   // Frame cost, when asked for: CPU work plus the GPU, synchronised by a 1-pixel read.
   private readonly costs = new Float64Array(120);
   /** Smoothed ms of the school's step and the fish scene's draw (?measure only). */
@@ -375,6 +385,26 @@ class RaftLoop implements FrameLoop {
     }
     this.summarise(delta);
   };
+
+  /**
+   * How many times each page has moved on (MORPH_STYLES): 금붕어 — once the fish have watched it TURN_WATCH since its
+   * last turn and that morph has set; 시계 — on its own beat every `change` seconds.
+   */
+  private turnPages(pageCount: number, attention: Float64Array, time: number, objects: ObjectParameters) {
+    const { pageTurns, pageWatched } = this;
+    const style = styleOf(objects);
+    for (let page = 0; page < pageCount; page += 1) {
+      if (style.change > 0) {
+        pageTurns[page] = Math.floor(time / style.change + pageHash(page + 0.5));
+        continue;
+      }
+      pageWatched[page] = pageWatched[page]! + attention[page]!;
+      if (pageWatched[page]! >= TURN_WATCH && this.objectPass.settled(page, time, objects.duration)) {
+        pageTurns[page] = pageTurns[page]! + 1;
+        pageWatched[page] = 0;
+      }
+    }
+  }
 
   /** lookOf(visual), kept while `visual` is the same object. */
   private lookFor(visual: Visual) {
@@ -593,6 +623,7 @@ class RaftLoop implements FrameLoop {
     school.step(step, web, shown, bubbles, this.bubbleCount, pageStart, drawnPages, settings.fish, this.lifeContext, this.pageExtent);
     if (MEASURE) this.schoolCost = this.schoolCost * 0.95 + (performance.now() - schoolStart) * 0.05;
     school.drainContact(drawnPages, attention);
+    this.turnPages(drawnPages, attention, raft.time, settings.objects);
     // 연결: what each fish has just reached, for pc/mobiles (link/feed.ts).
     const feed = this.hooks.feed?.();
     if (feed) {
@@ -600,7 +631,7 @@ class RaftLoop implements FrameLoop {
       feed.observe(school.fish, {
         objects: this.objectsFor(settings),
         caught: spreading ? this.contagion.caught : null,
-        time: raft.time,
+        turns: this.pageTurns,
         shown,
         pageCount: drawnPages,
       });

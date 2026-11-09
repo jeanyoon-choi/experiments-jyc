@@ -26,4 +26,5 @@ export type LabSettings = {
   all: number;
 };
 
-export const LAB_DEFAULTS: LabSettings = { target: "", pick: 0, step: 0, sequence: "heart", auto: 1, hold: 1.2, scrub: -1, turn: 0, scale: 1, all: 1 };
+// 머무는 시간 0 (user, 2026-11-06, 2-A; bubble/7–8: 1.2 s): on to the next as one sets.
+export const LAB_DEFAULTS: LabSettings = { target: "", pick: 0, step: 0, sequence: "heart", auto: 1, hold: 0, scrub: -1, turn: 0, scale: 1, all: 1 };

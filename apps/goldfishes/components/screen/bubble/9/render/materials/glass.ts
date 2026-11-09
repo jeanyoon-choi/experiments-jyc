@@ -269,6 +269,8 @@ vec3 glassOf(Surface s) {
   ],
   // Each look opens on a colour of its own; the 유리 색 chips and picker (and 섞음) then colour it.
   looks: [
+    // 유리 with every object its own colour (섞음; user, 2026-11-07), first: choosing 유리 opens on it.
+    { id: "glass-mix", label: "유리 · 섞음", look: { coating: CLEAR, coatingMix: 1 } },
     { id: "glass", label: "유리", look: { coating: CLEAR, coatingMix: 0 } },
     { id: "glass-tinted", label: "색 유리", look: { glassAbsorb: 0.5, coating: [0.2, 0.62, 0.58], coatingMix: 0 } },
     { id: "glass-frosted", label: "프로스티드 유리", look: { glassFrost: 0.75, coating: [0.86, 0.93, 0.95], coatingMix: 0 } },

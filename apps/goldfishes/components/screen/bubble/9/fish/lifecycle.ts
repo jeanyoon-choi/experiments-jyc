@@ -26,6 +26,11 @@ export type LifeParameters = {
   idleWear: number;
   /** How much lifespans differ between fish, 0 alike … 1 from about a third to three times. */
   spread: number;
+  /**
+   * 1: a fish takes on the colour of the bubbles it watches; 0 (the default, user 2026-11-07): it keeps its own colour
+   * all its life and greys only the moment it dies — the bubbles' colours are then never looked up at all.
+   */
+  tint: number;
   /** How fast a fish takes on the colour of the bubbles it watches (per second of watching). */
   tintRate: number;
   /** Strength left at which it starts turning grey (and slowing); at 0 it is grey and dies. */
@@ -43,6 +48,7 @@ export const LIFE_DEFAULTS: LifeParameters = {
   lifespan: 30,
   idleWear: 0.1,
   spread: 0.4,
+  tint: 0,
   tintRate: 0.8,
   fadeAt: 0,
   sinkSpeed: 170,
@@ -84,7 +90,7 @@ export function createLife(parameters: LifeParameters, random: number, vitality 
  */
 export function stepLife(life: Life, seconds: number, watched: Rgb | null, parameters: LifeParameters, vx = 0, vy = 0) {
   if (life.dying) return false;
-  if (watched) {
+  if (watched && parameters.tint >= 0.5) {
     // Its colour eases toward what it watches, and it takes on more of it.
     const ease = Math.min(1, seconds * 3);
     for (let channel = 0; channel < 3; channel += 1) {
@@ -130,7 +136,7 @@ export function vigour(life: Life, parameters: LifeParameters) {
 export function lifeColour(life: Life, parameters: LifeParameters, own: Rgb, spent: Rgb, out: Rgb, tintShare = 1) {
   const grey = greyness(life, parameters);
   // `tintShare` below 1 keeps a part (the fins) a little more its own colour.
-  const taken = life.tintAmount * tintShare;
+  const taken = parameters.tint >= 0.5 ? life.tintAmount * tintShare : 0;
   for (let channel = 0; channel < 3; channel += 1) {
     const tinted = own[channel]! + (life.tint[channel]! - own[channel]!) * taken;
     out[channel] = tinted + (spent[channel]! - tinted) * grey;

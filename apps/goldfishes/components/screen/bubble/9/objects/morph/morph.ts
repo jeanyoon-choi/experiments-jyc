@@ -14,7 +14,7 @@
 
 import { OBJECT_KINDS, type ObjectKind } from "../kinds/parameters.ts";
 import type { FieldKind } from "../fields/fields";
-import type { Liquid } from "./liquid.ts";
+import { styleOf, type Liquid } from "./liquid.ts";
 
 /** The fields' layers: the bubble first, then every kind. */
 export const FIELD_KINDS: readonly FieldKind[] = ["bubble", ...OBJECT_KINDS];
@@ -40,6 +40,12 @@ export function spring(tau: number, overshoot: number) {
   return 1 - Math.exp(-zeta * omega * tau) * (Math.cos(damped * tau) + (zeta / Math.sqrt(1 - zeta * zeta)) * Math.sin(damped * tau));
 }
 
+/** Where the shape has settled (spring((u − 0.1) / 0.62) reaches 1). */
+const SETTLED = 0.72;
+/** 시계's ring-down: after the shape stops, the sway dies away over about this long (s), swinging at RING_HZ. */
+const RING_DECAY = 0.7;
+const RING_HZ = 1.6;
+
 /** Shape and melt at a share `u` of the morph (u ≥ 1: set). */
 export function envelope(u: number, liquid: Liquid) {
   if (u >= 1) return { shape: 1, melt: 0 };
@@ -50,18 +56,36 @@ export function envelope(u: number, liquid: Liquid) {
   return { shape, melt };
 }
 
-/** A portion's way along its link (user, 2026-10-27): necking off its source page as that page's shape, it melts into
- * its own (a bubble, a heart, a like, a tech object, whatever it carries), holds it across the middle of the way,
- * and melts again into the shape of the page it reaches: A → it → B, a morph at both ends. `u`: its share of the way. */
+/**
+ * The surface's motion and mirror at `u`: `sway` drives the outline's sway and the ripples, `sheen` the mirror (수은화).
+ * Both are the melt, except under a style that rings down (시계): once the shape has settled the sway dies away in a
+ * damped swing rather than freezing with the melt, and the mirror leaves last.
+ */
+export function motion(u: number, melt: number, liquid: Liquid) {
+  if (!styleOf(liquid).ring || u <= SETTLED) return { sway: melt, sheen: melt };
+  const after = (u - SETTLED) * liquid.duration;
+  const peak = liquid.melt * (1 - smooth(0.66, 1, SETTLED));
+  const ring = peak * Math.exp(-after / RING_DECAY) * (0.6 + 0.4 * Math.cos(2 * Math.PI * RING_HZ * after));
+  return { sway: Math.max(melt, ring), sheen: Math.sqrt(Math.max(0, melt)) * liquid.melt };
+}
+
+/** The share u of the rising flank (0 … 0.2) at which the melt is `melt` (smoothstep inverted). */
+function riseTo(melt: number, liquid: Liquid) {
+  if (melt <= 0 || liquid.melt <= 0) return 0;
+  const s = Math.min(1, melt / liquid.melt);
+  return 0.2 * (0.5 - Math.sin(Math.asin(1 - 2 * s) / 3));
+}
+
+/** A portion's way along its link (user, 2026-10-27): necking off its source page as that page's shape, it flows into
+ * its own (a bubble, a heart, a like, whatever it carries) and on into the shape of the page it reaches: A → it → B.
+ * Liquid the whole way (bubble/9, user 2026-11-06: it used to set for 0.1–0.2 s mid-way between two quick morphs);
+ * it sets only as it leaves and arrives. `u`: its share of the way. */
 export function passage(u: number, source: number, own: number, target: number, liquid: Liquid) {
   if (u >= 1) return { from: own, to: target, shape: 1, melt: 0 };
-  if (u < PASSAGE_LEG) return { from: source, to: own, ...envelope(u / PASSAGE_LEG, liquid) };
-  if (u <= 1 - PASSAGE_LEG) return { from: own, to: own, shape: 1, melt: 0 };
-  return { from: own, to: target, ...envelope((u - (1 - PASSAGE_LEG)) / PASSAGE_LEG, liquid) };
+  const melt = liquid.melt * smooth(0, 0.1, u) * (1 - smooth(0.9, 1, u));
+  if (u < 0.5) return { from: source, to: own, shape: smooth(0.04, 0.46, u), melt };
+  return { from: own, to: target, shape: smooth(0.54, 0.96, u), melt };
 }
-/** The share of the way each end's morph takes. */
-const PASSAGE_LEG = 0.42;
-
 /** One object's morph: from one field to another, started at `start` (seconds). */
 export type Morph = { from: number; to: number; start: number };
 
@@ -73,9 +97,12 @@ function dominant(morph: Morph, time: number, liquid: Liquid) {
 /** Starts a morph towards `to` unless one is already going there. */
 export function retarget(morph: Morph, to: number, time: number, liquid: Liquid) {
   if (morph.to === to) return;
+  // The new morph starts as melted as the old one is now (on its rising flank), so a page retargeted before it has
+  // set does not drop to solid for a frame and melt again (bubble/9, 2026-11-06).
+  const melted = envelope((time - morph.start) / liquid.duration, liquid).melt;
   morph.from = dominant(morph, time, liquid);
   morph.to = to;
-  morph.start = time;
+  morph.start = time - riseTo(melted, liquid) * liquid.duration;
 }
 
 /** What the lab steps through: from the heart into each object and back (user: 하트에서 각 오브제로), in turn, or from the bubble. */

@@ -21,7 +21,7 @@
 // raft's canvas with the raft's own shading (render/shading.ts), so every look
 // and material carries over unchanged.
 
-import { BASE_GROUPS, CATALOGUE_GROUP_IDS, type BaseKind, GROUP_LABEL, GROUPS, KIND, KINDS_OF, OBJECT_GROUPS, OBJECT_KINDS, SUBGROUPS_OF, type ObjectGroup, type ObjectKind } from "./groups.ts";
+import { CATALOGUE_GROUP_IDS, type BaseKind, GROUP_LABEL, GROUPS, KIND, KINDS_OF, OBJECT_GROUPS, OBJECT_KINDS, SUBGROUPS_OF, type ObjectGroup, type ObjectKind } from "./groups.ts";
 import { LIQUID_DEFAULTS, type Liquid } from "../morph/liquid.ts";
 
 export { CATALOGUE_GROUP_IDS, GROUP_LABEL, GROUPS, KINDS_OF, OBJECT_GROUPS, OBJECT_KINDS, SUBGROUPS_OF, type ObjectGroup, type ObjectKind };
@@ -61,7 +61,6 @@ export type ObjectParameters = {
   /** Index in FACINGS: how each object is turned in the screen's plane. */
   facing: number;
   /** 변신: a page melts into another object of its group about this often, seconds; 0 never. */
-  change: number;
   /**
    * 1: a portion under way morphs at both ends of its link, whatever it is shown as — from its source page's shape
    * into its own, and from its own into the shape of the page it reaches (morph.ts passage); 0: it keeps its own.
@@ -76,19 +75,18 @@ export type ObjectParameters = {
   Record<`${BaseKind}On` | BaseKind, number> & { [kindOrOn: string]: number };
 
 export const OBJECT_DEFAULTS: ObjectParameters = {
-  // bubble/8 opens with every group on, mixed (user, 2026-11-03); bubble/7 opened on 테크 하이프. bubble/9: the
-  // catalogue's groups start off, so the opening is bubble/8's.
-  pages: BASE_GROUPS.reduce((mask, group) => mask | groupBit(group), 0),
+  // bubble/8 opens with every group on, mixed (user, 2026-11-03); bubble/7 opened on 테크 하이프. bubble/9 opened on
+  // bubble/8's groups only, then on 모두 선택 (user, 2026-11-07): the catalogue's groups too.
+  pages: GROUPS.reduce((mask, group) => mask | groupBit(group), 0),
   // 왔다갔다 하는 것: SNS, hearts and likes only (user, 2026-10-25).
   portions: PORTION_SHOWS.indexOf("sns"),
   // 1.2 (user, 2026-11-04): the goldfish keep out of the drawn outline, not the bubble's disc (ObjectPass.pageExtent).
-  size: 1.2,
-  // 부풂 1.5 (user, 2026-10-25; bubble/5 opens at 0.2).
-  puff: 1.5,
+  size: 1.21,
+  // 부풂 1.62 (user's bubble/8 tuning, 2026-11-06; 1.5 user, 2026-10-25; bubble/5 opens at 0.2).
+  puff: 1.62,
   // 각도: 움직이는 방향 (user, 2026-10-25).
   facing: 2,
-  // bubble/7: pages change now and then; portions morph at both ends of their way (user, 2026-10-27).
-  change: 14,
+  // Portions morph at both ends of their way (user, 2026-10-27).
   portionMorph: 1,
   // Uncoloured by default (user, 2026-11-03): the material reads first; 브랜드 색 brings the brands in (the catalogue's paint too).
   brand: 0,
@@ -115,12 +113,11 @@ export const SHOW_LABELS = {
   ...GROUP_LABEL,
 } as Record<Show, string>;
 
-export type ObjectControl = { key: "size" | "puff" | "change" | "brand" | "faceColour"; label: string; min: number; max: number; step: number };
+export type ObjectControl = { key: "size" | "puff" | "brand" | "faceColour"; label: string; min: number; max: number; step: number };
 
 export const OBJECT_CONTROLS: readonly ObjectControl[] = [
   { key: "size", label: "오브제 크기 (버블 원 대비)", min: 0.5, max: 1.5, step: 0.01 },
   { key: "puff", label: "부풂 (높이 배율)", min: 0, max: 2, step: 0.01 },
-  { key: "change", label: "변신 간격 (초, 0 끔)", min: 0, max: 60, step: 0.5 },
   // 로고의 브랜드 색 until bubble/9, whose catalogue kinds bring their own colours under it too.
   { key: "brand", label: "브랜드 색", min: 0, max: 1, step: 0.01 },
   { key: "faceColour", label: "얼굴 사진 색", min: 0, max: 1, step: 0.01 },
@@ -220,13 +217,11 @@ export function onCount(parameters: ObjectParameters, kinds: readonly ObjectKind
 }
 
 /**
- * What a page is shown as: a kind in one of the pages' groups, or null for a bubble. Fixed per page, or, with 변신,
- * drawn again (group and kind) about every `change` seconds at `time` (each page on its own beat).
+ * What a page is shown as: a kind in one of the pages' groups, or null for a bubble. `turn` is how many times it has
+ * moved on (bubble/9, user 2026-11-06: by the goldfish's attention, not a clock; frame-loop.ts pageTurns).
  */
-export function pageKind(page: number, parameters: ObjectParameters, time = 0): ObjectKind | null {
-  if (parameters.change <= 0) return pageKindAt(page, parameters);
-  const turn = Math.floor(time / parameters.change + hashOf(page + 0.5));
-  return pageKindAt(page + turn * 1.618, parameters);
+export function pageKind(page: number, parameters: ObjectParameters, turn = 0): ObjectKind | null {
+  return pageKindAt(turn === 0 ? page : page + turn * 1.618, parameters);
 }
 
 /** What a portion under way from `page` is shown as (`seed`: its link's own, in [0, 1)), or null for a bubble. */

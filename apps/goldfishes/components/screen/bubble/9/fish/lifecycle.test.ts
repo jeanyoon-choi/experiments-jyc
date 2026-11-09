@@ -22,7 +22,7 @@ test("watching wears a fish down at its lifespan; swimming about, by idleWear of
 });
 
 test("a fish takes on what it watches, then greys as its strength fails", () => {
-  const parameters = { ...LIFE_DEFAULTS, lifespan: 100, spread: 0, tintRate: 2, fadeAt: 0.3 };
+  const parameters = { ...LIFE_DEFAULTS, lifespan: 100, spread: 0, tint: 1, tintRate: 2, fadeAt: 0.3 };
   const life = createLife(parameters, 0.5);
   const out: Rgb = [0, 0, 0];
   const own: Rgb = [1, 0.5, 0];
@@ -140,4 +140,18 @@ test("fish, living or dead, do not overlap one another", () => {
       assert.ok(Math.hypot(fish[a]!.x - fish[b]!.x, fish[a]!.y - fish[b]!.y) > 2 * 3.6 * 0.7 * 0.8);
     }
   }
+});
+
+test("물듦 끔 (the default): a fish keeps its own colour while it watches and wears down, and greys only when it dies", () => {
+  const parameters = { ...LIFE_DEFAULTS, lifespan: 100, spread: 0 };
+  const life = createLife(parameters, 0.5);
+  const out: Rgb = [0, 0, 0];
+  const own: Rgb = [1, 0.5, 0];
+  const grey: Rgb = [0.6, 0.6, 0.6];
+  for (let step = 0; step < 30; step += 1) stepLife(life, 0.1, RED, parameters);
+  assert.ok(life.vitality < 1 && life.tintAmount === 0);
+  assert.deepEqual(lifeColour(life, parameters, own, grey, out), own);
+  life.vitality = 0;
+  life.dying = true;
+  assert.deepEqual(lifeColour(life, parameters, own, grey, out), grey);
 });

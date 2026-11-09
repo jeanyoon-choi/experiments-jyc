@@ -195,6 +195,9 @@ export function toHalf(data: Float32Array): Uint16Array {
  * Which kinds hold which pool slots, and which want which (no GL here: object-pass.ts uploads what it says).
  * Tier 0 is every kind's own layer; the pools' slots are taken by the kinds whose objects on screen are largest.
  */
+/** Seconds a layer moved to a finer tier takes to sharpen into it. */
+const SHARPEN = 0.6;
+
 export class Residency {
   /** Per layer: tier 0 baked. */
   readonly baked: Uint8Array;
@@ -207,6 +210,15 @@ export class Residency {
   readonly lastSeen: Float64Array;
   /** Per layer: the shader address of its finest tier, −1 until baked. */
   readonly address: Float32Array;
+  /**
+   * Sharpening (user, 2026-11-06: liquid objects "suddenly, discontinuously" set solid): a layer moved to a finer tier
+   * jumped from the coarse copy's blur to the fine copy's detail in one frame, which reads as a melt setting at once.
+   * Now it starts as blurred as it was (`gained` mip levels over the fine copy's own) and sharpens over SHARPEN seconds.
+   */
+  readonly gained: Float32Array;
+  readonly sharpSince: Float64Array;
+  /** The time readdress stamps a change with (the object pass sets it every frame). */
+  clock = 0;
   private readonly pinned = new Set<number>();
   /** Layers pinned somewhere: left out of the ranking. */
   private readonly fixed = new Set<number>();
@@ -223,21 +235,39 @@ export class Residency {
     this.desired = new Int8Array(layers);
     this.lastSeen = new Float64Array(layers).fill(-Infinity);
     this.address = new Float32Array(layers).fill(-1);
+    this.gained = new Float32Array(layers);
+    this.sharpSince = new Float64Array(layers).fill(-Infinity);
+  }
+
+  /** The extra mip levels `layer` is read at now (0 once sharpened). */
+  blurOf(layer: number) {
+    const gained = this.gained[layer]!;
+    if (gained <= 0) return 0;
+    const left = 1 - (this.clock - this.sharpSince[layer]!) / SHARPEN;
+    return left > 0 ? gained * left * left * (3 - 2 * left) : 0;
   }
 
   private readdress(layer: number) {
-    if (!this.baked[layer]) {
-      this.address[layer] = -1;
-      return;
-    }
-    for (let tier = TOP_TIER; tier >= 1; tier -= 1) {
-      const slot = this.slotOf[tier]![layer]!;
-      if (slot >= 0) {
-        this.address[layer] = tier * ADDRESS_TIER + slot;
-        return;
+    const was = this.address[layer]!;
+    let address = layer;
+    if (!this.baked[layer]) address = -1;
+    else {
+      for (let tier = TOP_TIER; tier >= 1; tier -= 1) {
+        const slot = this.slotOf[tier]![layer]!;
+        if (slot >= 0) {
+          address = tier * ADDRESS_TIER + slot;
+          break;
+        }
       }
     }
-    this.address[layer] = layer;
+    // Finer than it was while it is drawn: start as blurred as it looked, then sharpen (one mip level per tier).
+    const before = was < 0 ? -1 : Math.floor(was / ADDRESS_TIER);
+    const after = address < 0 ? -1 : Math.floor(address / ADDRESS_TIER);
+    if (before >= 0 && after > before) {
+      this.gained[layer] = this.blurOf(layer) + (after - before);
+      this.sharpSince[layer] = this.clock;
+    }
+    this.address[layer] = address;
   }
 
   /** Tier 0 is in. */

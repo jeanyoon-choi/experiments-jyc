@@ -57,6 +57,7 @@ Chronological log:
 | `/pc/mobiles/2` | 2026-10-28 | — | From zero after mobiles/1: one WebGL2 compositor moves every phone every moment; each strike is an interrupt you see (buzz, banner, the post scrolled to); bubble/7's own goldfish is the thumb and dies its spent death. [doc](./pc/mobiles/2.md) |
 | `/screen/bubble/8` | 2026-11-03 | — | bubble/7 beyond Koons's steel: switchable materials (liquid, gel, plaster/marble, concrete, glass, maximal mix), object groups (tech logos, celebrity heads, currency signs), up to 1,000 goldfish. [doc](./screen/bubble/8.md) |
 | `/screen/bubble/9` | 2026-11-05 | — | bubble/8 with its bugs fixed, as the ground for a new vocabulary of signs. [doc](./screen/bubble/9.md) |
+| `/screen/bubble/9b` | 2026-11-06 | — | Temporary: bubble/9 opening on the clock morph style (same code), to compare. [doc](./screen/bubble/9b.md) |
 
 Each experiment is a complete local copy: no cross-experiment implementation or ledger imports. Exception: the desktop native-windows versions share infrastructure through `components/desktop/native-windows/shared/`. Existing public images may be addressed by URL; only immutable company logos are a shared collection (`public/assets/goldfishes/assets/company-logos`). Asset URLs must exist inside this independently deployed app; after changing a collection, run `pnpm audit:goldfishes-assets`.
 

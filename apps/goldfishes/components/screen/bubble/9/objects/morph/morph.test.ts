@@ -3,7 +3,9 @@ import test from "node:test";
 import { FIELD_EXTENT, FIELD_SIZE, fieldOf, MEMBRANE_SIZE } from "../fields/fields.ts";
 import { KIND } from "../kinds/groups.ts";
 import { LIQUID_DEFAULTS } from "./liquid.ts";
-import { envelope, FIELD_KINDS, nextInSequence, passage, retarget, spring } from "./morph.ts";
+const DEFAULTS = LIQUID_DEFAULTS;
+import { envelope, FIELD_KINDS, motion, nextInSequence, passage, retarget, spring } from "./morph.ts";
+import { MORPH_STYLES } from "./liquid.ts";
 
 test("the bubble's field is a sphere over its disc: distance to the circle, height √(1 − r²), its membrane the same", () => {
   const field = fieldOf("bubble");
@@ -60,16 +62,35 @@ test("a morph retargeted midway starts from what it shows most of; the lab's hea
   assert.equal(nextInSequence("heart", "heart", kinds, visited), "cloud");
 });
 
-test("a portion morphs at both ends of its way: its source page's shape, its own across the middle, the target's on arrival", () => {
+test("a portion flows from its source page's shape through its own into the target's, liquid all the way", () => {
   const [source, own, target] = [3, 0, 7];
-  const start = passage(0, source, own, target, LIQUID_DEFAULTS);
+  const start = passage(0, source, own, target, DEFAULTS);
   assert.deepEqual([start.from, start.to, start.shape, start.melt], [source, own, 0, 0]);
-  const middle = passage(0.5, source, own, target, LIQUID_DEFAULTS);
-  assert.deepEqual([middle.from, middle.to, middle.shape, middle.melt], [own, own, 1, 0]);
-  const leaving = passage(0.2, source, own, target, LIQUID_DEFAULTS);
-  assert.ok(leaving.melt > 0.5 && leaving.to === own, `leaving melts into its own: ${JSON.stringify(leaving)}`);
-  const arriving = passage(0.8, source, own, target, LIQUID_DEFAULTS);
-  assert.ok(arriving.melt > 0.5 && arriving.from === own && arriving.to === target, `arriving melts into the target: ${JSON.stringify(arriving)}`);
-  const end = passage(1, source, own, target, LIQUID_DEFAULTS);
+  const leaving = passage(0.3, source, own, target, DEFAULTS);
+  assert.ok(leaving.melt > 0.95 && leaving.to === own, `leaving flows into its own: ${JSON.stringify(leaving)}`);
+  const arriving = passage(0.7, source, own, target, DEFAULTS);
+  assert.ok(arriving.melt > 0.95 && arriving.from === own && arriving.to === target, `arriving flows into the target: ${JSON.stringify(arriving)}`);
+  const end = passage(1, source, own, target, DEFAULTS);
   assert.deepEqual([end.to, end.shape, end.melt], [target, 1, 0]);
+});
+
+test("a retarget carries the melt on: no frame drops to solid", () => {
+  const morph = { from: 1, to: 2, start: 0 };
+  const at = DEFAULTS.duration * 0.875;
+  const before = envelope(0.875, DEFAULTS).melt;
+  retarget(morph, 3, at, DEFAULTS);
+  const after = envelope((at - morph.start) / DEFAULTS.duration, DEFAULTS).melt;
+  assert.ok(Math.abs(after - before) < 0.01, `melt carried on: ${before} → ${after}`);
+});
+
+test("morph styles: 금붕어's surface motion is exactly the melt; 시계's rings down after the shape stops", () => {
+  for (const u of [0.1, 0.5, 0.8, 0.95]) {
+    const melt = envelope(u, DEFAULTS).melt;
+    assert.deepEqual(motion(u, melt, DEFAULTS), { sway: melt, sheen: melt });
+  }
+  const clock = { ...DEFAULTS, style: 1, duration: MORPH_STYLES[1].duration };
+  const melt = envelope(0.8, clock).melt;
+  assert.ok(motion(0.8, melt, clock).sway >= melt, "the sway never falls below the melt");
+  assert.ok(motion(0.8, melt, clock).sheen !== melt, "the mirror leaves on its own curve");
+  assert.equal(MORPH_STYLES[0].residue, 0);
 });

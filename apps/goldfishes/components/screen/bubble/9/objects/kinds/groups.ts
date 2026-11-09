@@ -138,7 +138,7 @@ export type CurrencyKind = keyof (typeof OBJECT_GROUPS)["currency"]["kinds"];
 export const BASE_GROUPS = Object.keys(OBJECT_GROUPS) as BaseGroup[];
 
 /** Ids a catalogue kind may not take: the bubble's, and the objects' own settings (parameters.ts) and their `On` keys. */
-const RESERVED = new Set(["bubble", "page", "pages", "portions", "size", "puff", "facing", "change", "portionMorph", "brand", "faceColour", "duration", "melt", "soften", "wobble", "ripple", "overshoot", "swell", "mercury"]);
+const RESERVED = new Set(["bubble", "page", "pages", "portions", "size", "puff", "facing", "portionMorph", "brand", "faceColour", "duration", "melt", "soften", "wobble", "ripple", "overshoot", "swell", "mercury"]);
 
 export type MergedGroup = { id: string; label: string; kinds: { id: string; entry: KindEntry }[] };
 

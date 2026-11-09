@@ -8,7 +8,7 @@ import { useState, type Dispatch, type SetStateAction } from "react";
 import base from "../bubble-three.module.css";
 import { Chip, Chips, Note, Reset, Section, Slider } from "./controls";
 import { LAB_DEFAULTS, type LabSettings } from "../objects/morph/lab";
-import { LIQUID_CONTROLS, LIQUID_DEFAULTS, type LiquidControl } from "../objects/morph/liquid";
+import { LIQUID_CONTROLS, LIQUID_DEFAULTS, MORPH_STYLES, type LiquidControl } from "../objects/morph/liquid";
 import { BASE_PANEL_GROUPS, KindChips } from "../objects/panel/kind-chips";
 import { LAB_SEQUENCE_LABELS, LAB_SEQUENCES } from "../objects/morph/morph";
 import { GROUPS, hasGroup, KINDS_OF, OBJECT_LABELS, SHOW_LABELS, toggledGroup, type ObjectKind, type ObjectParameters } from "../objects/kinds/parameters";
@@ -115,11 +115,19 @@ export function ModeControl({ mode, onMode, objects, setObjects, lab, setLab, la
             <Slider label="회전" output={`${Math.round((lab.turn * 180) / Math.PI)}°`} ariaLabel="회전" min={-Math.PI} max={Math.PI} step={0.01} value={lab.turn} onChange={(value) => setLab((current) => ({ ...current, turn: value }))} />
           </Section>
           <Section id="lab/liquid" title="액체 (군집에도 그대로)">
+            <Chips label="모핑 방식">
+              {MORPH_STYLES.map((style, index) => (
+                <Chip key={style.id} pressed={Math.round(objects.style) === index} onClick={() => setObjects((current) => ({ ...current, style: index, duration: style.duration }))}>
+                  {style.label}
+                </Chip>
+              ))}
+            </Chips>
             {LIQUID_CONTROLS.map(liquidSlider)}
           </Section>
           <Reset
             onClick={() => {
-              setObjects((current) => ({ ...current, ...LIQUID_DEFAULTS }));
+              // The style chosen stays (each route opens on its own); the rest of the liquid goes back, its duration the style's.
+              setObjects((current) => ({ ...current, ...LIQUID_DEFAULTS, style: current.style, duration: MORPH_STYLES[Math.round(current.style)]!.duration }));
               setLab((current) => ({ ...LAB_DEFAULTS, target: current.target, pick: current.pick, step: current.step }));
             }}
           >

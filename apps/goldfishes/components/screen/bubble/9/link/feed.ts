@@ -30,7 +30,8 @@ export type FeedFrame = {
   objects: ObjectParameters;
   /** 전파's strain kind per page (an index into FIELD_KINDS, −1 none), or null. */
   caught: ArrayLike<number> | null;
-  time: number;
+  /** Per page: how many times it has moved on (frame-loop.ts pageTurns). */
+  turns: ArrayLike<number>;
   /** Each page's attention as drawn, for its rank. */
   shown: ArrayLike<number>;
   pageCount: number;
@@ -54,7 +55,7 @@ export class BubbleFeed {
   private keywordOf(page: number, frame: FeedFrame) {
     const caught = frame.caught?.[page];
     if (caught !== undefined && caught >= 0) return FIELD_KINDS[caught] ?? "bubble";
-    return pageKind(page, frame.objects, frame.time) ?? "bubble";
+    return pageKind(page, frame.objects, frame.turns[page] ?? 0) ?? "bubble";
   }
 
   /**

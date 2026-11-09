@@ -42,7 +42,7 @@ export function ReactionSection({ reactions, setReactions }: Props) {
       ...Object.fromEntries(kinds.map((kind) => [`${kind}On`, value])),
     }));
   return (
-    <Section id="fish/reactions" title="반응" value={`${REACTION_KINDS.filter(on).length}/${REACTION_KINDS.length}`}>
+    <Section id="fish/reactions" defaultOpen={false} title="반응" value={`${REACTION_KINDS.filter(on).length}/${REACTION_KINDS.length}`}>
       <Note>버블에 닿을 때 하트 · 좋아요 · 댓글</Note>
       <Chips label="반응 모두 켜기">
         <Chip pressed={!REACTION_KINDS.some(on)} onClick={() => turn(REACTION_KINDS, 0)}>

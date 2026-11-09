@@ -33,10 +33,10 @@ test("catalogue groups register after bubble/5–8's: kinds with their making an
   assert.equal(group!.kinds[2]!.entry.source, "model");
   assert.equal(group!.kinds[2]!.entry.off, true);
   assert.equal(group!.kinds[0]!.entry.sub, "가");
-  // The registry as the app has it: the five groups first, every kind once, the catalogue's off in the opening's pages.
+  // The registry as the app has it: the five groups first, every kind once, every group on in the opening's pages (모두 선택, 2026-11-07).
   assert.deepEqual(GROUPS.slice(0, 5), BASE_GROUPS);
   assert.equal(new Set(OBJECT_KINDS).size, OBJECT_KINDS.length);
-  for (const g of GROUPS.slice(5)) assert.ok((OBJECT_DEFAULTS.pages & groupBit(g)) === 0, `${g} on at the start`);
+  for (const g of GROUPS) assert.ok((OBJECT_DEFAULTS.pages & groupBit(g)) !== 0, `${g} off at the start`);
   for (const kind of OBJECT_KINDS) assert.ok(KIND[kind] && KINDS_OF[KIND[kind].group].includes(kind), kind);
 });
 

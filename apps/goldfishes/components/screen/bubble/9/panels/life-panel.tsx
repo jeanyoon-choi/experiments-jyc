@@ -12,7 +12,7 @@ type Props = {
 export function LifeSection({ life, setLife }: Props) {
   return (
     <Section id="fish/life" title="생애주기" value={life.enabled >= 0.5 ? "켬" : "끔"}>
-      <Note>컨텐츠를 볼수록 기력이 닳고 · 본 구슬의 색으로 물들다 회색이 되어 가라앉고 · 그만큼 사방에서 새로 옵니다</Note>
+      <Note>컨텐츠를 볼수록 기력이 닳고 · 죽는 순간 회색이 되어 가라앉고 · 그만큼 사방에서 새로 옵니다</Note>
       <Chips label="생애주기 켜기">
         <Chip pressed={life.enabled < 0.5} onClick={() => setLife((current) => ({ ...current, enabled: 0 }))}>
           끔
@@ -21,7 +21,16 @@ export function LifeSection({ life, setLife }: Props) {
           켬
         </Chip>
       </Chips>
-      {LIFE_CONTROLS.map((control) => (
+      {/* 색 물듦 (user, 2026-11-07): off by default — a fish keeps its own colour until it dies; on, it takes on the bubbles' it watches. */}
+      <Chips label="본 구슬 색으로 물듦">
+        <Chip pressed={life.tint < 0.5} onClick={() => setLife((current) => ({ ...current, tint: 0 }))}>
+          물듦 끔
+        </Chip>
+        <Chip pressed={life.tint >= 0.5} onClick={() => setLife((current) => ({ ...current, tint: 1 }))}>
+          물듦 켬
+        </Chip>
+      </Chips>
+      {LIFE_CONTROLS.filter((control) => control.key !== "tintRate" || life.tint >= 0.5).map((control) => (
         <Slider
           key={control.key}
           label={control.label}

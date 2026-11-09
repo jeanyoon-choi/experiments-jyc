@@ -51,7 +51,8 @@ function schoolDigest(lifeOn: boolean) {
     out[1] = 0.3;
     out[2] = 0.9;
   };
-  const life: LifeContext = { parameters: { ...LIFE_DEFAULTS, enabled: lifeOn ? 1 : 0, lifespan: 4, crushDistance: 6, waveEvery: 1 }, colourOf: coat };
+  // 물듦 켬: the pins were taken before 물듦 끔 became the default (2026-11-07), and still hold with it on.
+  const life: LifeContext = { parameters: { ...LIFE_DEFAULTS, tint: 1, enabled: lifeOn ? 1 : 0, lifespan: 4, crushDistance: 6, waveEvery: 1 }, colourOf: coat };
   const school = new GoldfishSchool(WIDTH, HEIGHT);
   const bubbles = new Float32Array((pages + portions) * 4);
   const contact = new Float64Array(pages);
