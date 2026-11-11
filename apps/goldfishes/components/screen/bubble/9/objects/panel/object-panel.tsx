@@ -63,7 +63,8 @@ export function ObjectPanel({ objects, setObjects }: Props) {
           <Chip pressed={Math.round(objects.pages) === 0} onClick={() => setObjects((current) => ({ ...current, pages: 0 }))}>
             {SHOW_LABELS.bubble}
           </Chip>
-          <Chip pressed={pageGroups === GROUPS.length} onClick={() => setObjects((current) => ({ ...current, pages: ALL_GROUPS() }))}>
+          {/* Pressed again while every group is on, it clears them all (to 버블): one press, then the one or two to test (user, 2026-11-11). */}
+          <Chip pressed={pageGroups === GROUPS.length} onClick={() => setObjects((current) => ({ ...current, pages: GROUPS.every((group) => hasGroup(current.pages, group)) ? 0 : ALL_GROUPS() }))}>
             모두 선택
           </Chip>
           {GROUPS.map((group) => (

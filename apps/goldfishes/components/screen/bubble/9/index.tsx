@@ -308,6 +308,10 @@ export default function RankedWebIteration({ morphStyle = 0 }: { morphStyle?: nu
                 })
               }
               onReshuffle={() => restartWith(() => raft.reshuffle())}
+              flow={(visual.flow ?? 1) >= 0.5}
+              onFlow={(on) => setVisual((current) => ({ ...current, flow: on ? 1 : 0 }))}
+              portions={visual.portions}
+              onPortions={(value) => setVisual((current) => ({ ...current, portions: value }))}
             />
           )}
           {panel === "visual" && (
@@ -317,7 +321,7 @@ export default function RankedWebIteration({ morphStyle = 0 }: { morphStyle?: nu
               onExport={() =>
                 saveSnapshot({
                   look: lookOf(visual),
-                  raft: { area: visual.area, portions: visual.portions },
+                  raft: { area: visual.area, portions: visual.portions, flow: visual.flow ?? 1 },
                   network: { view, rates, damping, pages: population, groups, diversity },
                   fish: { count: fishCount, parameters: fish, palette: fishPalette, feedback },
                   life,

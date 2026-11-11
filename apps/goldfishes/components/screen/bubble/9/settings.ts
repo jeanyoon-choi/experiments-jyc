@@ -28,9 +28,13 @@ export type SliderControl<Key extends string> = { key: Key; label: string; min: 
 // Visual
 
 /** Everything the visual panel adjusts: the renderer's look plus the raft's own scale and flow. */
-export type Visual = Look & { area: number; portions: number };
+/** `flow` 0 draws no flow bubbles at all (네트워크 → 흐름 버블 끔; user, 2026-11-12); `portions` is how small a flow is still drawn. */
+export type Visual = Look & { area: number; portions: number; flow: number };
 
-export const VISUAL_DEFAULTS: Visual = { ...LOOK_DEFAULTS, area: AREA_BUDGET, portions: LEAST_PORTION };
+export const VISUAL_DEFAULTS: Visual = { ...LOOK_DEFAULTS, area: AREA_BUDGET, portions: LEAST_PORTION, flow: 1 };
+
+/** 흐름 버블's slider (네트워크, its first fold; it was 비주얼 → 라프트's until 2026-11-12): what it shows is the web's flow, not a look. */
+export const FLOW_CONTROL = { label: "흐름 버블 양 (적을수록 많이)", min: 0, max: 3, step: 0.05 } as const;
 
 // 기본값 2 (user, 2026-10-11): the defaults (fish included) on a mid grey (#5e5e5e) instead of black; a button in the goldfish panel, not the default.
 /** 기본값 (the goldfish panel's): bubble/1's black. */
@@ -78,7 +82,6 @@ const BASE_SLIDER_GROUPS: readonly SliderGroup[] = [
       { key: "neighbourReflection", label: "이웃 반사", min: 0, max: 1, step: 0.01 },
       { key: "crease", label: "맞닿은 틈", min: 0, max: 1, step: 0.01 },
       { key: "area", label: "버블 면적", min: 0.1, max: 1.2, step: 0.01 }, // max 1.2 (user, 2026-11-07; was 0.6)
-      { key: "portions", label: "흐름 버블 (적을수록 많이)", min: 0, max: 3, step: 0.05 },
       { key: "exposure", label: "노출", min: 0.3, max: 2.5, step: 0.01 },
     ],
   },
@@ -251,8 +254,9 @@ export const PRESET_3 = {
   pages: 800,
   groups: 1,
   // bubble/8: bubble/7's opening (크롬: its white ground, studio, light and view) on 맥시멀 믹스; 버블 면적 0.8 (user,
-  // 2026-11-07; bubble/8 0.6, was 0.55).
-  visual: { ...LOOK_BASE, ...CHROME, ...materialLook(MIX_MATERIAL, MIX_MATERIAL.looks[0]!.look), area: 0.8 } satisfies Visual,
+  // 2026-11-07; bubble/8 0.6, was 0.55). 팔레트 2 (코팅색) with 색 섞음, so every sphere and object takes its own
+  // coat, and 부분 나눔 0 (user, 2026-11-11; were 팔레트 0 맥시멀, one coat, 부분 나눔 0.25).
+  visual: { ...LOOK_BASE, ...CHROME, ...materialLook(MIX_MATERIAL, MIX_MATERIAL.looks[0]!.look), area: 0.8, mixPalette: 2, coatingMix: 1, mixParts: 0 } satisfies Visual,
   fishCount: 380,
   // 속도 3 (was 2.2).
   fish: { ...FISH_DEFAULTS, scale: 0.65, speed: 3, follow: 0.6, novelty: 1, habituation: 1.75, span: 0.5, schooling: 2, patrol: 1 } satisfies FishParameters,
@@ -367,9 +371,10 @@ export const FAMILY_OPENING: Record<LookFamily, Partial<Visual>> = {
 
 /** The renderer's look for a frame: the visual panel's, without the raft's own area and portions. */
 export function lookOf(visual: Visual): Look {
-  const { area, portions, ...look } = visual;
+  const { area, portions, flow, ...look } = visual;
   void area;
   void portions;
+  void flow;
   return look;
 }
 

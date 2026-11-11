@@ -19,7 +19,7 @@ import {
 } from "../settings";
 import { materialOf } from "../render/materials";
 import { Chip, Chips, Note, Panel, Reset, Section, Slider } from "./controls";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { hsl, hslOf } from "../render/materials/coats";
 import folds from "./panels.module.css";
 
@@ -68,14 +68,18 @@ function HslCoat({ visual, setVisual }: { visual: Visual; setVisual: Dispatch<Se
 
 /** The look a 연출 button gives: the opening values, then its own. The raft's area and flow stay unless the look sets them. */
 function withLook(current: Visual, look: Partial<Visual>): Visual {
-  return { ...LOOK_BASE, area: current.area, portions: current.portions, ...look };
+  // A material's own choices (인쇄물's 방향) stay as they are set: they run beside the 연출, not under it.
+  const choices = materialOf(look.material ?? LOOK_BASE.material)?.choices ?? [];
+  const kept = Object.fromEntries(choices.map((choice) => [choice.key, (current as Record<string, unknown>)[choice.key]]).filter(([, value]) => value !== undefined));
+  return { ...LOOK_BASE, area: current.area, portions: current.portions, flow: current.flow ?? 1, ...look, ...kept };
 }
 
 function sameLook(visual: Visual, look: Partial<Visual>) {
   const target = withLook(visual, look);
   return (Object.keys(target) as (keyof Visual)[]).every((key) => {
-    const a = visual[key];
-    const b = target[key];
+    // A uniform added while the page was open has no value in its state yet: its default stands in (as the sliders do).
+    const a = visual[key] ?? LOOK_BASE[key];
+    const b = target[key] ?? LOOK_BASE[key];
     return typeof a === "number" ? a === b : toHex(a) === toHex(b as typeof a);
   });
 }
@@ -124,6 +128,22 @@ export function VisualPanel({ visual, setVisual, onExport }: Props) {
           </Chip>
         ))}
       </Chips>
+      {(materialOf(visual.material)?.choices ?? []).map((choice) => (
+        <Fragment key={choice.key}>
+          <Note>{choice.label}</Note>
+          <Chips label={choice.label}>
+            {choice.options.map((option) => (
+              <Chip
+                key={option.value}
+                pressed={Math.round(Number((visual as Record<string, unknown>)[choice.key] ?? 0)) === option.value}
+                onClick={() => setVisual((current) => ({ ...current, [choice.key]: option.value }))}
+              >
+                {option.label}
+              </Chip>
+            ))}
+          </Chips>
+        </Fragment>
+      ))}
       <Note>환경</Note>
       <Chips label="환경">
         <Chip pressed={visual.photoStrength === 0} onClick={() => setVisual((current) => ({ ...current, photoStrength: 0 }))}>

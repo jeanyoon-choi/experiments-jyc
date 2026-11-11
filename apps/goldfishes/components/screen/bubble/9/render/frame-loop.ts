@@ -528,12 +528,13 @@ class RaftLoop implements FrameLoop {
     for (let page = 0; page < pageCount; page += 1) pools[page] = shown[page]!;
     this.bubbleCount = 0;
     const motionTime = this.motionTime;
-    const { area, portions } = settings.visual;
+    const { area, portions, flow } = settings.visual;
 
     if (flowing) {
       let linkCount = 0;
       for (let from = 0; from < pageCount; from += 1) linkCount += web.out[from]!.length;
-      const leastFlow = portions * (linkCount > 0 ? web.damping / linkCount : 1);
+      // 흐름 버블 끔: no flow is large enough to be drawn.
+      const leastFlow = (flow ?? 1) < 0.5 ? 1e9 : portions * (linkCount > 0 ? web.damping / linkCount : 1);
       for (let from = 0; from < pageCount; from += 1) {
         for (const entry of web.out[from]!) {
           const to = entry.target;

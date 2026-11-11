@@ -29,6 +29,8 @@
 // Nothing persists between frames.
 
 import { COAT, FACE_ENVIRONMENT, keyOnScreen, LOOK_DEFAULTS, SHADING, type Look } from "./shading";
+import { PRINT_MATERIAL } from "./materials/print";
+import { createPrintMap, PRINT_UNIT } from "./materials/print-sheets";
 
 export { LOOK_DEFAULTS, MIXED_COATS, type Colour, type Look } from "./shading";
 
@@ -574,6 +576,9 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     image.src = FACE_IMAGE;
   };
 
+  // 인쇄물's sheets (materials/print-sheets.ts): painted in a worker the first time that material is chosen.
+  const printMap = createPrintMap(gl);
+
   type Layer = { texture: WebGLTexture; target: WebGLFramebuffer };
   const depth = gl.createRenderbuffer();
   const layers = [
@@ -757,6 +762,10 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     gl.bindTexture(gl.TEXTURE_2D, faceMap);
     gl.uniform1i(location(program, "faceMap"), 7);
     gl.uniform1f(location(program, "faceAspect"), faceAspect);
+    if (Math.round(look.material) === PRINT_MATERIAL.id) printMap.want(Math.round(look.printRegion ?? 0));
+    gl.activeTexture(gl.TEXTURE0 + PRINT_UNIT);
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, printMap.texture());
+    gl.uniform1i(location(program, "printMap"), PRINT_UNIT);
     gl.activeTexture(gl.TEXTURE4);
     gl.bindTexture(gl.TEXTURE_2D, lightMap);
     gl.uniform1i(location(program, "lightMap"), 4);
@@ -772,6 +781,7 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     disposed = true;
     gl.deleteTexture(lightMap);
     gl.deleteTexture(faceMap);
+    printMap.dispose();
     gl.deleteTexture(bubbleData);
     gl.deleteTexture(neighbourData);
     for (const layer of layers) {

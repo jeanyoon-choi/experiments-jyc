@@ -1,6 +1,6 @@
 import styles from "../bubble-three.module.css";
 import { BURST_RANGE, DAMPING_RANGE, FLOOR_RANGE, GROWTH_RANGE, MAX_GROUPS, MAX_PAGES, RECOVERY_RANGE, VOLATILITY_RANGE } from "../web/model";
-import { MIN_PAGES } from "../settings";
+import { FLOW_CONTROL, MIN_PAGES } from "../settings";
 import { VIEWS, type ViewId } from "../raft/views";
 import { Chip, Chips, Note, Panel, Reset, Section, Slider } from "./controls";
 
@@ -32,10 +32,15 @@ type Props = {
   diversity: number;
   onDiversity: (diversity: number) => void;
   onReshuffle: () => void;
+  /** 흐름 버블: whether the portions of rank travelling along the links are drawn, and how small a one still is. */
+  flow: boolean;
+  onFlow: (on: boolean) => void;
+  portions: number;
+  onPortions: (value: number) => void;
 };
 
 /** 네트워크 (folders, user 2026-11-05): the view and the number of pages open; attention, the web's motion and its groups folded. */
-export function NetworkPanel({ view, onView, rates, onRates, damping, onDamping, population, onPopulation, groups, onGroups, diversity, onDiversity, onReshuffle }: Props) {
+export function NetworkPanel({ view, onView, rates, onRates, damping, onDamping, population, onPopulation, groups, onGroups, diversity, onDiversity, onReshuffle, flow, onFlow, portions, onPortions }: Props) {
   return (
     <Panel id="network" label="네트워크">
       <Note>크기가 곧 PageRank · 빈 곳을 누르면 새 페이지, 페이지에서 페이지로 끌면 링크</Note>
@@ -46,6 +51,17 @@ export function NetworkPanel({ view, onView, rates, onRates, damping, onDamping,
           </Chip>
         ))}
       </div>
+      {/* 흐름 버블 (user, 2026-11-12): off in one press, and its amount here rather than under 비주얼 → 라프트. */}
+      <Note>흐름 버블 (링크를 따라 오가는 작은 버블)</Note>
+      <Chips label="흐름 버블">
+        <Chip pressed={!flow} onClick={() => onFlow(false)}>
+          끔
+        </Chip>
+        <Chip pressed={flow} onClick={() => onFlow(true)}>
+          켬
+        </Chip>
+      </Chips>
+      {flow && <Slider label={FLOW_CONTROL.label} output={portions.toFixed(2)} ariaLabel={FLOW_CONTROL.label} min={FLOW_CONTROL.min} max={FLOW_CONTROL.max} step={FLOW_CONTROL.step} value={portions} onChange={onPortions} />}
       <Slider
         label="페이지 수"
         output={population}
