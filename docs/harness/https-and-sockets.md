@@ -23,7 +23,7 @@ App handlers belong in `apps/<owner>/socket/experiments/`.
 Each experiment has isolated events, rooms, and state. Handlers own abstract
 state, parameters, flows, interventions, histories, and time; browsers own all
 visual mappings. Goldfishes registers versioned protocols (`goldfishes-feed:1`,
-[contract](../../apps/goldfishes/docs/socket/feed/1.md)); handlers must not
+[contract](../../apps/goldfishes/socket/experiments/feed/1/README.md)); handlers must not
 borrow another artwork's namespace.
 
 Production is a separate stateful service:

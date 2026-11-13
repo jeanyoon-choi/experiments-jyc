@@ -1,6 +1,6 @@
 // Goldfishes feed/1 relay registration: forwards the main screen's slot
 // changes to every pc at once. No state, no timers — everything that could
-// want tuning is in the screen (components/transport/feed/1/slots.mjs), so
+// want tuning is in the screen (socket/experiments/feed/1/client/slots.mjs), so
 // this file need not change, and the relay need not restart, while the feed
 // is tuned (user, 2026-10-27).
 // Contract: apps/goldfishes/docs/socket/feed/1.md

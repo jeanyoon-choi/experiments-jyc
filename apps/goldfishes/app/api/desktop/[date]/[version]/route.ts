@@ -1,6 +1,6 @@
-import * as first from '@/components/desktop/native-windows/1/server';
-import * as second from '@/components/desktop/native-windows/2/server';
-import * as third from '@/components/desktop/native-windows/3/server';
+import * as first from '@/components/native-windows/1/server';
+import * as second from '@/components/native-windows/2/server';
+import * as third from '@/components/native-windows/3/server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

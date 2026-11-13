@@ -3,7 +3,7 @@ import type { ComponentType } from "react";
 export type GoldfishExperiment = {
   key: string;
   legacyKeys?: readonly string[];
-  area: "screen" | "pc" | "desktop" | "mobile";
+  area: "screen" | "pc" | "desktop";
   section: "default" | "2d" | "dated";
   date: string | null;
   /**
@@ -17,11 +17,9 @@ export type GoldfishExperiment = {
 };
 
 export const goldfishExperiments: readonly GoldfishExperiment[] = [
-  { key: "mobile/keyword-grid/2", legacyKeys: ["mobile/0930/2"], area: "mobile", section: "dated", date: "2026-09-30", phrase: "Combine hype words · colored bubbles collide and shrink with time", load: () => import("./mobile/keyword-grid/2") },
-  { key: "mobile/keyword-grid/1", legacyKeys: ["mobile/0930/1"], area: "mobile", section: "dated", date: "2026-09-30", phrase: "Square dot map · configure a keyword, place it on a point, finger-skate to keep it alive", load: () => import("./mobile/keyword-grid/1") },
-  { key: "desktop/native-windows/1", legacyKeys: ["desktop/0915/1"], area: "desktop", section: "dated", date: "2026-09-15", phrase: "Native desktop · preserved configurable baseline", load: () => import("./desktop/native-windows/1/controller") },
-  { key: "desktop/native-windows/2", legacyKeys: ["desktop/0915/2"], area: "desktop", section: "dated", date: "2026-09-15", phrase: "Native windows · accumulation, drift and interrupted attention", load: () => import("./desktop/native-windows/2/controller") },
-  { key: "desktop/native-windows/3", legacyKeys: ["desktop/0915/3"], area: "desktop", section: "dated", date: "2026-09-15", phrase: "Return and interrupt · new pages mixed with random tab revisits", load: () => import("./desktop/native-windows/3/controller") },
+  { key: "desktop/native-windows/1", legacyKeys: ["desktop/0915/1"], area: "desktop", section: "dated", date: "2026-09-15", phrase: "Native desktop · preserved configurable baseline", load: () => import("./native-windows/1/controller") },
+  { key: "desktop/native-windows/2", legacyKeys: ["desktop/0915/2"], area: "desktop", section: "dated", date: "2026-09-15", phrase: "Native windows · accumulation, drift and interrupted attention", load: () => import("./native-windows/2/controller") },
+  { key: "desktop/native-windows/3", legacyKeys: ["desktop/0915/3"], area: "desktop", section: "dated", date: "2026-09-15", phrase: "Return and interrupt · new pages mixed with random tab revisits", load: () => import("./native-windows/3/controller") },
   {
     key: "screen/default",
     legacyKeys: ["default", "3d/1"],
@@ -29,7 +27,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "default",
     date: null,
     phrase: "Orthographic 3D goldfish attraction field",
-    load: () => import("./screen/archive/default"),
+    load: () => import("./screen-archive/default"),
   },
   {
     key: "screen/2d/1",
@@ -38,7 +36,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "2d",
     date: null,
     phrase: "Glyph swarm and media attention cells",
-    load: () => import("./screen/archive/2d/1"),
+    load: () => import("./screen-archive/2d/1"),
   },
   {
     key: "screen/attraction-targets/1",
@@ -47,7 +45,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-08-04",
     phrase: "Tube stations as persistent attraction targets",
-    load: () => import("./screen/archive/attraction-targets/1"),
+    load: () => import("./screen-archive/attraction-targets/1"),
   },
   {
     key: "screen/attraction-targets/2",
@@ -56,7 +54,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-08-04",
     phrase: "Live HTML forms as bidirectional attraction targets",
-    load: () => import("./screen/archive/attraction-targets/2"),
+    load: () => import("./screen-archive/attraction-targets/2"),
   },
   {
     key: "screen/attraction-targets/3",
@@ -65,7 +63,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-08-04",
     phrase: "Entropy-generated 3D topology as a persistent attraction field",
-    load: () => import("./screen/archive/attraction-targets/3"),
+    load: () => import("./screen-archive/attraction-targets/3"),
   },
   {
     key: "screen/pillars/1",
@@ -74,7 +72,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-08-04",
     phrase: "Randomized vertical attention pillars",
-    load: () => import("./screen/archive/pillars/1"),
+    load: () => import("./screen-archive/pillars/1"),
   },
   {
     key: "screen/pillars/2",
@@ -83,7 +81,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-08-06",
     phrase: "Pillars fork with a side-on initial view",
-    load: () => import("./screen/archive/pillars/2"),
+    load: () => import("./screen-archive/pillars/2"),
   },
   {
     key: "screen/media-grid/1",
@@ -92,7 +90,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-08-06",
     phrase: "Locally reconfiguring composite media grid",
-    load: () => import("./screen/archive/media-grid/1"),
+    load: () => import("./screen-archive/media-grid/1"),
   },
   {
     key: "screen/pillars/3",
@@ -101,7 +99,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-08-06",
     phrase: "Temporal pillars accumulating beneath a fixed present",
-    load: () => import("./screen/archive/pillars/3"),
+    load: () => import("./screen-archive/pillars/3"),
   },
   {
     key: "screen/pillars/4",
@@ -110,7 +108,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-08-06",
     phrase: "Short-lived active strata leaving frozen pillars",
-    load: () => import("./screen/archive/pillars/4"),
+    load: () => import("./screen-archive/pillars/4"),
   },
   {
     key: "screen/keyword-field/2",
@@ -119,7 +117,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "A goldfish school attending a spreading keyword field",
-    load: () => import("./screen/archive/keyword-field/2"),
+    load: () => import("./screen-archive/keyword-field/2"),
   },
   {
     key: "screen/keyword-field/1",
@@ -128,7 +126,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Instagram/4 keyword field preserved unchanged",
-    load: () => import("./screen/archive/keyword-field/1"),
+    load: () => import("./screen-archive/keyword-field/1"),
   },
   {
     key: "screen/overlay-3d/1",
@@ -137,7 +135,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Original Instagram/4 field with a transparent goldfish school",
-    load: () => import("./screen/archive/overlay-3d/1"),
+    load: () => import("./screen-archive/overlay-3d/1"),
   },
   {
     key: "screen/overlay-3d/2",
@@ -146,7 +144,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Original 3D goldfish school with configurable keyword surfaces",
-    load: () => import("./screen/archive/overlay-3d/2"),
+    load: () => import("./screen-archive/overlay-3d/2"),
   },
   {
     key: "screen/overlay-3d/3",
@@ -155,7 +153,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Original 3D goldfish school with switchable technology typefaces",
-    load: () => import("./screen/archive/overlay-3d/3"),
+    load: () => import("./screen-archive/overlay-3d/3"),
   },
   {
     key: "screen/overlay-3d/4",
@@ -164,7 +162,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Recorded underwater textures from goldfish approach events",
-    load: () => import("./screen/archive/overlay-3d/4"),
+    load: () => import("./screen-archive/overlay-3d/4"),
   },
   {
     key: "screen/overlay-3d/5",
@@ -173,7 +171,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Slower, roomier attention field with approach rings initially hidden",
-    load: () => import("./screen/archive/overlay-3d/5"),
+    load: () => import("./screen-archive/overlay-3d/5"),
   },
   {
     key: "screen/overlay-2d/1",
@@ -182,7 +180,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Original Instagram/4 field with Canvas2D goldfish glyphs",
-    load: () => import("./screen/archive/overlay-2d/1"),
+    load: () => import("./screen-archive/overlay-2d/1"),
   },
   {
     key: "screen/overlay-2d/2",
@@ -191,7 +189,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Persistent individual goldfish trails replacing influence edges",
-    load: () => import("./screen/archive/overlay-2d/2"),
+    load: () => import("./screen-archive/overlay-2d/2"),
   },
   {
     key: "screen/overlay-2d/3",
@@ -200,7 +198,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Local attention and trail memory co-evolving with the keyword field",
-    load: () => import("./screen/archive/overlay-2d/3"),
+    load: () => import("./screen-archive/overlay-2d/3"),
   },
   {
     key: "screen/overlay-2d/4",
@@ -209,7 +207,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Explicit fish targets, attention contact and keyword propagation",
-    load: () => import("./screen/archive/overlay-2d/4"),
+    load: () => import("./screen-archive/overlay-2d/4"),
   },
   {
     key: "screen/attention-print/1",
@@ -218,7 +216,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Serial technology signs interrupted by living attention and accumulated ink",
-    load: () => import("./screen/archive/attention-print/1"),
+    load: () => import("./screen-archive/attention-print/1"),
   },
   {
     key: "screen/tech-eyes/1",
@@ -227,7 +225,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-22",
     phrase: "Preserved overlay-5 attention field as the 0922 baseline",
-    load: () => import("./screen/archive/tech-eyes/1"),
+    load: () => import("./screen-archive/tech-eyes/1"),
   },
   {
     key: "screen/tech-eyes/2",
@@ -236,7 +234,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-28",
     phrase: "Click to place each story bubble freely among the goldfish",
-    load: () => import("./screen/archive/tech-eyes/2"),
+    load: () => import("./screen-archive/tech-eyes/2"),
   },
   {
     key: "screen/bubble/1",
@@ -244,7 +242,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-10-20",
     phrase: "SCC bubble/3's PageRank foam raft and goldfish, opening on 기본값 3",
-    load: () => import("./screen/bubble/1"),
+    load: () => import("./bubble/1"),
   },
   {
     key: "screen/bubble/2",
@@ -252,7 +250,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-10-20",
     phrase: "bubble/1's raft with every bubble a lobe of Koons's coated mirror steel",
-    load: () => import("./screen/bubble/2"),
+    load: () => import("./bubble/2"),
   },
   {
     key: "screen/bubble/3",
@@ -260,7 +258,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-10-22",
     phrase: "bubble/2's raft as a material lab: physically based parameters, a view from above or the side, looks to switch between",
-    load: () => import("./screen/bubble/3"),
+    load: () => import("./bubble/3"),
   },
   {
     key: "screen/bubble/4",
@@ -269,7 +267,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     date: "2026-10-22",
     updated: "2026-10-24",
     phrase: "bubble/3 copied as the start of the goldfish's lifecycle",
-    load: () => import("./screen/bubble/4"),
+    load: () => import("./bubble/4"),
   },
   {
     key: "screen/bubble/5",
@@ -277,7 +275,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-10-25",
     phrase: "bubble/4 with its pages shown as 3D objects — AI sparkle, cloud, GPU, robot — in the bubbles' material",
-    load: () => import("./screen/bubble/5"),
+    load: () => import("./bubble/5"),
   },
   {
     key: "screen/bubble/6",
@@ -286,7 +284,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     date: "2026-10-25",
     updated: "2026-10-26",
     phrase: "bubble/5 with the web's attention bounded and tiring: it keeps churning without a few pages taking it all",
-    load: () => import("./screen/bubble/6"),
+    load: () => import("./bubble/6"),
   },
   {
     key: "screen/bubble/7",
@@ -295,7 +293,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     date: "2026-10-27",
     updated: "2026-11-07",
     phrase: "bubble/6 with an object lab: one object at a time, morphing like liquid metal from one shape into the next, its settings shared with the raft",
-    load: () => import("./screen/bubble/7"),
+    load: () => import("./bubble/7"),
   },
   {
     key: "screen/bubble/8",
@@ -304,7 +302,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     date: "2026-11-03",
     updated: "2026-11-07",
     phrase: "bubble/7 beyond Koons's steel: materials to switch (liquid, gel, plaster and marble, concrete, glass, a maximal mix), objects in groups (tech logos, celebrity heads, currency signs) and up to 1,000 goldfish",
-    load: () => import("./screen/bubble/8"),
+    load: () => import("./bubble/8"),
   },
   {
     key: "screen/bubble/9",
@@ -313,7 +311,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     date: "2026-11-05",
     updated: "2026-11-13",
     phrase: "bubble/8 with its bugs fixed, as the ground for a new vocabulary of signs",
-    load: () => import("./screen/bubble/9"),
+    load: () => import("./bubble/9"),
   },
   {
     key: "screen/bubble/9b",
@@ -322,7 +320,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     date: "2026-11-06",
     updated: "2026-11-13",
     phrase: "bubble/9 itself opening on the clock morph style (every page on its own beat, never quite set), to compare",
-    load: () => import("./screen/bubble/9/clock"),
+    load: () => import("./bubble/9/clock"),
   },
   {
     key: "pc/mobiles/1",
@@ -330,7 +328,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-10-27",
     phrase: "One phone per goldfish: each bubble it reaches arrives as the same hype event in hyper-real clones of eight apps, over socket feed/1",
-    load: () => import("./pc/mobiles/1"),
+    load: () => import("./mobiles/1"),
   },
   {
     key: "pc/mobiles/2",
@@ -338,7 +336,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-10-28",
     phrase: "From zero after mobiles/1: every phone moves every moment on one GPU compositor, each strike an interrupt you see, the goldfish its thumb",
-    load: () => import("./pc/mobiles/2"),
+    load: () => import("./mobiles/2"),
   },
   {
     key: "pc/news-phones/1",
@@ -347,7 +345,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Independent keyword-driven news phones, one per goldfish",
-    load: () => import("./pc/archive/news-phones/1"),
+    load: () => import("./pc-archive/news-phones/1"),
   },
   {
     key: "pc/news-phones/2",
@@ -356,7 +354,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-08",
     phrase: "Mobile colour and keyword surface variations",
-    load: () => import("./pc/archive/news-phones/2"),
+    load: () => import("./pc-archive/news-phones/2"),
   },
   {
     key: "pc/image-search/1",
@@ -365,7 +363,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-09-10",
     phrase: "Desktop image-search grammar under subsecond technology-query replacement",
-    load: () => import("./pc/archive/image-search/1"),
+    load: () => import("./pc-archive/image-search/1"),
   },
 ];
 

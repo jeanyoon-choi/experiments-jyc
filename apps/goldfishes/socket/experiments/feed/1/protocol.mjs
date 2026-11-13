@@ -3,7 +3,7 @@
 // and sends what changed; the relay forwards it to every pc (pc/mobiles/N)
 // at once. The relay holds no state and no clock, so no timing lives here:
 // slots, dwell and history are the screen's
-// (components/transport/feed/1/slots.mjs), changed by a reload, never a
+// (socket/experiments/feed/1/client/slots.mjs), changed by a reload, never a
 // relay restart (user, 2026-10-27).
 //
 // This file is pure and shared: the relay handler and the browser clients

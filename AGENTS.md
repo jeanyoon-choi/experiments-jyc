@@ -6,7 +6,7 @@
 - Inspect `git status`; preserve others' modified/untracked work. Re-read shared files before surgical edits. Never revert, relocate, or finish another task's work unasked.
 - `apps/scc`, `apps/goldfishes`, `apps/six-sigma`, and `apps/xyt-cube` are experimental archives: use bounded, reversible trials and preserve baselines, stable routes, and useful failures. In `apps/scc`, prefer merging a variant into an existing experiment or exposing it as an option (original behavior as the default) over adding another numbered experiment; this is a preference, not a hard rule. `apps/c-val` and `apps/ddong-meong` are finished projects: maintain established behavior and presentation unless the user requests an extension.
 - Navigation lists experiments by latest activity. When a request changes what an existing SCC, Goldfishes, six-sigma, or xyt-cube experiment does or means (new mechanism, option, model, or visual direction), set `updated: "<today ISO>"` on its navigation registry entry as part of that change; leave it for renames, moves, config, docs, refactors, lint, or small tuning. Do not backfill or audit other entries.
-- Keep six independent app roots. Routes stay thin; implementation/data/registries belong in the owning `components/` family, sockets in `apps/<owner>/socket/experiments/`, and notes in `apps/<owner>/docs/`.
+- Keep six independent app roots. Routes stay thin; implementation/data/registries belong in the owning `components/` family, sockets in `apps/<owner>/socket/experiments/`, and notes in `apps/<owner>/docs/` (Goldfishes: each family's notes sit beside its code in `components/<family>/docs/`, a protocol's in its socket folder; `apps/goldfishes/docs/` holds only the index, onboarding and history).
 
 ## Model and token policy
 

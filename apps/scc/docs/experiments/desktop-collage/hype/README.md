@@ -24,12 +24,12 @@ Nobody touches the computer.
 
 Question: does the desktop read as attention being pulled around by hype,
 rather than as a demonstration of windows opening? Baselines:
-[Goldfishes native-windows/3](../../../../../goldfishes/docs/desktop/native-windows/3.md)
+[Goldfishes native-windows/3](../../../../../goldfishes/components/native-windows/docs/3.md)
 (many unrelated pages at 0.3 s through AppleScript on the user's Chrome) and
 [primitives/2](../primitives/2.md) (the Chrome app surface).
 
 Later, keyword events will come from
-[Goldfishes tech-eyes/1](../../../../../goldfishes/docs/screen/tech-eyes/1.md):
+[Goldfishes tech-eyes/1](../../../../../goldfishes/components/screen-archive/tech-eyes/docs/1.md):
 a goldfish meeting a keyword fires one event. That app is about to be
 rebuilt, so only the event interface (`model/rhythm.ts` produces arrival
 times; `plan.ts` consumes them) is kept open; the sync is not designed.

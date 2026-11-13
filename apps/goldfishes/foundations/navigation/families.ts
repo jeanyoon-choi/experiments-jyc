@@ -1,14 +1,12 @@
 export type GoldfishArea =
   | "screen"
   | "pc"
-  | "desktop"
-  | "mobile";
+  | "desktop";
 
 export const goldfishAreas: readonly { key: GoldfishArea; href: string }[] = [
   { key: "screen", href: "/screen" },
   { key: "pc", href: "/pc" },
   { key: "desktop", href: "/desktop" },
-  { key: "mobile", href: "/mobile" },
 ];
 
 export type GoldfishFamily = {
@@ -125,11 +123,5 @@ export const goldfishFamilies: readonly GoldfishFamily[] = [
     area: "desktop",
     label: "native windows",
     members: ["desktop/native-windows/1", "desktop/native-windows/2", "desktop/native-windows/3"],
-  },
-  {
-    key: "mobile:keyword-grid",
-    area: "mobile",
-    label: "keyword grid",
-    members: ["mobile/keyword-grid/1", "mobile/keyword-grid/2"],
   },
 ];
