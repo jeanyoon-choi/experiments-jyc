@@ -700,6 +700,10 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
       gl.uniform3f(location(shadowProgram, "keyScreen"), keyScreen[0], keyScreen[1], keyScreen[2]);
       gl.uniform3f(location(shadowProgram, "coating"), look.coating[0], look.coating[1], look.coating[2]);
       gl.uniform1f(location(shadowProgram, "coatingMix"), look.coatingMix);
+      gl.uniform1f(location(shadowProgram, "mixHue"), look.mixHue);
+      gl.uniform1f(location(shadowProgram, "mixDepth"), look.mixDepth);
+      gl.uniform1f(location(shadowProgram, "mixSaturation"), look.mixSaturation);
+      gl.uniform1f(location(shadowProgram, "mixLightness"), look.mixLightness);
       gl.uniform1f(location(shadowProgram, "variety"), look.variety);
       gl.enable(gl.BLEND);
       gl.blendEquationSeparate(gl.FUNC_ADD, gl.MAX);

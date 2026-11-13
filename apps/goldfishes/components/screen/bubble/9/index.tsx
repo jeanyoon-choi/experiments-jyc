@@ -11,7 +11,6 @@
 // start of the goldfish's lifecycle. This component holds the panels' state and the pointer. Folders: web/ (model), raft/ (layout, views, shared
 // state), render/ (frame loop, WebGL), fish/, sound/, panels/.
 
-import { MORPH_STYLES } from "./objects/morph/liquid";
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import styles from "./bubble-three.module.css";
 import { startFrameLoop, type FrameLoop, type LoopSettings } from "./render/frame-loop";
@@ -30,7 +29,7 @@ import { SoundPanel } from "./panels/sound-panel";
 import { VisualPanel } from "./panels/visual-panel";
 import { ObjectPanel } from "./objects/panel/object-panel"; // 오브제
 import { Raft } from "./raft/raft";
-import { DEFAULT_FISH_PALETTE, DEFAULT_INFLUENCE, FEEDBACK_DEFAULTS, FIRST_BACKGROUND, lookOf, PRESET_3, saveSnapshot, SECOND_BACKGROUND, type Feedback, type PanelId, type Visual } from "./settings";
+import { DEFAULT_FISH_PALETTE, DEFAULT_INFLUENCE, FEEDBACK_DEFAULTS, FIRST_BACKGROUND, lookOf, OPENING_SETUP, PRESET_3, saveSnapshot, SECOND_BACKGROUND, SETUPS, setupOf, type Feedback, type PanelId, type Visual } from "./settings";
 import { SOUND_DEFAULTS, type SoundParameters } from "./sound/sound";
 import { useTouchSound } from "./sound/use-touch-sound";
 import type { ViewId } from "./raft/views";
@@ -52,13 +51,20 @@ function pointIn(event: PointerEvent<HTMLCanvasElement>) {
   return { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
 }
 
-/** The 오브제 opening with a morph style (MORPH_STYLES; /screen/bubble/9b opens on 1 through ./clock.tsx). */
-function objectsWith(style: number): ObjectParameters {
-  return style === 0 ? PRESET_3.objects : { ...PRESET_3.objects, style, duration: MORPH_STYLES[style]!.duration };
+/** The opening under a setup (settings.ts SETUPS; /screen/bubble/9b opens on C through ./clock.tsx). */
+function openingOf(index: number) {
+  const setup = SETUPS[index] ?? SETUPS[OPENING_SETUP]!;
+  return {
+    rates: { ...PRESET_3.rates, ...setup.rates },
+    fish: { ...PRESET_3.fish, ...setup.fish },
+    feedback: { ...PRESET_3.feedback, ...setup.feedback },
+    objects: { ...PRESET_3.objects, ...setup.liquid } as ObjectParameters,
+  };
 }
 
-export default function RankedWebIteration({ morphStyle = 0 }: { morphStyle?: number } = {}) {
-  const openingObjects = objectsWith(morphStyle);
+export default function RankedWebIteration({ setup: openingSetup = OPENING_SETUP }: { setup?: number } = {}) {
+  const [opening] = useState(() => openingOf(openingSetup));
+  const openingObjects = opening.objects;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fishCanvasRef = useRef<HTMLCanvasElement>(null);
   const [raft] = useState(() => new Raft({ pages: PRESET_3.pages, groups: PRESET_3.groups, damping: PRESET_3.damping }));
@@ -72,7 +78,7 @@ export default function RankedWebIteration({ morphStyle = 0 }: { morphStyle?: nu
   const [frameCost, setFrameCost] = useState("");
   // 네트워크
   const [view, setView] = useState<ViewId>("network");
-  const [rates, setRates] = useState<Rates>(PRESET_3.rates);
+  const [rates, setRates] = useState<Rates>(opening.rates);
   const [damping, setDamping] = useState(PRESET_3.damping);
   const [population, setPopulation] = useState(PRESET_3.pages);
   const [groups, setGroups] = useState(PRESET_3.groups);
@@ -81,9 +87,9 @@ export default function RankedWebIteration({ morphStyle = 0 }: { morphStyle?: nu
   const [visual, setVisual] = useState<Visual>(PRESET_3.visual);
   // 금붕어
   const [fishCount, setFishCount] = useState(PRESET_3.fishCount);
-  const [fish, setFish] = useState<FishParameters>(PRESET_3.fish);
+  const [fish, setFish] = useState<FishParameters>(opening.fish);
   const [fishPalette, setFishPalette] = useState<FishPaletteId>(PRESET_3.fishPalette);
-  const [feedback, setFeedback] = useState<Feedback>(PRESET_3.feedback);
+  const [feedback, setFeedback] = useState<Feedback>(opening.feedback);
   // 생애주기
   const [life, setLife] = useState<LifeParameters>(PRESET_3.life);
   // 반응
@@ -102,12 +108,12 @@ export default function RankedWebIteration({ morphStyle = 0 }: { morphStyle?: nu
 
   // What the frame loop reads every frame, kept current after each render.
   const settingsRef = useRef<LoopSettings>({
-    parameters: { ...DEFAULT_PARAMETERS, ...PRESET_3.rates },
+    parameters: { ...DEFAULT_PARAMETERS, ...opening.rates },
     visual: PRESET_3.visual,
     fishCount: PRESET_3.fishCount,
-    fish: PRESET_3.fish,
+    fish: opening.fish,
     fishPalette: PRESET_3.fishPalette,
-    feedback: PRESET_3.feedback,
+    feedback: opening.feedback,
     life: PRESET_3.life,
     reactions: PRESET_3.reactions,
     objects: openingObjects,
@@ -275,6 +281,16 @@ export default function RankedWebIteration({ morphStyle = 0 }: { morphStyle?: nu
           labMorph={labMorph}
           spread={spread}
           setSpread={setSpread}
+          setups={SETUPS}
+          setup={setupOf({ rates, fish, feedback, liquid: objects })}
+          onSetup={(index) => {
+            // Values only: the web, the school and whatever is on the screen carry on under them.
+            const next = SETUPS[index]!;
+            setRates((current) => ({ ...current, ...next.rates }));
+            setFish((current) => ({ ...current, ...next.fish }));
+            setFeedback((current) => ({ ...current, ...next.feedback }));
+            setObjects((current) => ({ ...current, ...next.liquid }));
+          }}
         />
         <div className={styles.control}>
           {panel === "network" && (
@@ -359,7 +375,7 @@ export default function RankedWebIteration({ morphStyle = 0 }: { morphStyle?: nu
               onPreset3={() => {
                 setView("network");
                 raft.changeView("network");
-                setRates(PRESET_3.rates);
+                setRates(opening.rates);
                 setDamping(PRESET_3.damping);
                 raft.setDamping(PRESET_3.damping);
                 setGroups(PRESET_3.groups);
@@ -368,9 +384,9 @@ export default function RankedWebIteration({ morphStyle = 0 }: { morphStyle?: nu
                 raft.requestRestart(PRESET_3.pages);
                 setVisual(PRESET_3.visual);
                 setFishCount(PRESET_3.fishCount);
-                setFish(PRESET_3.fish);
+                setFish(opening.fish);
                 setFishPalette(PRESET_3.fishPalette);
-                setFeedback(PRESET_3.feedback);
+                setFeedback(opening.feedback);
                 setLife(PRESET_3.life);
                 setReactions(PRESET_3.reactions);
                 setObjects(openingObjects);

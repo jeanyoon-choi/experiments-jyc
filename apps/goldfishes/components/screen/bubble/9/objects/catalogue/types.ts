@@ -1,5 +1,5 @@
 // 기호의 파티 (bubble/9, user 2026-11-05): the catalogue of new object groups — UI icons as shipped, app icons,
-// AI start-ups' marks and stock tickers.
+// AI start-ups' marks, AI slop.
 // Each group is one module in this folder exporting a CatalogueGroup; index.ts lists them and groups.ts
 // merges them with bubble/5–8's groups, so a group's agent edits only its own module.
 //
@@ -27,7 +27,7 @@ export type ReliefLayer = {
   readonly height: number;
   /** How far in from its edge the layer rounds up to its full height, in object units (default: its height, capped at 0.08). */
   readonly bevel?: number;
-  /** Grows the fill this much all round (object units) before it is blown up: lettering's weight (tickers, coins). */
+  /** Grows the fill this much all round (object units) before it is blown up: a mark's weight. */
   readonly bold?: number;
   /** Scales this layer's balloon height (default 1): lettering made as full as the 통화 기호' glyphs. */
   readonly puff?: number;

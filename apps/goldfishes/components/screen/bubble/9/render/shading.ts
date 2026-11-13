@@ -5,7 +5,7 @@
 // parameter is a uniform of the same name, set by FoamRenderer.shade.
 
 import { MATERIAL_DEFAULTS, MATERIAL_GLSL, type MaterialValues } from "./materials";
-import { MIXED_COAT_GLSL, MIXED_COATS } from "./materials/coats";
+import { MIX_DEPTH, MIX_HUE, MIX_LIGHTNESS, MIX_SATURATION, MIXED_COAT_GLSL, MIXED_COATS } from "./materials/coats";
 
 // A sphere's coat: chosen, its hue drifting a little by 구슬마다 차이. (Uses hash.)
 export const COAT = /* glsl */ `
@@ -225,6 +225,11 @@ export type Look = {
   background: Colour;
   coating: Colour;
   coatingMix: number;
+  /** 섞음's H, S and L (materials/coats.ts mixedCoatOf). */
+  mixHue: number;
+  mixDepth: number;
+  mixSaturation: number;
+  mixLightness: number;
   exposure: number;
   metalness: number;
   roughness: number;
@@ -252,6 +257,10 @@ export const LOOK_DEFAULTS: Look = {
   background: [1, 1, 1],
   coating: [0.92, 0.1, 0.48],
   coatingMix: 0,
+  mixHue: MIX_HUE,
+  mixDepth: MIX_DEPTH,
+  mixSaturation: MIX_SATURATION,
+  mixLightness: MIX_LIGHTNESS,
   exposure: 0.8,
   metalness: 1,
   roughness: 0.29,

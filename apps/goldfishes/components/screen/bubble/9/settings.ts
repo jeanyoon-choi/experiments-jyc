@@ -9,6 +9,7 @@ import { LIFE_DEFAULTS, type LifeParameters } from "./fish/lifecycle";
 import { ATTENDED_QUALITY, DEFAULT_DAMPING, DEFAULT_PARAMETERS, FLOOR_RANGE } from "./web/model";
 import { REACTION_DEFAULTS } from "./reactions/reactions"; // 반응
 import { OBJECT_DEFAULTS } from "./objects/kinds/parameters"; // 오브제
+import { LIQUID_DEFAULTS, MORPH_STYLES } from "./objects/morph/liquid"; // 셋업
 
 /** Share of the field's area that all pages together cover; area = displayed rank × this. 0.4 (user, 2026-10-12; /2 keeps 0.3). */
 export const AREA_BUDGET = 0.4;
@@ -34,7 +35,7 @@ export type Visual = Look & { area: number; portions: number; flow: number };
 export const VISUAL_DEFAULTS: Visual = { ...LOOK_DEFAULTS, area: AREA_BUDGET, portions: LEAST_PORTION, flow: 1 };
 
 /** 흐름 버블's slider (네트워크, its first fold; it was 비주얼 → 라프트's until 2026-11-12): what it shows is the web's flow, not a look. */
-export const FLOW_CONTROL = { label: "흐름 버블 양 (적을수록 많이)", min: 0, max: 3, step: 0.05 } as const;
+export const FLOW_CONTROL = { label: "흐름 버블 양 (적을수록 많이)", min: 0, max: 10, step: 0.05 } as const;
 
 // 기본값 2 (user, 2026-10-11): the defaults (fish included) on a mid grey (#5e5e5e) instead of black; a button in the goldfish panel, not the default.
 /** 기본값 (the goldfish panel's): bubble/1's black. */
@@ -269,6 +270,44 @@ export const PRESET_3 = {
 };
 
 /**
+ * 셋업 A · B · C (user, 2026-11-13): three ways the bubbles and the morphs behave, one button each beside the mode
+ * switch, to go between them in one screen. Only these values change; everything else stays as it is — the material
+ * and look, 버블 면적, the objects chosen and their 크기 · 부풂 · 각도, the fish and their count — and everything that
+ * is code and not a value (흐름 버블, 물듦, how a retarget carries its melt …) is bubble/9's in all three.
+ *   A — bubble/8's values: pages turn on a 14 s clock in a quick morph that washes the detail out, few new pages, a
+ *       page bursts sooner, the fish slower and hardly feeding the pages they watch;
+ *   B — bubble/9's opening (PRESET_3): a page turns when the fish have watched it;
+ *   C — bubble/9b's: B on the clock that never quite sets.
+ */
+const SETUP_B = {
+  rates: { growth: PRESET_3.rates.growth, burstAt: PRESET_3.rates.burstAt },
+  fish: { speed: PRESET_3.fish.speed },
+  feedback: { influence: PRESET_3.feedback.influence, ceiling: PRESET_3.feedback.ceiling },
+  liquid: { style: 0, duration: MORPH_STYLES[0].duration as number, soften: LIQUID_DEFAULTS.soften, wobble: LIQUID_DEFAULTS.wobble, ripple: LIQUID_DEFAULTS.ripple, overshoot: LIQUID_DEFAULTS.overshoot, swell: LIQUID_DEFAULTS.swell },
+};
+export type Setup = { id: string; label: string } & typeof SETUP_B;
+export const SETUPS: readonly Setup[] = [
+  {
+    id: "a",
+    label: "A",
+    rates: { growth: DEFAULT_PARAMETERS.growth, burstAt: DEFAULT_PARAMETERS.burstAt },
+    fish: { speed: 2.2 },
+    feedback: { influence: FEEDBACK_DEFAULTS.influence, ceiling: FEEDBACK_DEFAULTS.ceiling },
+    liquid: { style: 2, duration: MORPH_STYLES[2].duration, soften: 3.2, wobble: 0.05, ripple: 0.35, overshoot: 0.18, swell: 0.85 },
+  },
+  { id: "b", label: "B", ...SETUP_B },
+  { id: "c", label: "C", ...SETUP_B, liquid: { ...SETUP_B.liquid, style: 1, duration: MORPH_STYLES[1].duration } },
+];
+/** bubble/9 opens on B. */
+export const OPENING_SETUP = 1;
+
+/** Which setup these values are exactly, or −1 once any of them has been moved. */
+export function setupOf(now: { rates: Setup["rates"]; fish: Setup["fish"]; feedback: Setup["feedback"]; liquid: Setup["liquid"] }) {
+  const same = (a: object, b: object) => Object.entries(a).every(([key, value]) => Math.abs((b as Record<string, number>)[key]! - value) < 1e-6);
+  return SETUPS.findIndex((setup) => same(setup.rates, now.rates) && same(setup.fish, now.fish) && same(setup.feedback, now.feedback) && same(setup.liquid, now.liquid));
+}
+
+/**
  * 연출: whole looks, each a different environment, material and viewpoint
  * (the raft's area and flow stay unless a look sets them). The liquid films first (bubble/8 opens on 비눗막),
  * then the coats: bubble/2's, which bubble/4 opened on; bubble/5 opens on 우유 수조, bubble/6 and /7 on 크롬.
@@ -375,7 +414,9 @@ export function lookOf(visual: Visual): Look {
   void area;
   void portions;
   void flow;
-  return look;
+  // A uniform added while the page was open has no value in its state yet, and one never set would be 0 in the
+  // shader (섞음's S and L at 0: every coat black): the defaults stand under whatever the state holds.
+  return { ...LOOK_DEFAULTS, ...look };
 }
 
 /**

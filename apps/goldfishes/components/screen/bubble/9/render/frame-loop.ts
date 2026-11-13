@@ -3,7 +3,8 @@
 // links as travelling portions, lets the goldfish swim and watch, and draws.
 // Settings are read from `settings.current` each frame; nothing here is React.
 
-import { BUBBLE_FLOATS, createFoamRenderer, MAX_BUBBLES, MIXED_COATS, type FoamRenderer } from "./foam";
+import { BUBBLE_FLOATS, createFoamRenderer, MAX_BUBBLES, type FoamRenderer } from "./foam";
+import { mixedCoatOf } from "./materials/coats";
 import type { FishPaletteId, FishParameters, LifeContext } from "../fish/goldfish";
 import { SchoolThread } from "../fish/school-thread";
 import { LIFE_DEFAULTS, type LifeParameters, type Rgb } from "../fish/lifecycle";
@@ -196,8 +197,7 @@ class RaftLoop implements FrameLoop {
     colourOf: (bubble: number, out: Rgb) => {
       const visual = this.settings.current.visual;
       const seed = this.renderer.bubbles[bubble * BUBBLE_FLOATS + 3]!;
-      const pick = seed * 7.31 - Math.floor(seed * 7.31);
-      const coat = visual.coatingMix > 0.5 ? MIXED_COATS[Math.min(MIXED_COATS.length - 1, Math.floor(pick * MIXED_COATS.length))]! : visual.coating;
+      const coat = visual.coatingMix > 0.5 ? mixedCoatOf(seed, visual.mixSaturation, visual.mixLightness, visual.mixHue, visual.mixDepth) : visual.coating;
       out[0] = coat[0];
       out[1] = coat[1];
       out[2] = coat[2];
@@ -380,6 +380,8 @@ class RaftLoop implements FrameLoop {
       mark(6);
       (window as unknown as { bubbleLaps?: unknown }).bubbleLaps = Object.fromEntries(LAPS.map((name, index) => [name, this.laps[index]!.toFixed(2)]));
       this.measure(frameStart);
+      // How many 흐름 버블 and pages this frame drew, to check the 흐름 버블 양 slider.
+      (window as unknown as { bubbleCounts?: unknown }).bubbleCounts = { flows: pageStart, pages: this.bubbleCount - pageStart };
       // The lifecycle's counts, for measurement only.
       if (this.school) (window as unknown as { bubbleLife?: unknown }).bubbleLife = { school: this.schoolCost.toFixed(2), worker: this.school.stepMs.toFixed(2), scene: this.sceneCost.toFixed(2), ...this.school.deaths, departed: this.school.departed, alive: this.school.fish.filter((fish) => !fish.life.dying).length, falling: this.school.fish.filter((fish) => fish.life.dying).length };
     }

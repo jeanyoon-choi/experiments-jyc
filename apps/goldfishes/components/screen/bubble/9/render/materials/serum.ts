@@ -231,8 +231,11 @@ vec3 serumOf(Surface s) {
   }
 
   // Beer–Lambert: its own colour (or the coat, or a logo's brand), plus murk.
-  vec3 hueRgb = clamp(abs(mod(serumHue * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
-  vec3 tint = mix(vec3(1.0), hueRgb, serumChroma);
+  // Under 섞음 the look stays as it is and only the hue is each object's own (user, 2026-11-13: "블루 젤의 느낌
+  // 그대로에 hue 만 섞는"); 섞음's H, S and L then move that colour from where it was (coats.ts mixTuned).
+  float hueAt = coatingMix > 0.5 ? fract(serumHue + mixedHue(fract(s.seed * 7.31)) / 360.0) : serumHue;
+  vec3 hueRgb = clamp(abs(mod(hueAt * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+  vec3 tint = mixTuned(mix(vec3(1.0), hueRgb, serumChroma));
   tint = mix(tint, clamp(s.albedo, vec3(0.03), vec3(1.0)), max(serumCoat, s.dyed));
   // A chosen coat (코팅 색 사용) shows in every look: a clear drop's thin dye is held up to the blue gel's depth, an
   // oil's murk eased so its colour still reads through the dark (user, 2026-11-05). Off (each look's own colour), unchanged.
@@ -307,6 +310,7 @@ vec3 serumOf(Surface s) {
   // Its own colour is 색상 · 채도 until a colour is chosen: choosing one turns 코팅 색 사용 on, or the coat would only
   // dye a logo's brand and the body would stay the look's blue (user, 2026-11-05: "젤/세럼 색 선택이 안 먹음").
   coatChosen: { serumCoat: 1 },
+  ownColour: (look) => (look.serumCoat ?? 0) < 0.5,
   controls: [
     { key: "serumHue", label: "색상", min: 0, max: 1, step: 0.005 },
     { key: "serumChroma", label: "채도 (0 맑음 · 1 진한 색)", min: 0, max: 1, step: 0.01 },

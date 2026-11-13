@@ -45,8 +45,14 @@ export function hasGroup(mask: number, group: ObjectGroup) {
   return (Math.round(mask) & groupBit(group)) !== 0;
 }
 
-/** What the portions under way can be shown as (`portions` is its index): "page" is their source page's object. */
-export const PORTION_SHOWS = ["bubble", "page", ...GROUPS] as const;
+/**
+ * What the portions under way can be shown as (`portions` is its index): "page" is their source page's object, a group
+ * any of its kinds that are on, and "dollar" and "heart" the $ or the heart alone whatever is on (user, 2026-11-13; last,
+ * so the others' indices stay).
+ */
+export const PORTION_SHOWS = ["bubble", "page", ...GROUPS, "dollar", "heart"] as const;
+/** The shows that are one kind alone. */
+const isOneKind = (show: Show): show is "dollar" | "heart" => show === "dollar" || show === "heart";
 type Show = (typeof PORTION_SHOWS)[number];
 
 export type ObjectParameters = {
@@ -78,14 +84,15 @@ export const OBJECT_DEFAULTS: ObjectParameters = {
   // bubble/8 opens with every group on, mixed (user, 2026-11-03); bubble/7 opened on 테크 하이프. bubble/9 opened on
   // bubble/8's groups only, then on 모두 선택 (user, 2026-11-07): the catalogue's groups too.
   pages: GROUPS.reduce((mask, group) => mask | groupBit(group), 0),
-  // 왔다갔다 하는 것: SNS, hearts and likes only (user, 2026-10-25).
-  portions: PORTION_SHOWS.indexOf("sns"),
-  // 1.2 (user, 2026-11-04): the goldfish keep out of the drawn outline, not the bubble's disc (ObjectPass.pageExtent).
-  size: 1.21,
+  // 왔다갔다 하는 것: $ 만 (user, 2026-11-13; SNS — hearts and likes — from 2026-10-25).
+  portions: PORTION_SHOWS.indexOf("dollar"),
+  // 1.05 (user, 2026-11-13; 1.21 from the user's bubble/8 tuning, 1.2 on 2026-11-04): the goldfish keep out of the
+  // drawn outline, not the bubble's disc (ObjectPass.pageExtent). The same under every setup (settings.ts SETUPS).
+  size: 1.05,
   // 부풂 1.62 (user's bubble/8 tuning, 2026-11-06; 1.5 user, 2026-10-25; bubble/5 opens at 0.2).
   puff: 1.62,
-  // 각도: 움직이는 방향 (user, 2026-10-25).
-  facing: 2,
+  // 각도: 똑바로 (user, 2026-11-13; 움직이는 방향 from 2026-10-25, 똑바로 tried and put back on 2026-11-12).
+  facing: 0,
   // Portions morph at both ends of their way (user, 2026-10-27).
   portionMorph: 1,
   // Uncoloured by default (user, 2026-11-03): the material reads first; 브랜드 색 brings the brands in (the catalogue's paint too).
@@ -111,6 +118,8 @@ export const SHOW_LABELS = {
   bubble: "버블",
   page: "페이지 따라",
   ...GROUP_LABEL,
+  dollar: "$ 만",
+  heart: "하트만",
 } as Record<Show, string>;
 
 export type ObjectControl = { key: "size" | "puff" | "brand" | "faceColour"; label: string; min: number; max: number; step: number };
@@ -194,8 +203,9 @@ export function kindsInUse(parameters: ObjectParameters): ObjectKind[] {
   const show = PORTION_SHOWS[Math.round(parameters.portions)] ?? "bubble";
   const { shares, pageGroups: groups } = tablesOf(parameters);
   const used = new Set(groups);
-  if (show !== "bubble" && show !== "page") used.add(show);
-  return [...used].flatMap((group) => shares.get(group)?.kinds ?? []);
+  if (show !== "bubble" && show !== "page" && !isOneKind(show)) used.add(show);
+  const kinds = [...used].flatMap((group) => shares.get(group)?.kinds ?? []);
+  return isOneKind(show) && !kinds.includes(show) ? [...kinds, show] : kinds;
 }
 
 /** The page's kind for `seed`: a group (equal share each, among those with a kind on), then a kind in it. */
@@ -229,5 +239,6 @@ export function portionKind(page: number, seed: number, parameters: ObjectParame
   const show = PORTION_SHOWS[Math.round(parameters.portions)] ?? "bubble";
   if (show === "bubble") return null;
   if (show === "page") return pageKind(page, parameters);
+  if (isOneKind(show)) return show;
   return kindIn(show, seed, parameters);
 }

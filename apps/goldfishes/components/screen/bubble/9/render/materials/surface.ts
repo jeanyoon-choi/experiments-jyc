@@ -31,6 +31,11 @@ export type MaterialEntry<Values extends Record<string, number>> = {
   coats?: readonly { id: string; label: string; colour: Colour }[];
   /** What choosing a colour (a chip, 섞음 or the picker) also sets, so the colour takes (젤: 코팅 색 사용 1). */
   coatChosen?: Partial<Values>;
+  /**
+   * Whether, with these values, its colour is its own and not the coat (젤's 색상 · 채도, 맥시멀 믹스's palettes).
+   * 섞음 then leaves the look as it is and mixes that colour's hue (user, 2026-11-13), instead of turning the coat on.
+   */
+  ownColour?: (look: Partial<Values>) => boolean;
 };
 
 export const SURFACE = /* glsl */ `

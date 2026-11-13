@@ -38,12 +38,16 @@ type Props = {
   labMorph: { from: string; to: string };
   spread: SpreadParameters;
   setSpread: Dispatch<SetStateAction<SpreadParameters>>;
+  /** 셋업 A · B · C (settings.ts SETUPS): which the values now are (−1: none of them), and choosing one. */
+  setups: readonly { id: string; label: string }[];
+  setup: number;
+  onSetup: (index: number) => void;
 };
 
 const STRAIN_NAMES = ["분홍", "청록", "형광 노랑", "파랑", "주황"] as const;
 const css = (colour: readonly [number, number, number]) => `rgb(${colour.map((value) => Math.round(value * 255)).join(",")})`;
 
-export function ModeControl({ mode, onMode, objects, setObjects, lab, setLab, labMorph, spread, setSpread }: Props) {
+export function ModeControl({ mode, onMode, objects, setObjects, lab, setLab, labMorph, spread, setSpread, setups, setup, onSetup }: Props) {
   const [open, setOpen] = useState(true);
   const liquidSlider = (control: LiquidControl) => (
     <Slider
@@ -189,6 +193,13 @@ export function ModeControl({ mode, onMode, objects, setObjects, lab, setLab, la
           <Reset onClick={() => setSpread(SPREAD_DEFAULTS)}>전파 기본값으로</Reset>
         </div>
       )}
+      <div className={styles.switch} role="group" aria-label="셋업">
+        {setups.map((option, index) => (
+          <button key={option.id} type="button" aria-pressed={setup === index} onClick={() => onSetup(index)}>
+            {option.label}
+          </button>
+        ))}
+      </div>
       <div className={styles.switch} role="group" aria-label="모드">
         {MODES.map((option) => (
           <button key={option.id} type="button" aria-pressed={mode === option.id} onClick={() => onMode(option.id)}>

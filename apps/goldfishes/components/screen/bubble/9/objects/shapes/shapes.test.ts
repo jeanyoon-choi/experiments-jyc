@@ -44,8 +44,9 @@ test("pages and portions take their groups; off kinds never come; bubbles stay b
     assert.ok(kind && (KINDS_OF.tech as readonly string[]).includes(kind) && kind !== "ape", `${kind}`);
     // Portions can follow their page.
     assert.equal(portionKind(page, 0.3, { ...tech, portions: PORTION_SHOWS.indexOf("page") }), kind);
-    // By default they are hearts and likes (bubble/6; bubble/7 morphs them at both ends, objects.portionMorph).
-    assert.ok(["heart", "like"].includes(portionKind(page, (page * 0.137) % 1, OBJECT_DEFAULTS)!));
+    // By default they are the $ alone (user, 2026-11-13); under SNS, hearts and likes (bubble/6; bubble/7 morphs them at both ends).
+    assert.equal(portionKind(page, (page * 0.137) % 1, OBJECT_DEFAULTS), "dollar");
+    assert.ok(["heart", "like"].includes(portionKind(page, (page * 0.137) % 1, { ...OBJECT_DEFAULTS, portions: PORTION_SHOWS.indexOf("sns") })!));
   }
   // SNS for the portions alone: pages stay tech, portions are hearts, likes and comments.
   const snsPortions = { ...OBJECT_DEFAULTS, portions: PORTION_SHOWS.indexOf("sns"), commentOn: 1 };

@@ -97,6 +97,8 @@ vec3 mixColourOf(int kind, float seed, Surface s) {
   else if (kind == 5) c = mixGrainy[int(pick * 4.999)];
   else if (kind == 6) c = mixHide[int(pick * 3.999)];
   else c = mixEnamel[int(pick * 9.999)];
+  // Under 섞음 its H, S and L move the mix's own colours too, each from where it was (coats.ts mixTuned).
+  c = mixTuned(c);
   if (kind != 6) {
     float m = max(c.r, max(c.g, c.b));
     if (mixPalette > 1.5) c = m < 0.05 ? c : s.albedo;
@@ -222,6 +224,7 @@ vec3 mixOf(Surface s) {
     { key: "mixCrackle", label: "금 갈라짐", min: 0, max: 1, step: 0.01 },
     { key: "mixSeed", label: "섞기", min: 0, max: 20, step: 1 },
   ],
+  ownColour: (look) => (look.mixPalette ?? 0) < 1.5,
   looks: [
     // bubble/7's white studio, unchanged: the mix lit by its key and mirroring its room.
     { id: "mix", label: "맥시멀 믹스", look: {} },
