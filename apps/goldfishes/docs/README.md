@@ -8,6 +8,7 @@ One folder is one unit: a family holds its versions and its own notes, and is mo
 | --- | --- |
 | `components/<family>/<serial>/` | A version's code. Serials rise with creation date. Current families: `bubble`, `mobiles`, `native-windows`. |
 | `components/<family>/docs/<serial>.md` | That version's notes, beside the code (`9b.md` for a route with no folder of its own). Other notes of the family sit in the same folder. |
+| `components/_experiments/<name>/<serial>/` | Light trials that may not be kept, with their `docs/` (`goldfish-mobile`). |
 | `components/screen-archive/<family>/…` | The screen families before 2026-10-20 (`default`, `2d`, `attraction-targets`, `pillars`, `media-grid`, `keyword-field`, `overlay-2d`, `overlay-3d`, `attention-print`, `tech-eyes`), each with its `docs/`. |
 | `components/pc-archive/<family>/…` | The failed pc trials (`news-phones`, `image-search`), each with its `docs/`. |
 | `components/experiments.ts` | The registry: every routable experiment, its route key, area, ISO dates and loader. Authoritative. |

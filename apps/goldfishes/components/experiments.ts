@@ -323,6 +323,14 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     load: () => import("./bubble/9/clock"),
   },
   {
+    key: "screen/goldfish-mobile/1",
+    area: "screen",
+    section: "dated",
+    date: "2026-11-13",
+    phrase: "A light trial: the goldfish in a white studio holding an oversized upright mobile by its edges, the screen a feed of short clips that keeps being swiped on; one fish, or a hundred in a grid",
+    load: () => import("./_experiments/goldfish-mobile/1"),
+  },
+  {
     key: "pc/mobiles/1",
     area: "pc",
     section: "dated",
