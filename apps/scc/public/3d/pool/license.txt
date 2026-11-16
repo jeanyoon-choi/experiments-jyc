@@ -1,0 +1,13 @@
+Pool table assets (apps/scc/components/mobile/pool/1), downloaded 2026-11-16.
+
+billiard_hall_512.hdr
+* title:   Billiard Hall (HDRI)
+* source:  https://polyhaven.com/a/billiard_hall
+* license: CC0 1.0 (https://polyhaven.com/license)
+* changes: the 1k .hdr box-filtered to 512 x 256 in linear light and written as flat RGBE.
+
+walnut_diff.jpg, walnut_nor.jpg
+* title:   Black Walnut Veneer 02 (texture), diffuse and OpenGL normal maps
+* source:  https://polyhaven.com/a/black_walnut_veneer_02
+* license: CC0 1.0 (https://polyhaven.com/license)
+* changes: the 1k JPEGs resized to 512 px and recompressed; the roughness map is not used.

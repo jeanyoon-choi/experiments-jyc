@@ -1,7 +1,7 @@
 import type { LabelCache, Sprite } from "./labels";
 import { ground, lineById } from "./model";
 import type { Run, Scene } from "./scene";
-import { BRANCH_DOT, DASH, DISC, DOT_R, DOUBLE, GROUND, NAME, RING, RING_DOT, RIVER, SEOUL, WIDTH, tint } from "./style";
+import { DASH, DISC, DOT_R, DOUBLE, GROUND, NAME, RING, RING_DOT, SEOUL, WATER, WIDTH, tint } from "./style";
 
 // One frame at device resolution. The camera maps map units to CSS px:
 // screen = map · s + (tx, ty); the canvas transform adds the device pixel
@@ -37,8 +37,7 @@ function groundPath() {
     const seoul = new Path2D();
     polygons(seoul, ground.seoul);
     const water = new Path2D();
-    polygons(water, ground.river);
-    polygons(water, ground.sea);
+    polygons(water, ground.water);
     groundPaths = { seoul, water };
   }
   return groundPaths;
@@ -70,9 +69,9 @@ export function draw(
 
   const g = groundPath();
   ctx.fillStyle = SEOUL;
-  ctx.fill(g.seoul);
-  ctx.fillStyle = RIVER;
-  ctx.fill(g.water);
+  ctx.fill(g.seoul, "evenodd");
+  ctx.fillStyle = WATER;
+  ctx.fill(g.water, "evenodd");
 
   // Lines, lightest grammar underneath.
   ctx.lineCap = "round";
@@ -105,8 +104,8 @@ export function draw(
     }
   }
 
-  // Plain stations: white dots in solid lines, ringed dots on double and
-  // dashed lines and where a line branches.
+  // Dot stations: white dots in the nine metro lines, the same dots ringed
+  // in the line colour on double, dashed and light-rail lines.
   const dots = new Path2D();
   const rings = new Map<string, { path: Path2D; width: number }>();
   for (const m of scene.marks) {
@@ -115,8 +114,8 @@ export function draw(
     const y = p[m.node * 2 + 1];
     if (!inView(x, y)) continue;
     const line = lineById.get(m.line!)!;
-    if (m.branch || line.kind === "double" || line.kind === "dashed") {
-      const spec = m.branch ? BRANCH_DOT : RING_DOT;
+    if (line.kind !== "metro") {
+      const spec = RING_DOT;
       const key = `${line.colour}|${spec.stroke}`;
       const entry = rings.get(key) ?? { path: new Path2D(), width: spec.stroke };
       rings.set(key, entry);
@@ -136,7 +135,7 @@ export function draw(
     ctx.stroke(path);
   }
 
-  // Interchanges: dark rings, then white, then line discs — the rings of
+  // Capsules: dark rings, then white, then line discs — the rings of
   // neighbouring discs merge into one outline like an "8".
   const outer = new Path2D();
   const inner = new Path2D();
@@ -186,10 +185,10 @@ export function draw(
     const sp = labels.badge(lineById.get(b.line)!, k);
     blit(sp, x + sp.x, y + sp.y);
   }
-  const plainVisible = NAME.plain.size * cam.s >= MIN_NAME_PX;
+  const plainVisible = NAME.plain * cam.s >= MIN_NAME_PX;
   for (const m of scene.marks) {
     if (!m.transfer && !plainVisible) continue;
-    if (m.transfer && NAME.transfer.size * cam.s < MIN_NAME_PX) continue;
+    if (m.transfer && NAME.transfer * cam.s < MIN_NAME_PX) continue;
     const x = p[m.node * 2];
     const y = p[m.node * 2 + 1];
     if (!inView(x, y)) continue;

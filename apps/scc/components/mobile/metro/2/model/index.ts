@@ -1,9 +1,9 @@
 import data from "./official.json";
 
-// 서울시's 2026 서울 지하철 노선도, read off the published map image by
-// ../extract (station positions, line paths, interchange discs, label
-// placements, the 한강 and Seoul's boundary) over /1's OpenStreetMap topology.
-// One map unit is one pixel of the 2555 × 2560 published image; north is up.
+// 서울시's 2026 서울 지하철 노선도, read off the published 7089-px map by
+// ../extract (station dots and interchange discs, line paths, every name row,
+// Seoul's field and the water) over /1's OpenStreetMap topology. One map unit
+// is one pixel of the 2555 × 2560 web edition of the same image; north is up.
 
 export type Kind = "metro" | "double" | "dashed" | "light";
 
@@ -17,26 +17,16 @@ export type Line = {
   kind: Kind;
 };
 
-/** Where an interchange shows one line: a disc at this offset from the station. */
+/** One disc of a station's capsule: a line's colour at this offset from the station. */
 export type Disc = { line: string; dx: number; dy: number };
 
 /**
- * A name as the map sets it: pen origins (left end of the baseline) of the
- * Korean and English relative to the station, their sizes (map units) and
- * tracking (em), as matched on the published map. `split` breaks the Korean
- * in two lines at that character, aligned as given.
+ * One run of text as the map sets it: the text, its pen origin (left end of
+ * the baseline) relative to the station, its size in map units and its
+ * 서울알림체 weight. A name is a few rows: Korean in one or two lines,
+ * sometimes a smaller second name in brackets, English in one to three lines.
  */
-export type Label = {
-  kx: number;
-  ky: number;
-  ks: number;
-  kt: number;
-  ex: number;
-  ey: number;
-  es: number;
-  et: number;
-  split: [number, "left" | "center" | "right"] | null;
-};
+export type Row = [text: string, x: number, y: number, size: number, weight: number];
 
 export type Station = {
   id: string;
@@ -45,14 +35,16 @@ export type Station = {
   x: number;
   y: number;
   lines: string[];
-  /** Interchanges only: one disc per line, in the map's order. */
+  /** Capsule discs in the map's order: interchanges, and the seven single-line stations the map rings (구로, 성수 …). */
   discs: Disc[] | null;
-  /** Where a line branches: drawn as a ringed dot. */
-  branch: boolean;
-  label: Label;
+  label: { rows: Row[] };
 };
 
-/** One line's run between two stations: map polyline, flat x, y pairs. */
+/**
+ * One line's run between two stations: map polyline, flat x, y pairs. Its ends
+ * are where the line itself passes each station — under a capsule that is
+ * rarely the centre of the line's own disc.
+ */
 export type Edge = { line: string; a: string; b: string; points: number[] };
 
 export type Badge = { line: string; x: number; y: number };
@@ -60,7 +52,8 @@ export type Badge = { line: string; x: number; y: number };
 type Raw = {
   source: string;
   size: [number, number];
-  ground: { seoul: number[][]; river: number[][]; sea: number[][] };
+  /** Closed outlines, filled even-odd: Seoul's white field; the 한강 and the sea. */
+  ground: { seoul: number[][]; water: number[][] };
   lines: Line[];
   stations: Station[];
   edges: Edge[];

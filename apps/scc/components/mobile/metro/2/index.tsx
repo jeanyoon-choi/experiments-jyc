@@ -18,8 +18,8 @@ const DPR_CAP = 3;
 const MAX_SCALE = 4.5;
 // Names are re-rasterised for a new zoom once it has held still this long.
 const ZOOM_SETTLE_MS = 160;
-// Opening view: 시청 at the centre, plain names about 9 CSS px tall.
-const OPEN_SCALE = 0.9;
+// Opening view: 시청 at the centre, plain names about 8 CSS px tall.
+const OPEN_SCALE = 0.65;
 const OPEN_AT = "시청";
 
 type Holder = { kind: "station"; node: number; ox: number; oy: number; x: number; y: number };
@@ -128,7 +128,7 @@ export default function MetroTwo() {
     // Names wait for 서울알림체; until then the frame shows lines and stations only.
     document.fonts
       .load(`800 12px ${family}`)
-      .then(() => Promise.all([document.fonts.load(`700 12px ${family}`), document.fonts.load(`500 12px ${family}`)]))
+      .then(() => document.fonts.load(`700 12px ${family}`))
       .then(() => {
         if (!alive) return;
         labels.clear();

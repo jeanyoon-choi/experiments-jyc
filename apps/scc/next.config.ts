@@ -21,6 +21,16 @@ const nextConfig: NextConfig = {
         destination: "/fractal/clock/:experiment",
         permanent: true,
       },
+      {
+        source: "/mobile/brain/:experiment(1)",
+        destination: "/mobile/scroll-rot/brain/:experiment",
+        permanent: true,
+      },
+      {
+        source: "/mobile/kakao-talk/:experiment(1)",
+        destination: "/mobile/left-right/kakao-talk/:experiment",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {

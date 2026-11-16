@@ -5,7 +5,6 @@ import localFont from "next/font/local";
 // credited — 출처: 서울특별시 서울서체 (https://www.seoul.go.kr/seoul/font.do).
 export const alrim = localFont({
   src: [
-    { path: "./fonts/alrim-500.woff2", weight: "500" },
     { path: "./fonts/alrim-700.woff2", weight: "700" },
     { path: "./fonts/alrim-800.woff2", weight: "800" },
   ],

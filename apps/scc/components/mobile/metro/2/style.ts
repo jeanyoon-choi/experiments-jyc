@@ -5,7 +5,7 @@ import type { Kind } from "./model";
 
 export const GROUND = "#F7F7F7";
 export const SEOUL = "#FFFFFF";
-export const RIVER = "#DCEEFA";
+export const WATER = "#E9F5FD";
 export const INK = "#231F20";
 export const RING = "#231F20";
 
@@ -18,10 +18,8 @@ export const DASH = { width: 1.9, on: 6.5, off: 4.5 };
 
 /** Ordinary stations on solid lines: a white dot inside the stroke. */
 export const DOT_R = 2.2;
-/** Ordinary stations on double and dashed lines: a white dot ringed in the line colour. */
-export const RING_DOT = { r: 3.6, stroke: 1.2 };
-/** Where a line branches: a larger ringed dot. */
-export const BRANCH_DOT = { r: 4.6, stroke: 1.9 };
+/** Ordinary stations on double, dashed and light-rail lines: the same white dot, ringed in the line colour. */
+export const RING_DOT = { r: 2.9, stroke: 1.3 };
 
 /** Interchanges: coloured discs, each wrapped in white and a dark ring that merge like an "8". */
 export const DISC = { r: 5.0, white: 3.0, ring: 2.2 };
@@ -29,15 +27,13 @@ export const DISC = { r: 5.0, white: 3.0, ring: 2.2 };
 /** Terminus badges. */
 export const BADGE_R = 14;
 
-/** Names in 서울알림체, sizes in map units; tracking in em. */
-export const NAME = {
-  transfer: { size: 14.2, weight: 800, tracking: 0.03 },
-  plain: { size: 11.5, weight: 700, tracking: 0.03 },
-  enTransfer: { size: 9.5, weight: 700, tracking: 0 },
-  en: { size: 7.0, weight: 500, tracking: 0 },
-  /** Line height of a Korean name set in two lines, in em. */
-  leading: 1.25,
-};
+/**
+ * Names in 서울알림체, as measured on the 7089-px map: interchange names
+ * ExtraBold 14.6 with Bold 10.0 English, other names Bold 12.7 with Bold 6.9
+ * English, no tracking. Each row carries its own size; these two are the
+ * Korean sizes, for deciding when names are too small to draw.
+ */
+export const NAME = { transfer: 14.6, plain: 12.7 };
 
 /** A pale tint of a line colour, as on the double lines' core. */
 export function tint(hex: string, amount: number) {

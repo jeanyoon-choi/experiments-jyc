@@ -1,0 +1,1485 @@
+{
+  "exam": "2026학년도 대학수학능력시험 수학 영역 (홀수형, 2025-11-13 시행)",
+  "scope": "공통 1–22 + 선택 미적분 23–30",
+  "timing": {
+    "source": "authored",
+    "note": "atMs·durationMs는 연출값이다. 측정한 풀이 시간이 아니다. 전체 157 s는 사용자가 정한 기준(2분 37초)이다. 문항 시간은 해설 글자 수(공백 제외) × 난이도 계수에 비례하고, 단계 시간은 그 단계의 글자 수에 비례한다(최소 350 ms).",
+    "levelFactor": {
+      "easy": 1.0,
+      "mid": 1.25,
+      "hard": 1.6,
+      "killer": 2.2
+    },
+    "totalMs": 157000,
+    "humanBudgetSec": 6000
+  },
+  "solutionsNote": "풀이는 해설지 형식으로 새로 쓴 것이다. 모델의 내부 추론 기록이 아니다.",
+  "officialKeySource": "https://www.news1.kr/amp/society/education/5974968 (평가원 정답표 이미지)",
+  "score": {
+    "correct": 30,
+    "total": 30,
+    "points": 100,
+    "maxPoints": 100
+  },
+  "questions": [
+    {
+      "id": "q1",
+      "number": 1,
+      "section": "공통",
+      "points": 2,
+      "level": "easy",
+      "topic": "지수법칙",
+      "formulas": [
+        "a^p × a^q = a^(p+q)",
+        "(a^m)^n = a^(mn)"
+      ],
+      "startMs": 0,
+      "durationMs": 1441,
+      "steps": [
+        {
+          "id": "q1-s1",
+          "atMs": 0,
+          "durationMs": 330,
+          "text": "밑을 3으로 통일하면 계산이 간단해집니다."
+        },
+        {
+          "id": "q1-s2",
+          "atMs": 330,
+          "durationMs": 588,
+          "text": "9 = 3²이므로 9^(1/4) = (3²)^(1/4) = 3^(2/4) = 3^(1/2)입니다."
+        },
+        {
+          "id": "q1-s3",
+          "atMs": 918,
+          "durationMs": 523,
+          "text": "따라서 9^(1/4) × 3^(−1/2) = 3^(1/2 − 1/2) = 3⁰ = 1입니다."
+        }
+      ],
+      "answer": "①",
+      "value": "1",
+      "officialAnswer": "①",
+      "correct": true,
+      "humanBudgetSec": 55
+    },
+    {
+      "id": "q2",
+      "number": 2,
+      "section": "공통",
+      "points": 2,
+      "level": "easy",
+      "topic": "미분계수의 정의",
+      "formulas": [
+        "f′(a) = lim_{h→0} {f(a+h) − f(a)}/h"
+      ],
+      "startMs": 1441,
+      "durationMs": 1122,
+      "steps": [
+        {
+          "id": "q2-s1",
+          "atMs": 1441,
+          "durationMs": 398,
+          "text": "주어진 극한은 미분계수의 정의 그대로이므로 f′(1)을 구하면 됩니다."
+        },
+        {
+          "id": "q2-s2",
+          "atMs": 1839,
+          "durationMs": 410,
+          "text": "f(x) = 3x³ + 4x + 1을 미분하면 f′(x) = 9x² + 4입니다."
+        },
+        {
+          "id": "q2-s3",
+          "atMs": 2249,
+          "durationMs": 314,
+          "text": "f′(1) = 9 + 4 = 13입니다."
+        }
+      ],
+      "answer": "④",
+      "value": "13",
+      "officialAnswer": "④",
+      "correct": true,
+      "humanBudgetSec": 43
+    },
+    {
+      "id": "q3",
+      "number": 3,
+      "section": "공통",
+      "points": 3,
+      "level": "easy",
+      "topic": "합의 기호 Σ의 성질",
+      "formulas": [
+        "Σ(pa_k + qb_k) = pΣa_k + qΣb_k",
+        "Σ_{k=1}^{n} k = n(n+1)/2"
+      ],
+      "startMs": 2563,
+      "durationMs": 1773,
+      "steps": [
+        {
+          "id": "q3-s1",
+          "atMs": 2563,
+          "durationMs": 329,
+          "text": "Σ는 항별로 나누어 계산할 수 있습니다."
+        },
+        {
+          "id": "q3-s2",
+          "atMs": 2892,
+          "durationMs": 1015,
+          "text": "Σ_{k=1}^{4}(2a_k − k) = 2Σ_{k=1}^{4}a_k − Σ_{k=1}^{4}k 이고, Σ_{k=1}^{4}k = 1+2+3+4 = 10입니다."
+        },
+        {
+          "id": "q3-s3",
+          "atMs": 3907,
+          "durationMs": 429,
+          "text": "2Σa_k − 10 = 0이므로 Σ_{k=1}^{4}a_k = 5입니다."
+        }
+      ],
+      "answer": "⑤",
+      "value": "5",
+      "officialAnswer": "⑤",
+      "correct": true,
+      "humanBudgetSec": 68
+    },
+    {
+      "id": "q4",
+      "number": 4,
+      "section": "공통",
+      "points": 3,
+      "level": "easy",
+      "topic": "함수의 연속",
+      "formulas": [
+        "x = a에서 연속 ⇔ lim_{x→a−}f(x) = lim_{x→a+}f(x) = f(a)"
+      ],
+      "startMs": 4336,
+      "durationMs": 1316,
+      "steps": [
+        {
+          "id": "q4-s1",
+          "atMs": 4336,
+          "durationMs": 424,
+          "text": "두 식은 각 구간에서 다항함수라 연속이므로, 경계인 x = 1에서만 확인하면 됩니다."
+        },
+        {
+          "id": "q4-s2",
+          "atMs": 4760,
+          "durationMs": 297,
+          "text": "x → 1−일 때 3x − 2 → 1입니다."
+        },
+        {
+          "id": "q4-s3",
+          "atMs": 5057,
+          "durationMs": 297,
+          "text": "f(1) = 1² − 3·1 + a = a − 2입니다."
+        },
+        {
+          "id": "q4-s4",
+          "atMs": 5355,
+          "durationMs": 297,
+          "text": "두 값이 같아야 하므로 a − 2 = 1, a = 3입니다."
+        }
+      ],
+      "answer": "③",
+      "value": "3",
+      "officialAnswer": "③",
+      "correct": true,
+      "humanBudgetSec": 50
+    },
+    {
+      "id": "q5",
+      "number": 5,
+      "section": "공통",
+      "points": 3,
+      "level": "easy",
+      "topic": "곱의 미분법",
+      "formulas": [
+        "{g(x)h(x)}′ = g′(x)h(x) + g(x)h′(x)"
+      ],
+      "startMs": 5652,
+      "durationMs": 1649,
+      "steps": [
+        {
+          "id": "q5-s1",
+          "atMs": 5652,
+          "durationMs": 489,
+          "text": "f(x) = (x + 2)(2x² − x − 2)는 두 함수의 곱이므로 곱의 미분법을 씁니다."
+        },
+        {
+          "id": "q5-s2",
+          "atMs": 6141,
+          "durationMs": 424,
+          "text": "f′(x) = 1·(2x² − x − 2) + (x + 2)(4x − 1)입니다."
+        },
+        {
+          "id": "q5-s3",
+          "atMs": 6565,
+          "durationMs": 411,
+          "text": "x = 1을 넣으면 2 − 1 − 2 = −1, (1 + 2)(4 − 1) = 9입니다."
+        },
+        {
+          "id": "q5-s4",
+          "atMs": 6976,
+          "durationMs": 325,
+          "text": "f′(1) = −1 + 9 = 8입니다."
+        }
+      ],
+      "answer": "③",
+      "value": "8",
+      "officialAnswer": "③",
+      "correct": true,
+      "humanBudgetSec": 63
+    },
+    {
+      "id": "q6",
+      "number": 6,
+      "section": "공통",
+      "points": 3,
+      "level": "mid",
+      "topic": "로그의 정의와 성질",
+      "formulas": [
+        "log_a b = c ⇔ b = a^c",
+        "log_{a^m} x = (1/m) log_a x"
+      ],
+      "startMs": 7301,
+      "durationMs": 2338,
+      "steps": [
+        {
+          "id": "q6-s1",
+          "atMs": 7301,
+          "durationMs": 450,
+          "text": "log_a b = 3이므로 로그의 정의에서 b = a³입니다."
+        },
+        {
+          "id": "q6-s2",
+          "atMs": 7751,
+          "durationMs": 589,
+          "text": "log₃(b/a) = 1/2이므로 b/a = 3^(1/2) = √3입니다."
+        },
+        {
+          "id": "q6-s3",
+          "atMs": 8340,
+          "durationMs": 398,
+          "text": "b/a = a³/a = a²이므로 a² = √3입니다."
+        },
+        {
+          "id": "q6-s4",
+          "atMs": 8738,
+          "durationMs": 381,
+          "text": "ab = a·a³ = a⁴ = (a²)² = 3입니다."
+        },
+        {
+          "id": "q6-s5",
+          "atMs": 9119,
+          "durationMs": 520,
+          "text": "log₉ ab = log₉ 3 = log_{3²} 3 = 1/2입니다."
+        }
+      ],
+      "answer": "②",
+      "value": "1/2",
+      "officialAnswer": "②",
+      "correct": true,
+      "humanBudgetSec": 89
+    },
+    {
+      "id": "q7",
+      "number": 7,
+      "section": "공통",
+      "points": 3,
+      "level": "mid",
+      "topic": "두 곡선 사이의 넓이",
+      "formulas": [
+        "S = ∫_a^b {f(x) − g(x)} dx  (f ≥ g)"
+      ],
+      "startMs": 9639,
+      "durationMs": 3048,
+      "steps": [
+        {
+          "id": "q7-s1",
+          "atMs": 9639,
+          "durationMs": 883,
+          "text": "먼저 두 곡선이 만나는 점을 찾습니다. x² + 3 = −(1/5)x² + 3에서 (6/5)x² = 0, 즉 x = 0입니다."
+        },
+        {
+          "id": "q7-s2",
+          "atMs": 10522,
+          "durationMs": 641,
+          "text": "0 ≤ x ≤ 2에서 y = x² + 3이 위, y = −(1/5)x² + 3이 아래에 있습니다."
+        },
+        {
+          "id": "q7-s3",
+          "atMs": 11163,
+          "durationMs": 641,
+          "text": "두 함수의 차는 (x² + 3) − (−(1/5)x² + 3) = (6/5)x²입니다."
+        },
+        {
+          "id": "q7-s4",
+          "atMs": 11804,
+          "durationMs": 883,
+          "text": "넓이는 ∫₀² (6/5)x² dx = (6/5)·[x³/3]₀² = (6/5)·(8/3) = 16/5입니다."
+        }
+      ],
+      "answer": "⑤",
+      "value": "16/5",
+      "officialAnswer": "⑤",
+      "correct": true,
+      "humanBudgetSec": 116
+    },
+    {
+      "id": "q8",
+      "number": 8,
+      "section": "공통",
+      "points": 3,
+      "level": "mid",
+      "topic": "삼각함수의 성질",
+      "formulas": [
+        "cos(π − θ) = −cosθ",
+        "tanθ = sinθ/cosθ",
+        "sin²θ + cos²θ = 1"
+      ],
+      "startMs": 12687,
+      "durationMs": 2943,
+      "steps": [
+        {
+          "id": "q8-s1",
+          "atMs": 12687,
+          "durationMs": 502,
+          "text": "cos(π − θ) = −cosθ > 0이므로 cosθ < 0입니다."
+        },
+        {
+          "id": "q8-s2",
+          "atMs": 13189,
+          "durationMs": 606,
+          "text": "sinθ + 3cosθ = 0의 양변을 cosθ로 나누면 tanθ = −3입니다."
+        },
+        {
+          "id": "q8-s3",
+          "atMs": 13795,
+          "durationMs": 675,
+          "text": "tanθ < 0이고 cosθ < 0이므로 θ는 제2사분면의 각이고, sinθ > 0입니다."
+        },
+        {
+          "id": "q8-s4",
+          "atMs": 14470,
+          "durationMs": 779,
+          "text": "tanθ = −3이면 sinθ : cosθ = 3 : −1이고, 빗변은 √(3² + 1²) = √10입니다."
+        },
+        {
+          "id": "q8-s5",
+          "atMs": 15249,
+          "durationMs": 381,
+          "text": "sinθ = 3/√10 = 3√10/10입니다."
+        }
+      ],
+      "answer": "①",
+      "value": "3√10/10",
+      "officialAnswer": "①",
+      "correct": true,
+      "humanBudgetSec": 113
+    },
+    {
+      "id": "q9",
+      "number": 9,
+      "section": "공통",
+      "points": 4,
+      "level": "hard",
+      "topic": "극값과 수평 접선",
+      "formulas": [
+        "f′(x) = 0인 점에서 접선은 수평",
+        "삼차함수의 극댓값·극솟값"
+      ],
+      "startMs": 15630,
+      "durationMs": 5232,
+      "steps": [
+        {
+          "id": "q9-s1",
+          "atMs": 15630,
+          "durationMs": 975,
+          "text": "직선 y = 5는 수평선이므로, 곡선에 접한다면 접점은 f′(x) = 0인 점, 즉 극값을 갖는 점입니다."
+        },
+        {
+          "id": "q9-s2",
+          "atMs": 16605,
+          "durationMs": 1197,
+          "text": "f′(x) = 3x² + 6ax − 9a² = 3(x + 3a)(x − a)이므로 x = −3a에서 극대, x = a에서 극소입니다."
+        },
+        {
+          "id": "q9-s3",
+          "atMs": 17803,
+          "durationMs": 1042,
+          "text": "극솟값 f(a) = a³ + 3a³ − 9a³ + 4 = −5a³ + 4는 a > 0이면 4보다 작아 5가 될 수 없습니다."
+        },
+        {
+          "id": "q9-s4",
+          "atMs": 18845,
+          "durationMs": 1219,
+          "text": "극댓값 f(−3a) = −27a³ + 27a³ + 27a³ + 4 = 27a³ + 4 = 5에서 a³ = 1/27, a = 1/3입니다."
+        },
+        {
+          "id": "q9-s5",
+          "atMs": 20064,
+          "durationMs": 798,
+          "text": "f(x) = x³ + x² − x + 4이므로 f(2) = 8 + 4 − 2 + 4 = 14입니다."
+        }
+      ],
+      "answer": "④",
+      "value": "14",
+      "officialAnswer": "④",
+      "correct": true,
+      "humanBudgetSec": 200
+    },
+    {
+      "id": "q10",
+      "number": 10,
+      "section": "공통",
+      "points": 4,
+      "level": "hard",
+      "topic": "지수함수의 그래프",
+      "formulas": [
+        "y = aˣ − 2의 점근선은 y = −2",
+        "삼각형 넓이 = (1/2) × 밑변 × 높이"
+      ],
+      "startMs": 20862,
+      "durationMs": 4876,
+      "steps": [
+        {
+          "id": "q10-s1",
+          "atMs": 20862,
+          "durationMs": 1418,
+          "text": "점 A의 x좌표를 t라 하면 A(t, aᵗ − 2), B(t, 0)입니다. C는 같은 세로선 위의 점근선 y = −2 위에 있으므로 C(t, −2)입니다."
+        },
+        {
+          "id": "q10-s2",
+          "atMs": 22280,
+          "durationMs": 842,
+          "text": "AB = aᵗ − 2, BC = 2이고 AB = BC이므로 aᵗ = 4, 즉 A(t, 2)입니다."
+        },
+        {
+          "id": "q10-s3",
+          "atMs": 23123,
+          "durationMs": 1374,
+          "text": "삼각형 AOC에서 밑변 AC = 4, 높이(원점과 직선 x = t 사이의 거리) = t이므로 넓이는 (1/2)·4·t = 2t = 8, t = 4입니다."
+        },
+        {
+          "id": "q10-s4",
+          "atMs": 24497,
+          "durationMs": 554,
+          "text": "a⁴ = 4에서 a = √2 (a > 1)이고 OB = 4입니다."
+        },
+        {
+          "id": "q10-s5",
+          "atMs": 25051,
+          "durationMs": 687,
+          "text": "a × OB = 4√2 = 2² × 2^(1/2) = 2^(5/2)입니다."
+        }
+      ],
+      "answer": "③",
+      "value": "2^(5/2)",
+      "officialAnswer": "③",
+      "correct": true,
+      "humanBudgetSec": 186
+    },
+    {
+      "id": "q11",
+      "number": 11,
+      "section": "공통",
+      "points": 4,
+      "level": "hard",
+      "topic": "수직선 위의 운동",
+      "formulas": [
+        "위치 x(t) = x(0) + ∫₀ᵗ v(s) ds",
+        "움직인 거리 = ∫|v(t)| dt",
+        "운동 방향이 바뀜 ⇔ v의 부호가 바뀜"
+      ],
+      "startMs": 25738,
+      "durationMs": 6118,
+      "steps": [
+        {
+          "id": "q11-s1",
+          "atMs": 25738,
+          "durationMs": 1441,
+          "text": "ㄱ. k = 0이면 v(t) = t² + 4이고, 원점에서 출발했으므로 x(1) = ∫₀¹ (t² + 4) dt = 1/3 + 4 = 13/3입니다. 참입니다."
+        },
+        {
+          "id": "q11-s2",
+          "atMs": 27179,
+          "durationMs": 1530,
+          "text": "ㄴ. k = 3이면 v(t) = t² − 3t + 4이고 판별식은 9 − 16 < 0입니다. v(t)는 항상 양수이므로 운동 방향은 한 번도 바뀌지 않습니다. 거짓입니다."
+        },
+        {
+          "id": "q11-s3",
+          "atMs": 28708,
+          "durationMs": 1308,
+          "text": "ㄷ. k = 5이면 v(t) = t² − 5t + 4 = (t − 1)(t − 4)입니다. 0 ≤ t ≤ 1에서 v ≥ 0, 1 ≤ t ≤ 2에서 v ≤ 0입니다."
+        },
+        {
+          "id": "q11-s4",
+          "atMs": 30016,
+          "durationMs": 1064,
+          "text": "∫₀¹ v dt = 1/3 − 5/2 + 4 = 11/6, ∫₁² v dt = 7/3 − 15/2 + 4 = −7/6입니다."
+        },
+        {
+          "id": "q11-s5",
+          "atMs": 31080,
+          "durationMs": 776,
+          "text": "움직인 거리는 11/6 + 7/6 = 3이므로 참입니다. 옳은 것은 ㄱ, ㄷ입니다."
+        }
+      ],
+      "answer": "③",
+      "value": "ㄱ, ㄷ",
+      "officialAnswer": "③",
+      "correct": true,
+      "humanBudgetSec": 234
+    },
+    {
+      "id": "q12",
+      "number": 12,
+      "section": "공통",
+      "points": 4,
+      "level": "hard",
+      "topic": "등비수열",
+      "formulas": [
+        "a_n = a₁r^(n−1)",
+        "a_{n+3} = a_n·r³"
+      ],
+      "startMs": 31856,
+      "durationMs": 3945,
+      "steps": [
+        {
+          "id": "q12-s1",
+          "atMs": 31856,
+          "durationMs": 510,
+          "text": "공비를 r이라 하면, 세 칸씩 뒤의 항은 r³배입니다."
+        },
+        {
+          "id": "q12-s2",
+          "atMs": 32366,
+          "durationMs": 643,
+          "text": "그래서 a₄ + a₇ + a₁₀ = r³(a₁ + a₄ + a₇)입니다."
+        },
+        {
+          "id": "q12-s3",
+          "atMs": 33008,
+          "durationMs": 1108,
+          "text": "2(a₁ + a₄ + a₇) = 6에서 a₁ + a₄ + a₇ = 3이고, a₄ + a₇ + a₁₀ = 6이므로 r³ = 2입니다."
+        },
+        {
+          "id": "q12-s4",
+          "atMs": 34117,
+          "durationMs": 1086,
+          "text": "a₁ + a₄ + a₇ = a₁(1 + r³ + r⁶) = a₁(1 + 2 + 4) = 7a₁ = 3이므로 a₁ = 3/7입니다."
+        },
+        {
+          "id": "q12-s5",
+          "atMs": 35203,
+          "durationMs": 598,
+          "text": "a₁₀ = a₁·r⁹ = (3/7)·2³ = 24/7입니다."
+        }
+      ],
+      "answer": "②",
+      "value": "24/7",
+      "officialAnswer": "②",
+      "correct": true,
+      "humanBudgetSec": 151
+    },
+    {
+      "id": "q13",
+      "number": 13,
+      "section": "공통",
+      "points": 4,
+      "level": "hard",
+      "topic": "접선의 방정식",
+      "formulas": [
+        "점 (a, f(a))에서의 접선: y = f′(a)(x − a) + f(a)",
+        "곱의 미분법"
+      ],
+      "startMs": 35801,
+      "durationMs": 5608,
+      "steps": [
+        {
+          "id": "q13-s1",
+          "atMs": 35801,
+          "durationMs": 1108,
+          "text": "f′(x) = 2x − 4이므로 f′(1) = −2입니다. 접선 l은 y = −2(x − 1) − 6 = −2x − 4입니다."
+        },
+        {
+          "id": "q13-s2",
+          "atMs": 36909,
+          "durationMs": 1374,
+          "text": "g(x) = (x³ − 2x)f(x)를 곱의 미분법으로 미분하면 g′(x) = (3x² − 2)f(x) + (x³ − 2x)f′(x)입니다."
+        },
+        {
+          "id": "q13-s3",
+          "atMs": 38284,
+          "durationMs": 1197,
+          "text": "g′(1) = 1·(−6) + (−1)·(−2) = −4이므로 접선 m은 y = −4(x − 1) + 6 = −4x + 10입니다."
+        },
+        {
+          "id": "q13-s4",
+          "atMs": 39481,
+          "durationMs": 621,
+          "text": "두 직선의 교점은 −2x − 4 = −4x + 10에서 x = 7입니다."
+        },
+        {
+          "id": "q13-s5",
+          "atMs": 40101,
+          "durationMs": 1308,
+          "text": "y축과 만나는 점은 (0, −4), (0, 10)이므로 밑변 14, 높이 7인 삼각형이고, 넓이는 (1/2)·14·7 = 49입니다."
+        }
+      ],
+      "answer": "⑤",
+      "value": "49",
+      "officialAnswer": "⑤",
+      "correct": true,
+      "humanBudgetSec": 214
+    },
+    {
+      "id": "q14",
+      "number": 14,
+      "section": "공통",
+      "points": 4,
+      "level": "hard",
+      "topic": "사인법칙과 코사인법칙",
+      "formulas": [
+        "코사인법칙: c² = a² + b² − 2ab·cosC",
+        "사인법칙: a/sinA = 2R",
+        "같은 원에서 현의 길이 = 2R·sin(원주각)"
+      ],
+      "startMs": 41409,
+      "durationMs": 8246,
+      "steps": [
+        {
+          "id": "q14-s1",
+          "atMs": 41409,
+          "durationMs": 1419,
+          "text": "직각삼각형 ABC에서 AC = 5이고 sin∠BAC = 4/5입니다. AD = 2이므로 원의 반지름은 2이고, AE = AG = 2, CE = 3입니다."
+        },
+        {
+          "id": "q14-s2",
+          "atMs": 42828,
+          "durationMs": 1219,
+          "text": "삼각형 ACG에서 코사인법칙을 쓰면 24 = 25 + 4 − 2·5·2·cos∠CAG이므로 cos∠CAG = 1/4입니다."
+        },
+        {
+          "id": "q14-s3",
+          "atMs": 44047,
+          "durationMs": 1020,
+          "text": "이등변삼각형 AEG에서 GE² = 2² + 2² − 2·2·2·(1/4) = 6이므로 GE = √6입니다."
+        },
+        {
+          "id": "q14-s4",
+          "atMs": 45067,
+          "durationMs": 1773,
+          "text": "삼각형 CEG의 세 변은 3, √6, 2√6입니다. cos∠CEG = (9 + 6 − 24)/(2·3·√6) = −3/(2√6)이므로 sin∠CEG = √15/(2√6)입니다."
+        },
+        {
+          "id": "q14-s5",
+          "atMs": 46840,
+          "durationMs": 1352,
+          "text": "사인법칙으로 세 점 C, E, G를 지나는 원의 지름을 구하면 2R = CG/sin∠CEG = 2√6 · 2√6/√15 = 24/√15입니다."
+        },
+        {
+          "id": "q14-s6",
+          "atMs": 48192,
+          "durationMs": 1463,
+          "text": "GH는 같은 원의 현이고 원주각 ∠HCG = ∠BAC이므로 GH = 2R·sin∠BAC = (24/√15)·(4/5) = 32√15/25입니다."
+        }
+      ],
+      "answer": "④",
+      "value": "32√15/25",
+      "officialAnswer": "④",
+      "correct": true,
+      "humanBudgetSec": 315
+    },
+    {
+      "id": "q15",
+      "number": 15,
+      "section": "공통",
+      "points": 4,
+      "level": "killer",
+      "topic": "정적분으로 정의된 함수의 극값",
+      "formulas": [
+        "h(x) = ∫₀ˣ {g(t) − f(t)} dt ⇒ h′(x) = g(x) − f(x)",
+        "h′의 부호가 바뀌는 점에서만 극값"
+      ],
+      "startMs": 49655,
+      "durationMs": 11216,
+      "steps": [
+        {
+          "id": "q15-s1",
+          "atMs": 49655,
+          "durationMs": 1707,
+          "text": "h′(x) = g(x) − f(x)이므로, h가 극값을 갖는 곳은 g − f의 부호가 바뀌는 점입니다. 구간별로 g − f를 써 봅니다."
+        },
+        {
+          "id": "q15-s2",
+          "atMs": 51362,
+          "durationMs": 2012,
+          "text": "x < −1: x² + ax + a / −1 ≤ x < 0: x² / 0 ≤ x < 1: x − x² / x ≥ 1: −x² + (a + 1)x − a = −(x − 1)(x − a)입니다."
+        },
+        {
+          "id": "q15-s3",
+          "atMs": 53373,
+          "durationMs": 2042,
+          "text": "−1 ≤ x < 1에서는 g − f ≥ 0이므로 부호가 바뀌지 않습니다. x ≥ 1에서는 a의 값과 관계없이 x = 1 또는 x = a에서 양 → 음으로 정확히 한 번 바뀝니다."
+        },
+        {
+          "id": "q15-s4",
+          "atMs": 55415,
+          "durationMs": 2164,
+          "text": "따라서 극값이 오직 하나이려면 x < −1에서 x² + ax + a의 부호가 바뀌면 안 됩니다. x = −1에서 값이 1 > 0이므로, 서로 다른 두 실근을 가지지 않으면 됩니다."
+        },
+        {
+          "id": "q15-s5",
+          "atMs": 57579,
+          "durationMs": 1006,
+          "text": "판별식 a² − 4a ≤ 0에서 0 < a ≤ 4이므로 a의 최댓값은 k = 4입니다."
+        },
+        {
+          "id": "q15-s6",
+          "atMs": 58585,
+          "durationMs": 1646,
+          "text": "a = 4일 때 h(3) = ∫₀¹ (t − t²) dt + ∫₁³ (−t² + 5t − 4) dt = 1/6 + 10/3 = 7/2입니다."
+        },
+        {
+          "id": "q15-s7",
+          "atMs": 60231,
+          "durationMs": 640,
+          "text": "k + h(3) = 4 + 7/2 = 15/2입니다."
+        }
+      ],
+      "answer": "④",
+      "value": "15/2",
+      "officialAnswer": "④",
+      "correct": true,
+      "humanBudgetSec": 429
+    },
+    {
+      "id": "q16",
+      "number": 16,
+      "section": "공통",
+      "points": 3,
+      "level": "easy",
+      "topic": "수열의 귀납적 정의",
+      "formulas": [
+        "a_{n+1} = n²a_n + 1에 차례로 대입"
+      ],
+      "startMs": 60871,
+      "durationMs": 776,
+      "steps": [
+        {
+          "id": "q16-s1",
+          "atMs": 60871,
+          "durationMs": 374,
+          "text": "n = 1을 넣으면 a₂ = 1²·a₁ + 1 = 1 + 1 = 2입니다."
+        },
+        {
+          "id": "q16-s2",
+          "atMs": 61245,
+          "durationMs": 402,
+          "text": "n = 2를 넣으면 a₃ = 2²·a₂ + 1 = 4·2 + 1 = 9입니다."
+        }
+      ],
+      "answer": "9",
+      "value": "9",
+      "officialAnswer": "9",
+      "correct": true,
+      "humanBudgetSec": 30
+    },
+    {
+      "id": "q17",
+      "number": 17,
+      "section": "공통",
+      "points": 3,
+      "level": "easy",
+      "topic": "부정적분",
+      "formulas": [
+        "∫xⁿ dx = xⁿ⁺¹/(n + 1) + C"
+      ],
+      "startMs": 61647,
+      "durationMs": 1011,
+      "steps": [
+        {
+          "id": "q17-s1",
+          "atMs": 61647,
+          "durationMs": 353,
+          "text": "F(x) = ∫(4x³ − 2x) dx = x⁴ − x² + C입니다."
+        },
+        {
+          "id": "q17-s2",
+          "atMs": 62000,
+          "durationMs": 340,
+          "text": "F(0) = C = 4이므로 F(x) = x⁴ − x² + 4입니다."
+        },
+        {
+          "id": "q17-s3",
+          "atMs": 62340,
+          "durationMs": 318,
+          "text": "F(2) = 16 − 4 + 4 = 16입니다."
+        }
+      ],
+      "answer": "16",
+      "value": "16",
+      "officialAnswer": "16",
+      "correct": true,
+      "humanBudgetSec": 39
+    },
+    {
+      "id": "q18",
+      "number": 18,
+      "section": "공통",
+      "points": 3,
+      "level": "easy",
+      "topic": "삼각형의 넓이",
+      "formulas": [
+        "S = (1/2)·AB·AC·sinA",
+        "sin²A + cos²A = 1"
+      ],
+      "startMs": 62658,
+      "durationMs": 1095,
+      "steps": [
+        {
+          "id": "q18-s1",
+          "atMs": 62658,
+          "durationMs": 746,
+          "text": "cos(∠BAC) = −3/5이고 0 < ∠BAC < π이므로 sin(∠BAC) = √(1 − 9/25) = 4/5입니다."
+        },
+        {
+          "id": "q18-s2",
+          "atMs": 63404,
+          "durationMs": 349,
+          "text": "넓이 = (1/2)·5·6·(4/5) = 12입니다."
+        }
+      ],
+      "answer": "12",
+      "value": "12",
+      "officialAnswer": "12",
+      "correct": true,
+      "humanBudgetSec": 42
+    },
+    {
+      "id": "q19",
+      "number": 19,
+      "section": "공통",
+      "points": 3,
+      "level": "mid",
+      "topic": "닫힌구간에서의 최댓값·최솟값",
+      "formulas": [
+        "닫힌구간의 최대·최소는 극값과 양 끝값 중에서 나온다"
+      ],
+      "startMs": 63753,
+      "durationMs": 2996,
+      "steps": [
+        {
+          "id": "q19-s1",
+          "atMs": 63753,
+          "durationMs": 866,
+          "text": "f(x) = 2x³ + 3x² − 12x − 8이라 하면, 부등식은 −2 ≤ x ≤ 2에서 |f(x)| ≤ k라는 뜻입니다."
+        },
+        {
+          "id": "q19-s2",
+          "atMs": 64619,
+          "durationMs": 831,
+          "text": "f′(x) = 6x² + 6x − 12 = 6(x + 2)(x − 1)이므로 x = −2, 1에서 극값 후보가 생깁니다."
+        },
+        {
+          "id": "q19-s3",
+          "atMs": 65450,
+          "durationMs": 797,
+          "text": "f(−2) = 12, f(1) = −15, f(2) = −4이므로 최댓값은 12, 최솟값은 −15입니다."
+        },
+        {
+          "id": "q19-s4",
+          "atMs": 66247,
+          "durationMs": 502,
+          "text": "−k ≤ −15이고 12 ≤ k여야 하므로 k의 최솟값은 15입니다."
+        }
+      ],
+      "answer": "15",
+      "value": "15",
+      "officialAnswer": "15",
+      "correct": true,
+      "humanBudgetSec": 114
+    },
+    {
+      "id": "q20",
+      "number": 20,
+      "section": "공통",
+      "points": 4,
+      "level": "killer",
+      "topic": "수열의 합과 일반항의 관계",
+      "formulas": [
+        "a_{n+1} = S_{n+1} − S_n",
+        "S_n = (2/3)a_n + n²/6 − n/6 + 10 (n ≥ 2)"
+      ],
+      "startMs": 66749,
+      "durationMs": 13867,
+      "steps": [
+        {
+          "id": "q20-s1",
+          "atMs": 66749,
+          "durationMs": 1524,
+          "text": "S_n = Σ_{k=1}^{n} a_k라 하면, n ≥ 2에서 a_{n+1} = S_{n+1} − S_n입니다."
+        },
+        {
+          "id": "q20-s2",
+          "atMs": 68273,
+          "durationMs": 3261,
+          "text": "주어진 식을 n + 1과 n에 대해 빼면 a_{n+1} = (2/3)(a_{n+1} − a_n) + {(n + 1)² − n² − 1}/6 = (2/3)(a_{n+1} − a_n) + n/3입니다. 따라서 (가) = n/3이고 f(12) = 4입니다."
+        },
+        {
+          "id": "q20-s3",
+          "atMs": 71534,
+          "durationMs": 945,
+          "text": "양변에 3을 곱해 정리하면 2a_n + a_{n+1} = n …㉠입니다."
+        },
+        {
+          "id": "q20-s4",
+          "atMs": 72479,
+          "durationMs": 2377,
+          "text": "n = 2를 대입하면 a₁ + a₂ = (2/3)a₂ + 4/6 − 2/6 + 10이고, a₁ = 7이므로 a₂/3 = 10/3, a₂ = 10입니다. (나) = 10이므로 p = 10입니다."
+        },
+        {
+          "id": "q20-s5",
+          "atMs": 74856,
+          "durationMs": 2956,
+          "text": "Σ_{k=1}^{12} a_k + Σ_{k=1}^{5} a_{2k+1}에서 a₁, a₂를 빼고 남은 항을 (a₃, a₄), (a₅, a₆), …으로 묶으면 각 묶음은 2a_{2k+1} + a_{2k+2}입니다."
+        },
+        {
+          "id": "q20-s6",
+          "atMs": 77812,
+          "durationMs": 2042,
+          "text": "㉠에 n = 2k + 1을 넣으면 각 묶음은 2k + 1이므로 합은 3 + 5 + 7 + 9 + 11 = 35입니다. (다) = 7 + 10 + 35 = 52이므로 q = 52입니다."
+        },
+        {
+          "id": "q20-s7",
+          "atMs": 79854,
+          "durationMs": 762,
+          "text": "p × q / f(12) = 10 × 52 / 4 = 130입니다."
+        }
+      ],
+      "answer": "130",
+      "value": "130",
+      "officialAnswer": "130",
+      "correct": true,
+      "humanBudgetSec": 530
+    },
+    {
+      "id": "q21",
+      "number": 21,
+      "section": "공통",
+      "points": 4,
+      "level": "killer",
+      "topic": "삼차함수와 극한 조건",
+      "formulas": [
+        "g가 연속 ⇒ f(t) = 0",
+        "분모 → 0인데 극한이 존재 ⇒ 분자 → 0"
+      ],
+      "startMs": 80616,
+      "durationMs": 15026,
+      "steps": [
+        {
+          "id": "q21-s1",
+          "atMs": 80616,
+          "durationMs": 1158,
+          "text": "g가 x = t에서 연속이려면 −f(t) = f(t)이어야 하므로 f(t) = 0입니다."
+        },
+        {
+          "id": "q21-s2",
+          "atMs": 81774,
+          "durationMs": 3139,
+          "text": "(가)에서 x → 0+, x → 2+일 때 분모 x(x − 2) → 0이므로 분자도 0으로 가야 합니다. 따라서 f(0) = f(2) = 0이고, f(x) = c·x(x − 2)(x − β) (c > 0)로 둘 수 있습니다. t는 0, 2, β 중 하나입니다."
+        },
+        {
+          "id": "q21-s3",
+          "atMs": 84913,
+          "durationMs": 2621,
+          "text": "그러면 g(x)/{x(x − 2)} = ±c(x − β)이고, 부호는 x ≥ t이면 +, x < t이면 −입니다. 자연수 m에서의 우극한은 m ≥ t일 때 c(m − β), m < t일 때 −c(m − β)입니다."
+        },
+        {
+          "id": "q21-s4",
+          "atMs": 87535,
+          "durationMs": 1737,
+          "text": "t = β이면 극한이 음수가 되는 m이 없고, t = 0이면 −(7/2)g(1) < 0이 되어 자연수가 아닙니다. 그래서 t = 2입니다."
+        },
+        {
+          "id": "q21-s5",
+          "atMs": 89272,
+          "durationMs": 1707,
+          "text": "t = 2이면 극한이 음수가 되는 m은 2 ≤ m < β인 자연수입니다. 이 집합의 원소가 두 개이므로 {2, 3}이고 3 < β ≤ 4입니다."
+        },
+        {
+          "id": "q21-s6",
+          "atMs": 90979,
+          "durationMs": 3231,
+          "text": "g(−1) = −f(−1) = 3c(1 + β), −(7/2)g(1) = (7/2)c(β − 1)입니다. 이 두 값이 {2, 3}이 되는 경우는 3c(1 + β) = 3, (7/2)c(β − 1) = 2뿐이고, β = 11/3, c = 3/14입니다."
+        },
+        {
+          "id": "q21-s7",
+          "atMs": 94210,
+          "durationMs": 1432,
+          "text": "g(−5) = −f(−5) = −(3/14)·(−5)·(−7)·(−5 − 11/3) = 65입니다."
+        }
+      ],
+      "answer": "65",
+      "value": "65",
+      "officialAnswer": "65",
+      "correct": true,
+      "humanBudgetSec": 574
+    },
+    {
+      "id": "q22",
+      "number": 22,
+      "section": "공통",
+      "points": 4,
+      "level": "killer",
+      "topic": "로그함수·지수함수와 대칭이동",
+      "formulas": [
+        "점 (a, b)를 y = x에 대해 대칭이동 → (b, a)",
+        "log₁₆(8a + 2) = b ⇔ 16^b = 8a + 2"
+      ],
+      "startMs": 95642,
+      "durationMs": 9844,
+      "steps": [
+        {
+          "id": "q22-s1",
+          "atMs": 95642,
+          "durationMs": 1676,
+          "text": "A(a, b)가 y = log₁₆(8x + 2) 위에 있으므로 16^b = 8a + 2, 즉 a = 2^(4b − 3) − 1/4입니다."
+        },
+        {
+          "id": "q22-s2",
+          "atMs": 97318,
+          "durationMs": 1493,
+          "text": "A를 y = x에 대해 대칭이동한 점 A′(b, a)가 직선 OB 위에 있으므로 B = (λb, λa)로 쓸 수 있습니다."
+        },
+        {
+          "id": "q22-s3",
+          "atMs": 98812,
+          "durationMs": 2347,
+          "text": "λ = 2를 넣어 보면 B = (2b, 2a)이고, 4^(2b − 1) − 1/2 = 2^(4b − 2) − 1/2 = 2a가 되어 B는 항상 곡선 y = 4^(x−1) − 1/2 위에 있습니다."
+        },
+        {
+          "id": "q22-s4",
+          "atMs": 101158,
+          "durationMs": 1371,
+          "text": "중점의 좌표가 (77/8, 133/8)이므로 a + 2b = 77/4, b + 2a = 133/4입니다."
+        },
+        {
+          "id": "q22-s5",
+          "atMs": 102530,
+          "durationMs": 1859,
+          "text": "두 식을 연립하면 a = 63/4, b = 7/4입니다. 검산하면 log₁₆(8·63/4 + 2) = log₁₆ 128 = 7/4로 맞습니다."
+        },
+        {
+          "id": "q22-s6",
+          "atMs": 104389,
+          "durationMs": 1097,
+          "text": "a × b = 441/16이므로 p = 16, q = 441이고 p + q = 457입니다."
+        }
+      ],
+      "answer": "457",
+      "value": "457",
+      "officialAnswer": "457",
+      "correct": true,
+      "humanBudgetSec": 376
+    },
+    {
+      "id": "q23",
+      "number": 23,
+      "section": "미적분",
+      "points": 2,
+      "level": "easy",
+      "topic": "삼각함수의 극한",
+      "formulas": [
+        "lim_{x→0} (tan x)/x = 1"
+      ],
+      "startMs": 105486,
+      "durationMs": 832,
+      "steps": [
+        {
+          "id": "q23-s1",
+          "atMs": 105486,
+          "durationMs": 430,
+          "text": "tan 6x/(2x) = 3 × tan 6x/(6x)로 바꾸어 씁니다."
+        },
+        {
+          "id": "q23-s2",
+          "atMs": 105916,
+          "durationMs": 402,
+          "text": "x → 0일 때 tan 6x/(6x) → 1이므로 극한값은 3입니다."
+        }
+      ],
+      "answer": "③",
+      "value": "3",
+      "officialAnswer": "③",
+      "correct": true,
+      "humanBudgetSec": 32
+    },
+    {
+      "id": "q24",
+      "number": 24,
+      "section": "미적분",
+      "points": 3,
+      "level": "mid",
+      "topic": "치환적분법",
+      "formulas": [
+        "sin x − sin³x = sin x(1 − sin²x) = sin x·cos²x",
+        "u = sin x, du = cos x dx"
+      ],
+      "startMs": 106318,
+      "durationMs": 2805,
+      "steps": [
+        {
+          "id": "q24-s1",
+          "atMs": 106318,
+          "durationMs": 641,
+          "text": "근호 안을 sin x로 묶으면 sin x − sin³x = sin x·cos²x입니다."
+        },
+        {
+          "id": "q24-s2",
+          "atMs": 106959,
+          "durationMs": 831,
+          "text": "0 ≤ x ≤ π/2에서 cos x ≥ 0이므로 √(sin x·cos²x) = cos x·√(sin x)입니다."
+        },
+        {
+          "id": "q24-s3",
+          "atMs": 107790,
+          "durationMs": 779,
+          "text": "u = sin x로 치환하면 du = cos x dx이고, x가 0에서 π/2로 갈 때 u는 0에서 1로 갑니다."
+        },
+        {
+          "id": "q24-s4",
+          "atMs": 108569,
+          "durationMs": 554,
+          "text": "∫₀¹ √u du = [(2/3)u^(3/2)]₀¹ = 2/3입니다."
+        }
+      ],
+      "answer": "④",
+      "value": "2/3",
+      "officialAnswer": "④",
+      "correct": true,
+      "humanBudgetSec": 107
+    },
+    {
+      "id": "q25",
+      "number": 25,
+      "section": "미적분",
+      "points": 3,
+      "level": "mid",
+      "topic": "수열의 극한과 대소 관계",
+      "formulas": [
+        "수열의 극한의 대소 관계 (샌드위치 정리)"
+      ],
+      "startMs": 109123,
+      "durationMs": 2961,
+      "steps": [
+        {
+          "id": "q25-s1",
+          "atMs": 109123,
+          "durationMs": 693,
+          "text": "부등식의 각 변을 n으로 나누면 √(9 − 5/n²) + 2 < a_n/n < 5 + 1/n입니다."
+        },
+        {
+          "id": "q25-s2",
+          "atMs": 109816,
+          "durationMs": 658,
+          "text": "n → ∞일 때 양쪽 끝은 모두 3 + 2 = 5, 5로 수렴하므로 lim a_n/n = 5입니다."
+        },
+        {
+          "id": "q25-s3",
+          "atMs": 110474,
+          "durationMs": 1160,
+          "text": "(a_n + 2)²/(n·a_n + 5n² − 2)의 분모와 분자를 n²으로 나누면 (a_n/n + 2/n)²/(a_n/n + 5 − 2/n²)입니다."
+        },
+        {
+          "id": "q25-s4",
+          "atMs": 111634,
+          "durationMs": 450,
+          "text": "극한값은 5²/(5 + 5) = 25/10 = 5/2입니다."
+        }
+      ],
+      "answer": "③",
+      "value": "5/2",
+      "officialAnswer": "③",
+      "correct": true,
+      "humanBudgetSec": 113
+    },
+    {
+      "id": "q26",
+      "number": 26,
+      "section": "미적분",
+      "points": 3,
+      "level": "mid",
+      "topic": "입체도형의 부피",
+      "formulas": [
+        "V = ∫_a^b S(x) dx",
+        "한 변이 a인 정삼각형의 넓이 = (√3/4)a²",
+        "부분적분: ∫u v′ = uv − ∫u′v"
+      ],
+      "startMs": 112084,
+      "durationMs": 3238,
+      "steps": [
+        {
+          "id": "q26-s1",
+          "atMs": 112084,
+          "durationMs": 970,
+          "text": "x에서의 단면은 한 변의 길이가 √(x + x ln x)인 정삼각형이므로 넓이는 S(x) = (√3/4)(x + x ln x)입니다."
+        },
+        {
+          "id": "q26-s2",
+          "atMs": 113054,
+          "durationMs": 398,
+          "text": "∫₁² x dx = [x²/2]₁² = 3/2입니다."
+        },
+        {
+          "id": "q26-s3",
+          "atMs": 113452,
+          "durationMs": 883,
+          "text": "부분적분으로 ∫₁² x ln x dx = [(x²/2)ln x]₁² − ∫₁² x/2 dx = 2 ln 2 − 3/4입니다."
+        },
+        {
+          "id": "q26-s4",
+          "atMs": 114335,
+          "durationMs": 987,
+          "text": "V = (√3/4)(3/2 + 2 ln 2 − 3/4) = (√3/4)(3/4 + 2 ln 2) = √3(3 + 8 ln 2)/16입니다."
+        }
+      ],
+      "answer": "①",
+      "value": "√3(3 + 8ln2)/16",
+      "officialAnswer": "①",
+      "correct": true,
+      "humanBudgetSec": 124
+    },
+    {
+      "id": "q27",
+      "number": 27,
+      "section": "미적분",
+      "points": 3,
+      "level": "mid",
+      "topic": "매개변수로 나타낸 함수의 미분",
+      "formulas": [
+        "dy/dx = (dy/dt)/(dx/dt)",
+        "sin²θ + cos²θ = 1"
+      ],
+      "startMs": 115322,
+      "durationMs": 4434,
+      "steps": [
+        {
+          "id": "q27-s1",
+          "atMs": 115322,
+          "durationMs": 987,
+          "text": "교점 P를 찾기 위해 y − 3x를 계산하면 e^(4t)(1 − 3cos²πt − 3 − 3sin²πt) = −5e^(4t)입니다."
+        },
+        {
+          "id": "q27-s2",
+          "atMs": 116309,
+          "durationMs": 675,
+          "text": "직선 y = 3x − 5e 위에 있으려면 −5e^(4t) = −5e이므로 t = 1/4입니다."
+        },
+        {
+          "id": "q27-s3",
+          "atMs": 116985,
+          "durationMs": 1143,
+          "text": "dx/dt = e^(4t){4(1 + sin²πt) + π sin 2πt}이고, t = 1/4에서 e(4·(3/2) + π) = e(6 + π)입니다."
+        },
+        {
+          "id": "q27-s4",
+          "atMs": 118128,
+          "durationMs": 1230,
+          "text": "dy/dt = e^(4t){4(1 − 3cos²πt) + 3π sin 2πt}이고, t = 1/4에서 e(4·(−1/2) + 3π) = e(3π − 2)입니다."
+        },
+        {
+          "id": "q27-s5",
+          "atMs": 119358,
+          "durationMs": 398,
+          "text": "접선의 기울기는 (3π − 2)/(π + 6)입니다."
+        }
+      ],
+      "answer": "②",
+      "value": "(3π − 2)/(π + 6)",
+      "officialAnswer": "②",
+      "correct": true,
+      "humanBudgetSec": 169
+    },
+    {
+      "id": "q28",
+      "number": 28,
+      "section": "미적분",
+      "points": 4,
+      "level": "killer",
+      "topic": "역함수 관계를 이용한 정적분",
+      "formulas": [
+        "접선의 y절편 = f(s) − s·f′(s)",
+        "∫_{t₁}^{t₂} g(t) dt = [s·t] − ∫ t ds  (s = g(t)일 때)"
+      ],
+      "startMs": 119756,
+      "durationMs": 10515,
+      "steps": [
+        {
+          "id": "q28-s1",
+          "atMs": 119756,
+          "durationMs": 2255,
+          "text": "점 (s, f(s))에서 y축에 내린 수선의 발은 (0, f(s))이고, 접선의 y절편은 f(s) − s·f′(s)입니다. 두 점 사이의 거리는 s·f′(s)입니다."
+        },
+        {
+          "id": "q28-s2",
+          "atMs": 122011,
+          "durationMs": 1829,
+          "text": "f′(s) = s − 1 + 1/(1 + s) = s²/(1 + s)이므로 t = s³/(1 + s)이고, g(t) = s는 이 관계의 역함수입니다."
+        },
+        {
+          "id": "q28-s3",
+          "atMs": 123840,
+          "durationMs": 853,
+          "text": "t = 1/2이면 s = 1이고, t = 27/4이면 s = 3입니다."
+        },
+        {
+          "id": "q28-s4",
+          "atMs": 124693,
+          "durationMs": 2316,
+          "text": "∫ g(t) dt를 s에 대한 적분으로 바꾸면 [s·t]의 끝값 차에서 ∫ t ds를 뺀 것과 같습니다. 즉 (3·27/4 − 1·1/2) − ∫₁³ s³/(1 + s) ds입니다."
+        },
+        {
+          "id": "q28-s5",
+          "atMs": 127010,
+          "durationMs": 2316,
+          "text": "s³/(1 + s) = s² − s + 1 − 1/(1 + s)이므로 ∫₁³ s³/(1 + s) ds = [s³/3 − s²/2 + s − ln(1 + s)]₁³ = 20/3 − ln 2입니다."
+        },
+        {
+          "id": "q28-s6",
+          "atMs": 129326,
+          "durationMs": 945,
+          "text": "따라서 79/4 − 20/3 + ln 2 = 157/12 + ln 2입니다."
+        }
+      ],
+      "answer": "⑤",
+      "value": "157/12 + ln2",
+      "officialAnswer": "⑤",
+      "correct": true,
+      "humanBudgetSec": 402
+    },
+    {
+      "id": "q29",
+      "number": 29,
+      "section": "미적분",
+      "points": 4,
+      "level": "killer",
+      "topic": "등비급수",
+      "formulas": [
+        "Σ_{n=1}^{∞} ar^(n−1) = a/(1 − r)  (|r| < 1)",
+        "1/(n(n+1)) = 1/n − 1/(n+1)"
+      ],
+      "startMs": 130271,
+      "durationMs": 12526,
+      "steps": [
+        {
+          "id": "q29-s1",
+          "atMs": 130271,
+          "durationMs": 2316,
+          "text": "첫째항과 공차가 같으므로 a_n = nd입니다. 조건에서 b_{k+1}, b_{k+2}, b_{k+3}은 1/d − 1, 1/(2d) − 1, 1/(3d) − 1입니다."
+        },
+        {
+          "id": "q29-s2",
+          "atMs": 132587,
+          "durationMs": 2133,
+          "text": "이 세 수가 등비수열을 이루므로 (1/(2d) − 1)² = (1/d − 1)(1/(3d) − 1)입니다. u = 1/d로 놓고 풀면 u = 4, 즉 d = 1/4입니다."
+        },
+        {
+          "id": "q29-s3",
+          "atMs": 134721,
+          "durationMs": 1036,
+          "text": "세 항은 3, 1, 1/3이므로 공비는 1/3이고, b₁ = 3·3^k입니다."
+        },
+        {
+          "id": "q29-s4",
+          "atMs": 135757,
+          "durationMs": 1341,
+          "text": "1/(a_n·a_{n+1}) = 16/(n(n + 1))이고, 망원급수로 그 합은 16입니다."
+        },
+        {
+          "id": "q29-s5",
+          "atMs": 137098,
+          "durationMs": 2499,
+          "text": "Σ b_n = b₁/(1 − 1/3) = (3/2)·3^(k+1)이므로 0 < (3/2)·3^(k+1) − 16 < 30입니다. 이를 만족하는 자연수는 k = 2뿐이고 b₁ = 27입니다."
+        },
+        {
+          "id": "q29-s6",
+          "atMs": 139597,
+          "durationMs": 2530,
+          "text": "b_{2n}은 첫째항 9, 공비 1/9인 등비수열이므로 Σ b_{2n} = 9/(1 − 1/9) = 81/8이고, a₂ × Σ b_{2n} = (1/2)·(81/8) = 81/16입니다."
+        },
+        {
+          "id": "q29-s7",
+          "atMs": 142127,
+          "durationMs": 670,
+          "text": "p = 16, q = 81이므로 p + q = 97입니다."
+        }
+      ],
+      "answer": "97",
+      "value": "97",
+      "officialAnswer": "97",
+      "correct": true,
+      "humanBudgetSec": 479
+    },
+    {
+      "id": "q30",
+      "number": 30,
+      "section": "미적분",
+      "points": 4,
+      "level": "killer",
+      "topic": "역함수와 교점의 개수",
+      "formulas": [
+        "y = f(x)와 y = f⁻¹(x)는 y = x에 대해 대칭",
+        "점 P를 지나는 접선 조건: f(x₀) = f′(x₀)(x₀ − 1)"
+      ],
+      "startMs": 142797,
+      "durationMs": 14203,
+      "steps": [
+        {
+          "id": "q30-s1",
+          "atMs": 142797,
+          "durationMs": 2408,
+          "text": "(가)에서 f⁻¹가 증가해야 하므로 |x| ≤ 1일 때 f⁻¹(x) = (5x − x³)/2입니다. (나)에서 |x| > 1일 때 |f⁻¹(x)| = e^(|x|−1) + 1입니다."
+        },
+        {
+          "id": "q30-s2",
+          "atMs": 145205,
+          "durationMs": 2956,
+          "text": "이것을 뒤집으면 f(x)는 −2 ≤ x ≤ 2에서 위의 식의 역함수, x > 2에서 1 + ln(x − 1), x < −2에서 −1 − ln(−x − 1)입니다. f(1) = √2 − 1 > 0이므로 점 (1, 0)은 곡선보다 아래에 있습니다."
+        },
+        {
+          "id": "q30-s3",
+          "atMs": 148161,
+          "durationMs": 1280,
+          "text": "m ≤ 0이면 직선은 감소하고 f는 증가하므로 교점은 정확히 1개입니다. 즉 g(m) = 1입니다."
+        },
+        {
+          "id": "q30-s4",
+          "atMs": 149441,
+          "durationMs": 1951,
+          "text": "x > 1 쪽: (1, 0)을 지나는 접선은 x = 2에서의 y = x − 1뿐이고, x = 2는 변곡점입니다. 그래서 m > 0이면 이쪽 교점은 항상 1개입니다."
+        },
+        {
+          "id": "q30-s5",
+          "atMs": 151392,
+          "durationMs": 2194,
+          "text": "x < 1 쪽: m이 0보다 조금 크면 교점이 2개입니다. x < −2 부분에 접하는 순간을 w = −x₀ − 1로 놓고 풀면 w ln w = 2이고, 그때 기울기는 b = 1/w입니다."
+        },
+        {
+          "id": "q30-s6",
+          "atMs": 153586,
+          "durationMs": 1463,
+          "text": "따라서 0 < m < b이면 g = 3, m = b이면 g = 2, m > b이면 g = 1이고, 불연속점은 a = 0과 b입니다."
+        },
+        {
+          "id": "q30-s7",
+          "atMs": 155049,
+          "durationMs": 1951,
+          "text": "ln b/b = −w ln w = −2이므로 (ln b/b)² = 4입니다. 구하는 값은 g(0) × 3 + g(b) × 4 = 1·3 + 2·4 = 11입니다."
+        }
+      ],
+      "answer": "11",
+      "value": "11",
+      "officialAnswer": "11",
+      "correct": true,
+      "humanBudgetSec": 543
+    }
+  ]
+}

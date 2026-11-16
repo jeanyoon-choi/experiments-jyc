@@ -1,4 +1,4 @@
-import { type Disc, type Kind, type Label, badges, edges, lineById, stations } from "./model";
+import { type Disc, type Kind, type Row, badges, edges, lineById, stations } from "./model";
 import { type Network, networkBuilder } from "./physics";
 
 // The official map as a physical network, in map units. Every station is a
@@ -22,7 +22,7 @@ export type Run = {
   colour: string;
   /** Cord nodes from station a to station b. */
   ids: number[];
-  /** Offsets of this line's disc at each end (zero for plain stations). */
+  /** Where the line passes each end station, as an offset from the station. */
   ax: number;
   ay: number;
   bx: number;
@@ -34,12 +34,13 @@ export type Mark = {
   node: number;
   name: string;
   en: string | null;
+  /** Capsule discs; null for a station drawn as a dot. */
   discs: Disc[] | null;
-  /** Line of a plain station, for its dot. */
+  /** Line of a dot station. */
   line: string | null;
-  label: Label;
+  rows: Row[];
+  /** Drawn as a capsule. */
   transfer: boolean;
-  branch: boolean;
 };
 
 export type BadgeMark = { line: string; node: number; dx: number; dy: number };
@@ -67,16 +68,11 @@ export function buildScene(): Scene {
       en: s.en,
       discs: s.discs,
       line: s.discs ? null : s.lines[0],
-      label: s.label,
+      rows: s.label.rows,
       transfer: Boolean(s.discs),
-      branch: s.branch,
     });
   }
   const stationAt = new Map(stations.map((s) => [s.id, s]));
-  const discOffset = (id: string, line: string) => {
-    const d = stationAt.get(id)?.discs?.find((x) => x.line === line);
-    return d ? [d.dx, d.dy] : [0, 0];
-  };
 
   const runs: Run[] = [];
   // Per station, the cord node next to it on each run, with that run's line.
@@ -101,9 +97,18 @@ export function buildScene(): Scene {
     if (ids.length === 1) ids.push(b);
     for (let i = 1; i < ids.length; i += 1) builder.link(ids[i - 1], ids[i], STRETCH);
     for (let i = 2; i < ids.length; i += 1) builder.link(ids[i - 2], ids[i], BEND);
-    const [ax, ay] = discOffset(e.a, e.line);
-    const [bx, by] = discOffset(e.b, e.line);
-    runs.push({ line: e.line, kind: line.kind, colour: line.colour, ids, ax, ay, bx, by });
+    const from = stationAt.get(e.a)!;
+    const to = stationAt.get(e.b)!;
+    runs.push({
+      line: e.line,
+      kind: line.kind,
+      colour: line.colour,
+      ids,
+      ax: p[0] - from.x,
+      ay: p[1] - from.y,
+      bx: p[p.length - 2] - to.x,
+      by: p[p.length - 1] - to.y,
+    });
     if (ids.length > 2) {
       nextTo.set(a, [...(nextTo.get(a) ?? []), { node: ids[1], line: e.line }]);
       nextTo.set(b, [...(nextTo.get(b) ?? []), { node: ids[ids.length - 2], line: e.line }]);

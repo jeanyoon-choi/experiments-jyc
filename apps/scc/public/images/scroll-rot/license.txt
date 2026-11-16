@@ -1,0 +1,8 @@
+face.webp
+* subject: Mark Zuckerberg, 2025-09-04
+* source: https://commons.wikimedia.org/wiki/File:F20250904AH-2824_(54778373111)_(3x4_cropped_on_Zuckerberg_following_the_rule_of_thirds).jpg
+* author: The White House / Andrea Hanks
+* license: Public domain
+
+Changes: the 374 x 499 crop kept in apps/goldfishes (public/images/0922/tech-eye-3d/portraits/002.jpg), enlarged
+2x and cut out with that app's head mask (public/images/0908/tech-power-faces/heads/002.png).

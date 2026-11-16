@@ -9,7 +9,7 @@ Model License:
 
 Changes: brain.glb is the STL welded, centred, scaled to metres, with smooth
 quantised normals and sulcus depth baked into COLOR_0 (R fine, G deep) by
-apps/scc/components/mobile/brain/1/build-model.mjs. brain.glb is shared under
+apps/scc/components/mobile/scroll-rot/brain/1/build-model.mjs. brain.glb is shared under
 CC BY-SA 3.0.
 
 Credit: "3D Model of Brain" by Nevit Dilmen, CC BY-SA 3.0, via Wikimedia Commons.

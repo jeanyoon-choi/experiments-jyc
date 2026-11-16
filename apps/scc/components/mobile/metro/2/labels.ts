@@ -1,6 +1,6 @@
 import type { Line } from "./model";
 import type { Mark } from "./scene";
-import { BADGE_R, INK, NAME } from "./style";
+import { BADGE_R, INK } from "./style";
 
 // Names and badges as bitmaps, rasterised at the current device scale
 // (device px per map unit) rounded up to a third of an octave, so a bitmap is only
@@ -39,34 +39,6 @@ type Page = { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; x: numbe
 type Fonts = { family: string };
 
 const font = (weight: number, size: number, family: string) => `${weight} ${size}px ${family}`;
-
-function setTracking(ctx: CanvasRenderingContext2D, em: number, size: number) {
-  if ("letterSpacing" in ctx) (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = `${em * size}px`;
-}
-const tracks = (ctx: CanvasRenderingContext2D) => "letterSpacing" in ctx;
-
-/** Width of text with tracking, in px at the context's current font. */
-function width(ctx: CanvasRenderingContext2D, text: string, em: number, size: number) {
-  if (tracks(ctx)) {
-    setTracking(ctx, em, size);
-    return ctx.measureText(text).width;
-  }
-  return ctx.measureText(text).width + em * size * Math.max(0, [...text].length - 1);
-}
-
-function fill(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, em: number, size: number) {
-  if (tracks(ctx)) {
-    setTracking(ctx, em, size);
-    ctx.fillText(text, x, y);
-    return;
-  }
-  // Safari without canvas letterSpacing: glyph by glyph.
-  let at = x;
-  for (const ch of text) {
-    ctx.fillText(ch, at, y);
-    at += ctx.measureText(ch).width + em * size;
-  }
-}
 
 export class LabelCache {
   private sprites = new Map<string, Sprite>();
@@ -201,7 +173,6 @@ export class LabelCache {
       const longest = Math.max(...rows.map((row) => [...row].length));
       const size = rows.length === 1 ? (longest === 1 ? r * 1.25 : longest === 2 ? r * 0.82 : r * 0.62) : longest > 2 ? r * 0.5 : r * 0.64;
       ctx.font = font(800, size, family);
-      setTracking(ctx, 0, size);
       rows.forEach((row, i) => ctx.fillText(row, 0, (i - (rows.length - 1) / 2) * size * 1.02 + size * 0.06));
     });
     this.sprites.set(key, sprite);
@@ -210,45 +181,18 @@ export class LabelCache {
 
   private paintName(m: Mark, k: number): Sprite {
     const family = this.fonts.family;
-    const label = m.label;
-    const kr = { ...(m.transfer ? NAME.transfer : NAME.plain), size: label.ks, tracking: label.kt };
-    const en = { ...(m.transfer ? NAME.enTransfer : NAME.en), size: label.es, tracking: label.et };
     const ctx0 = this.measure;
-    // Korean lines: text and pen origin relative to the station.
-    ctx0.font = font(kr.weight, kr.size, family);
-    const rows: { text: string; x: number; y: number; w: number }[] = [];
-    if (label.split) {
-      const [at, align] = label.split;
-      const parts = [m.name.slice(0, at), m.name.slice(at)];
-      const widths = parts.map((t) => width(ctx0, t, kr.tracking, kr.size));
-      const block = Math.max(...widths);
-      parts.forEach((t, i) => {
-        const off = align === "left" ? 0 : align === "center" ? (block - widths[i]) / 2 : block - widths[i];
-        // The match reports the first line's origin; centre/right blocks are measured from their widest line.
-        const first = align === "left" ? 0 : align === "center" ? (block - widths[0]) / 2 : block - widths[0];
-        rows.push({ text: t, x: label.kx - first + off, y: label.ky + i * kr.size * NAME.leading, w: widths[i] });
-      });
-    } else {
-      rows.push({ text: m.name, x: label.kx, y: label.ky, w: width(ctx0, m.name, kr.tracking, kr.size) });
-    }
-    ctx0.font = font(en.weight, en.size, family);
-    const wEn = m.en ? width(ctx0, m.en, en.tracking, en.size) : 0;
-    // Bounding box in map units around every pen run (ascent 0.95, descent 0.25 em).
+    // Bounding box in map units around every row (ascent 0.95, descent 0.3 em).
     let x0 = Infinity;
     let y0 = Infinity;
     let x1 = -Infinity;
     let y1 = -Infinity;
-    for (const r of rows) {
-      x0 = Math.min(x0, r.x);
-      x1 = Math.max(x1, r.x + r.w);
-      y0 = Math.min(y0, r.y - kr.size * 0.95);
-      y1 = Math.max(y1, r.y + kr.size * 0.25);
-    }
-    if (m.en) {
-      x0 = Math.min(x0, label.ex);
-      x1 = Math.max(x1, label.ex + wEn);
-      y0 = Math.min(y0, label.ey - en.size * 0.95);
-      y1 = Math.max(y1, label.ey + en.size * 0.3);
+    for (const [text, x, y, size, weight] of m.rows) {
+      ctx0.font = font(weight, size, family);
+      x0 = Math.min(x0, x);
+      x1 = Math.max(x1, x + ctx0.measureText(text).width);
+      y0 = Math.min(y0, y - size * 0.95);
+      y1 = Math.max(y1, y + size * 0.3);
     }
     const pad = 1;
     x0 -= pad;
@@ -259,11 +203,9 @@ export class LabelCache {
       ctx.textAlign = "left";
       ctx.textBaseline = "alphabetic";
       ctx.fillStyle = INK;
-      ctx.font = font(kr.weight, kr.size, family);
-      for (const r of rows) fill(ctx, r.text, r.x, r.y, kr.tracking, kr.size);
-      if (m.en) {
-        ctx.font = font(en.weight, en.size, family);
-        fill(ctx, m.en, label.ex, label.ey, en.tracking, en.size);
+      for (const [text, x, y, size, weight] of m.rows) {
+        ctx.font = font(weight, size, family);
+        ctx.fillText(text, x, y);
       }
     });
   }

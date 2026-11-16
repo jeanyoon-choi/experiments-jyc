@@ -119,3 +119,26 @@ data is one instance of it. All numbers are PDF points measured from the 2026 pa
 - Verification: overlay the PDF render on the sheet with `mix-blend-mode: difference`; matched ink goes black.
   Body text, choices, indents, marks and fractions coincide; remaining differences are the substitute glyph
   shapes and hand-measured diagram labels.
+
+## /1 — mobile reader (2026-11-16)
+
+`/mobile/suneung/1`, code in `components/mobile/suneung/1/`. Baseline: `suneung/math`, kept unchanged as the archive
+of the printed booklet. Changed variable: the reading unit, from a whole two-column sheet to one question per screen
+set as live text that reflows to the screen.
+
+- Questions 1–22 (공통, pages 1–8) and 23–30 (미적분, pages 13–16), transcribed into `booklet.ts`; equations use the
+  small typesetter in `math.tsx` (fractions, roots, Σ/∫/lim with limits, cases, boxed blanks), set in the booklet's
+  Latin Modern with italic variables and upright digits, capitals and function names.
+- Each question is one page of the mobile booklet (`chrome.ts`): the paper's own header, exactly as laid out and
+  scaled as one piece to the measure, renumbered for the question — the cover header on 1 and 23 (미적분), the
+  running header elsewhere, mirrored by parity as on paper (odd: 홀수형 box left, number right; even: number left,
+  box right). Display faces keep their own proportions (HWP 장평 only) and are centred on their printed span,
+  never stretched to it; 수학 영역 + (미적분) centre as one group. The foot carries the printed page-number box at
+  body scale reading `n/30`. The reader scrolls vertically only.
+- The question grammar in em: number, stem at 1.665 em, continuation at 1.03 em; ①–⑤ one per line; hairline
+  boxes, `<보 기>` breaking the top edge, ㄱ/∙/(가) hanging items; figures at body scale. No 5지선다형/단답형 labels.
+  `[n점]` never breaks from the line before it.
+- Scroll snaps question by question; a question taller than the screen (14, 20 at 390 × 639) scrolls within its
+  screen. A display equation wider than the measure shrinks to fit.
+- Known gaps: `≤ ≥` fall back to a non-Latin-Modern face (not in the subset); Σ is smaller than the paper's.
+- `math-2026/solutions.json` holds authored solutions and playback timing for these 30 questions; nothing reads it yet.
