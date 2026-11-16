@@ -149,12 +149,19 @@ set as live text that reflows to the screen.
 `player.ts`). Baseline: `/1`. Changed variable: the booklet explains itself — each question's authored solution
 (`math-2026/solutions.json`) is written out under it at the authored pace, lecture-board style.
 
-- Steps are in the DOM from the start, hidden; the player reveals each at its `atMs` and writes it character by
-  character over its `durationMs`, the unwritten rest kept invisible in place so lines never reflow. One pen colour
-  (#1846d6, 노토 산스 500); multiple-choice answers get a drawn pen loop around the mark, short answers a boxed
-  `답 n`. The line being written is kept in view unless a person scrolled in the last 1.5 s.
-- When a solution ends the answer is marked and the reader turns to the next question; the next clock starts with
-  the turn (the 150 ms answer pause included), so turns add no time. Whatever question the reader settles on, by a
-  turn or a person's scroll, starts its solution from the beginning.
+- Steps are in the DOM from the start, in flow under the question with their text invisible, so nothing reflows
+  while it is written and nothing is laid over the question or shrunk. One pen colour (#1846d6, 노토 산스 500).
+- Pace (`player.ts`): twice the authored pace. Each step still ends on its authored time, but every character's
+  share of it is random — a slow drift of the hand's speed, a speed of its own per word, jitter per stroke, a look
+  at the line before it starts, rests after punctuation and between words, a few stops to think.
+- Writing never leaves the screen. A solution that starts below the fold is turned to before its clock starts; when
+  the line being written would fall below the fold the reader turns down to it (the "second page").
+- Ending: 0.5 s after the last character the reader goes back up — to the answer choice first if it does not show
+  from the top of the question — and marks it with a drawn pen loop (short answers: the boxed `답 n` at the end of
+  the solution); then at the top the marker circles the question number in red (#e8211a, the paper's "correct"
+  mark). Two seconds later the reader turns to the next question, whose clock starts when the turn arrives.
+- Whatever question the reader settles on, by a turn or a person's scroll, starts its solution from the beginning.
+  A person who scrolled in the last 1.5 s keeps the page: follow, return and turn all wait for them.
 - Timing is authored, not measured (solutions.json `timing.source`: 157 s in all, the user's 2분 37초). Measured in
-  the browser: question starts within 0.12 s of `startMs` through question 12.
+  the browser at 480 × 639 over a full run: the caret was inside the screen on every frame it was showing.
+- Known gap: the 고딕 subset lacks super/subscript digits and Greek (Σ π θ β λ), which fall back to a system face.

@@ -49,3 +49,24 @@ faces.jpg
      https://commons.wikimedia.org/wiki/File:Alex_Karp_attends_AI_Summit_(53302457013)_4-5_ratio.jpg
   15 Marc Benioff: CC BY-SA 2.0, Salesforce.
      https://commons.wikimedia.org/wiki/File:Marc_Benioff.jpg
+
+logos.png
+* a 4 x 4 atlas of fifteen company marks on ivory (256 px cells, in ball order; cell 0 is empty),
+  rendered at 256 px from Wikimedia Commons SVGs, downloaded 2026-11-16. Each file is tagged
+  public domain on Commons (below the threshold of originality); every mark is a trademark of
+  its company and is used here to name that company.
+   1 Apple logo black.svg            2 Microsoft logo.svg              3 Google "G" logo.svg
+   4 Amazon icon.svg                 5 Meta Platforms Inc. logo.svg    6 Tesla T symbol.svg
+   7 Broadcom Ltd Logo.svg           8 Nvidia logo.svg                 9 AMD Logo.svg
+  10 Intel logo 2023.svg            11 Micron Technology logo.svg     12 IBM logo.svg
+  13 OpenAI logo 2025 (symbol).svg  14 Palantir Technologies logo.svg 15 Salesforce.com logo.svg
+  each at https://commons.wikimedia.org/wiki/File:<name>
+
+fired.mp3
+* Donald Trump saying "You're fired", 1.3 s, cut from the White House video "President Trump Meets
+  with U.S. Tech Workers and Signs an Executive Order on Hiring American" (2020-08-03), about
+  5 min 34.7 s to 5 min 36.0 s into the copy at https://archive.org/details/BitChute-RkZmyrOIj4
+  (a third-party mirror of the White House upload). Remarks by the President at an official event,
+  recorded by the White House: a work of the US federal government. Mono, 22.05 kHz, 48 kbit/s,
+  loudness-normalised, short fades. The cut was placed from the event's captions and the loudness
+  envelope, not checked by ear.
