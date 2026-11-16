@@ -3,20 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 import { createMouthMemory, createMouthShape, createView, measureMouth, openingRatio, zoomFrame, type Cover } from "./mouth";
+import { LIES, REEL, REEL_SOUND, lieAt } from "./lies";
 import { createMouthRenderer, type MouthRenderer } from "./renderer";
 import { createClipSound, type ClipSound } from "./sound";
 import styles from "./screen.module.css";
 
 type Phase = "idle" | "loading" | "running" | "error";
-
-// Bill Clinton, 26 January 1998: "I did not have sexual relations with that
-// woman, Miss Lewinsky … These allegations are false." See docs/experiments/mobile/politician-lie.md.
-const CLIP = "/video/face-trace/politician-lie/clinton-1998-01-26.mp4";
-// The same recording's sound alone, for Web Audio.
-const CLIP_SOUND = "/video/face-trace/politician-lie/clinton-1998-01-26.m4a";
-// Clip row held at the mouth centre: between his nose and mouth, so a barely
-// open mouth shows his lips and a wide one his whole face.
-const CLIP_FOCUS = 0.6;
 
 // Opening ratio (inner-lip gap over mouth width): the clip fades in over
 // FADE, starts above OPEN and stops once the lips have stayed under CLOSED.
@@ -33,6 +25,7 @@ const FACE_HOLD = 400;
 export default function PoliticianLieOne() {
   const cameraRef = useRef<HTMLVideoElement>(null);
   const clipRef = useRef<HTMLVideoElement>(null);
+  const ownRef = useRef<HTMLAudioElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<MouthRenderer | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -66,6 +59,7 @@ export default function PoliticianLieOne() {
     landmarkerRef.current = null;
     if (cameraRef.current) cameraRef.current.srcObject = null;
     clipRef.current?.pause();
+    ownRef.current?.pause();
     soundRef.current?.stop();
     if (update) setPhase("idle");
   }, []);
@@ -107,16 +101,24 @@ export default function PoliticianLieOne() {
     setMessage("");
 
     // Inside the tap, so the clip may sound later: Web Audio is let out here,
-    // and the video is started and held until a mouth opens. It starts muted,
-    // so nothing of the clip is heard before a mouth shows it.
+    // and the video (which has no sound of its own) is started and held until
+    // a mouth opens. The audio element, the way out when Web Audio is not
+    // live, is started muted too, so nothing is heard before a mouth shows it.
     const clip = clipRef.current;
-    soundRef.current ??= createClipSound(CLIP_SOUND);
+    soundRef.current ??= createClipSound(REEL_SOUND);
     const sound = soundRef.current;
     sound?.unlock();
     if (clip) {
       clip.muted = true;
       clip.play().then(() => {
         if (!speakingRef.current) clip.pause();
+      }).catch(() => {});
+    }
+    const own = ownRef.current;
+    if (own) {
+      own.muted = true;
+      own.play().then(() => {
+        if (!speakingRef.current) own.pause();
       }).catch(() => {});
     }
 
@@ -178,7 +180,8 @@ export default function PoliticianLieOne() {
       let lastFace = 0;
       let lastOpen = 0;
       let playPending = false;
-      let elementRefused = false;
+      let ownPending = false;
+      let ownRefused = false;
       let lastRefusal = "";
       let lastProbe = 0;
 
@@ -234,35 +237,53 @@ export default function PoliticianLieOne() {
         // Either way it is only as loud as the mouth is open, and silent while
         // the clip does not show.
         const level = lastClipTime < 0 ? 0 : Math.max(0, Math.min(1, (ratio - FADE_FROM) / (LOUD - FADE_FROM)));
-        const ownSound = !sound?.live && !elementRefused;
-        const ownAudible = ownSound && level > 0;
-        if (clip.muted === ownAudible) clip.muted = !ownAudible;
-        if (ownAudible) clip.volume = level;
+        const ownSound = !sound?.live && !ownRefused;
         if (speakingRef.current && clip.paused && !playPending) {
           playPending = true;
           clip.play().catch((error: unknown) => {
-            // Its own sound needs a tap; a restart without one plays silently.
             lastRefusal = error instanceof Error ? error.name : String(error);
-            if (error instanceof DOMException && error.name === "NotAllowedError") elementRefused = true;
           }).finally(() => { playPending = false; });
         } else if (!speakingRef.current && !clip.paused && !playPending) {
+          // The mouth has shut: this lie is over, and the next one waits at
+          // its first frame for the mouth to open again. A mouth held open
+          // simply runs on through the reel.
           clip.pause();
+          clip.currentTime = LIES[(lieAt(clip.currentTime) + 1) % LIES.length].start;
         }
-        sound?.follow(speakingRef.current && !clip.paused && !clip.seeking && !ownSound, clip.currentTime, now, level);
+        const running = speakingRef.current && !clip.paused && !clip.seeking;
+        sound?.follow(running && !ownSound, clip.currentTime, now, level);
+        // The audio element stands in while Web Audio is not live, kept on the picture.
+        if (own) {
+          if (running && ownSound) {
+            own.muted = level <= 0;
+            own.volume = level;
+            if (Math.abs(own.currentTime - clip.currentTime) > 0.3) own.currentTime = clip.currentTime;
+            if (own.paused && !ownPending) {
+              ownPending = true;
+              own.play().catch((error: unknown) => {
+                // Sound needs a tap; without one this way stays silent.
+                lastRefusal = error instanceof Error ? error.name : String(error);
+                if (error instanceof DOMException && error.name === "NotAllowedError") ownRefused = true;
+              }).finally(() => { ownPending = false; });
+            }
+          } else if (!own.paused && !ownPending) {
+            own.pause();
+          }
+        }
         if (probeRef.current && now - lastProbe > 250) {
           lastProbe = now;
-          probeRef.current.textContent = `${sound ? sound.describe() : "no web audio"}\nvideo ${clip.paused ? "paused" : "playing"} ${clip.currentTime.toFixed(1)} · ${clip.muted ? "muted" : "own sound"}${elementRefused ? " · refused" : ""}${lastRefusal ? ` · ${lastRefusal}` : ""} · mouth ${ratio.toFixed(2)} · level ${level.toFixed(2)}`;
+          probeRef.current.textContent = `${sound ? sound.describe() : "no web audio"}\nvideo ${clip.paused ? "paused" : "playing"} ${clip.currentTime.toFixed(1)} · audio element ${!own || own.paused ? "off" : own.muted ? "muted" : "on"}${ownRefused ? " · refused" : ""}${lastRefusal ? ` · ${lastRefusal}` : ""} · mouth ${ratio.toFixed(2)} · level ${level.toFixed(2)}`;
         }
 
         if (renderer && cover) {
-          if (clip.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && clip.currentTime !== lastClipTime) {
+          if (clip.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && !clip.seeking && clip.currentTime !== lastClipTime) {
             lastClipTime = clip.currentTime;
             renderer.setClip(clip);
           }
           const fade = Math.max(0, Math.min(1, (ratio - FADE_FROM) / (FADE_TO - FADE_FROM)));
           const open = lastClipTime < 0 ? 0 : fade * fade * (3 - 2 * fade);
           const clipAspect = clip.videoWidth > 0 ? clip.videoWidth / clip.videoHeight : 4 / 3;
-          renderer.draw(cover, shape, open, clipAspect, CLIP_FOCUS, pixelRatio);
+          renderer.draw(cover, shape, open, clipAspect, LIES[lieAt(lastClipTime)].focus, pixelRatio);
         }
         frameRef.current = requestAnimationFrame(tick);
       };
@@ -299,8 +320,9 @@ export default function PoliticianLieOne() {
   return (
     <main className={styles.stage} onClick={() => soundRef.current?.unlock()}>
       <video ref={cameraRef} className={styles.source} playsInline muted aria-hidden="true" />
-      <video ref={clipRef} className={styles.source} src={CLIP} playsInline loop preload="auto" aria-hidden="true" />
-      <canvas ref={canvasRef} className={styles.image} aria-label="거울처럼 비친, 크게 확대된 입. 입을 벌리면 입술 사이로 1998년 빌 클린턴의 부인 발언 영상이 보이고 들립니다" role="img" />
+      <video ref={clipRef} className={styles.source} src={REEL} playsInline muted loop preload="auto" aria-hidden="true" />
+      <audio ref={ownRef} className={styles.source} src={REEL_SOUND} preload="none" aria-hidden="true" />
+      <canvas ref={canvasRef} className={styles.image} aria-label="거울처럼 비친, 크게 확대된 입. 입을 벌리면 입술 사이로 정치인과 유명인의 거짓말 영상이 하나씩 보이고 들립니다" role="img" />
       {(phase === "idle" || phase === "error") && (
         <div className={styles.prompt}>
           {message && <p role="alert">{message}</p>}

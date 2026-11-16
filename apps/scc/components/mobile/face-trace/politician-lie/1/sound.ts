@@ -3,9 +3,9 @@
 // live the video is muted and only gives picture; whenever it is not, the
 // caller lets the video's own sound through instead.
 
-// The recording is quiet (peaks at -6 dB); this brings its peaks near full scale
-// at the widest mouth.
-const GAIN = 1.8;
+// The reel is already levelled (peaks just under full scale): full gain at the
+// widest mouth.
+const GAIN = 1;
 // How quickly loudness follows the mouth, seconds.
 const FOLLOW = 0.04;
 const RAMP = 0.012;
