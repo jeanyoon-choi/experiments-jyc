@@ -8,7 +8,7 @@ import { FISH_DEFAULTS, type FishPaletteId, type FishParameters } from "./fish/g
 import { LIFE_DEFAULTS, type LifeParameters } from "./fish/lifecycle";
 import { ATTENDED_QUALITY, DEFAULT_DAMPING, DEFAULT_PARAMETERS, FLOOR_RANGE } from "./web/model";
 import { REACTION_DEFAULTS } from "./reactions/reactions"; // 반응
-import { OBJECT_DEFAULTS } from "./objects/kinds/parameters"; // 오브제
+import { GROUPS, groupBit, OBJECT_DEFAULTS } from "./objects/kinds/parameters"; // 오브제
 import { LIQUID_DEFAULTS, MORPH_STYLES } from "./objects/morph/liquid"; // 셋업
 
 /** Share of the field's area that all pages together cover; area = displayed rank × this. 0.4 (user, 2026-10-12; /2 keeps 0.3). */
@@ -283,7 +283,8 @@ const SETUP_B = {
   rates: { growth: PRESET_3.rates.growth, burstAt: PRESET_3.rates.burstAt },
   fish: { speed: PRESET_3.fish.speed },
   feedback: { influence: PRESET_3.feedback.influence, ceiling: PRESET_3.feedback.ceiling },
-  liquid: { style: 0, duration: MORPH_STYLES[0].duration as number, soften: LIQUID_DEFAULTS.soften, wobble: LIQUID_DEFAULTS.wobble, ripple: LIQUID_DEFAULTS.ripple, overshoot: LIQUID_DEFAULTS.overshoot, swell: LIQUID_DEFAULTS.swell },
+  // The liquid, and which groups the pages are and how the objects are turned (오브제 → 페이지, 각도): A has its own (user, 2026-11-14).
+  liquid: { style: 0, duration: MORPH_STYLES[0].duration as number, soften: LIQUID_DEFAULTS.soften, wobble: LIQUID_DEFAULTS.wobble, ripple: LIQUID_DEFAULTS.ripple, overshoot: LIQUID_DEFAULTS.overshoot, swell: LIQUID_DEFAULTS.swell, pages: OBJECT_DEFAULTS.pages as number, facing: OBJECT_DEFAULTS.facing as number },
 };
 export type Setup = { id: string; label: string } & typeof SETUP_B;
 export const SETUPS: readonly Setup[] = [
@@ -293,7 +294,8 @@ export const SETUPS: readonly Setup[] = [
     rates: { growth: DEFAULT_PARAMETERS.growth, burstAt: DEFAULT_PARAMETERS.burstAt },
     fish: { speed: 2.2 },
     feedback: { influence: FEEDBACK_DEFAULTS.influence, ceiling: FEEDBACK_DEFAULTS.ceiling },
-    liquid: { style: 2, duration: MORPH_STYLES[2].duration, soften: 3.2, wobble: 0.05, ripple: 0.35, overshoot: 0.18, swell: 0.85 },
+    // The user's own setup under A (exported 2026-11-14): the pages 테크 하이프 alone, the objects turned the way they move.
+    liquid: { style: 2, duration: MORPH_STYLES[2].duration, soften: 3.2, wobble: 0.05, ripple: 0.35, overshoot: 0.18, swell: 0.85, pages: groupBit(GROUPS[0]!), facing: 2 },
   },
   { id: "b", label: "B", ...SETUP_B },
   { id: "c", label: "C", ...SETUP_B, liquid: { ...SETUP_B.liquid, style: 1, duration: MORPH_STYLES[1].duration } },

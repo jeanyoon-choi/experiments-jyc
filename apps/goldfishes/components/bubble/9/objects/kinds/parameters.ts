@@ -84,8 +84,8 @@ export const OBJECT_DEFAULTS: ObjectParameters = {
   // bubble/8 opens with every group on, mixed (user, 2026-11-03); bubble/7 opened on 테크 하이프. bubble/9 opened on
   // bubble/8's groups only, then on 모두 선택 (user, 2026-11-07): the catalogue's groups too.
   pages: GROUPS.reduce((mask, group) => mask | groupBit(group), 0),
-  // 왔다갔다 하는 것: $ 만 (user, 2026-11-13; SNS — hearts and likes — from 2026-10-25).
-  portions: PORTION_SHOWS.indexOf("dollar"),
+  // 왔다갔다 하는 것: 하트만 (user, 2026-11-14; $ 만 on 2026-11-13; SNS — hearts and likes — from 2026-10-25).
+  portions: PORTION_SHOWS.indexOf("heart"),
   // 1.05 (user, 2026-11-13; 1.21 from the user's bubble/8 tuning, 1.2 on 2026-11-04): the goldfish keep out of the
   // drawn outline, not the bubble's disc (ObjectPass.pageExtent). The same under every setup (settings.ts SETUPS).
   size: 1.05,
