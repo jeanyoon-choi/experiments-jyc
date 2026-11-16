@@ -4,7 +4,7 @@ import { BALL_R, GONE, ON_TABLE, RAIL, RAIL_TOP, TABLE_W } from "../model/physic
 import type { Table } from "../model/physics";
 import { buildTable } from "./table";
 import type { TableMaterials } from "./table";
-import { ballSkin, clothTooth, contactTexture, dollarPrint, loadFaces } from "./textures";
+import { ballSkin, clothTooth, contactTexture, dollarPrint, loadAtlas } from "./textures";
 
 /** Drawn pixels are capped, so a dense screen does not cost more than a mobile GPU can fill. */
 const MAX_DPR = 3;
@@ -151,13 +151,17 @@ export function createStage(canvas: HTMLCanvasElement, onReady: () => void) {
     const dark = new THREE.Mesh(contactGeometry, contactMaterial);
     dark.renderOrder = 1;
     scene.add(mesh, dark);
-    return { mesh, material, dark, paintFace: skin.paintFace };
+    return { mesh, material, dark, paint: skin.paint };
   });
-  loadFaces(`${ASSETS}faces.jpg`, (atlas) => {
+  const pictures: { faces: ImageData | null; marks: ImageData | null } = { faces: null, marks: null };
+  const arrived = (which: "faces" | "marks") => (atlas: ImageData) => {
     if (disposed) return;
-    for (const ball of balls) ball.paintFace(atlas);
+    pictures[which] = atlas;
+    for (const ball of balls) ball.paint(pictures.faces, pictures.marks);
     onReady();
-  });
+  };
+  loadAtlas(`${ASSETS}faces.jpg`, arrived("faces"));
+  loadAtlas(`${ASSETS}logos.png`, arrived("marks"));
 
   const cue = buildCue();
   cue.rotation.order = "ZYX";

@@ -2,6 +2,7 @@ import { advance, createTable, cueBall, isMoving, resize, strike, trace, ON_TABL
 import type { Table } from "../model/physics";
 import { createStage } from "./stage";
 import type { CuePose } from "./stage";
+import { createVoice } from "./voice";
 
 /** A pull shorter than this (CSS px) leaves the cue where it lies. */
 const MIN_PULL = 10;
@@ -19,6 +20,9 @@ const AWAY_SECONDS = 0.4;
 /** Runs the game on a canvas that fills `page`; returns its teardown. */
 export function mount(page: HTMLElement, canvas: HTMLCanvasElement) {
   let table: Table | null = null;
+  // Every ball that goes down a pocket is told so.
+  const voice = createVoice("/3d/pool/fired.mp3");
+  let heard = 0;
   let frame = 0;
   let last = 0;
   let alive = true;
@@ -89,6 +93,7 @@ export function mount(page: HTMLElement, canvas: HTMLCanvasElement) {
     }
     const wasMoving = isMoving(table);
     const moving = wasMoving && advance(table, seconds);
+    for (let n = 0; heard < table.drops; n += 1, heard += 1) voice.say(n * 0.18);
     if (wasMoving && !moving) address();
     // Out of the way while anything rolls, back to the ball once it has all stopped.
     const target = moving && !stroke ? 1 : moving ? away : 0;
@@ -119,6 +124,7 @@ export function mount(page: HTMLElement, canvas: HTMLCanvasElement) {
 
   const ready = () => table !== null && !stroke && away === 0 && !isMoving(table) && cueBall(table).state === ON_TABLE;
   const down = (event: PointerEvent) => {
+    voice.unlock();
     if (pull || !ready()) return;
     pull = { id: event.pointerId, x: event.clientX, y: event.clientY, size: 0 };
   };
@@ -171,5 +177,6 @@ export function mount(page: HTMLElement, canvas: HTMLCanvasElement) {
     window.removeEventListener("pointercancel", cancel);
     document.removeEventListener("visibilitychange", visible);
     stage.dispose();
+    voice.close();
   };
 }

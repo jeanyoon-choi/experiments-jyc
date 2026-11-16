@@ -88,6 +88,8 @@ export type Table = {
   pockets: Pocket[];
   cushions: Cushion[];
   segments: Segment[];
+  /** How many balls have gone down a pocket since the table was made. */
+  drops: number;
 };
 
 /** The cushion's back corners at each end, where its facings meet the rail. */
@@ -163,7 +165,7 @@ export function rack(table: Table) {
 
 export function createTable(length: number): Table {
   const balls = Array.from({ length: 16 }, (_, id) => ({ id }) as Ball);
-  const table: Table = { length, balls, pockets: [], cushions: [], segments: [] };
+  const table: Table = { length, balls, pockets: [], cushions: [], segments: [], drops: 0 };
   lay(table, length);
   rack(table);
   return table;
@@ -309,7 +311,8 @@ function fall(table: Table, ball: Ball, dt: number) {
   }
 }
 
-function drop(ball: Ball, pocket: number) {
+function drop(table: Table, ball: Ball, pocket: number) {
+  table.drops += 1;
   ball.state = FALLING;
   ball.pocket = pocket;
   ball.vz = 0;
@@ -380,7 +383,7 @@ function tick(table: Table, dt: number) {
     for (let p = 0; p < pockets.length; p += 1) {
       const pocket = pockets[p];
       if (Math.hypot(ball.x - pocket.x, ball.y - pocket.y) < pocket.radius) {
-        drop(ball, p);
+        drop(table, ball, p);
         dropped = true;
         break;
       }
@@ -423,7 +426,7 @@ function tick(table: Table, dt: number) {
       }
       ball.x = pockets[nearest].x;
       ball.y = pockets[nearest].y;
-      drop(ball, nearest);
+      drop(table, ball, nearest);
     }
   }
 }

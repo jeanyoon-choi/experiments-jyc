@@ -3,19 +3,19 @@ import * as THREE from "three";
 const IVORY = "#f2ede1";
 const SHEET_W = 512;
 const SHEET_H = 256;
-/** Faces in the atlas: 4 × 4 crops of this size, in ball order (0 the cue ball). */
+/** Faces and marks each come as a 4 × 4 atlas of cells this size, in ball order (0 the cue ball). */
 const FACE = 256;
 
-// The whole ball is the face: no colour, stripe, rim or bare patch. The portrait is wrapped over
-// the near half of the sphere by angle from its middle, so its features keep their proportions
-// right round to the side and nothing is smeared; the far half carries the same face mirrored,
-// and the two meet all the way round at the portrait's edge (hair above, neck below). This maps
-// each texel of the sheet to the face pixel it shows.
-let wrapped: Int32Array | null = null;
+// Each ball is two halves and nothing else: the chief executive's face on one, the company's
+// mark on the other (the cue ball's other half is bare). Either picture is wrapped over its half
+// of the sphere by angle from its middle, so it keeps its proportions round to the side. This
+// maps each texel of the sheet to the pixel of the 256 px cell it shows, and says which half.
+let wrapped: { cell: Int32Array; back: Uint8Array } | null = null;
 function wrappedMap() {
   if (wrapped) return wrapped;
-  wrapped = new Int32Array(SHEET_W * SHEET_H);
-  // Inside the inscribed circle of the crop, shy of its edge.
+  const cell = new Int32Array(SHEET_W * SHEET_H);
+  const back = new Uint8Array(SHEET_W * SHEET_H);
+  // Inside the inscribed circle of the cell, shy of its edge.
   const fill = 0.985;
   for (let y = 0; y < SHEET_H; y += 1) {
     const lat = (0.5 - (y + 0.5) / SHEET_H) * Math.PI;
@@ -23,20 +23,24 @@ function wrappedMap() {
       // Longitude from the middle of the face, which sits at u = 1/4.
       const lon = ((x + 0.5) / SHEET_W - 0.25) * Math.PI * 2;
       const toward = Math.cos(lat) * Math.cos(lon);
+      const behind = toward < 0;
       const angle = Math.acos(Math.min(1, Math.abs(toward)));
-      const east = Math.cos(lat) * Math.sin(lon);
+      // Seen from behind, east is the other way: the mark must not come out mirrored.
+      const east = Math.cos(lat) * Math.sin(lon) * (behind ? -1 : 1);
       const north = Math.sin(lat);
       const flat = Math.hypot(east, north) || 1;
       const r = (angle / (Math.PI / 2)) * fill;
       const fx = Math.min(FACE - 1, Math.floor(((r * east) / flat + 1) * 0.5 * FACE));
       const fy = Math.min(FACE - 1, Math.floor((1 - (r * north) / flat) * 0.5 * FACE));
-      wrapped[y * SHEET_W + x] = fy * FACE + fx;
+      cell[y * SHEET_W + x] = fy * FACE + fx;
+      back[y * SHEET_W + x] = behind ? 1 : 0;
     }
   }
+  wrapped = { cell, back };
   return wrapped;
 }
 
-/** Equirectangular skin of one ball: plain ivory until `paintFace` wraps its face round it. */
+/** Equirectangular skin of one ball: plain ivory until `paint` is given the pictures. */
 export function ballSkin(id: number, anisotropy: number) {
   const canvas = document.createElement("canvas");
   canvas.width = SHEET_W;
@@ -49,27 +53,36 @@ export function ballSkin(id: number, anisotropy: number) {
   texture.wrapS = THREE.RepeatWrapping;
   texture.anisotropy = anisotropy;
 
-  const paintFace = (atlas: ImageData) => {
+  /** Faces go on the near half, marks on the far half; either atlas may still be on its way. */
+  const paint = (faces: ImageData | null, marks: ImageData | null) => {
     const map = wrappedMap();
     const sheet = g.createImageData(SHEET_W, SHEET_H);
     const ox = (id % 4) * FACE;
     const oy = Math.floor(id / 4) * FACE;
-    for (let i = 0; i < map.length; i += 1) {
-      const f = map[i];
+    for (let i = 0; i < map.cell.length; i += 1) {
+      const atlas = map.back[i] ? marks : faces;
+      const to = i * 4;
+      sheet.data[to + 3] = 255;
+      if (!atlas) {
+        sheet.data[to] = 242;
+        sheet.data[to + 1] = 237;
+        sheet.data[to + 2] = 225;
+        continue;
+      }
+      const f = map.cell[i];
       const from = ((oy + Math.floor(f / FACE)) * atlas.width + ox + (f % FACE)) * 4;
-      sheet.data[i * 4] = atlas.data[from];
-      sheet.data[i * 4 + 1] = atlas.data[from + 1];
-      sheet.data[i * 4 + 2] = atlas.data[from + 2];
-      sheet.data[i * 4 + 3] = 255;
+      sheet.data[to] = atlas.data[from];
+      sheet.data[to + 1] = atlas.data[from + 1];
+      sheet.data[to + 2] = atlas.data[from + 2];
     }
     g.putImageData(sheet, 0, 0);
     texture.needsUpdate = true;
   };
-  return { texture, paintFace };
+  return { texture, paint };
 }
 
-/** Loads the face atlas and hands back its pixels. */
-export function loadFaces(url: string, done: (atlas: ImageData) => void) {
+/** Loads a 4 × 4 atlas of 256 px cells (in ball order) and hands back its pixels. */
+export function loadAtlas(url: string, done: (atlas: ImageData) => void) {
   const image = new Image();
   image.onload = () => {
     const canvas = document.createElement("canvas");
