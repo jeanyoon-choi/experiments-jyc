@@ -73,6 +73,7 @@ Seen the same day, in the captures described under Evidence:
 - A single wide push for the nose tip (unbounded) and the jaw dragged the upper lip, an eye and the mouth with it. Strokes of short pushes, and a nose tip that closes on the bridge, keep them local.
 - A forehead magnify squeezed the brows into a frown and narrowed the eyes; the forehead now rises from the hairline instead.
 - The first version was the warped photo full-screen with nothing else. The user rejected it outright: it read as a face-distortion toy, not surgery. The ad board, the enlarged face, the instruments and the bill are the answer to that.
+- Room trial (2026-11-16, removed the same day by request): the person was cut out with MediaPipe Selfie Segmenter, through the same warp, and set in front of a CC0 operating-room photo. It worked in captures, but the user judged it worse than the plain photo; the model, the photo and the code were deleted.
 - The first skin treatment made a white spot like a torch on the cheek in three seconds; its reach was widened and its whitening and gloss cut to about a quarter.
 
 ## Evidence

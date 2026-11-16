@@ -1,66 +1,100 @@
 import * as THREE from "three";
 
 const IVORY = "#f2ede1";
-// Solids 1–7 and the 8; stripes 9–15 repeat 1–7.
-const COLOURS = ["", "#f3b800", "#17378f", "#cc1d16", "#47297c", "#ee6712", "#0b6a40", "#7a1b1e", "#0b0b0c"];
 const SHEET_W = 512;
 const SHEET_H = 256;
+/** Faces in the atlas: 4 × 4 crops of this size, in ball order (0 the cue ball). */
+const FACE = 256;
 
-/** Equirectangular skin of one ball: 0 is the cue ball, 1–7 solids, 8, 9–15 stripes. */
-export function ballTexture(id: number, anisotropy: number) {
+// The whole ball is the face: no colour, stripe, rim or bare patch. The portrait is wrapped over
+// the near half of the sphere by angle from its middle, so its features keep their proportions
+// right round to the side and nothing is smeared; the far half carries the same face mirrored,
+// and the two meet all the way round at the portrait's edge (hair above, neck below). This maps
+// each texel of the sheet to the face pixel it shows.
+let wrapped: Int32Array | null = null;
+function wrappedMap() {
+  if (wrapped) return wrapped;
+  wrapped = new Int32Array(SHEET_W * SHEET_H);
+  // Inside the inscribed circle of the crop, shy of its edge.
+  const fill = 0.985;
+  for (let y = 0; y < SHEET_H; y += 1) {
+    const lat = (0.5 - (y + 0.5) / SHEET_H) * Math.PI;
+    for (let x = 0; x < SHEET_W; x += 1) {
+      // Longitude from the middle of the face, which sits at u = 1/4.
+      const lon = ((x + 0.5) / SHEET_W - 0.25) * Math.PI * 2;
+      const toward = Math.cos(lat) * Math.cos(lon);
+      const angle = Math.acos(Math.min(1, Math.abs(toward)));
+      const east = Math.cos(lat) * Math.sin(lon);
+      const north = Math.sin(lat);
+      const flat = Math.hypot(east, north) || 1;
+      const r = (angle / (Math.PI / 2)) * fill;
+      const fx = Math.min(FACE - 1, Math.floor(((r * east) / flat + 1) * 0.5 * FACE));
+      const fy = Math.min(FACE - 1, Math.floor((1 - (r * north) / flat) * 0.5 * FACE));
+      wrapped[y * SHEET_W + x] = fy * FACE + fx;
+    }
+  }
+  return wrapped;
+}
+
+/** Equirectangular skin of one ball: plain ivory until `paintFace` wraps its face round it. */
+export function ballSkin(id: number, anisotropy: number) {
   const canvas = document.createElement("canvas");
   canvas.width = SHEET_W;
   canvas.height = SHEET_H;
   const g = canvas.getContext("2d")!;
-  const mid = SHEET_H / 2;
   g.fillStyle = IVORY;
   g.fillRect(0, 0, SHEET_W, SHEET_H);
-  if (id === 0) {
-    // Six red spots, one on each axis, as on a tournament cue ball: they show the roll.
-    g.fillStyle = "#c2201c";
-    for (let n = 0; n <= 4; n += 1) {
-      g.beginPath();
-      g.arc((n * SHEET_W) / 4, mid, 8, 0, Math.PI * 2);
-      g.fill();
-    }
-    g.fillRect(0, 0, SHEET_W, 8);
-    g.fillRect(0, SHEET_H - 8, SHEET_W, 8);
-  } else {
-    const stripe = id > 8;
-    g.fillStyle = COLOURS[stripe ? id - 8 : id];
-    // A stripe is 1¼ in wide on a 2¼ in ball: 34° either side of the equator.
-    if (stripe) g.fillRect(0, mid - 48, SHEET_W, 96);
-    else g.fillRect(0, 0, SHEET_W, SHEET_H);
-    const label = String(id);
-    for (const x of [SHEET_W / 4, (SHEET_W * 3) / 4]) {
-      g.fillStyle = IVORY;
-      g.beginPath();
-      g.arc(x, mid, 23, 0, Math.PI * 2);
-      g.fill();
-      g.fillStyle = "#111";
-      g.font = `700 ${label.length > 1 ? 25 : 30}px "Helvetica Neue", Helvetica, Arial, sans-serif`;
-      g.textAlign = "center";
-      g.textBaseline = "middle";
-      g.fillText(label, x, mid + 1.5);
-      if (id === 6 || id === 9) g.fillRect(x - 7, mid + 13, 14, 2.4);
-    }
-  }
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.wrapS = THREE.RepeatWrapping;
   texture.anisotropy = anisotropy;
-  return texture;
+
+  const paintFace = (atlas: ImageData) => {
+    const map = wrappedMap();
+    const sheet = g.createImageData(SHEET_W, SHEET_H);
+    const ox = (id % 4) * FACE;
+    const oy = Math.floor(id / 4) * FACE;
+    for (let i = 0; i < map.length; i += 1) {
+      const f = map[i];
+      const from = ((oy + Math.floor(f / FACE)) * atlas.width + ox + (f % FACE)) * 4;
+      sheet.data[i * 4] = atlas.data[from];
+      sheet.data[i * 4 + 1] = atlas.data[from + 1];
+      sheet.data[i * 4 + 2] = atlas.data[from + 2];
+      sheet.data[i * 4 + 3] = 255;
+    }
+    g.putImageData(sheet, 0, 0);
+    texture.needsUpdate = true;
+  };
+  return { texture, paintFace };
 }
 
-/** Worsted cloth has no pattern, only tooth: fibre-scale noise, used as both tint and relief. */
-export function clothTexture() {
+/** Loads the face atlas and hands back its pixels. */
+export function loadFaces(url: string, done: (atlas: ImageData) => void) {
+  const image = new Image();
+  image.onload = () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const g = canvas.getContext("2d", { willReadFrequently: true })!;
+    g.drawImage(image, 0, 0);
+    done(g.getImageData(0, 0, canvas.width, canvas.height));
+  };
+  image.src = url;
+}
+
+function noise(seed: number) {
+  let state = seed;
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+}
+
+/** Worsted cloth has no pattern of its own, only tooth: fibre-scale noise, used as relief. */
+export function clothTooth() {
   const size = 256;
   const data = new Uint8Array(size * size * 4);
-  let seed = 20261116;
-  const random = () => {
-    seed = (seed * 1664525 + 1013904223) >>> 0;
-    return seed / 4294967296;
-  };
+  const random = noise(20261116);
   for (let i = 0; i < size * size; i += 1) {
     const v = 208 + Math.floor(random() * 48);
     data[i * 4] = v;
@@ -77,6 +111,44 @@ export function clothTexture() {
   // One texel is about 1 mm of cloth.
   texture.repeat.set(1 / 0.26, 1 / 0.26);
   texture.needsUpdate = true;
+  return texture;
+}
+
+/** How much cloth one tile of the dollar print covers (m), two signs to a tile, set like bricks. */
+const PRINT_TILE = 0.17;
+
+/** The cloth's print: dollar signs in banknote ink, edge to edge, with the fibre's tooth over it. */
+export function dollarPrint(anisotropy: number) {
+  const size = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const g = canvas.getContext("2d")!;
+  g.fillStyle = "#fff";
+  g.fillRect(0, 0, size, size);
+  g.fillStyle = "#6f8f7c";
+  g.font = `700 ${size * 0.47}px Georgia, "Times New Roman", Times, serif`;
+  g.textAlign = "center";
+  g.textBaseline = "middle";
+  // Each sign is drawn again one tile away wherever it could cross an edge, so the tile repeats cleanly.
+  for (const [cx, cy] of [[0.25, 0.27], [0.75, 0.77]]) {
+    for (const dx of [-1, 0, 1]) for (const dy of [-1, 0, 1]) g.fillText("$", (cx + dx) * size, (cy + dy) * size);
+  }
+  const image = g.getImageData(0, 0, size, size);
+  const random = noise(51);
+  for (let i = 0; i < image.data.length; i += 4) {
+    const tooth = 0.9 + random() * 0.1;
+    image.data[i] *= tooth;
+    image.data[i + 1] *= tooth;
+    image.data[i + 2] *= tooth;
+  }
+  g.putImageData(image, 0, 0);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(1 / PRINT_TILE, 1 / PRINT_TILE);
+  texture.anisotropy = anisotropy;
   return texture;
 }
 

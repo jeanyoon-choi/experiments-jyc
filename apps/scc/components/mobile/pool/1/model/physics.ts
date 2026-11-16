@@ -5,14 +5,14 @@
 // edge, so the playing length follows the screen's proportions.
 
 /** How much larger than a regulation 57.15 mm ball. */
-const BALL_SCALE = 1.3;
+const BALL_SCALE = 1.55;
 export const BALL_R = 0.028575 * BALL_SCALE;
 /** Cushion nose to cushion nose across the short side. */
 export const PLAY_W = 0.813;
 /** Cushion nose to the table's outer edge. */
-export const RAIL = 0.115;
+export const RAIL = 0.128;
 /** Cushion nose back to the rail it is glued to. */
-export const CUSHION_DEPTH = 0.056;
+export const CUSHION_DEPTH = 0.06;
 export const RAIL_TOP = 0.044 * BALL_SCALE;
 export const TABLE_W = PLAY_W + RAIL * 2;
 export const POCKET_DEPTH = 0.16 * BALL_SCALE;
@@ -24,13 +24,18 @@ const CORNER_OFFSET = 0.015 * BALL_SCALE;
 const CORNER_HOLE = 0.058 * BALL_SCALE;
 const SIDE_JAW = 0.0635 * BALL_SCALE;
 const SIDE_FACING = Math.tan((14 * Math.PI) / 180);
-const SIDE_OFFSET = 0.047 * BALL_SCALE;
+const SIDE_OFFSET = 0.04 * BALL_SCALE;
 const SIDE_HOLE = 0.056 * BALL_SCALE;
 
 const G = 9.81;
 const MU_SLIDE = 0.2;
 const MU_ROLL = 0.022;
-const STEP = 1 / 480;
+/** No ball travels further than this in one step, so none can pass through another or a cushion. */
+const MAX_TRAVEL = BALL_R * 0.2;
+const MIN_STEPS = 2;
+const MAX_STEPS = 24;
+/** Passes over the ball contacts in one step: a struck rack is many contacts at once. */
+const CONTACT_PASSES = 4;
 const BALL_BOUNCE = 0.95;
 const NOSE_BOUNCE = 0.8;
 const FACING_BOUNCE = 0.6;
@@ -83,7 +88,6 @@ export type Table = {
   pockets: Pocket[];
   cushions: Cushion[];
   segments: Segment[];
-  carry: number;
 };
 
 /** The cushion's back corners at each end, where its facings meet the rail. */
@@ -132,49 +136,34 @@ function lay(table: Table, length: number) {
 }
 
 // Standard eight-ball rack: the 8 in the middle of the third row, a solid and a stripe at the back corners.
+const LOOSE = 0.0008;
 const RACK = [1, 9, 2, 10, 8, 3, 4, 14, 7, 11, 12, 6, 15, 13, 5];
 
 function place(ball: Ball, x: number, y: number) {
-  // A different face up for every ball, the same on every rack.
-  const a = ball.id * 2.399963;
-  const b = ball.id * 1.324718 + 0.6;
-  const half = b / 2;
-  Object.assign(ball, {
-    state: ON_TABLE,
-    pocket: -1,
-    x,
-    y,
-    z: 0,
-    vx: 0,
-    vy: 0,
-    vz: 0,
-    wx: 0,
-    wy: 0,
-    qx: Math.sin(half) * Math.cos(a),
-    qy: Math.sin(half) * Math.sin(a),
-    qz: 0,
-    qw: Math.cos(half),
-  });
+  // Every ball is set down face up, the right way round for the player.
+  Object.assign(ball, { state: ON_TABLE, pocket: -1, x, y, z: 0, vx: 0, vy: 0, vz: 0, wx: 0, wy: 0, qx: 0, qy: 0, qz: 0, qw: 1 });
 }
 
 export function rack(table: Table) {
-  const gap = BALL_R * 2 + 0.0003;
+  const gap = BALL_R * 2 + 0.0006;
   const rowStep = gap * Math.sin(Math.PI / 3);
   const foot = table.length / 4;
   place(table.balls[0], 0, -table.length / 4);
   let n = 0;
   for (let row = 0; row < 5; row += 1) {
     for (let i = 0; i <= row; i += 1) {
-      place(table.balls[RACK[n]], (i - row / 2) * gap, foot + row * rowStep);
+      // No rack is perfect: each ball sits a fraction of a millimetre off its place.
+      const off = ((n * 7919) % 13) / 13 - 0.5;
+      const off2 = ((n * 104729) % 11) / 11 - 0.5;
+      place(table.balls[RACK[n]], (i - row / 2) * gap + off * LOOSE, foot + row * rowStep + off2 * LOOSE);
       n += 1;
     }
   }
-  table.carry = 0;
 }
 
 export function createTable(length: number): Table {
   const balls = Array.from({ length: 16 }, (_, id) => ({ id }) as Ball);
-  const table: Table = { length, balls, pockets: [], cushions: [], segments: [], carry: 0 };
+  const table: Table = { length, balls, pockets: [], cushions: [], segments: [] };
   lay(table, length);
   rack(table);
   return table;
@@ -326,6 +315,8 @@ function drop(ball: Ball, pocket: number) {
   ball.vz = 0;
 }
 
+const live: Ball[] = [];
+
 function tick(table: Table, dt: number) {
   const { balls, pockets, segments, length } = table;
   const r = BALL_R;
@@ -340,34 +331,44 @@ function tick(table: Table, dt: number) {
     turn(ball, dt);
   }
 
-  for (let i = 0; i < balls.length; i += 1) {
-    const a = balls[i];
-    if (a.state !== ON_TABLE) continue;
-    for (let j = i + 1; j < balls.length; j += 1) {
-      const b = balls[j];
-      if (b.state !== ON_TABLE) continue;
-      const nx = b.x - a.x;
-      const ny = b.y - a.y;
-      if (nx > r * 2 || nx < -r * 2 || ny > r * 2 || ny < -r * 2) continue;
-      const distance = Math.hypot(nx, ny);
-      if (distance >= r * 2 || distance === 0) continue;
-      const ux = nx / distance;
-      const uy = ny / distance;
-      const overlap = (r * 2 - distance) / 2;
-      a.x -= ux * overlap;
-      a.y -= uy * overlap;
-      b.x += ux * overlap;
-      b.y += uy * overlap;
-      const closing = (a.vx - b.vx) * ux + (a.vy - b.vy) * uy;
-      if (closing <= 0) continue;
-      // Equal masses, no friction between balls: only the velocity along the line of centres is
-      // exchanged, and each ball keeps its spin (so a rolling cue ball follows, a sliding one stops).
-      const impulse = ((1 + BALL_BOUNCE) / 2) * closing;
-      a.vx -= ux * impulse;
-      a.vy -= uy * impulse;
-      b.vx += ux * impulse;
-      b.vy += uy * impulse;
+  // Only balls on the cloth can touch, and only pairs with one of them moving can have closed.
+  let count = 0;
+  for (const ball of balls) if (ball.state === ON_TABLE) live[count++] = ball;
+  const reach = r * 2;
+  for (let pass = 0; pass < CONTACT_PASSES; pass += 1) {
+    let touched = false;
+    for (let i = 0; i < count; i += 1) {
+      const a = live[i];
+      const aStill = a.vx === 0 && a.vy === 0;
+      for (let j = i + 1; j < count; j += 1) {
+        const b = live[j];
+        if (pass === 0 && aStill && b.vx === 0 && b.vy === 0) continue;
+        const nx = b.x - a.x;
+        const ny = b.y - a.y;
+        if (nx > reach || nx < -reach || ny > reach || ny < -reach) continue;
+        const square = nx * nx + ny * ny;
+        if (square >= reach * reach || square === 0) continue;
+        const distance = Math.sqrt(square);
+        const ux = nx / distance;
+        const uy = ny / distance;
+        const overlap = (reach - distance) / 2;
+        a.x -= ux * overlap;
+        a.y -= uy * overlap;
+        b.x += ux * overlap;
+        b.y += uy * overlap;
+        const closing = (a.vx - b.vx) * ux + (a.vy - b.vy) * uy;
+        if (closing <= 0) continue;
+        // Equal masses, no friction between balls: only the velocity along the line of centres is
+        // exchanged, and each ball keeps its spin (so a rolling cue ball follows, a sliding one stops).
+        const impulse = ((1 + BALL_BOUNCE) / 2) * closing;
+        a.vx -= ux * impulse;
+        a.vy -= uy * impulse;
+        b.vx += ux * impulse;
+        b.vy += uy * impulse;
+        touched = true;
+      }
     }
+    if (!touched) break;
   }
 
   const clearX = PLAY_W / 2 - r;
@@ -456,18 +457,24 @@ function settle(table: Table) {
   else if (cueBall(table).state === GONE) respot(table);
 }
 
-/** Advances by `seconds` in fixed steps. Returns true while anything still moves. */
+/**
+ * Advances by `seconds`, in as many equal steps as the fastest ball needs: two for a table that
+ * is nearly at rest, up to twenty-four for a break. Returns true while anything still moves.
+ */
 export function advance(table: Table, seconds: number) {
-  table.carry += Math.min(seconds, 1 / 20);
+  const span = Math.min(seconds, 1 / 30);
+  let fastest = 0;
+  for (const ball of table.balls) {
+    if (ball.state === GONE) continue;
+    const speed = Math.hypot(ball.vx, ball.vy, ball.vz);
+    if (speed > fastest) fastest = speed;
+  }
+  const steps = Math.min(MAX_STEPS, Math.max(MIN_STEPS, Math.ceil((fastest * span) / MAX_TRAVEL)));
+  const dt = span / steps;
   let moving = true;
-  while (table.carry >= STEP) {
-    table.carry -= STEP;
-    tick(table, STEP);
+  for (let n = 0; n < steps && moving; n += 1) {
+    tick(table, dt);
     moving = isMoving(table);
-    if (!moving) {
-      table.carry = 0;
-      break;
-    }
   }
   if (!moving) settle(table);
   return moving;

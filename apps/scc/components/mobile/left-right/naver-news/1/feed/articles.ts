@@ -1,59 +1,61 @@
-import { HEADLINES } from "./headlines";
-import { TOPICS } from "./topics";
+import { PHOTOS, type Photo, type PhotoGroup } from "./photos";
+import { pressOf } from "./press";
+import { G1 } from "./topics/g1";
+import { G2 } from "./topics/g2";
+import { G3 } from "./topics/g3";
+import { G4 } from "./topics/g4";
+import { G5 } from "./topics/g5";
+import type { Cell, TopicData } from "./topics/types";
 import type { Article, Side, Slant, Tier } from "./types";
 
-// Every piece the screen can show, assembled once: a topic's headline pairs
-// become articles with an outlet, a reporter, a photo and counts. Outlets and
-// reporters are invented; the counts come from a seeded generator so a piece
-// looks the same every time it returns.
+// Every piece the screen can show, generated once from the twenty stories in
+// topics/. A headline joins one front clause and one back clause of a cell
+// ("a…b"); 15 of each cell's 30 pairings are used, so no pairing repeats and
+// every clause appears about three times. That gives 20 stories × 2 sides ×
+// 3 tiers × 15 = 1,800 pieces with a side, and 10 straight reports a story
+// for the level screen. Outlet, reporter, photograph and counts come from a
+// seeded generator so a piece is the same every time it returns.
 
-/** Invented outlets, by whose reading they carry and how hard. */
-const PRESS: Record<Slant, readonly (readonly string[])[]> = {
-  none: [["누리통신", "가온뉴스", "KNB", "뉴스온"]],
-  left: [["한빛신문", "새날일보", "다온뉴스"], ["새날일보", "열린내일", "한빛신문"], ["촛불라이브", "깨어있는TV", "밭갈이뉴스"]],
-  right: [["한울일보", "미래경제", "나라일보"], ["나라일보", "정론타임즈", "한울일보"], ["태극라이브", "자유수호TV", "애국시민뉴스"]],
+export const TOPICS: readonly TopicData[] = [...G1, ...G2, ...G3, ...G4, ...G5];
+
+/** Photograph groups a story draws on (photos.ts). */
+const SHOTS: Record<string, readonly PhotoGroup[]> = {
+  trial: ["court", "hearing", "yoon"],
+  judiciary: ["court", "assembly"],
+  special: ["assembly", "lee"],
+  martial: ["hearing", "assembly", "yoon"],
+  estate: ["apt"],
+  economy: ["finance", "market"],
+  tariff: ["port", "finance", "lee"],
+  budget: ["market", "sejong", "assembly"],
+  election: ["vote"],
+  ppp: ["ppp", "assembly"],
+  poll: ["lee", "bluehouse", "gwanghwamun"],
+  myung: ["court", "yoon"],
+  china: ["myeongdong", "airport"],
+  hormuz: ["navy"],
+  north: ["dmz"],
+  katalk: ["kakao", "seoul"],
+  prosecution: ["prosecutors", "court"],
+  kimkh: ["kimkh", "court"],
+  medical: ["hospital"],
+  tongil: ["church", "assembly"],
 };
+/** Each side's own rally photographs, used more the harder the piece. */
+const RALLY: Record<Side, PhotoGroup> = { left: "lrally", right: "rrally" };
+const RALLY_SHARE = [0, 0.25, 0.7] as const;
 
-const SURNAMES = ["김", "이", "박", "최", "정", "강", "조", "윤", "장", "임", "한", "오"];
-const GIVEN = ["지현", "민수", "서연", "태호", "유진", "성훈", "하늘", "준영", "소영", "동욱", "은지", "재석"];
+/** Bracket tags by tier: 강경 is opinion, 극단 the grammar of fandom media. */
+const TAGS: readonly (readonly string[])[] = [
+  ["", "", "", "", "[종합] ", "[포토] "],
+  ["[사설] ", "[칼럼] ", "[시론] ", "[기자수첩] ", "[데스크 시각] ", "[논설실에서] "],
+  ["[단독] ", "[현장] ", "[영상] ", "[속보] ", "[라이브] ", "[긴급] "],
+];
 
-/** What each photo shows, as its caption. */
-export const CAPTIONS: Record<string, string> = {
-  assembly1: "서울 여의도 국회의사당 앞.",
-  assembly2: "서울 여의도 국회의사당 전경.",
-  plenary: "국회 회의 모습. 자료사진.",
-  "court-const": "서울 종로구 헌법재판소.",
-  "court-supreme": "서울 서초구 대법원 청사.",
-  judgment: "헌법재판소 대심판정. 자료사진.",
-  "yoon-hearing": "2025년 2월 헌법재판소 탄핵심판 변론에 출석한 윤석열 전 대통령. 자료사진.",
-  lee: "이재명 대통령. 자료사진.",
-  candle1: "2024년 12월 4일 국회 본청 앞 계단에서 열린 집회. 자료사진.",
-  candle2: "2024년 12월 4일 국회 본청 앞 집회 참가자들. 자료사진.",
-  gwang1: "2025년 3월 서울 광화문 일대 농성장. 자료사진.",
-  gwang2: "2025년 3월 15일 서울 광화문 집회. 자료사진.",
-  gwang3: "2025년 1월 4일 서울 광화문 집회. 자료사진.",
-  taeguk1: "2017년 3월 1일 서울 도심에서 열린 태극기 집회. 자료사진.",
-  taeguk2: "2019년 서울 도심 태극기 집회. 자료사진.",
-  apt1: "서울 강남구 대치동의 아파트 단지.",
-  apt2: "서울 강남구 대치동 아파트 단지 전경.",
-  apt3: "서울 강남구 개포동의 아파트 단지.",
-  ballot1: "2025년 6월 3일 대통령선거 투표소의 투표함. 자료사진.",
-  booth1: "2025년 6월 3일 대통령선거 투표소의 기표소. 자료사진.",
-  booth2: "투표소에 마련된 기표소. 자료사진.",
-  krx: "서울 여의도 한국거래소.",
-  kospi: "코스피·코스닥 지수와 원·달러 환율이 표시된 전광판. 자료사진.",
-  bok: "서울 중구 한국은행.",
-  won: "5만 원권. 자료사진.",
-  navy1: "청해부대로 파견됐던 문무대왕함. 자료사진.",
-  navy2: "해군 구축함 문무대왕함. 자료사진.",
-  myeongdong: "서울 중구 명동 거리. 자료사진.",
-  airport: "인천국제공항 제1여객터미널 입국장. 자료사진.",
-  prosecutors: "서울 서초구 옛 대검찰청 청사에 걸린 공소청 현판.",
-  wreaths: "2020년 12월 대검찰청 앞에 놓인 화환. 자료사진.",
-  han: "2024년 12월 4일 국회에서 기자회견을 하는 한동훈 전 대표. 자료사진.",
-};
+const SURNAMES = ["김", "이", "박", "최", "정", "강", "조", "윤", "장", "임", "한", "오", "서", "신", "권", "황"];
+const GIVEN = ["지현", "민수", "서연", "태호", "유진", "성훈", "하늘", "준영", "소영", "동욱", "은지", "재석", "수빈", "현우", "다은", "경민", "보람", "상민"];
 
-// Small seeded generator (mulberry32) so counts and bylines are stable.
+// Small seeded generator (mulberry32).
 function seeded(seed: number) {
   let state = seed >>> 0;
   return () => {
@@ -65,36 +67,68 @@ function seeded(seed: number) {
   };
 }
 
+/** Fifteen distinct pairings of five front and six back clauses. */
+const pairings = (cell: Pick<Cell, "a" | "b">) => {
+  const pairs: [string, string][] = [];
+  for (let round = 0; round < 3; round += 1) {
+    cell.a.forEach((front, index) => pairs.push([front, cell.b[(index + round * 2) % cell.b.length]]));
+  }
+  return pairs;
+};
+
+const BODY = new Map<string, readonly string[]>();
+
 function build() {
   const random = seeded(20261116);
   const pick = <T,>(items: readonly T[]) => items[Math.floor(random() * items.length)];
+  // Photographs are dealt in turn within a group, so one does not come up twice in a row.
+  const dealt = new Map<PhotoGroup, number>();
+  const shot = (wanted: PhotoGroup) => {
+    // A group with no photograph yet borrows the National Assembly's.
+    const group: PhotoGroup = PHOTOS[wanted].length ? wanted : "assembly";
+    const photos: readonly Photo[] = PHOTOS[group];
+    const index = dealt.get(group) ?? Math.floor(random() * photos.length);
+    dealt.set(group, index + 1);
+    return photos[index % photos.length];
+  };
   const all: Article[] = [];
   for (const topic of TOPICS) {
-    const lines = HEADLINES[topic.id];
-    const make = (slant: Slant, tier: Tier, pairs: readonly (readonly [string, string])[]) => {
-      const photos = slant === "none" ? topic.photos : [...topic.photos, ...(topic.only?.[slant] ?? [])];
-      pairs.forEach(([title, lede], index) => {
-        // 극단 pieces run the rally photos their side owns when the topic has them.
-        const own = slant !== "none" && tier === 2 ? topic.only?.[slant] : undefined;
-        // A side's second 극단 piece falls back to the shared photos rather than repeat its one rally.
-        const photo = own && index < own.length ? own[index] : photos[(index + tier) % photos.length];
-        // Louder pieces draw more comments; straight reports the most related pieces.
-        const loud = slant === "none" ? 1 : 1 + tier * 1.6;
-        all.push({
-          id: `${topic.id}-${slant}-${tier}-${index}`,
-          slant, tier, topic: topic.id, title, lede,
-          press: pick(PRESS[slant][slant === "none" ? 0 : tier]),
-          reporter: `${pick(SURNAMES)}${pick(GIVEN)}`,
-          photo,
-          caption: CAPTIONS[photo] ?? "",
-          cluster: 6 + Math.floor(random() * 110),
-          comments: Math.floor((40 + random() * 900) * loud),
-        });
+    const listed = (SHOTS[topic.id] ?? ["seoul"]).filter((group) => PHOTOS[group].length);
+    const groups: readonly PhotoGroup[] = listed.length ? listed : ["assembly"];
+    const add = (slant: Slant, tier: Tier, front: string, back: string, index: number, say: readonly string[]) => {
+      const rally = slant !== "none" && random() < RALLY_SHARE[tier];
+      const photo = shot(rally && (slant === "left" || slant === "right") ? RALLY[slant] : pick(groups));
+      // Louder pieces draw more comments.
+      const loud = slant === "none" ? 1 : 1 + tier * 1.6;
+      const id = `${topic.id}-${slant}-${tier}-${index}`;
+      const tag = slant === "none" ? "" : TAGS[tier][index % TAGS[tier].length];
+      all.push({
+        id, slant, tier, topic: topic.id,
+        title: `${tag}${front}…${back}`,
+        press: pick(pressOf(slant, tier)),
+        reporter: `${pick(SURNAMES)}${pick(GIVEN)}`,
+        photo: photo.key,
+        caption: photo.caption,
+        cluster: 6 + Math.floor(random() * 110),
+        comments: Math.floor((40 + random() * 900) * loud),
       });
+      // A 사설 or 칼럼 argues first and states the fact after; a report does the reverse.
+      const reading = say.length ? say[index % say.length] : null;
+      BODY.set(id, !reading ? [topic.fact] : tier === 1 ? [reading, topic.fact] : [topic.fact, reading]);
     };
-    make("none", 0, lines.plain);
+    // Straight reports: ten of the sixteen pairings.
+    let plain = 0;
+    for (let round = 0; round < 3 && plain < 10; round += 1) {
+      for (let index = 0; index < topic.plain.a.length && plain < 10; index += 1) {
+        add("none", 0, topic.plain.a[index], topic.plain.b[(index + round) % topic.plain.b.length], plain, []);
+        plain += 1;
+      }
+    }
     for (const side of ["left", "right"] as const) {
-      ([0, 1, 2] as const).forEach((tier) => make(side, tier, lines[side][tier]));
+      ([0, 1, 2] as const).forEach((tier) => {
+        const cell = topic[side][tier];
+        pairings(cell).forEach(([front, back], index) => add(side, tier, front, back, index, cell.say));
+      });
     }
   }
   return all;
@@ -102,7 +136,9 @@ function build() {
 
 const ALL = build();
 
-export const ARTICLE_BY_ID = new Map(ALL.map((article) => [article.id, article]));
+/** The text under a headline: the story's verified fact and, for a piece with a side, that side's reading. */
+export const bodyOf = (article: Article): readonly string[] => BODY.get(article.id) ?? [];
+
 /** The level screen's straight reports. */
 export const EVERYDAY: readonly Article[] = ALL.filter((article) => article.slant === "none");
 const of = (side: Side, tier: Tier) => ALL.filter((article) => article.slant === side && article.tier === tier);
@@ -111,3 +147,4 @@ export const ARTICLES: Record<Side, readonly [readonly Article[], readonly Artic
   left: [of("left", 0), of("left", 1), of("left", 2)],
   right: [of("right", 0), of("right", 1), of("right", 2)],
 };
+export const COUNT = ALL.length;

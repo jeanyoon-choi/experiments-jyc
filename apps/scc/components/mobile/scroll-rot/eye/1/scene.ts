@@ -2,9 +2,12 @@ import * as THREE from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { eyeGeometry } from "./globe";
 import { eyeMaterial } from "./material";
+import { growVessels } from "./vessels";
 import { bakeNoise } from "./noise";
 import { decayOf, pickSeeds, rotUniforms, type Seed } from "./rot";
 
+// A macro photograph of a real iris (Osmo Lundell, CC BY-SA 4.0): see public/images/scroll-rot/license.txt.
+const IRIS_URL = "/images/scroll-rot/iris.webp";
 const MAX_DPR = 2;
 // Resolution governor: when frames keep running late the canvas drops a step and stays there.
 const SLOW_MS = 22; // a frame later than this missed 60 Hz
@@ -73,7 +76,7 @@ export function createEye(host: HTMLElement, track: HTMLElement, hooks: EyeHooks
   scene.background = new THREE.Color("#0f0d0d");
   const pmrem = new THREE.PMREMGenerator(renderer);
   const room = new RoomEnvironment();
-  const env = pmrem.fromScene(room, 0.04).texture;
+  const env = pmrem.fromScene(room).texture; // unblurred: the cornea mirrors the room
   room.dispose();
   pmrem.dispose();
   scene.environment = env;
@@ -97,7 +100,11 @@ export function createEye(host: HTMLElement, track: HTMLElement, hooks: EyeHooks
   let resume = 0;
 
   const noise = bakeNoise(renderer);
-  const { material, uniforms } = eyeMaterial(noise.texture);
+  const iris = new THREE.TextureLoader().load(IRIS_URL, () => (stamp += 1)); // stills shot before it arrived are redone
+  iris.colorSpace = THREE.SRGBColorSpace;
+  iris.anisotropy = 4;
+  const vessels = growVessels();
+  const { material, uniforms } = eyeMaterial(noise.texture, iris, vessels);
   const seedBuf = uniforms.uSeeds.value;
   const geometry = eyeGeometry();
   const seeds: Seed[] = pickSeeds();
@@ -478,6 +485,8 @@ export function createEye(host: HTMLElement, track: HTMLElement, hooks: EyeHooks
       window.removeEventListener("keydown", onKey);
       geometry.dispose();
       material.dispose();
+      iris.dispose();
+      vessels.dispose();
       noise.dispose();
       env.dispose();
       renderer.dispose();

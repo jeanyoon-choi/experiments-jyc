@@ -3,6 +3,7 @@
 
 .question {
   --pen: #1846d6;
+  --grade: #e8211a;
   font-family: var(--suneung-myeongjo), var(--suneung-old-hangul), serif;
   font-weight: 400;
   line-height: 1.68;
@@ -37,6 +38,7 @@
 }
 
 .number {
+  position: relative;
   display: inline-block;
   width: 1.665em;
   text-indent: 0;
@@ -318,6 +320,38 @@
   transition: stroke-dashoffset 360ms ease-out;
 }
 
+/* The marker's red circle over the question number: drawn once the answer is
+   marked, the way a correct answer is graded on paper. */
+.grade {
+  position: absolute;
+  left: 0.62em;
+  top: 50%;
+  width: 3em;
+  height: 3em;
+  transform: translate(-50%, -50%) rotate(-6deg);
+  overflow: visible;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+[data-graded] .grade {
+  visibility: visible;
+}
+
+.grade path {
+  fill: none;
+  stroke: var(--grade);
+  stroke-width: 4.2;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+[data-graded] .grade path {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 420ms cubic-bezier(0.3, 0.1, 0.3, 1);
+}
+
 .solution {
   margin: 1.4em 0 0;
   padding-left: 1.03em;
@@ -333,18 +367,33 @@
   margin: 0 0 0.35em;
 }
 
-.step[hidden],
-.final[hidden] {
-  display: none;
-}
-
 .rest {
   visibility: hidden;
+}
+
+/* The pen's caret, at the end of what is written, only on the line being written. */
+.caret {
+  display: inline-block;
+  width: 0;
+  height: 1.05em;
+  margin-right: 0;
+  vertical-align: -0.17em;
+  border-left: 0.09em solid var(--pen);
+  visibility: hidden;
+}
+
+[data-writing] > .caret {
+  visibility: visible;
 }
 
 .final {
   margin: 0.5em 0 0;
   font-weight: 700;
+  visibility: hidden;
+}
+
+.final[data-on] {
+  visibility: visible;
 }
 
 .final .value {

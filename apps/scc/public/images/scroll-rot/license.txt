@@ -6,3 +6,12 @@ face.webp
 
 Changes: the 374 x 499 crop kept in apps/goldfishes (public/images/0922/tech-eye-3d/portraits/002.jpg), enlarged
 2x and cut out with that app's head mask (public/images/0908/tech-power-faces/heads/002.png).
+
+iris.webp
+* title: Iris of human male
+* source: https://commons.wikimedia.org/wiki/File:Iris_of_human_male.jpg
+* author: Osmo Lundell
+* license: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
+
+Changes: cropped square on the pupil, stretched 6% vertically toward a circle, reduced to 1024 x 1024.
+iris.webp is shared under CC BY-SA 4.0.

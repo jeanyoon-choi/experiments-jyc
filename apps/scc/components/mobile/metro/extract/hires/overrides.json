@@ -1,0 +1,293 @@
+{
+"운정중앙": {
+"e": [
+"Unjeong",
+"jungang"
+]
+},
+"동두천중앙": {
+"e": [
+"Dongducheon",
+"Jungang"
+]
+},
+"경기도청북부청사": {
+"e": [
+"Northern",
+"Gyeonggi-do",
+"Government"
+]
+},
+"경전철의정부": {
+"e": [
+"Lrt Uijeongbu"
+]
+},
+"곤제": {
+"e": [
+"Gonjae"
+]
+},
+"백양리": {
+"e": [
+"Baegyang-ri"
+]
+},
+"창동": {
+"e": [
+"Chang-dong"
+]
+},
+"별내별가람": {
+"e": [
+"Byeollae Byeolgaram"
+]
+},
+"평내호평": {
+"e": [
+"Pyeongnae",
+"Hopyeong"
+]
+},
+"신검단중앙": {
+"e": [
+"Singeomdan Jungang"
+],
+"es": [
+7.4,
+7.8,
+8.2,
+8.6,
+9.0
+]
+},
+"아라": {
+"x": [
+"(북부법원·검찰청)"
+]
+},
+"아시아드경기장": {
+"x": [
+"(공촌사거리)"
+]
+},
+"오목교": {
+"x": [
+"(목동운동장앞)"
+]
+},
+"서해구청": {
+"name": "서구청",
+"e": [
+"Seo-gu Office"
+]
+},
+"서울역": {
+"e": [
+"Seoul Station"
+]
+},
+"명동": {
+"e": [
+"Myeong-dong"
+]
+},
+"답십리": {
+"e": [
+"Dapsimni"
+]
+},
+"경인교대입구": {
+"e": [
+"Gyeongin Nat'l Univ.",
+"of Education"
+]
+},
+"신대방삼거리": {
+"e": [
+"Sindaebang-",
+"samgeori"
+]
+},
+"장승배기": {
+"e": [
+"Jangseung",
+"baegi"
+]
+},
+"압구정로데오": {
+"e": [
+"Apgujeong",
+"rodeo"
+]
+},
+"강남구청": {
+"e": [
+"Gangnam-gu office"
+]
+},
+"석촌고분": {
+"e": [
+"Seokchon",
+"Gobun"
+]
+},
+"예술회관": {
+"e": [
+"Culture & Arts Center"
+]
+},
+"공항화물청사": {
+"e": [
+"Incheon Int'l Airport",
+"Cargo Terminal"
+]
+},
+"광명사거리": {
+"e": [
+"Gwangmyeong-",
+"sageori"
+]
+},
+"서울대벤처타운": {
+"e": [
+"Seoul National Univ.",
+"Venture Town"
+]
+},
+"총신대입구(이수)": {
+"k": [
+"총신대입구(이수)"
+],
+"e": [
+"Chongshin Univ.(Isu)"
+]
+},
+"성남": {
+"e": [
+"Seong",
+"nam"
+]
+},
+"인천공항1터미널": {
+"e": [
+"Incheon Int'l Airport",
+"Terminal 1"
+]
+},
+"인천공항2터미널": {
+"e": [
+"Incheon Int'l Airport",
+"Terminal 2"
+]
+},
+"인천대입구": {
+"e": [
+"Incheon Nat'l Univ."
+]
+},
+"송도달빛축제공원": {
+"e": [
+"Songdo Moonlight",
+"Festival Park"
+]
+},
+"국제업무지구": {
+"e": [
+"Int'l Business District"
+]
+},
+"온양온천": {
+"e": [
+"Onyang oncheon"
+]
+},
+"평택지제": {
+"e": [
+"Pyeongtaekjije"
+]
+},
+"매탄권선": {
+"e": [
+"Maetan Gwonseon"
+]
+},
+"시청.용인대": {
+"name": "시청·용인대",
+"k": [
+"시청·",
+"용인대"
+],
+"e": [
+[
+"City Hall ·",
+"Yongin Univ."
+],
+[
+"City Hall·",
+"Yongin Univ."
+],
+[
+"City Hall",
+"Yongin Univ."
+]
+]
+},
+"동백": {
+"e": [
+"Dongbaek"
+]
+},
+"용인중앙시장": {
+"e": [
+"Yongin Jungang Market"
+]
+},
+"전대·에버랜드": {
+"k": [
+"전대·",
+"에버랜드"
+],
+"e": [
+[
+"Jeondae · Everland"
+],
+[
+"Jeondae·Everland"
+],
+[
+"Jeondae ·Everland"
+]
+]
+},
+"부천시청": {
+"e": [
+"Bucheon",
+"City Hall"
+]
+},
+"북한산보국문": {
+"e": [
+"Bukhansan",
+"Bogungmun"
+]
+},
+"주안국가산단": {
+"e": [
+"Juan National",
+"Industrial Complex"
+]
+},
+"검단호수공원": {
+"es": [
+7.4,
+7.8,
+8.2,
+8.6,
+9.0
+],
+"e": [
+"Geomdan Lake Park"
+]
+}
+}

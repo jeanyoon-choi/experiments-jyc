@@ -6,18 +6,24 @@ import styles from "./naver.module.css";
 
 export const photoUrl = (key: string) => `/images/left-right/naver-news/${key}.jpg`;
 
+type Props = {
+  slot: Slot;
+  now: number;
+  latest: boolean;
+  onOpen: (slot: Slot) => void;
+};
+
 /**
  * One list row, as on Naver's section page: thumbnail, two-line title, then
  * the outlet with either the cluster pill (headlines) or the time (latest).
- * The inner block is keyed by the row's turn so a new article fades in.
  */
-export function Row({ slot, now, latest, onOpen }: { slot: Slot; now: number; latest: boolean; onOpen: (slot: Slot) => void }) {
+export function Row({ slot, now, latest, onOpen }: Props) {
   const { article } = slot;
   return (
     <li className={styles.item}>
-      <button type="button" key={slot.turns} className={styles.itemInner} data-turned={slot.turns > 0 ? "true" : undefined} onClick={() => onOpen(slot)}>
+      <button type="button" className={styles.itemInner} onClick={() => onOpen(slot)}>
         <span className={styles.thumb}>
-          <img src={photoUrl(article.photo)} alt="" width={110} height={75} loading="lazy" decoding="async" />
+          <img src={photoUrl(article.photo)} alt="" width={110} height={75} decoding="async" />
         </span>
         <span className={styles.text}>
           <strong className={styles.title}>{article.title}</strong>

@@ -1,6 +1,6 @@
 # metro/2 extraction: the published 2026 map
 
-Rebuilds `../../2/model/official.json` by reading 서울시's published 서울 지하철
+First pass, superseded for geometry and names by [`../hires`](../hires/README.md). Rebuilt `../../2/model/official.json` by reading 서울시's published 서울 지하철
 노선도 over `../../1/model/network.json`'s topology, and subsets 서울알림체 into
 `../../2/fonts`. Sources are not committed; fetch them into a scratch folder
 `ref/` and run every step from that folder's parent with a Python venv holding

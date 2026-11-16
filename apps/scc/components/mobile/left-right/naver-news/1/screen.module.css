@@ -1,5 +1,12 @@
+@property --tint {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
 .stage {
   --readout-height: calc(30px + env(safe-area-inset-bottom));
+  transition: --tint 140ms linear;
   position: fixed;
   inset: 0;
   overflow: hidden;

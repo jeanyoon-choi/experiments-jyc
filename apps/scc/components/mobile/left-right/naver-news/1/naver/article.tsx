@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element -- small local photos, no optimisation needed */
-import { bodyOf } from "../feed/body";
+import { bodyOf } from "../feed/articles";
 import type { Slot } from "../feed/types";
 import { count, stamp } from "./format";
 import { Header } from "./header";
@@ -54,9 +54,11 @@ export function ArticleView({ slot, more, now, closing, onHome, onOpen }: Props)
       </div>
       <div className={styles.section}>
         <div className={styles.head}><span className={styles.headLink}>정치 헤드라인</span></div>
-        <ul className={styles.list}>
-          {more.map((other) => <Row key={other.key} slot={other} now={now} latest={false} onOpen={onOpen} />)}
-        </ul>
+        <div className={styles.list}>
+          <ul>
+            {more.map((other) => <Row key={other.key} slot={other} now={now} latest={false} onOpen={onOpen} />)}
+          </ul>
+        </div>
       </div>
     </section>
   );

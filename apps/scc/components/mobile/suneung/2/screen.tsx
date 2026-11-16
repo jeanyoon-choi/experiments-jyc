@@ -90,6 +90,15 @@ function PenCircle() {
   );
 }
 
+/** The marker's red circle over the question number, drawn by the player once the answer is marked. */
+function GradeCircle() {
+  return (
+    <svg className={styles.grade} viewBox="0 0 100 100" aria-hidden="true">
+      <path d="M64 9 C40 1 11 18 8 48 C5 79 30 96 55 93 C81 90 96 68 92 43 C88 20 66 7 41 12" pathLength={1} />
+    </svg>
+  );
+}
+
 function ItemRow({ mark, text }: { mark: string; text: string }) {
   return (
     <>
@@ -124,7 +133,10 @@ export function QuestionScreen({
       <div className={`${screen.body} ${styles.question}`}>
         {first?.k === "p" ? (
           <p className={`${styles.p} ${styles.stem}`}>
-            <span className={styles.number}>{question.n}.</span>
+            <span className={styles.number}>
+              {question.n}.
+              <GradeCircle />
+            </span>
             <Text source={first.t} />
           </p>
         ) : null}

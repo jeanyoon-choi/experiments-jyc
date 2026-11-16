@@ -3,27 +3,28 @@ import { SIDES, type Article, type Side, type Slot, type Tier } from "./types";
 
 // The mobile's roll is the only input. `lean` runs −1 (left) … +1 (right).
 //
-// The screen is a fixed set of rows: ten headlines, then the latest list. A
-// level mobile shows everyday news and nothing moves. Leaned, rows turn over
-// one at a time into pieces of the side it leans to, RATE · |lean|^1.3 rows
-// per second (5/s at full tilt), rows of the other side or of no side first,
-// so the whole screen comes to read one way. Scrolling further only adds
-// more of the same side.
+// The screen is a list: ten headlines, then the latest list. A level mobile
+// shows everyday news and nothing moves. Leaned, pieces of the side it leans
+// to pour in at the top, RATE · |lean|^1.5 a second (60/s at full tilt, about
+// 21/s at half, 7.5/s at a quarter), and every row below is pushed down, the
+// last one off the end, as KakaoTalk's list moves in left-right/kakao-talk.
+// The other side's rows and the everyday ones are carried off the bottom
+// within a second, and the stream does not stop while the mobile leans.
+// Scrolling to the end only lengthens the list.
 //
 // Each side keeps a heat (0–3), as in left-right/kakao-talk: it rises at
 // 0.2/s · |lean| while the mobile leans that way and falls at 0.08/s
-// otherwise. Heat sets the tier a turned row may reach: below 0.9 온건
-// (slanted reports), below 1.9 강경 (사설·칼럼), above 극단 (팬덤 매체).
-// Rows already on the side turn again as the tier climbs, mildest first.
+// otherwise. Heat sets the tier of what arrives: below 0.9 온건 (slanted
+// reports), below 1.9 강경 (사설·칼럼), above 극단 (팬덤 매체).
 
-const RATE = 5;
+const RATE = 60;
 const LEVEL = 0.03;
 const RISE = 0.2;
 const FALL = 0.08;
 export const HEADLINES = 10;
 const START = 22;
 const MORE = 10;
-const MOST = 56;
+const MOST = 80;
 
 const tierOf = (heat: number): Tier => (heat < 0.9 ? 0 : heat < 1.9 ? 1 : 2);
 const sideOf = (lean: number): Side => (lean < 0 ? "left" : "right");
@@ -37,7 +38,7 @@ export function createFeed(random: () => number = Math.random) {
   let tokens = 0;
   let version = 0;
   let nextKey = 1;
-  let turned = 0;
+  let arrived = 0;
   const listeners = new Set<() => void>();
   /** When each article was last put on screen, so repeats come round as late as possible. */
   const shown = new Map<string, number>();
@@ -52,13 +53,17 @@ export function createFeed(random: () => number = Math.random) {
     const free = candidates.filter((article) => !here.has(article.id));
     if (!free.length) return null;
     const oldest = Math.min(...free.map((article) => shown.get(article.id) ?? 0));
-    return pick(free.filter((article) => (shown.get(article.id) ?? 0) === oldest));
+    const due = free.filter((article) => (shown.get(article.id) ?? 0) === oldest);
+    // Not the story or the photograph of the row it lands beside, when there is a choice.
+    const beside = slots[0]?.article;
+    const other = beside ? due.filter((article) => article.topic !== beside.topic && article.photo !== beside.photo) : due;
+    return pick(other.length ? other : due);
   };
 
-  const place = (article: Article, wall: number, key = nextKey++, turns = 0): Slot => {
+  const place = (article: Article, wall: number): Slot => {
     clock += 1;
     shown.set(article.id, clock);
-    return { key, article, since: wall, turns };
+    return { key: nextKey++, article, since: wall };
   };
 
   /** A piece for the side at the highest tier it has reached that still has one to give. */
@@ -108,20 +113,16 @@ export function createFeed(random: () => number = Math.random) {
       }
       const side = sideOf(lean);
       const tier = tierOf(heat[side]);
-      tokens = Math.min(2, tokens + RATE * amount ** 1.3 * seconds);
+      tokens = Math.min(8, tokens + RATE * amount ** 1.5 * seconds);
       let changed = false;
       for (let guard = 0; tokens >= 1 && guard < 8; guard += 1) {
         tokens -= 1;
-        // Rows not yet on this side go first, then the mildest of its own.
-        const off = slots.filter((slot) => slot.article.slant !== side);
-        const mild = off.length ? off : slots.filter((slot) => slot.article.tier < tier);
-        if (!mild.length) continue;
-        const lowest = Math.min(...mild.map((slot) => (slot.article.slant === side ? slot.article.tier : -1)));
-        const slot = pick(mild.filter((candidate) => (candidate.article.slant === side ? candidate.article.tier : -1) === lowest));
         const article = draw(side, tier);
-        if (!article || (slot.article.slant === side && article.tier <= slot.article.tier)) continue;
-        slots[slots.indexOf(slot)] = place(article, wall, slot.key, slot.turns + 1);
-        turned += 1;
+        if (!article) continue;
+        // In at the top; everything else moves down one and the last row leaves.
+        slots.unshift(place(article, wall));
+        slots.pop();
+        arrived += 1;
         changed = true;
       }
       if (changed) emit();
@@ -143,7 +144,7 @@ export function createFeed(random: () => number = Math.random) {
     stats: () => ({
       lean,
       tier: { left: tierOf(heat.left), right: tierOf(heat.right) },
-      turned,
+      arrived,
       rows: slots.length,
       onSide: { left: slots.filter((slot) => slot.article.slant === "left").length, right: slots.filter((slot) => slot.article.slant === "right").length },
     }),

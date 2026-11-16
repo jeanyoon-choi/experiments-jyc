@@ -28,7 +28,7 @@ export function seedBirth(i: number) {
 // Patch radius in scene units, t reels after its birth.
 export function rotRadius(t: number) {
   if (t <= 0) return 0;
-  return Math.min(0.045, 0.006 + 0.009 * Math.pow(t, 0.7));
+  return Math.min(0.04, 0.006 + 0.008 * Math.pow(t, 0.7));
 }
 
 /** Seeds on the globe, kept apart. The first reels' seeds sit on the white beside the iris, in view. */

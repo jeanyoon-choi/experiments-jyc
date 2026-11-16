@@ -4,7 +4,7 @@ import { BALL_R, GONE, ON_TABLE, RAIL, RAIL_TOP, TABLE_W } from "../model/physic
 import type { Table } from "../model/physics";
 import { buildTable } from "./table";
 import type { TableMaterials } from "./table";
-import { ballTexture, clothTexture, contactTexture } from "./textures";
+import { ballSkin, clothTooth, contactTexture, dollarPrint, loadFaces } from "./textures";
 
 /** Drawn pixels are capped, so a dense screen does not cost more than a mobile GPU can fill. */
 const MAX_DPR = 3;
@@ -21,7 +21,7 @@ export type CuePose = { ux: number; uy: number; back: number; guide: boolean };
 function buildCue() {
   const group = new THREE.Group();
   // A little stouter than a real cue, in keeping with the balls.
-  const radius = (x: number) => 0.0078 + (0.0175 - 0.0078) * (x / CUE_LENGTH);
+  const radius = (x: number) => 0.009 + (0.02 - 0.009) * (x / CUE_LENGTH);
   const part = (from: number, to: number, material: THREE.Material) => {
     const geometry = new THREE.CylinderGeometry(radius(to), radius(from), to - from, 20);
     geometry.rotateZ(-Math.PI / 2);
@@ -82,7 +82,7 @@ export function createStage(canvas: HTMLCanvasElement, onReady: () => void) {
   const lamp = new THREE.SpotLight(0xfff0dc, 7.5, 0, 1.0, 0.8, 2);
   lamp.position.set(-0.32, -0.2, 1.5);
   lamp.castShadow = true;
-  lamp.shadow.mapSize.set(2048, 2048);
+  lamp.shadow.mapSize.set(1536, 1536);
   lamp.shadow.bias = -0.0003;
   lamp.shadow.normalBias = 0.0015;
   lamp.shadow.radius = 3;
@@ -91,7 +91,8 @@ export function createStage(canvas: HTMLCanvasElement, onReady: () => void) {
   scene.add(lamp, lamp.target);
 
   const anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
-  const tooth = clothTexture();
+  const tooth = clothTooth();
+  const print = dollarPrint(anisotropy);
   const loader = new THREE.TextureLoader();
   const grain = (file: string, colour: boolean, turned: boolean) => {
     const texture = loader.load(ASSETS + file, onReady);
@@ -120,7 +121,7 @@ export function createStage(canvas: HTMLCanvasElement, onReady: () => void) {
   const materials: TableMaterials = {
     cloth: new THREE.MeshStandardMaterial({
       color: 0x0e6b52,
-      map: tooth,
+      map: print,
       bumpMap: tooth,
       bumpScale: 0.6,
       roughness: 0.97,
@@ -136,20 +137,26 @@ export function createStage(canvas: HTMLCanvasElement, onReady: () => void) {
     sight: new THREE.MeshStandardMaterial({ color: 0xeeeadd, roughness: 0.25, metalness: 0 }),
   };
 
-  const sphere = new THREE.SphereGeometry(BALL_R, 48, 32);
+  const sphere = new THREE.SphereGeometry(BALL_R, 40, 26);
   const contact = contactTexture();
   const contactGeometry = new THREE.PlaneGeometry(BALL_R * 3.2, BALL_R * 3.2);
   const contactMaterial = new THREE.MeshBasicMaterial({ map: contact, transparent: true, depthWrite: false, opacity: 0.38, toneMapped: false });
   const BALL_SHINE = 1.5;
   const balls = Array.from({ length: 16 }, (_, id) => {
-    const material = new THREE.MeshStandardMaterial({ map: ballTexture(id, anisotropy), roughness: 0.045, metalness: 0, envMapIntensity: BALL_SHINE });
+    const skin = ballSkin(id, anisotropy);
+    const material = new THREE.MeshStandardMaterial({ map: skin.texture, roughness: 0.045, metalness: 0, envMapIntensity: BALL_SHINE });
     const mesh = new THREE.Mesh(sphere, material);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     const dark = new THREE.Mesh(contactGeometry, contactMaterial);
     dark.renderOrder = 1;
     scene.add(mesh, dark);
-    return { mesh, material, dark };
+    return { mesh, material, dark, paintFace: skin.paintFace };
+  });
+  loadFaces(`${ASSETS}faces.jpg`, (atlas) => {
+    if (disposed) return;
+    for (const ball of balls) ball.paintFace(atlas);
+    onReady();
   });
 
   const cue = buildCue();
@@ -258,6 +265,7 @@ export function createStage(canvas: HTMLCanvasElement, onReady: () => void) {
     line.geometry.dispose();
     ghost.geometry.dispose();
     tooth.dispose();
+    print.dispose();
     for (const ball of balls) {
       ball.material.map?.dispose();
       ball.material.dispose();

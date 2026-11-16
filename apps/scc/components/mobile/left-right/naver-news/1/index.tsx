@@ -9,7 +9,7 @@ import styles from "./screen.module.css";
 // screen is rendered in the browser only.
 const NaverNews = dynamic(() => import("./naver/app").then((module) => module.NaverNews), { ssr: false });
 
-const STEP_MS = 100;
+const STEP_MS = 32;
 /** Degrees of roll ignored around level, and the roll that counts as all the way. */
 const DEAD_ZONE = 4;
 const FULL_TILT = 32;
@@ -48,6 +48,7 @@ export default function NaverNewsOne() {
   /** The measured roll in degrees; null until a gyroscope reports. */
   const rollRef = useRef<number | null>(null);
   const readoutRef = useRef<HTMLParagraphElement>(null);
+  const stageRef = useRef<HTMLElement>(null);
   const unlistenRef = useRef<(() => void) | null>(null);
   const askingRef = useRef(false);
   const [motion, setMotion] = useState<MotionState>("waiting");
@@ -113,10 +114,17 @@ export default function NaverNewsOne() {
     const timer = window.setInterval(() => {
       if (document.hidden) return;
       feed.step(targetRef.current, performance.now(), Date.now());
+      const stats = feed.stats();
+      // Background follows the tilt: party colour, deeper with the lean.
+      const stage = stageRef.current;
+      if (stage) {
+        const amount = Math.min(1, Math.abs(stats.lean));
+        stage.style.setProperty("--party", stats.lean < 0 ? "#004ea2" : "#e61e2b");
+        stage.style.setProperty("--tint", amount < 0.03 ? "0" : amount.toFixed(3));
+      }
       // The readout, one line: which way, how far gone, and the angle.
       const readout = readoutRef.current;
       if (!readout) return;
-      const stats = feed.stats();
       const side = stats.lean < -0.02 ? "left" : stats.lean > 0.02 ? "right" : null;
       const degrees = rollRef.current === null ? "" : ` · ${Math.round(Math.abs(rollRef.current))}°`;
       const line = side === "left" ? `◀ 진보 · ${TIER[stats.tier.left]}${degrees}`
@@ -135,7 +143,7 @@ export default function NaverNewsOne() {
   }, [feed]);
 
   return (
-    <main className={styles.stage}>
+    <main ref={stageRef} className={styles.stage}>
       <NaverNews feed={feed} />
       <p ref={readoutRef} className={styles.readout} aria-live="off" />
       {(motion === "ask" || motion === "denied") && (

@@ -22,6 +22,7 @@
 }
 
 .screen {
+  position: relative;
   display: flex;
   overflow-x: clip;
   flex-direction: column;

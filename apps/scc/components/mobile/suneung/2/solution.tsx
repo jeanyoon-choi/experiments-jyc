@@ -1,9 +1,10 @@
 import styles from "./text.module.css";
 
-// A question's authored solution (math-2026/solutions.json). The steps are all
-// in the DOM from the start, hidden; the player reveals them at their authored
-// times, character by character, keeping the unwritten rest of a line in place
-// so the text never reflows while it is written.
+// A question's authored solution (math-2026/solutions.json). Every step is
+// laid out from the start with its text invisible, so the block's final size
+// is known before writing begins (the player decides where it goes) and lines
+// never reflow while they are written. The player writes each step through
+// its caret, character by character.
 
 export type SolutionStep = { id: string; atMs: number; durationMs: number; text: string };
 export type Solution = {
@@ -29,16 +30,16 @@ export function SolutionView({ solution }: { solution: Solution }) {
           data-at={step.atMs - solution.startMs}
           data-dur={step.durationMs}
           data-text={step.text}
-          hidden
         >
           <span data-shown />
+          <span className={styles.caret} data-caret />
           <span className={styles.rest} data-rest>
             {step.text}
           </span>
         </p>
       ))}
       {multipleChoice ? null : (
-        <p className={styles.final} data-final hidden>
+        <p className={styles.final} data-final>
           답<span className={styles.value}>{solution.value}</span>
         </p>
       )}

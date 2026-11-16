@@ -11,3 +11,41 @@ walnut_diff.jpg, walnut_nor.jpg
 * source:  https://polyhaven.com/a/black_walnut_veneer_02
 * license: CC0 1.0 (https://polyhaven.com/license)
 * changes: the 1k JPEGs resized to 512 px and recompressed; the roughness map is not used.
+
+faces.jpg
+* a 4 x 4 atlas of sixteen face crops (256 px each, row by row in the order below), made from
+  Wikimedia Commons portraits downloaded 2026-11-16 at 400-500 px width, cropped to the face and
+  recompressed. The atlas as a whole is shared under CC BY-SA 4.0; each crop keeps its source's licence.
+
+   0 Donald Trump: Public domain, Daniel Torok
+     https://commons.wikimedia.org/wiki/File:Official_Presidential_Portrait_of_President_Donald_J._Trump_(2025).jpg
+   1 John Ternus: Commons licence tag "European Parliament" (terms on the file page), Amy Osborne / European Union
+     https://commons.wikimedia.org/wiki/File:John_Ternus_May_2026.jpg
+   2 Satya Nadella: CC BY-SA 4.0, Brian Smale and Microsoft
+     https://commons.wikimedia.org/wiki/File:MS-Exec-Nadella-Satya-2017-08-31-22_(cropped).jpg
+   3 Sundar Pichai: CC BY 4.0, Photographer: Lukasz Kobus (European Commission)
+     https://commons.wikimedia.org/wiki/File:Sundar_Pichai_-_2023_(cropped).jpg
+   4 Andy Jassy: CC BY-SA 4.0, Lisi Mezistrano Wolf
+     https://commons.wikimedia.org/wiki/File:Andy_Jassy.jpg
+   5 Mark Zuckerberg: Public domain, The White House
+     https://commons.wikimedia.org/wiki/File:P20260929DT-1655_(55561811540)_(cropped_2).jpg
+   6 Elon Musk: CC BY-SA 4.0, Gage Skidmore
+     https://commons.wikimedia.org/wiki/File:Elon_Musk_-_54820081119_(cropped).jpg
+   7 Hock Tan: CC BY-SA 4.0, Greg Bezat, d/b/a Bezat Video Group
+     https://commons.wikimedia.org/wiki/File:Hock_Tan_2022.png
+   8 Jensen Huang: CC BY-SA 4.0, Anderseidesvik
+     https://commons.wikimedia.org/wiki/File:Jensen_Huang_Stanford_2026-04-30_010_(cropped).jpg
+   9 Lisa Su: CC BY 4.0, Fuzheado
+     https://commons.wikimedia.org/wiki/File:SXSW-2024-alih-OB7A0861-Lisa_Su_(cropped_2).jpg
+  10 Lip-Bu Tan: Public domain, United States Department of Commerce
+     https://commons.wikimedia.org/wiki/File:Howard_Lutnick_with_Intel_CEO_Lip-Bu_Tan_(2025)_(cropped3).jpg
+  11 Sanjay Mehrotra: CC BY 4.0, 首相官邸ホームページ
+     https://commons.wikimedia.org/wiki/File:Sanjay_Mehrotra_2025_(cropped).jpg
+  12 Arvind Krishna: CC BY 4.0, 首相官邸
+     https://commons.wikimedia.org/wiki/File:Arvind_Krishna_in_2025_(cropped).jpg
+  13 Sam Altman: CC BY 4.0, 首相官邸ホームページ / Office of the Prime Minister of Japan
+     https://commons.wikimedia.org/wiki/File:Meeting_with_Masayoshi_Son_and_Sam_Altman_(February_3,_2025)_(3x4_cropped_on_Altman).jpg
+  14 Alex Karp: CC BY 2.0, UK Government
+     https://commons.wikimedia.org/wiki/File:Alex_Karp_attends_AI_Summit_(53302457013)_4-5_ratio.jpg
+  15 Marc Benioff: CC BY-SA 2.0, Salesforce.
+     https://commons.wikimedia.org/wiki/File:Marc_Benioff.jpg

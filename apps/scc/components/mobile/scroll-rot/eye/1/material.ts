@@ -1,10 +1,10 @@
 import * as THREE from "three";
 import { MAX_SEEDS, RADIUS } from "./rot";
 import { NOISE_SPAN } from "./noise";
-import { IRIS_RADIUS, IRIS_Z, LIMBUS, PUPIL_RADIUS } from "./globe";
+import { IRIS_RADIUS, IRIS_Z, LIMBUS } from "./globe";
 
-// Ashima 3D simplex noise (MIT). The fragment shader evaluates it twice (the two vessel lines); the slow
-// fields are computed per vertex and the fine grain comes from a 3D texture of the same noise (noise.ts).
+// Ashima 3D simplex noise (MIT), used per vertex and to bake the grain texture (noise.ts). The fragment
+// shader evaluates none: its matter is a photograph (the iris), grown vessels (vessels.ts) and baked grain.
 export const NOISE = /* glsl */ `
 vec3 bm289(vec3 x){return x-floor(x*(1./289.))*289.;}
 vec4 bm289(vec4 x){return x-floor(x*(1./289.))*289.;}
@@ -38,9 +38,10 @@ export type EyeUniforms = {
 const f = (n: number) => n.toFixed(6);
 const MM = RADIUS / 12;
 
-// One material, no textures. The white, its vessels, the iris seen through the cornea (refracted onto a
-// flat disc behind it, so it has depth and slides as the eye turns), the pupil, and what rot does to each.
-export function eyeMaterial(noise: THREE.Data3DTexture) {
+// One material. The iris is a macro photograph of a real one (public/images/scroll-rot/iris.webp), seen
+// through the cornea: the view ray bends at the surface and meets a flat disc behind it, so the iris
+// has depth and slides under the dome as the eye turns. The vessels of the white are grown (vessels.ts).
+export function eyeMaterial(noise: THREE.Data3DTexture, iris: THREE.Texture, vessels: THREE.Texture) {
   const uniforms: EyeUniforms = {
     uSeeds: { value: new Float32Array(MAX_SEEDS * 4) },
     uDecay: { value: 0 },
@@ -51,12 +52,14 @@ export function eyeMaterial(noise: THREE.Data3DTexture) {
     metalness: 0,
     clearcoat: 1,
     clearcoatRoughness: 0.035,
-    envMapIntensity: 0.3,
+    envMapIntensity: 0.5,
   });
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uSeeds = uniforms.uSeeds;
     shader.uniforms.uDecay = uniforms.uDecay;
     shader.uniforms.uNoise = { value: noise };
+    shader.uniforms.uIris = { value: iris };
+    shader.uniforms.uVessels = { value: vessels };
     shader.vertexShader = shader.vertexShader
       .replace(
         "#include <common>",
@@ -67,7 +70,6 @@ export function eyeMaterial(noise: THREE.Data3DTexture) {
         varying vec3 vObjN;
         varying vec3 vAxis;
         varying float vRot;
-        varying vec3 vWarp;
         varying vec2 vLow;
         ${NOISE}`,
       )
@@ -78,24 +80,24 @@ export function eyeMaterial(noise: THREE.Data3DTexture) {
         vObjN = normal;
         vAxis = normalMatrix * vec3(0.0, 0.0, 1.0);
         {
-          // slow fields, smooth at vertex spacing: vessel warp, flush, yellowing
-          vec3 lp = position * 16.0;
-          vWarp = vec3(snoise(lp + 3.1), snoise(lp + 7.7), snoise(lp + 1.3));
+          // slow fields, smooth at vertex spacing: flush, yellowing
           vLow = vec2(snoise(position * 14.0 + 9.0), snoise(position * 26.0 + 2.0));
+          // no eye is a ball: the globe is very slightly uneven
+          transformed += objectNormal * 0.0007 * snoise(position * 9.0 + 5.0);
         }
         {
           // ragged patch edges: the same noise widens every patch's boundary
-          float edge = snoise(position * 40.0) * 0.011 + snoise(position * 95.0) * 0.005;
+          float edge = snoise(position * 22.0) * 0.016 + snoise(position * 60.0) * 0.006;
           float rot = 0.0;
           for (int i = 0; i < ${MAX_SEEDS}; i++) {
             vec4 s = uSeeds[i];
             if (s.w <= 0.0) continue;
             float d = distance(position, s.xyz) + edge * min(1.0, s.w / 0.02);
-            rot = max(rot, 1.0 - smoothstep(s.w * 0.3, s.w, d));
+            rot = max(rot, 1.0 - smoothstep(s.w * 0.05, s.w * 1.15, d));
           }
           vRot = rot;
           // rotten tissue caves in; late, the whole globe loses its pressure and puckers
-          float sink = pow(rot, 1.4) * (0.004 + 0.002 * snoise(position * 55.0));
+          float sink = pow(rot, 1.6) * (0.0035 + 0.0015 * snoise(position * 55.0));
           float sag = uDecay * uDecay * uDecay * (0.003 + 0.007 * (0.5 + 0.5 * snoise(position * 24.0 + 2.0)));
           transformed -= objectNormal * (sink + sag);
         }`,
@@ -110,13 +112,13 @@ export function eyeMaterial(noise: THREE.Data3DTexture) {
         varying vec3 vObjN;
         varying vec3 vAxis;
         varying float vRot;
-        varying vec3 vWarp;
         varying vec2 vLow;
         uniform highp sampler3D uNoise;
-        ${NOISE}
+        uniform sampler2D uIris;
+        uniform sampler2D uVessels;
         // four decorrelated channels of baked simplex noise, mirrored every ${NOISE_SPAN} units
         vec4 tnoise(vec3 v){return texture(uNoise, v * ${f(1 / NOISE_SPAN)}) * 2.0 - 1.0;}
-        float bVessel; float bCornea; float bHaze; float bAO; float bRot; float bMold; float bGrain; float bPit;`,
+        float bVessel; float bCornea; float bHaze; float bAO; float bRot; float bFilm; float bGrain; float bPit;`,
       )
       .replace(
         "#include <color_fragment>",
@@ -127,95 +129,77 @@ export function eyeMaterial(noise: THREE.Data3DTexture) {
           float front = step(0.0, P.z);
           float cornea = front * (1.0 - smoothstep(${f(LIMBUS - 0.45 * MM)}, ${f(LIMBUS + 0.35 * MM)}, rho));
           bCornea = cornea;
-          vec4 nA = tnoise(P * 140.0); // r: fine mottle, g: rot edge
-          vec4 nB = tnoise(P * 380.0); // r: rot edge, fine
-          vec4 nC = tnoise(P * 300.0); // r: rot pitting
-          vec4 nD = tnoise(P * 570.0); // r: mould specks, g: grain
+          vec4 nA = tnoise(P * 140.0); // r: fine mottle, g: stain edge
+          vec4 nC = tnoise(P * 300.0); // r: wrinkling of dried tissue
+          vec4 nD = tnoise(P * 570.0); // g: grain
+          vec4 nF = tnoise(P * 34.0); // r, g: the unevenness of the tear film
           bGrain = nD.g;
           bPit = nC.r;
+          bFilm = nF.r + 0.5 * nF.g;
 
-          // --- the white: porcelain with a little grey-blue, vessels gathering away from the cornea
-          vec3 white = mix(vec3(0.70, 0.655, 0.61), vec3(0.64, 0.64, 0.655), 0.5 + 0.5 * nA.r);
+          // --- the white. Vessels are read from the grown map, polar about the eye's axis.
+          vec3 dirP = normalize(P);
+          vec2 vuv = vec2(atan(P.y, P.x) * 0.15915494 + 0.5, 1.0 - acos(clamp(dirP.z, -1.0, 1.0)) * 0.31830989);
+          vec3 vs = texture(uVessels, vuv).rgb;
+          float red = uDecay; // how bloodshot
+          float surface = vs.r * (0.8 + 0.2 * red) + vs.b * smoothstep(0.0, 0.55, red);
+          float deep = vs.g;
+          vec3 white = mix(vec3(0.86, 0.83, 0.80), vec3(0.80, 0.81, 0.84), 0.5 + 0.5 * nA.r);
           // never a clean white: a faint rose warms it toward the equator and the back
-          white = mix(white, vec3(0.66, 0.50, 0.46), 0.22 * mix(1.0, smoothstep(${f(LIMBUS * 1.2)}, ${f(RADIUS)}, rho), front) * (0.6 + 0.4 * vLow.y));
-          float away = mix(1.0, smoothstep(${f(LIMBUS * 1.05)}, ${f(LIMBUS * 2.3)}, rho), front);
-          float v1 = abs(snoise(P * 30.0 + vWarp * 1.3));
-          float v2 = abs(snoise(P * 78.0 + vWarp * 2.2 + 5.0));
-          float trunk = 1.0 - smoothstep(0.03 + 0.035 * uDecay, 0.03 + 0.035 * uDecay + 1.5 * fwidth(v1), v1);
-          float cap = 1.0 - smoothstep(0.018 + 0.03 * uDecay, 0.018 + 0.03 * uDecay + 1.5 * fwidth(v2), v2);
-          // a fresh eye shows a few vessels; they multiply and the white flushes as the reels pile up
-          // vessels run a way and stop: the lines are broken where a slow field says so, less as the eye reddens
-          float runs = smoothstep(0.15 - 0.6 * uDecay, 0.5 - 0.6 * uDecay, vWarp.y * 0.6 + vLow.y * 0.6);
-          float vessels = away * clamp(trunk * runs + cap * (0.15 + 0.85 * uDecay) * mix(runs, 1.0, uDecay), 0.0, 1.0);
-          vec3 sclera = mix(white, vec3(0.60, 0.44, 0.17), uDecay * uDecay * 0.85 * (0.65 + 0.35 * vLow.y));
-          sclera = mix(sclera, vec3(0.62, 0.20, 0.18), smoothstep(-0.2, 0.7, vLow.x) * uDecay * 0.5 * away);
-          sclera = mix(sclera, mix(vec3(0.42, 0.035, 0.045), vec3(0.24, 0.04, 0.07), uDecay), vessels * 0.9);
+          float back = mix(1.0, smoothstep(${f(LIMBUS * 1.2)}, ${f(RADIUS)}, rho), front);
+          white = mix(white, vec3(0.80, 0.62, 0.58), 0.2 * back * (0.6 + 0.4 * vLow.y));
+          vec3 sclera = mix(white, vec3(0.66, 0.50, 0.22), red * red * 0.75 * (0.65 + 0.35 * vLow.y));
+          // blood leaks under the surface where vessels crowd: a soft red that pools, then spreads
+          float bleed = smoothstep(0.25, 0.9, vs.b + vs.r + 0.5 * vLow.x) * smoothstep(0.15, 0.9, red);
+          sclera = mix(sclera, vec3(0.60, 0.10, 0.09), max(smoothstep(-0.2, 0.7, vLow.x) * red * 0.4 * back, bleed * 0.6));
+          // deep vessels show through the tissue, blue-violet and soft; the surface ones lie on it, sharp
+          sclera = mix(sclera, sclera * vec3(0.72, 0.62, 0.78), clamp(deep * 1.4, 0.0, 1.0) * 0.55);
+          sclera = mix(sclera, mix(vec3(0.50, 0.035, 0.04), vec3(0.26, 0.04, 0.06), red), clamp(surface, 0.0, 1.0) * 0.92);
           // the cut optic nerve at the back
           float stump = (1.0 - front) * (1.0 - smoothstep(${f(1.7 * MM)}, ${f(2.1 * MM)}, rho));
           float sheath = (1.0 - front) * (1.0 - smoothstep(${f(2.1 * MM)}, ${f(2.9 * MM)}, rho));
           sclera = mix(sclera, vec3(0.42, 0.30, 0.27), sheath * 0.7);
           sclera = mix(sclera, vec3(0.78, 0.66, 0.50), stump);
-          // the limbus: the white greys and darkens into the cornea's edge
-          float limbal = front * smoothstep(${f(LIMBUS * 1.32)}, ${f(LIMBUS)}, rho);
-          sclera = mix(sclera, sclera * vec3(0.62, 0.64, 0.70), limbal * 0.6);
-          bVessel = vessels * (1.0 - cornea);
+          // the limbus: the white greys into the cornea's edge
+          float limbal = front * smoothstep(${f(LIMBUS * 1.3)}, ${f(LIMBUS)}, rho);
+          sclera = mix(sclera, sclera * vec3(0.60, 0.62, 0.68), limbal * 0.55);
+          bVessel = clamp(surface, 0.0, 1.0) * (1.0 - cornea);
 
-          // --- the iris, seen through the cornea: the view ray bends at the surface and meets a flat disc
+          // --- the iris, seen through the cornea
           vec3 V = normalize(P - cameraPosition);
           vec3 R = refract(V, normalize(vObjN), ${f(1 / 1.376)});
           vec2 hit = P.xy + R.xy * ((${f(IRIS_Z)} - P.z) / min(R.z, -0.05));
-          float r = length(hit);
-          float rn = r * ${f(1 / IRIS_RADIUS)};
-          vec2 dir = hit / max(r, 1e-5);
-          // fibres: noise stretched along the radius, wrapped round the pupil without a seam
-          vec4 f1 = tnoise(vec3(dir * 7.0 + vec2(4.3, 1.7), rn * 0.5));
-          vec4 f2 = tnoise(vec3(dir * 21.0 + vec2(2.1, 5.9), rn * 1.6 + 3.0));
-          vec3 iris = mix(vec3(0.035, 0.10, 0.16), vec3(0.17, 0.31, 0.38), 0.5 + 0.5 * f1.r);
-          iris *= 0.6 + 0.7 * (0.5 + 0.5 * f2.r);
-          // the collarette: an ochre ring of thicker fibres round the pupil
-          float collar = smoothstep(0.62, 0.36, rn) * (0.6 + 0.4 * f2.g);
-          iris = mix(iris, vec3(0.34, 0.22, 0.075), collar * 0.8);
-          iris = mix(iris, vec3(0.012, 0.02, 0.03), smoothstep(0.72, 0.98, rn) * 0.92);
-          float pupil = 1.0 - smoothstep(${f(PUPIL_RADIUS - 0.12 * MM)}, ${f(PUPIL_RADIUS + 0.12 * MM)}, r + f2.b * ${f(0.06 * MM)});
-          iris = mix(iris, vec3(0.0015), pupil);
-          // the cornea clouds: slowly everywhere, at once under a patch. The pupil goes milky with it.
-          float haze = clamp(uDecay * uDecay * 0.8 + vRot * 1.3, 0.0, 1.0);
+          float rn = length(hit) * ${f(1 / IRIS_RADIUS)};
+          // the photograph's lit iris ends at 0.88 of its frame; past that it falls to black, the limbal ring
+          vec3 iris = texture(uIris, hit * ${f(0.44 / IRIS_RADIUS)} + 0.5).rgb;
+          iris *= 1.0 - smoothstep(1.0, 1.12, rn);
+          // the cornea clouds: slowly everywhere, at once under a stain. The pupil goes milky with it.
+          float haze = clamp(red * red * red * 0.85 + vRot * 1.2, 0.0, 1.0);
           bHaze = haze * cornea;
-          iris = mix(iris, vec3(0.40, 0.44, 0.40) * (0.9 + 0.1 * nA.r), haze * 0.85);
+          iris = mix(iris, vec3(0.36, 0.40, 0.38) * (0.9 + 0.1 * nA.r), haze * 0.85);
 
           vec3 tissue = mix(sclera, iris, cornea);
           bAO = 1.0 - 0.3 * limbal * (1.0 - cornea);
 
-          // --- rot: grey-yellow halo, ochre, olive-brown, black liquefied core, mould specks
-          float lum = dot(tissue, vec3(0.3, 0.55, 0.15));
-          float rot = clamp(vRot + nB.r * 0.12 + nA.g * 0.1, 0.0, 1.0);
-          rot *= step(0.02, vRot);
+          // --- rot is a stain, not a growth: tissue dying from within. Yellowed at its edge, then the red of
+          // blood let loose, then dark, then black-green and wet. It runs ahead along the vessels.
+          float rot = vRot + (vs.r + 0.6 * vs.g + 0.4 * vs.b) * 0.3 * smoothstep(0.0, 0.35, vRot) + nA.g * 0.06 * step(0.01, vRot);
+          rot = clamp(rot, 0.0, 1.0);
           bRot = rot;
-          vec3 halo = vec3(lum * 1.05, lum * 0.95, lum * 0.62);
-          vec3 ochre = vec3(0.36, 0.26, 0.09);
-          vec3 olive = vec3(0.12, 0.10, 0.035);
-          vec3 ooze = vec3(0.025, 0.02, 0.012);
-          vec3 c = mix(tissue, halo, smoothstep(0.02, 0.22, rot));
-          c = mix(c, ochre, smoothstep(0.2, 0.42, rot));
-          c = mix(c, olive, smoothstep(0.42, 0.66, rot));
-          c = mix(c, ooze, smoothstep(0.7, 0.92, rot));
-          float speck = smoothstep(0.5, 0.72, nD.r) * smoothstep(0.3, 0.45, rot) * (1.0 - smoothstep(0.7, 0.85, rot));
-          bMold = speck;
-          c = mix(c, vec3(0.64, 0.68, 0.55), speck * 0.9);
+          vec3 c = mix(tissue, tissue * vec3(0.86, 0.70, 0.42), smoothstep(0.0, 0.25, rot));
+          c = mix(c, vec3(0.42, 0.045, 0.04), smoothstep(0.12, 0.45, rot)); // blood let into the tissue
+          c = mix(c, vec3(0.13, 0.018, 0.03), smoothstep(0.4, 0.7, rot)); // gone dark
+          c = mix(c, vec3(0.03, 0.035, 0.022), smoothstep(0.68, 0.95, rot)); // black, with green in it
           diffuseColor.rgb = c;
-          bAO *= 1.0 - 0.35 * rot;
+          bAO *= 1.0 - 0.3 * rot;
         }`,
       )
       .replace(
         "#include <roughnessmap_fragment>",
         /* glsl */ `#include <roughnessmap_fragment>
-        // the iris is matt under its window; the white is smoother; vessels sit wet
+        // the iris is matt under its window; the white is smoother
         roughnessFactor = mix(roughnessFactor, 0.62, bCornea);
-        roughnessFactor = clamp(roughnessFactor - 0.1 * bVessel, 0.18, 1.0);
-        // dry crust around the patch, wet black ooze at its heart, chalky mould
-        roughnessFactor = mix(roughnessFactor, 0.8, smoothstep(0.2, 0.5, bRot) * (1.0 - smoothstep(0.7, 0.9, bRot)));
-        roughnessFactor = mix(roughnessFactor, 0.2, smoothstep(0.75, 0.95, bRot));
-        roughnessFactor = mix(roughnessFactor, 0.95, bMold);`,
+        roughnessFactor = mix(roughnessFactor, 0.55, smoothstep(0.15, 0.6, bRot));`,
       )
       .replace(
         "#include <lights_physical_fragment>",
@@ -225,9 +209,9 @@ export function eyeMaterial(noise: THREE.Data3DTexture) {
         material.specularF90 *= 1.0 - 0.92 * bCornea * (1.0 - bHaze);
         material.specularColorBlended *= 1.0 - 0.92 * bCornea * (1.0 - bHaze);
         #ifdef USE_CLEARCOAT
-          // the tear film dries with the eye, dulls over a clouded cornea, and breaks on a crust
-          material.clearcoatRoughness = clamp(material.clearcoatRoughness + (0.2 * uDecay + 0.3 * bHaze) * (1.0 - smoothstep(0.7, 0.92, bRot)), 0.03, 1.0);
-          material.clearcoat *= (1.0 - 0.4 * uDecay * (1.0 - smoothstep(0.7, 0.92, bRot))) * mix(1.0, 0.12, smoothstep(0.2, 0.5, bRot) * (1.0 - smoothstep(0.75, 0.95, bRot))) * (1.0 - bMold);
+          // the tear film dries with the eye and dulls over a clouded cornea; dead tissue weeps and stays wet
+          material.clearcoatRoughness = clamp(material.clearcoatRoughness + 0.16 * uDecay + 0.3 * bHaze + 0.12 * smoothstep(0.15, 0.6, bRot), 0.03, 1.0);
+          material.clearcoat *= 1.0 - 0.35 * uDecay * (1.0 - smoothstep(0.3, 0.7, bRot));
         #endif`,
       )
       .replace(
@@ -242,15 +226,29 @@ export function eyeMaterial(noise: THREE.Data3DTexture) {
         {
           // under the cornea the lit surface is the iris, a flat disc: only the tear film keeps the dome
           normal = normalize(mix(normal, normalize(vAxis) * faceDirection, bCornea * (1.0 - bRot) * 0.85));
-          // grain, raised vessels, rot pitting and mould, as a screen-space bump
-          float h = 0.00002 * bGrain + 0.00012 * bVessel + bRot * 0.00035 * bPit + bMold * 0.00012;
+          // grain, raised vessels and the wrinkling of dried tissue, as a screen-space bump
+          float h = 0.00002 * bGrain + 0.0001 * bVessel + bRot * 0.00016 * bPit;
           vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition);
-          float dx = dFdx(h), dy = dFdy(h);
           vec3 r1 = cross(sy, normal), r2 = cross(normal, sx);
           float det = dot(sx, r1) * faceDirection;
-          vec3 grad = sign(det) * (dx * r1 + dy * r2);
+          vec3 grad = sign(det) * (dFdx(h) * r1 + dFdy(h) * r2);
           normal = normalize(abs(det) * normal - grad);
         }`,
+      )
+      .replace(
+        "#include <clearcoat_normal_fragment_maps>",
+        /* glsl */ `#include <clearcoat_normal_fragment_maps>
+        #ifdef USE_CLEARCOAT
+        {
+          // the tear film is a liquid skin of uneven depth: its highlights wobble and break
+          float film = 0.00028 * bFilm * (1.0 - 0.75 * bCornea) + 0.00012 * bVessel;
+          vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition);
+          vec3 c1 = cross(sy, clearcoatNormal), c2 = cross(clearcoatNormal, sx);
+          float cdet = dot(sx, c1) * faceDirection;
+          vec3 cgrad = sign(cdet) * (dFdx(film) * c1 + dFdy(film) * c2);
+          clearcoatNormal = normalize(abs(cdet) * clearcoatNormal - cgrad);
+        }
+        #endif`,
       );
   };
   return { material, uniforms };

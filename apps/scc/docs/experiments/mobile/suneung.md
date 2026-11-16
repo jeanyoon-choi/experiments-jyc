@@ -141,4 +141,20 @@ set as live text that reflows to the screen.
 - Scroll snaps question by question; a question taller than the screen (14, 20 at 390 × 639) scrolls within its
   screen. A display equation wider than the measure shrinks to fit.
 - Known gaps: `≤ ≥` fall back to a non-Latin-Modern face (not in the subset); Σ is smaller than the paper's.
-- `math-2026/solutions.json` holds authored solutions and playback timing for these 30 questions; nothing reads it yet.
+- `math-2026/solutions.json` holds authored solutions and playback timing for these 30 questions; `/2` plays them.
+
+## /2 — solutions at machine speed (2026-11-16)
+
+`/mobile/suneung/2`, code in `components/mobile/suneung/2/` (a standalone copy of `/1`, plus `solution.tsx` and
+`player.ts`). Baseline: `/1`. Changed variable: the booklet explains itself — each question's authored solution
+(`math-2026/solutions.json`) is written out under it at the authored pace, lecture-board style.
+
+- Steps are in the DOM from the start, hidden; the player reveals each at its `atMs` and writes it character by
+  character over its `durationMs`, the unwritten rest kept invisible in place so lines never reflow. One pen colour
+  (#1846d6, 노토 산스 500); multiple-choice answers get a drawn pen loop around the mark, short answers a boxed
+  `답 n`. The line being written is kept in view unless a person scrolled in the last 1.5 s.
+- When a solution ends the answer is marked and the reader turns to the next question; the next clock starts with
+  the turn (the 150 ms answer pause included), so turns add no time. Whatever question the reader settles on, by a
+  turn or a person's scroll, starts its solution from the beginning.
+- Timing is authored, not measured (solutions.json `timing.source`: 157 s in all, the user's 2분 37초). Measured in
+  the browser: question starts within 0.12 s of `startMs` through question 12.

@@ -1,5 +1,5 @@
 Photographs for /mobile/left-right/naver-news/1.
-All from Wikimedia Commons, fetched 2026-11-16, resized to 640 px wide and re-encoded as JPEG.
+All from Wikimedia Commons, fetched 2026-11-16, resized to 480 or 640 px wide and re-encoded as JPEG.
 Each file keeps its original licence; attribution as given on its Commons page.
 
 assembly1.jpg — File:Korea-Seoul-Yeouido-National Assembly Building-08.jpg
@@ -98,3 +98,592 @@ wreaths.jpg — File:Flower wreaths to express support for Prosecutor General Yo
 han.jpg — File:Han Dong-hoon holds emergency press conference at Nat'l Assembly on December 4, 2024 02.webp
   licence: CC BY 3.0 · author: 국민의힘TV (People Power Party) · date: 2024-12-04
   https://commons.wikimedia.org/wiki/File:Han_Dong-hoon_holds_emergency_press_conference_at_Nat%27l_Assembly_on_December_4,_2024_02.webp
+lrally-02.jpg — File:2025-03-15 광화문 윤석열 탄핵 집회 007.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-15
+  https://commons.wikimedia.org/wiki/File:2025-03-15_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_007.jpg
+lrally-03.jpg — File:2025-03-18 광화문 윤석열 탄핵 집회 003.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-08
+  https://commons.wikimedia.org/wiki/File:2025-03-18_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_003.jpg
+lrally-04.jpg — File:2025-03-18 광화문 윤석열 탄핵 집회 008.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-08
+  https://commons.wikimedia.org/wiki/File:2025-03-18_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_008.jpg
+lrally-06.jpg — File:2025-03-22 광화문 윤석열 탄핵 집회 013.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-22
+  https://commons.wikimedia.org/wiki/File:2025-03-22_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_013.jpg
+lrally-07.jpg — File:2025-03-18 광화문 윤석열 탄핵 집회 019.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-08
+  https://commons.wikimedia.org/wiki/File:2025-03-18_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_019.jpg
+lrally-09.jpg — File:2025-03-22 광화문 윤석열 탄핵 집회 022.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-22
+  https://commons.wikimedia.org/wiki/File:2025-03-22_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_022.jpg
+lrally-10.jpg — File:2025-02-22 광화문 윤석열 탄핵 집회 002.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-02-22
+  https://commons.wikimedia.org/wiki/File:2025-02-22_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_002.jpg
+lrally-11.jpg — File:2024-12-05 광화문 윤석열 탄핵 집회 4.jpeg
+  licence: CC BY-SA 2.0 kr · author: revi · date: 5 December
+  https://commons.wikimedia.org/wiki/File:2024-12-05_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_4.jpeg
+lrally-12.jpg — File:2025-03-15 광화문 윤석열 탄핵 집회 004.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-15
+  https://commons.wikimedia.org/wiki/File:2025-03-15_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_004.jpg
+lrally-13.jpg — File:2025-03-22 광화문 윤석열 탄핵 집회 010.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-22
+  https://commons.wikimedia.org/wiki/File:2025-03-22_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_010.jpg
+lrally-14.jpg — File:2025-03-18 광화문 윤석열 탄핵 집회 013.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-08
+  https://commons.wikimedia.org/wiki/File:2025-03-18_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_013.jpg
+lrally-15.jpg — File:2025-03-15 광화문 윤석열 탄핵 집회 022.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-15
+  https://commons.wikimedia.org/wiki/File:2025-03-15_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_022.jpg
+lrally-16.jpg — File:2025-01-04 광화문 윤석열 탄핵 집회 018.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-01-04
+  https://commons.wikimedia.org/wiki/File:2025-01-04_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_018.jpg
+lrally-17.jpg — File:2025-03-18 광화문 윤석열 탄핵 집회 021.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-08
+  https://commons.wikimedia.org/wiki/File:2025-03-18_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_021.jpg
+lrally-18.jpg — File:2025-03-15 광화문 윤석열 탄핵 집회 027.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-15
+  https://commons.wikimedia.org/wiki/File:2025-03-15_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_027.jpg
+lrally-19.jpg — File:2025-03-15 광화문 윤석열 탄핵 집회 013.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-15
+  https://commons.wikimedia.org/wiki/File:2025-03-15_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_013.jpg
+lrally-20.jpg — File:2025-03-15 광화문 윤석열 탄핵 집회 016.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-15
+  https://commons.wikimedia.org/wiki/File:2025-03-15_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_016.jpg
+lrally-21.jpg — File:2025-02-22 광화문 윤석열 탄핵 집회 010.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-02-22
+  https://commons.wikimedia.org/wiki/File:2025-02-22_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_010.jpg
+lrally-22.jpg — File:2025-03-15 광화문 윤석열 탄핵 집회 014.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-15
+  https://commons.wikimedia.org/wiki/File:2025-03-15_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_014.jpg
+lrally-23.jpg — File:2025-02-22 광화문 윤석열 탄핵 집회 011.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-02-22
+  https://commons.wikimedia.org/wiki/File:2025-02-22_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_011.jpg
+lrally-24.jpg — File:2025-03-18 광화문 윤석열 탄핵 집회 028.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-08
+  https://commons.wikimedia.org/wiki/File:2025-03-18_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_028.jpg
+lrally-25.jpg — File:2025-03-18 광화문 윤석열 탄핵 집회 014.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-08
+  https://commons.wikimedia.org/wiki/File:2025-03-18_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_014.jpg
+lrally-26.jpg — File:2025-03-15 광화문 윤석열 탄핵 집회 005.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-15
+  https://commons.wikimedia.org/wiki/File:2025-03-15_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_005.jpg
+lrally-27.jpg — File:2025-03-15 광화문 윤석열 탄핵 집회 012.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-15
+  https://commons.wikimedia.org/wiki/File:2025-03-15_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_012.jpg
+lrally-29.jpg — File:2025-02-22 광화문 윤석열 탄핵 집회 009.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-02-22
+  https://commons.wikimedia.org/wiki/File:2025-02-22_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_009.jpg
+lrally-30.jpg — File:2025-01-04 광화문 윤석열 탄핵 집회 031.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-01-04
+  https://commons.wikimedia.org/wiki/File:2025-01-04_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_031.jpg
+lrally-31.jpg — File:2025-03-22 광화문 윤석열 탄핵 집회 016.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-22
+  https://commons.wikimedia.org/wiki/File:2025-03-22_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_016.jpg
+lrally-32.jpg — File:2025-03-18 광화문 윤석열 탄핵 집회 022.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-08
+  https://commons.wikimedia.org/wiki/File:2025-03-18_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_022.jpg
+lrally-33.jpg — File:2025-01-04 광화문 윤석열 탄핵 집회 022.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-01-04
+  https://commons.wikimedia.org/wiki/File:2025-01-04_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_022.jpg
+lrally-34.jpg — File:2025-03-22 광화문 윤석열 탄핵 집회 021.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-22
+  https://commons.wikimedia.org/wiki/File:2025-03-22_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_021.jpg
+lrally-35.jpg — File:2025-03-15 광화문 윤석열 탄핵 집회 021.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-15
+  https://commons.wikimedia.org/wiki/File:2025-03-15_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_021.jpg
+lrally-37.jpg — File:2025-03-18 광화문 윤석열 탄핵 집회 030.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-08
+  https://commons.wikimedia.org/wiki/File:2025-03-18_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_030.jpg
+lrally-38.jpg — File:2025-03-22 광화문 윤석열 탄핵 집회 020.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-22
+  https://commons.wikimedia.org/wiki/File:2025-03-22_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_020.jpg
+lrally-40.jpg — File:2025-03-22 광화문 윤석열 탄핵 집회 008.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-22
+  https://commons.wikimedia.org/wiki/File:2025-03-22_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_008.jpg
+lrally-42.jpg — File:2025-03-22 광화문 윤석열 탄핵 집회 018.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-22
+  https://commons.wikimedia.org/wiki/File:2025-03-22_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_018.jpg
+lrally-43.jpg — File:2025-03-15 광화문 윤석열 탄핵 집회 020.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-15
+  https://commons.wikimedia.org/wiki/File:2025-03-15_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_020.jpg
+lrally-44.jpg — File:2025-03-22 광화문 윤석열 탄핵 집회 015.jpg
+  licence: CC BY 4.0 · author: ChongDae · date: 2025-03-22
+  https://commons.wikimedia.org/wiki/File:2025-03-22_%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9C%A4%EC%84%9D%EC%97%B4_%ED%83%84%ED%95%B5_%EC%A7%91%ED%9A%8C_015.jpg
+assembly-02.jpg — File:Korea-Seoul-Yeouido-National Assembly Building-07.jpg
+  licence: CC BY-SA 3.0 · author: Alain Seguin at Flickr, from Ottawa, Canada · date: 2007-04-09
+  https://commons.wikimedia.org/wiki/File:Korea-Seoul-Yeouido-National_Assembly_Building-07.jpg
+assembly-04.jpg — File:Korea-Seoul-Yeouido-National Assembly Building-10.jpg
+  licence: CC BY-SA 3.0 · author: Alain Seguin at Flickr, from Ottawa, Canada · date: 2007-04-09
+  https://commons.wikimedia.org/wiki/File:Korea-Seoul-Yeouido-National_Assembly_Building-10.jpg
+assembly-05.jpg — File:Korea-Seoul-Yeouido-National Assembly Building-13.jpg
+  licence: CC BY-SA 3.0 · author: Alain Seguin at Flickr, from Ottawa, Canada · date: 2007-04-09
+  https://commons.wikimedia.org/wiki/File:Korea-Seoul-Yeouido-National_Assembly_Building-13.jpg
+assembly-06.jpg — File:Korea-Seoul-Yeouido-National Assembly Building-12.jpg
+  licence: CC BY-SA 3.0 · author: Alain Seguin at Flickr, from Ottawa, Canada · date: 2007-04-09
+  https://commons.wikimedia.org/wiki/File:Korea-Seoul-Yeouido-National_Assembly_Building-12.jpg
+assembly-07.jpg — File:Korea-Seoul-Yeouido-National Assembly Building-04.jpg
+  licence: CC BY-SA 3.0 · author: Alain Seguin at Flickr, from Ottawa, Canada · date: 2007-04-09
+  https://commons.wikimedia.org/wiki/File:Korea-Seoul-Yeouido-National_Assembly_Building-04.jpg
+assembly-09.jpg — File:Korea-Seoul-Yeouido-National Assembly Building-06.jpg
+  licence: CC BY-SA 3.0 · author: Alain Seguin at Flickr, from Ottawa, Canada · date: 2007-04-09
+  https://commons.wikimedia.org/wiki/File:Korea-Seoul-Yeouido-National_Assembly_Building-06.jpg
+assembly-10.jpg — File:Korea-Seoul-Yeouido-National Assembly Building-09.jpg
+  licence: CC BY-SA 3.0 · author: Alain Seguin at Flickr, from Ottawa, Canada · date: 2007-04-09
+  https://commons.wikimedia.org/wiki/File:Korea-Seoul-Yeouido-National_Assembly_Building-09.jpg
+assembly-11.jpg — File:Korea-Seoul-Yeouido-National Assembly Building-01.jpg
+  licence: CC BY-SA 3.0 · author: Alain Seguin at Flickr, from Ottawa, Canada · date: 2007-04-09
+  https://commons.wikimedia.org/wiki/File:Korea-Seoul-Yeouido-National_Assembly_Building-01.jpg
+assembly-12.jpg — File:Korea-Seoul-Yeouido-National Assembly Building-11.jpg
+  licence: CC BY-SA 3.0 · author: Alain Seguin at Flickr, from Ottawa, Canada · date: 2007-04-09
+  https://commons.wikimedia.org/wiki/File:Korea-Seoul-Yeouido-National_Assembly_Building-11.jpg
+assembly-13.jpg — File:Korea-Seoul-Yeouido-National Assembly Building-05.jpg
+  licence: CC BY-SA 3.0 · author: Alain Seguin at Flickr, from Ottawa, Canada · date: 2007-04-09
+  https://commons.wikimedia.org/wiki/File:Korea-Seoul-Yeouido-National_Assembly_Building-05.jpg
+assembly-14.jpg — File:Korea-Seoul-Yeouido-National Assembly Building-Sculpture-01.jpg
+  licence: CC BY-SA 3.0 · author: Alain Seguin at Flickr, from Ottawa, Canada · date: 2007-04-09
+  https://commons.wikimedia.org/wiki/File:Korea-Seoul-Yeouido-National_Assembly_Building-Sculpture-01.jpg
+assembly-15.jpg — File:Korea-Seoul-Yeouido-National Assembly Building-03.jpg
+  licence: CC BY-SA 3.0 · author: Alain Seguin at Flickr, from Ottawa, Canada · date: 2007-04-09
+  https://commons.wikimedia.org/wiki/File:Korea-Seoul-Yeouido-National_Assembly_Building-03.jpg
+assembly-16.jpg — File:Fountain in National Assembly Building of South Korea.jpg
+  licence: CC BY-SA 4.0 · author: AnbyG · date: 2019-04-06
+  https://commons.wikimedia.org/wiki/File:Fountain_in_National_Assembly_Building_of_South_Korea.jpg
+assembly-19.jpg — File:National Assembly Building of South Korea10.JPG
+  licence: CC BY-SA 3.0 · author: hyolee2 · date: 2010-09-17
+  https://commons.wikimedia.org/wiki/File:National_Assembly_Building_of_South_Korea10.JPG
+assembly-20.jpg — File:National Assembly Building , Seoul - panoramio.jpg
+  licence: CC BY-SA 3.0 · author: JiroS. · date: Taken on 2
+  https://commons.wikimedia.org/wiki/File:National_Assembly_Building_,_Seoul_-_panoramio.jpg
+assembly-21.jpg — File:National Assembly (Parliament) Building in Seoul Korea.jpg
+  licence: CC BY-SA 4.0 · author: Joongwon Lee - SKKU DOA · date: 2019-06-18
+  https://commons.wikimedia.org/wiki/File:National_Assembly_(Parliament)_Building_in_Seoul_Korea.jpg
+court-02.jpg — File:Court building of Constitutional Court of Korea.jpg
+  licence: CC BY-SA 4.0 · author: Pauloleong2002 · date: 2014-10-31
+  https://commons.wikimedia.org/wiki/File:Court_building_of_Constitutional_Court_of_Korea.jpg
+court-03.jpg — File:헌법재판소 001.jpg
+  licence: CC BY 2.0 kr · author: revi · date: 2018-07-07
+  https://commons.wikimedia.org/wiki/File:%ED%97%8C%EB%B2%95%EC%9E%AC%ED%8C%90%EC%86%8C_001.jpg
+court-04.jpg — File:Hearing of PM Han Duck-soo's impeachment at the Constitutional Court of Korea in 19 February 2025.jpg
+  licence: Attribution · author: Constitutional Court of Korea · date: 2025-02-19
+  https://commons.wikimedia.org/wiki/File:Hearing_of_PM_Han_Duck-soo%27s_impeachment_at_the_Constitutional_Court_of_Korea_in_19_February_2025.jpg
+hearing-02.jpg — File:Yoon Suk Yeol at the 5th hearing of impeachment trial at the Constitutional Court on Feburary 4, 2025.jpg
+  licence: Attribution · author: Constitutional Court of Korea · date: 2025-02-04
+  https://commons.wikimedia.org/wiki/File:Yoon_Suk_Yeol_at_the_5th_hearing_of_impeachment_trial_at_the_Constitutional_Court_on_Feburary_4,_2025.jpg
+hearing-03.jpg — File:Yoon Suk Yeol at the 4th hearing of impeachment trial at the Constitutional Court on January 23, 2025.jpg
+  licence: Attribution · author: Constitutional Court of Korea · date: 2025-01-23
+  https://commons.wikimedia.org/wiki/File:Yoon_Suk_Yeol_at_the_4th_hearing_of_impeachment_trial_at_the_Constitutional_Court_on_January_23,_2025.jpg
+hearing-04.jpg — File:Yoon Suk Yeol at the 3rd hearing of impeachment trial at the Constitutional Court on January 21, 2025.jpg
+  licence: Attribution · author: Constitutional Court of Korea · date: 2025-01-21
+  https://commons.wikimedia.org/wiki/File:Yoon_Suk_Yeol_at_the_3rd_hearing_of_impeachment_trial_at_the_Constitutional_Court_on_January_21,_2025.jpg
+lee-01.jpg — File:Lee Jae-myung & Kim Yung-rok, Jeju Air Flight 2216, 2 January 2025 04.jpg
+  licence: KOGL Type 1 · author: Jeonnam Provincial Government · date: 2025-01-02
+  https://commons.wikimedia.org/wiki/File:Lee_Jae-myung_%26_Kim_Yung-rok,_Jeju_Air_Flight_2216,_2_January_2025_04.jpg
+lee-02.jpg — File:PM Ishiba meeting President of South Kore Lee Jae-myung (2025).jpg
+  licence: CC BY 4.0 · author: 首相官邸ホームページ · date: 2025-09-30
+  https://commons.wikimedia.org/wiki/File:PM_Ishiba_meeting_President_of_South_Kore_Lee_Jae-myung_(2025).jpg
+lee-03.jpg — File:Lee Jae-myung, Lee Ok-seon, 11 August 2018, House of Sharing, Gwangju 06.jpg
+  licence: KOGL Type 1 · author: Gyeonggi Provincial Government / 경기도청 · date: 2018-08-11
+  https://commons.wikimedia.org/wiki/File:Lee_Jae-myung,_Lee_Ok-seon,_11_August_2018,_House_of_Sharing,_Gwangju_06.jpg
+lee-04.jpg — File:Lee Jae-myung & Kim Yung-rok, Jeju Air Flight 2216, 2 January 2025 02.jpg
+  licence: KOGL Type 1 · author: Jeonnam Provincial Government · date: 2024-01-02
+  https://commons.wikimedia.org/wiki/File:Lee_Jae-myung_%26_Kim_Yung-rok,_Jeju_Air_Flight_2216,_2_January_2025_02.jpg
+lee-05.jpg — File:President Lee Jae-myung Gwangju 20250625.jpg
+  licence: KOGL Type 1 · author: 광주광역시 · date: 2025-06-25
+  https://commons.wikimedia.org/wiki/File:President_Lee_Jae-myung_Gwangju_20250625.jpg
+lee-06.jpg — File:Lee Jae-myung & Kim Yung-rok, Jeju Air Flight 2216, 2 January 2025 03.jpg
+  licence: KOGL Type 1 · author: Jeonnam Provincial Government · date: 2024-01-02
+  https://commons.wikimedia.org/wiki/File:Lee_Jae-myung_%26_Kim_Yung-rok,_Jeju_Air_Flight_2216,_2_January_2025_03.jpg
+lee-07.jpg — File:Lee Jae-myung & Kim Yung-rok, Jeju Air Flight 2216, 2 January 2025 01.jpg
+  licence: KOGL Type 1 · author: Jeonnam Provincial Government · date: 2024-01-02
+  https://commons.wikimedia.org/wiki/File:Lee_Jae-myung_%26_Kim_Yung-rok,_Jeju_Air_Flight_2216,_2_January_2025_01.jpg
+lee-08.jpg — File:Lee Jae-myung, Lee Yong-soo, 11 August 2018, House of Sharing, Gwangju 05.jpg
+  licence: KOGL Type 1 · author: Gyeonggi Provincial Government / 경기도청 · date: 2018-08-11
+  https://commons.wikimedia.org/wiki/File:Lee_Jae-myung,_Lee_Yong-soo,_11_August_2018,_House_of_Sharing,_Gwangju_05.jpg
+lee-09.jpg — File:17.06.2025 - Encontro com o Presidente da Coreia do Sul, Lee Jae-myung (54595547632).jpg
+  licence: CC BY-SA 2.0 · author: Lula Oficial · date: n/a
+  https://commons.wikimedia.org/wiki/File:17.06.2025_-_Encontro_com_o_Presidente_da_Coreia_do_Sul,_Lee_Jae-myung_(54595547632).jpg
+lee-10.jpg — File:Shigeru Ishiba and Lee Jae-myung at the Japanese Prime Minister's Office.jpg
+  licence: CC BY 4.0 · author: 内閣官房内閣広報室 · date: 2025-08-23
+  https://commons.wikimedia.org/wiki/File:Shigeru_Ishiba_and_Lee_Jae-myung_at_the_Japanese_Prime_Minister%27s_Office.jpg
+lee-11.jpg — File:Lee Jae-myung, 11 August 2018, House of Sharing, Gwangju 03.jpg
+  licence: KOGL Type 1 · author: Gyeonggi Provincial Government / 경기도청 · date: 2018-08-11
+  https://commons.wikimedia.org/wiki/File:Lee_Jae-myung,_11_August_2018,_House_of_Sharing,_Gwangju_03.jpg
+lee-12.jpg — File:Lee Jae-myung, 11 August 2018, House of Sharing, Gwangju 04.jpg
+  licence: KOGL Type 1 · author: Gyeonggi Provincial Government / 경기도청 · date: 2018-08-11
+  https://commons.wikimedia.org/wiki/File:Lee_Jae-myung,_11_August_2018,_House_of_Sharing,_Gwangju_04.jpg
+lee-13.jpg — File:17.06.2025 - Encontro com o Presidente da Coreia do Sul, Lee Jae-myung (54596636128).jpg
+  licence: CC BY-SA 2.0 · author: Lula Oficial · date: n/a
+  https://commons.wikimedia.org/wiki/File:17.06.2025_-_Encontro_com_o_Presidente_da_Coreia_do_Sul,_Lee_Jae-myung_(54596636128).jpg
+lee-14.jpg — File:President Lee Jae-myung Leaves for Japan 20250823 (04).jpg
+  licence: CC BY-SA 4.0 · author: Republic of  Korea · date: 2025-08-23
+  https://commons.wikimedia.org/wiki/File:President_Lee_Jae-myung_Leaves_for_Japan_20250823_(04).jpg
+lee-15.jpg — File:Lee Jae-myung announces candidacy for Democratic Party leader 20240710 (03).jpg
+  licence: CC BY 3.0 · author: 이재명 · date: 2024-07-10
+  https://commons.wikimedia.org/wiki/File:Lee_Jae-myung_announces_candidacy_for_Democratic_Party_leader_20240710_(03).jpg
+lee-16.jpg — File:President Lee leaves for Canada for G7 (President Lee Jae-myung will attend the summit of the Group of Seven in Kananaskis, Canada.) (54594515646).jpg
+  licence: CC BY-SA 2.0 · author: Republic of  Korea from Seoul, Republic of Korea · date: 2025-06-16
+  https://commons.wikimedia.org/wiki/File:President_Lee_leaves_for_Canada_for_G7_(President_Lee_Jae-myung_will_attend_the_summit_of_the_Group_of_Seven_in_Kananaskis,_Canada.)_(54594515646).jpg
+lee-19.jpg — File:President Lee leaves for Canada for G7 (President Lee Jae-myung will attend the summit of the Group of Seven in Kananaskis, Canada.) (54594707149).jpg
+  licence: CC BY-SA 2.0 · author: Republic of  Korea from Seoul, Republic of Korea · date: 2025-06-16
+  https://commons.wikimedia.org/wiki/File:President_Lee_leaves_for_Canada_for_G7_(President_Lee_Jae-myung_will_attend_the_summit_of_the_Group_of_Seven_in_Kananaskis,_Canada.)_(54594707149).jpg
+lee-20.jpg — File:President Lee Jae-myung Leaves for Japan 20250823 (01).jpg
+  licence: CC BY-SA 4.0 · author: Republic of  Korea · date: 2025-08-23
+  https://commons.wikimedia.org/wiki/File:President_Lee_Jae-myung_Leaves_for_Japan_20250823_(01).jpg
+lee-21.jpg — File:President Lee Jae-myung Leaves for Japan 20250823 (03).jpg
+  licence: CC BY-SA 4.0 · author: Republic of  Korea · date: 2025-08-23
+  https://commons.wikimedia.org/wiki/File:President_Lee_Jae-myung_Leaves_for_Japan_20250823_(03).jpg
+lee-24.jpg — File:President Lee Jae-myung Leaves for Japan 20250823 (12).jpg
+  licence: CC BY-SA 4.0 · author: Republic of  Korea · date: 2025-08-23
+  https://commons.wikimedia.org/wiki/File:President_Lee_Jae-myung_Leaves_for_Japan_20250823_(12).jpg
+yoon-06.jpg — File:Fumio Kishida met with Yoon Suk-yeol at the sideline of 2024 China-Japan-ROK trilateral summit (1).jpg
+  licence: CC BY 4.0 · author: 内閣官房内閣広報室 · date: 2024-05-26
+  https://commons.wikimedia.org/wiki/File:Fumio_Kishida_met_with_Yoon_Suk-yeol_at_the_sideline_of_2024_China-Japan-ROK_trilateral_summit_(1).jpg
+yoon-07.jpg — File:PM of Japan Fumio Kishida meets President of South Korea Yoon Suk-yeol (2024) 3.jpg
+  licence: CC BY 4.0 · author: 首相官邸ホームページ · date: 2024-05-26
+  https://commons.wikimedia.org/wiki/File:PM_of_Japan_Fumio_Kishida_meets_President_of_South_Korea_Yoon_Suk-yeol_(2024)_3.jpg
+yoon-09.jpg — File:Yoshimasa Hayashi and Yoon Suk-yeol (2).jpg
+  licence: CC BY 4.0 · author: Ministry of Foreign Affairs of Japan · date: Taken on 1
+  https://commons.wikimedia.org/wiki/File:Yoshimasa_Hayashi_and_Yoon_Suk-yeol_(2).jpg
+yoon-10.jpg — File:PM of Japan Fumio Kishida meets President of South Korea Yoon Suk-yeol (2024) 2.jpg
+  licence: CC BY 4.0 · author: 首相官邸ホームページ · date: 2024-05-26
+  https://commons.wikimedia.org/wiki/File:PM_of_Japan_Fumio_Kishida_meets_President_of_South_Korea_Yoon_Suk-yeol_(2024)_2.jpg
+yoon-12.jpg — File:Prime Minister Ishiba meeting with President of South Korea Yoon Suk-yeol (2024).jpg
+  licence: CC BY 4.0 · author: 首相官邸ホームページ · date: 2024-11-16
+  https://commons.wikimedia.org/wiki/File:Prime_Minister_Ishiba_meeting_with_President_of_South_Korea_Yoon_Suk-yeol_(2024).jpg
+yoon-14.jpg — File:PM of Japan Fumio Kishida meets President of South Korea Yoon Suk-yeol (2024) 4.jpg
+  licence: CC BY 4.0 · author: 首相官邸ホームページ · date: 2024-05-26
+  https://commons.wikimedia.org/wiki/File:PM_of_Japan_Fumio_Kishida_meets_President_of_South_Korea_Yoon_Suk-yeol_(2024)_4.jpg
+kimkh-01.jpg — File:President Yoon Suk Yeol and first Lady Kim Keon Hee depart to Madrid, Spain for Nato Summit at Seoul Air Base (1).jpg
+  licence: CC BY-SA 2.0 · author: Jeon Han · date: 2022-06-27
+  https://commons.wikimedia.org/wiki/File:President_Yoon_Suk_Yeol_and_first_Lady_Kim_Keon_Hee_depart_to_Madrid,_Spain_for_Nato_Summit_at_Seoul_Air_Base_(1).jpg
+kimkh-02.jpg — File:President Yoon Suk Yeol and first Lady Kim Keon Hee depart to Madrid, Spain for Nato Summit at Seoul Air Base (3).jpg
+  licence: CC BY-SA 2.0 · author: Jeon Han · date: 2022-06-27
+  https://commons.wikimedia.org/wiki/File:President_Yoon_Suk_Yeol_and_first_Lady_Kim_Keon_Hee_depart_to_Madrid,_Spain_for_Nato_Summit_at_Seoul_Air_Base_(3).jpg
+kimkh-03.jpg — File:President Yoon Suk Yeol and first Lady Kim Keon Hee depart to Madrid, Spain for Nato Summit at Seoul Air Base (2).jpg
+  licence: CC BY-SA 2.0 · author: Jeon Han · date: 2022-06-27
+  https://commons.wikimedia.org/wiki/File:President_Yoon_Suk_Yeol_and_first_Lady_Kim_Keon_Hee_depart_to_Madrid,_Spain_for_Nato_Summit_at_Seoul_Air_Base_(2).jpg
+kimkh-05.jpg — File:President Joe Biden and First Lady Jill Biden, President Yoon Suk Yeol and First Lady of the Republic of Korea Kim Keon Hee pose on April 25, 2023, in the Booksellers area of the White House.jpg
+  licence: Public domain · author: The White House · date: 2023-04-25
+  https://commons.wikimedia.org/wiki/File:President_Joe_Biden_and_First_Lady_Jill_Biden,_President_Yoon_Suk_Yeol_and_First_Lady_of_the_Republic_of_Korea_Kim_Keon_Hee_pose_on_April_25,_2023,_in_the_Booksellers_area_of_the_White_House.jpg
+kimkh-06.jpg — File:President Yoon Suk Yeol of the Republic of Korea and Mrs. Kim Keon Hee exchange gifts with President Joe Biden and First Lady Jill Biden, Tuesday, April 25, 2023, in the Blue Room of the White House.jpg
+  licence: Public domain · author: The White House · date: 2023-04-25
+  https://commons.wikimedia.org/wiki/File:President_Yoon_Suk_Yeol_of_the_Republic_of_Korea_and_Mrs._Kim_Keon_Hee_exchange_gifts_with_President_Joe_Biden_and_First_Lady_Jill_Biden,_Tuesday,_April_25,_2023,_in_the_Blue_Room_of_the_White_House.jpg
+ppp-02.jpg — File:Meeting between Democratic Party Leader Lee Jae-myung and People Power Party Leader Han Dong-hoon 20240901 (05).jpg
+  licence: CC BY 3.0 · author: 국민의힘TV · date: 2024-09-01
+  https://commons.wikimedia.org/wiki/File:Meeting_between_Democratic_Party_Leader_Lee_Jae-myung_and_People_Power_Party_Leader_Han_Dong-hoon_20240901_(05).jpg
+ppp-03.jpg — File:Meeting between Democratic Party Leader Lee Jae-myung and People Power Party Leader Han Dong-hoon 20240901 (02).jpg
+  licence: CC BY 3.0 · author: 국민의힘TV · date: 2024-09-01
+  https://commons.wikimedia.org/wiki/File:Meeting_between_Democratic_Party_Leader_Lee_Jae-myung_and_People_Power_Party_Leader_Han_Dong-hoon_20240901_(02).jpg
+ppp-04.jpg — File:Meeting between Democratic Party Leader Lee Jae-myung and People Power Party Leader Han Dong-hoon 20240901 (03).jpg
+  licence: CC BY 3.0 · author: 국민의힘TV · date: 2024-09-01
+  https://commons.wikimedia.org/wiki/File:Meeting_between_Democratic_Party_Leader_Lee_Jae-myung_and_People_Power_Party_Leader_Han_Dong-hoon_20240901_(03).jpg
+ppp-05.jpg — File:Meeting between Democratic Party Leader Lee Jae-myung and People Power Party Leader Han Dong-hoon 20240901 (04).jpg
+  licence: CC BY 3.0 · author: 국민의힘TV · date: 2024-09-01
+  https://commons.wikimedia.org/wiki/File:Meeting_between_Democratic_Party_Leader_Lee_Jae-myung_and_People_Power_Party_Leader_Han_Dong-hoon_20240901_(04).jpg
+ppp-06.jpg — File:Meeting between Democratic Party Leader Lee Jae-myung and People Power Party Leader Han Dong-hoon 20240901 (01).jpg
+  licence: CC BY 3.0 · author: 국민의힘TV · date: 2024-09-01
+  https://commons.wikimedia.org/wiki/File:Meeting_between_Democratic_Party_Leader_Lee_Jae-myung_and_People_Power_Party_Leader_Han_Dong-hoon_20240901_(01).jpg
+ppp-07.jpg — File:Meeting between Democratic Party Leader Lee Jae-myung and People Power Party Leader Han Dong-hoon 20240901 (06).jpg
+  licence: CC BY 3.0 · author: 국민의힘TV · date: 2024-09-01
+  https://commons.wikimedia.org/wiki/File:Meeting_between_Democratic_Party_Leader_Lee_Jae-myung_and_People_Power_Party_Leader_Han_Dong-hoon_20240901_(06).jpg
+apt-02.jpg — File:Daechi Dongbo Centreville Apartment Complex 3.jpg
+  licence: CC BY-SA 4.0 · author: kallerna · date: 2022-11-26
+  https://commons.wikimedia.org/wiki/File:Daechi_Dongbo_Centreville_Apartment_Complex_3.jpg
+apt-04.jpg — File:Jamsil Apartment Complex Phase 5 (5460805782).jpg
+  licence: CC BY-SA 2.0 · author: InSapphoWeTrust from Los Angeles, California, USA · date: 2008-09-20
+  https://commons.wikimedia.org/wiki/File:Jamsil_Apartment_Complex_Phase_5_(5460805782).jpg
+apt-05.jpg — File:Wide view of Nowon-gu Apartment buildings.jpg
+  licence: CC BY-SA 3.0 · author: Ox1997cow · date: 2022-08-01
+  https://commons.wikimedia.org/wiki/File:Wide_view_of_Nowon-gu_Apartment_buildings.jpg
+apt-10.jpg — File:East facade of Hyundai Apartments 31-dong in Seoul, Korea.jpg
+  licence: CC BY-SA 4.0 · author: ZbnKhl · date: 2020-10-11
+  https://commons.wikimedia.org/wiki/File:East_facade_of_Hyundai_Apartments_31-dong_in_Seoul,_Korea.jpg
+apt-13.jpg — File:Apartment buildings near Seongsu Bridge.jpg
+  licence: CC BY-SA 4.0 · author: Ox1997cow · date: 2023-07-26
+  https://commons.wikimedia.org/wiki/File:Apartment_buildings_near_Seongsu_Bridge.jpg
+apt-14.jpg — File:Seoul Apartment Buildings (1509272335).jpg
+  licence: CC BY 2.0 · author: Francisco Anzola · date: 2007-08-30
+  https://commons.wikimedia.org/wiki/File:Seoul_Apartment_Buildings_(1509272335).jpg
+apt-15.jpg — File:Nowon-gu Apartment buildings with Lotte World Tower.jpg
+  licence: CC BY-SA 3.0 · author: Ox1997cow · date: 2022-08-01
+  https://commons.wikimedia.org/wiki/File:Nowon-gu_Apartment_buildings_with_Lotte_World_Tower.jpg
+apt-16.jpg — File:Nowon-gu apartment buildings seen from Dobong-gu.jpg
+  licence: CC BY-SA 4.0 · author: Ox1997cow · date: 2024-03-06
+  https://commons.wikimedia.org/wiki/File:Nowon-gu_apartment_buildings_seen_from_Dobong-gu.jpg
+apt-17.jpg — File:Ttukseom apartment buildings seoul.jpg
+  licence: CC BY-SA 4.0 · author: Sgroey · date: 2024-08-21
+  https://commons.wikimedia.org/wiki/File:Ttukseom_apartment_buildings_seoul.jpg
+apt-19.jpg — File:Dangsan apartments.jpg
+  licence: CC BY-SA 4.0 · author: Brit in Seoul · date: 2020-11-07
+  https://commons.wikimedia.org/wiki/File:Dangsan_apartments.jpg
+market-01.jpg — File:Gwangjang Market, Seoul 02.jpg
+  licence: CC0 · author: Bgag · date: 2022-09-26
+  https://commons.wikimedia.org/wiki/File:Gwangjang_Market,_Seoul_02.jpg
+market-02.jpg — File:Gwangjang Market, Seoul 01.jpg
+  licence: CC0 · author: Bgag · date: 2022-09-26
+  https://commons.wikimedia.org/wiki/File:Gwangjang_Market,_Seoul_01.jpg
+market-03.jpg — File:Seoul, Jongno District, Gwangjang Market, Jeon.jpg
+  licence: CC BY-SA 4.0 · author: Dr. Thomas Liptak · date: Taken on 2
+  https://commons.wikimedia.org/wiki/File:Seoul,_Jongno_District,_Gwangjang_Market,_Jeon.jpg
+market-04.jpg — File:Korea-Seoul-Gwangjang Market-01.jpg
+  licence: CC BY-SA 2.0 · author: ayustety · date: 2005-05-04
+  https://commons.wikimedia.org/wiki/File:Korea-Seoul-Gwangjang_Market-01.jpg
+market-06.jpg — File:Gwangjang Market, Seoul 2020-02-01.jpg
+  licence: CC BY-SA 4.0 · author: Stck w
+
+ This photo was taken with Sharp Aquos R3 · date: Taken on 1
+  https://commons.wikimedia.org/wiki/File:Gwangjang_Market,_Seoul_2020-02-01.jpg
+market-07.jpg — File:Gwangjang Market.JPG
+  licence: CC BY-SA 3.0 · author: ChongDae · date: 2013-02-16
+  https://commons.wikimedia.org/wiki/File:Gwangjang_Market.JPG
+port-01.jpg — File:Korea busan pusan harbour cargo container terminal.JPG
+  licence: CC BY-SA 3.0 · author: Martin Pueschel Eastberliner · date: Taken on 1
+  https://commons.wikimedia.org/wiki/File:Korea_busan_pusan_harbour_cargo_container_terminal.JPG
+port-02.jpg — File:Busan Port (1).jpg
+  licence: CC BY-SA 4.0 · author: Busan Metropolitan city · date: 2013-09-16
+  https://commons.wikimedia.org/wiki/File:Busan_Port_(1).jpg
+port-05.jpg — File:Busan-port-from-Busan-tower-1.jpg
+  licence: CC BY-SA 3.0 · author: Bergmann from jawp · date: Taken on 2
+  https://commons.wikimedia.org/wiki/File:Busan-port-from-Busan-tower-1.jpg
+port-06.jpg — File:Busan-port-from-Busan-tower-2.jpg
+  licence: CC BY-SA 3.0 · author: Bergmann from jawp · date: Taken on 2
+  https://commons.wikimedia.org/wiki/File:Busan-port-from-Busan-tower-2.jpg
+port-07.jpg — File:Busan Port in 2018.jpg
+  licence: CC BY-SA 4.0 · author: Christophe95 · date: 2018-09-27
+  https://commons.wikimedia.org/wiki/File:Busan_Port_in_2018.jpg
+port-08.jpg — File:Busan Port Bridge.JPG
+  licence: CC BY-SA 4.0 · author: hyolee2 · date: n/a
+  https://commons.wikimedia.org/wiki/File:Busan_Port_Bridge.JPG
+port-09.jpg — File:Busan Port from the sea.jpg
+  licence: CC BY-SA 4.0 · author: Christophe95 · date: 2018-09-27
+  https://commons.wikimedia.org/wiki/File:Busan_Port_from_the_sea.jpg
+port-10.jpg — File:Port of Busan and bridge Busan Korea (15001037711).jpg
+  licence: Public domain · author: amanderson2 · date: 2014-08-21
+  https://commons.wikimedia.org/wiki/File:Port_of_Busan_and_bridge_Busan_Korea_(15001037711).jpg
+port-12.jpg — File:Around the Busan Port - panoramio.jpg
+  licence: CC BY 3.0 · author: ccfarmer · date: Taken on 2
+  https://commons.wikimedia.org/wiki/File:Around_the_Busan_Port_-_panoramio.jpg
+port-13.jpg — File:Busan Port.JPG
+  licence: CC BY-SA 3.0 · author: (WT-en) Jpatokal at English Wikivoyage · date: 20 Septemb
+  https://commons.wikimedia.org/wiki/File:Busan_Port.JPG
+port-14.jpg — File:부산항 Port of Busan 釜山港 - panoramio.jpg
+  licence: CC BY 3.0 · author: Bohao Zhao · date: Taken on 2
+  https://commons.wikimedia.org/wiki/File:%EB%B6%80%EC%82%B0%ED%95%AD_Port_of_Busan_%E9%87%9C%E5%B1%B1%E6%B8%AF_-_panoramio.jpg
+sejong-03.jpg — File:Sejong BRT Government Complex Sejong South Station.jpg
+  licence: CC BY-SA 4.0 · author: Minseong Kim · date: 2014-11-10
+  https://commons.wikimedia.org/wiki/File:Sejong_BRT_Government_Complex_Sejong_South_Station.jpg
+sejong-04.jpg — File:Government Complex Sejong (N).jpg
+  licence: CC BY-SA 4.0 · author: Minseong Kim · date: Taken on 1
+  https://commons.wikimedia.org/wiki/File:Government_Complex_Sejong_(N).jpg
+sejong-05.jpg — File:Sejong BRT Station Gov't Complex Sejong South 02.jpg
+  licence: CC BY-SA 3.0 · author: *Youngjin · date: 2019-06-09
+  https://commons.wikimedia.org/wiki/File:Sejong_BRT_Station_Gov%27t_Complex_Sejong_South_02.jpg
+sejong-06.jpg — File:Government Complex Sejong North Station 240219.jpg
+  licence: CC BY-SA 4.0 · author: Minseong Kim · date: 2019-02-24
+  https://commons.wikimedia.org/wiki/File:Government_Complex_Sejong_North_Station_240219.jpg
+vote-01.jpg — File:Korean polling station Helsinki.jpg
+  licence: CC BY-SA 4.0 · author: Kaihsu Tai · date: 2022-02-23
+  https://commons.wikimedia.org/wiki/File:Korean_polling_station_Helsinki.jpg
+vote-02.jpg — File:토론토 재외투표소 - 20250522 - 03.jpg
+  licence: CC BY-SA 4.0 · author: Sikander Iqbal · date: 2025-05-22
+  https://commons.wikimedia.org/wiki/File:%ED%86%A0%EB%A1%A0%ED%86%A0_%EC%9E%AC%EC%99%B8%ED%88%AC%ED%91%9C%EC%86%8C_-_20250522_-_03.jpg
+vote-05.jpg — File:Korean 5th local election ballot paper with envelope - Muju na.jpg
+  licence: CC BY-SA 3.0 · author: Ha98574 (Min's) · date: 2010-05-26
+  https://commons.wikimedia.org/wiki/File:Korean_5th_local_election_ballot_paper_with_envelope_-_Muju_na.jpg
+myeongdong-02.jpg — File:Myeong-dong (22139460844).jpg
+  licence: CC BY-SA 2.0 · author: Laika ac from UK · date: 2015-09-15
+  https://commons.wikimedia.org/wiki/File:Myeong-dong_(22139460844).jpg
+myeongdong-04.jpg — File:SK 南韓 Korea tour 明洞 Myeong-dong July-2013 shops.JPG
+  licence: CC BY-SA 3.0 · author: Noulovanarderso · date: Taken on 1
+  https://commons.wikimedia.org/wiki/File:SK_%E5%8D%97%E9%9F%93_Korea_tour_%E6%98%8E%E6%B4%9E_Myeong-dong_July-2013_shops.JPG
+myeongdong-05.jpg — File:Myeong-dong, Jung-gu, Seoul, South Korea - panoramio.jpg
+  licence: CC BY-SA 3.0 · author: 张元柏 · date: Taken on 1
+  https://commons.wikimedia.org/wiki/File:Myeong-dong,_Jung-gu,_Seoul,_South_Korea_-_panoramio.jpg
+myeongdong-06.jpg — File:SK 南韓 Korea tour 明洞 Myeong-dong July-2013 shop signs.JPG
+  licence: CC BY-SA 3.0 · author: Noulovanarderso · date: Taken on 1
+  https://commons.wikimedia.org/wiki/File:SK_%E5%8D%97%E9%9F%93_Korea_tour_%E6%98%8E%E6%B4%9E_Myeong-dong_July-2013_shop_signs.JPG
+myeongdong-14.jpg — File:Myeongdong at night.jpg
+  licence: CC BY-SA 4.0 · author: Christian Bolz (크리스티안 볼츠) · date: 2012-10-12
+  https://commons.wikimedia.org/wiki/File:Myeongdong_at_night.jpg
+myeongdong-15.jpg — File:Myeongdong, Seoul - Myeongdong3165.jpg
+  licence: CC0 · author: lumoplank · date: before 21 
+  https://commons.wikimedia.org/wiki/File:Myeongdong,_Seoul_-_Myeongdong3165.jpg
+airport-02.jpg — File:Incheon International Airport Terminal 1 Arrival 2.jpg
+  licence: CC BY 4.0 · author: ノボホショコロトソ · date: 2023-09-28
+  https://commons.wikimedia.org/wiki/File:Incheon_International_Airport_Terminal_1_Arrival_2.jpg
+airport-06.jpg — File:Incheon International Airport Terminal 1 Arrival.jpg
+  licence: CC BY-SA 3.0 de · author: Arne Müseler · date: n/a
+  https://commons.wikimedia.org/wiki/File:Incheon_International_Airport_Terminal_1_Arrival.jpg
+airport-07.jpg — File:Korea-Incheon-International-Airport-Arrival-lobby-overview.JPG
+  licence: CC BY 2.5 · author: Kanchi1979 · date: 2006-11-19
+  https://commons.wikimedia.org/wiki/File:Korea-Incheon-International-Airport-Arrival-lobby-overview.JPG
+airport-08.jpg — File:Incheon airport arrivals queue.jpg
+  licence: CC BY-SA 4.0 · author: Sgroey · date: 2024-08-17
+  https://commons.wikimedia.org/wiki/File:Incheon_airport_arrivals_queue.jpg
+airport-10.jpg — File:Incheon Arrivals.jpg
+  licence: Public domain · author: Original uploader was Siqbal at en.wikipedia.
+
+Later version(s) were uploaded by Wikimachine at en.w · date: 2005-01-14
+  https://commons.wikimedia.org/wiki/File:Incheon_Arrivals.jpg
+navy-02.jpg — File:Munmu The Great (KDX II).jpg
+  licence: Public domain · author: U.S. Navy photo by Mass Communication Specialist 2nd Class Aaron Burden · date: 2007-03-27
+  https://commons.wikimedia.org/wiki/File:Munmu_The_Great_(KDX_II).jpg
+navy-05.jpg — File:Munmu The Great02.jpg
+  licence: Public domain · author: James E. Foehl · date: 2008-06-24
+  https://commons.wikimedia.org/wiki/File:Munmu_The_Great02.jpg
+navy-06.jpg — File:US Navy 080624-N-4965F-069 Republic of Korea Ship (ROKS) Munmu the Great (DDH 976) passes Battleship Missouri Memorial and USS Arizona Memorial as she makes her way pier side to Naval Station Pearl Harbor.jpg
+  licence: Public domain · author: U.S. Navy photo by Mass Communication Specialist 1st Class James E. Foehl · date: Taken on 2
+  https://commons.wikimedia.org/wiki/File:US_Navy_080624-N-4965F-069_Republic_of_Korea_Ship_(ROKS)_Munmu_the_Great_(DDH_976)_passes_Battleship_Missouri_Memorial_and_USS_Arizona_Memorial_as_she_makes_her_way_pier_side_to_Naval_Station_Pearl_Harbor.jpg
+navy-07.jpg — File:US Navy 120203-N-ZZ999-102 The Republic of Korea Navy Ship (ROKS) Munmu the Great (DDH 976) is alongside the Arleigh Burke-class guided-missile des.jpg
+  licence: Public domain · author: U.S. Navy photo · date: 2011-02-03
+  https://commons.wikimedia.org/wiki/File:US_Navy_120203-N-ZZ999-102_The_Republic_of_Korea_Navy_Ship_(ROKS)_Munmu_the_Great_(DDH_976)_is_alongside_the_Arleigh_Burke-class_guided-missile_des.jpg
+navy-08.jpg — File:US Navy 080624-N-4965F-365 The Pearl Harbor-based guided-missile cruiser USS Port Royal (CG 73) sits moored as a tugboat assigned to Naval Station (NAVSTA) Pearl Harbor assists Republic of Korea Ship (ROKS) Yang Manchoon (DDH 9.jpg
+  licence: Public domain · author: U.S. Navy photo by Mass Communication Specialist 1st Class James E. Foehl · date: Taken on 2
+  https://commons.wikimedia.org/wiki/File:US_Navy_080624-N-4965F-365_The_Pearl_Harbor-based_guided-missile_cruiser_USS_Port_Royal_(CG_73)_sits_moored_as_a_tugboat_assigned_to_Naval_Station_(NAVSTA)_Pearl_Harbor_assists_Republic_of_Korea_Ship_(ROKS)_Yang_Manchoon_(DDH_9.jpg
+navy-09.jpg — File:US Navy 071111-N-4010S-168 The Korean guided-missile destroyer Moonmu Deawang (DDG 976) passes in front of the bow of the amphibious assault ship USS Essex (LHD 2).jpg
+  licence: Public domain · author: U.S. Navy photo by Chief Mass Communication Specialist Ty Swartz · date: Taken on 1
+  https://commons.wikimedia.org/wiki/File:US_Navy_071111-N-4010S-168_The_Korean_guided-missile_destroyer_Moonmu_Deawang_(DDG_976)_passes_in_front_of_the_bow_of_the_amphibious_assault_ship_USS_Essex_(LHD_2).jpg
+navy-10.jpg — File:Flickr - Official U.S. Navy Imagery - HMNZS Endeavour refuels HMNZS Te Kaha and ROKS Choi Young..jpg
+  licence: Public domain · author: Official Navy Page from United States of America · date: 2011-07-21
+  https://commons.wikimedia.org/wiki/File:Flickr_-_Official_U.S._Navy_Imagery_-_HMNZS_Endeavour_refuels_HMNZS_Te_Kaha_and_ROKS_Choi_Young..jpg
+navy-11.jpg — File:해군 함정으로 부터 해상사열을 받고 있는 최영함 (22229403432).jpg
+  licence: CC BY-SA 2.0 · author: 대한민국 국군 Republic of Korea Armed Forces · date: 2015-10-17
+  https://commons.wikimedia.org/wiki/File:%ED%95%B4%EA%B5%B0_%ED%95%A8%EC%A0%95%EC%9C%BC%EB%A1%9C_%EB%B6%80%ED%84%B0_%ED%95%B4%EC%83%81%EC%82%AC%EC%97%B4%EC%9D%84_%EB%B0%9B%EA%B3%A0_%EC%9E%88%EB%8A%94_%EC%B5%9C%EC%98%81%ED%95%A8_(22229403432).jpg
+navy-12.jpg — File:2013. 9. 청해부대 14진 환송식 Rep. of Korea Navy 14th Cheonghae Unit Send-off Ceremony (9736029128).jpg
+  licence: CC BY-SA 2.0 · author: 대한민국 국군 Republic of Korea Armed Forces · date: 2013-09-09
+  https://commons.wikimedia.org/wiki/File:2013._9._%EC%B2%AD%ED%95%B4%EB%B6%80%EB%8C%80_14%EC%A7%84_%ED%99%98%EC%86%A1%EC%8B%9D_Rep._of_Korea_Navy_14th_Cheonghae_Unit_Send-off_Ceremony_(9736029128).jpg
+navy-13.jpg — File:2013. 9. 청해부대 14진 환송식 Rep. of Korea Navy 14th Cheonghae Unit Send-off Ceremony (9732797865).jpg
+  licence: CC BY-SA 2.0 · author: 대한민국 국군 Republic of Korea Armed Forces · date: 2013-09-09
+  https://commons.wikimedia.org/wiki/File:2013._9._%EC%B2%AD%ED%95%B4%EB%B6%80%EB%8C%80_14%EC%A7%84_%ED%99%98%EC%86%A1%EC%8B%9D_Rep._of_Korea_Navy_14th_Cheonghae_Unit_Send-off_Ceremony_(9732797865).jpg
+navy-14.jpg — File:2014.1. 해군 최영함 Republic of Korea Navy (16104986247).jpg
+  licence: CC BY-SA 2.0 · author: 대한민국 국군 Republic of Korea Armed Forces · date: 2008-10-03
+  https://commons.wikimedia.org/wiki/File:2014.1._%ED%95%B4%EA%B5%B0_%EC%B5%9C%EC%98%81%ED%95%A8_Republic_of_Korea_Navy_(16104986247).jpg
+navy-15.jpg — File:US Navy 110929-N-DS193-001 The Republic of Korea destroyer Wang Geon (DDH 978), front, escorts the aircraft carrier USS George Washington (CVN 73).jpg
+  licence: Public domain · author: U.S. Navy photo by Mass Communication Specialist 2nd Class Adam K. Thomas · date: 2011-09-29
+  https://commons.wikimedia.org/wiki/File:US_Navy_110929-N-DS193-001_The_Republic_of_Korea_destroyer_Wang_Geon_(DDH_978),_front,_escorts_the_aircraft_carrier_USS_George_Washington_(CVN_73).jpg
+navy-16.jpg — File:People's Liberation Army (Navy) ship PLA(N) Qiandaohu (AO 886) (foreground) and Republic of Korea Navy ship ROKS Wang Geon (DDH 978) steam in close formation during Rim o.jpg
+  licence: Public domain · author: U.S. Navy photo by Mass Communication Specialist 1st Class Shannon Renfroe · date: 2014-07-25
+  https://commons.wikimedia.org/wiki/File:People%27s_Liberation_Army_(Navy)_ship_PLA(N)_Qiandaohu_(AO_886)_(foreground)_and_Republic_of_Korea_Navy_ship_ROKS_Wang_Geon_(DDH_978)_steam_in_close_formation_during_Rim_o.jpg
+dmz-05.jpg — File:Swedish Delegation Visits the Joint Security Area at Panmunjom (9365318).jpg
+  licence: Public domain · author: U.S. Army photo by Cpl. Joseph Liggio · date: Taken on 1
+  https://commons.wikimedia.org/wiki/File:Swedish_Delegation_Visits_the_Joint_Security_Area_at_Panmunjom_(9365318).jpg
+dmz-06.jpg — File:Swedish Delegation Visits the Joint Security Area at Panmunjom (9365364).jpg
+  licence: Public domain · author: U.S. Army photo by Cpl. Joseph Liggio · date: Taken on 1
+  https://commons.wikimedia.org/wiki/File:Swedish_Delegation_Visits_the_Joint_Security_Area_at_Panmunjom_(9365364).jpg
+dmz-09.jpg — File:Swedish Delegation Visits the Joint Security Area at Panmunjom (9365309).jpg
+  licence: Public domain · author: U.S. Army photo by Cpl. Joseph Liggio · date: Taken on 1
+  https://commons.wikimedia.org/wiki/File:Swedish_Delegation_Visits_the_Joint_Security_Area_at_Panmunjom_(9365309).jpg
+dmz-11.jpg — File:Swedish Delegation Visits the Joint Security Area at Panmunjom (9365324).jpg
+  licence: Public domain · author: U.S. Army photo by Cpl. Joseph Liggio · date: Taken on 1
+  https://commons.wikimedia.org/wiki/File:Swedish_Delegation_Visits_the_Joint_Security_Area_at_Panmunjom_(9365324).jpg
+prosecutors-02.jpg — File:Flower wreaths to express support for Prosecutor General Yoon Seok-youl stand in a row surrounding the Supreme Public Prosecutors’ Office (1).jpg
+  licence: CC BY 4.0 · author: 고려 · date: 2020-12-25
+  https://commons.wikimedia.org/wiki/File:Flower_wreaths_to_express_support_for_Prosecutor_General_Yoon_Seok-youl_stand_in_a_row_surrounding_the_Supreme_Public_Prosecutors%E2%80%99_Office_(1).jpg
+prosecutors-03.jpg — File:Seoul Central District Prosecutors' Office 2026.jpg
+  licence: CC0 · author: Endearing9721 · date: 2026-09-12
+  https://commons.wikimedia.org/wiki/File:Seoul_Central_District_Prosecutors%27_Office_2026.jpg
+prosecutors-06.jpg — File:Flower wreaths to express support for Prosecutor General Yoon Seok-youl stand in a row surrounding the Supreme Public Prosecutors’ Office (7).jpg
+  licence: CC BY 4.0 · author: 고려 · date: 2020-12-25
+  https://commons.wikimedia.org/wiki/File:Flower_wreaths_to_express_support_for_Prosecutor_General_Yoon_Seok-youl_stand_in_a_row_surrounding_the_Supreme_Public_Prosecutors%E2%80%99_Office_(7).jpg
+prosecutors-07.jpg — File:Flower wreaths to express support for Prosecutor General Yoon Seok-youl stand in a row surrounding the Supreme Public Prosecutors’ Office (3).jpg
+  licence: CC BY 4.0 · author: 고려 · date: 2020-12-25
+  https://commons.wikimedia.org/wiki/File:Flower_wreaths_to_express_support_for_Prosecutor_General_Yoon_Seok-youl_stand_in_a_row_surrounding_the_Supreme_Public_Prosecutors%E2%80%99_Office_(3).jpg
+prosecutors-08.jpg — File:Flower wreaths to express support for Prosecutor General Yoon Seok-youl stand in a row surrounding the Supreme Public Prosecutors’ Office (13).jpg
+  licence: CC BY 4.0 · author: 고려 · date: 2020-12-25
+  https://commons.wikimedia.org/wiki/File:Flower_wreaths_to_express_support_for_Prosecutor_General_Yoon_Seok-youl_stand_in_a_row_surrounding_the_Supreme_Public_Prosecutors%E2%80%99_Office_(13).jpg
+hospital-05.jpg — File:Night view at Seoul National University Hospital lobby.jpg
+  licence: CC BY-SA 3.0 · author: U2em · date: 2014-08-11
+  https://commons.wikimedia.org/wiki/File:Night_view_at_Seoul_National_University_Hospital_lobby.jpg
+hospital-06.jpg — File:Seoul National University Hospital 2014 038.jpg
+  licence: CC BY-SA 3.0 · author: User:Piotrus · date: 2014-09-13
+  https://commons.wikimedia.org/wiki/File:Seoul_National_University_Hospital_2014_038.jpg
+hospital-07.jpg — File:Seoul National University Hospital 2014 037.jpg
+  licence: CC BY-SA 3.0 · author: User:Piotrus · date: 2014-09-13
+  https://commons.wikimedia.org/wiki/File:Seoul_National_University_Hospital_2014_037.jpg
+hospital-09.jpg — File:(picture) Seoul National University Bundang Hospital.jpg
+  licence: CC0 · author: Myminje · date: 2025-04-03
+  https://commons.wikimedia.org/wiki/File:(picture)_Seoul_National_University_Bundang_Hospital.jpg
+hospital-10.jpg — File:Seoul National University Building to building bridge at Childrens Hospital between Emergency Room Ward.jpg
+  licence: CC BY-SA 3.0 · author: U2em · date: 2014-08-15
+  https://commons.wikimedia.org/wiki/File:Seoul_National_University_Building_to_building_bridge_at_Childrens_Hospital_between_Emergency_Room_Ward.jpg
+hospital-12.jpg — File:Emergency department seoul national university hospital.jpg
+  licence: CC BY-SA 3.0 · author: parkyongjoo · date: 30 April 2
+  https://commons.wikimedia.org/wiki/File:Emergency_department_seoul_national_university_hospital.jpg
+bluehouse-01.jpg — File:Blue House, Seoul (cropped).jpg
+  licence: CC BY-SA 4.0 · author: Rtflakfizer · date: 2016-10-21
+  https://commons.wikimedia.org/wiki/File:Blue_House,_Seoul_(cropped).jpg
+bluehouse-02.jpg — File:Korea-Seoul-Blue House (Cheongwadae) Reception Center 0688&9-07 cropped.jpg
+  licence: CC BY-SA 3.0 · author: Korea-Seoul-Blue_House_(Cheongwadae)_Reception_Center_0688&amp;9-07.jpg: Steve46814
+derivative work: · date: 2010-08-05
+  https://commons.wikimedia.org/wiki/File:Korea-Seoul-Blue_House_(Cheongwadae)_Reception_Center_0688%269-07_cropped.jpg
+bluehouse-04.jpg — File:Korea-Seoul-Blue House (Cheongwadae) Fountain 0698-07.JPG
+  licence: CC BY-SA 3.0 · author: Steve46814 · date: 2007-09-14
+  https://commons.wikimedia.org/wiki/File:Korea-Seoul-Blue_House_(Cheongwadae)_Fountain_0698-07.JPG
+bluehouse-06.jpg — File:Fully Opened CheongWaDae 20220526 12.jpg
+  licence: CC BY-SA 2.0 · author: Republic of  Korea · date: 2022-05-26
+  https://commons.wikimedia.org/wiki/File:Fully_Opened_CheongWaDae_20220526_12.jpg
+bluehouse-07.jpg — File:CheongWaDae 청와대 14.jpg
+  licence: CC BY-SA 2.0 · author: Republic of  Korea · date: 2022-04-07
+  https://commons.wikimedia.org/wiki/File:CheongWaDae_%EC%B2%AD%EC%99%80%EB%8C%80_14.jpg
+gwanghwamun-03.jpg — File:Gwanghwamun Square 4.jpg
+  licence: CC BY-SA 4.0 · author: kallerna · date: 2022-11-29
+  https://commons.wikimedia.org/wiki/File:Gwanghwamun_Square_4.jpg
+gwanghwamun-04.jpg — File:Gwanghwamun Square 20220806 06.jpg
+  licence: CC BY-SA 2.0 · author: Republic of  Korea · date: 2022-08-06
+  https://commons.wikimedia.org/wiki/File:Gwanghwamun_Square_20220806_06.jpg
+gwanghwamun-05.jpg — File:Gwanghwamun Square, Seoul (26259210037).jpg
+  licence: CC BY 2.0 · author: Richard Mortel from Riyadh, Saudi Arabia · date: Taken on 1
+  https://commons.wikimedia.org/wiki/File:Gwanghwamun_Square,_Seoul_(26259210037).jpg
+gwanghwamun-06.jpg — File:Gwanghwamun Plaza 2018-08-11.jpg
+  licence: CC BY-SA 4.0 · author: Project Kei · date: 2018-08-11
+  https://commons.wikimedia.org/wiki/File:Gwanghwamun_Plaza_2018-08-11.jpg
+gwanghwamun-08.jpg — File:Gwanghwamun Plaza, Seoul.jpg
+  licence: CC BY-SA 4.0 · author: Tristan Surtel · date: 2019-08-01
+  https://commons.wikimedia.org/wiki/File:Gwanghwamun_Plaza,_Seoul.jpg
+gwanghwamun-09.jpg — File:2012-05-11 Gwanghwamun Plaza and its surroundings.jpg
+  licence: CC BY-SA 2.0 · author: Mario Sánchez Prada · date: 2012-05-11
+  https://commons.wikimedia.org/wiki/File:2012-05-11_Gwanghwamun_Plaza_and_its_surroundings.jpg
+gwanghwamun-10.jpg — File:Gwanghwamun plaza.jpg
+  licence: CC BY-SA 4.0 · author: Dwkfolder · date: 2018-07-08
+  https://commons.wikimedia.org/wiki/File:Gwanghwamun_plaza.jpg
+gwanghwamun-12.jpg — File:Gwanghwamun Plaza - Gwanghwamun Gate back - Gyeongbokgung Palace 2016.jpg
+  licence: CC BY-SA 4.0 · author: Hschrijver · date: 2016-04-24
+  https://commons.wikimedia.org/wiki/File:Gwanghwamun_Plaza_-_Gwanghwamun_Gate_back_-_Gyeongbokgung_Palace_2016.jpg
+seoul-01.jpg — File:Seoul Skyline (6907571755).jpg
+  licence: CC BY-SA 2.0 · author: Jimmy McIntyre - Editor HDR One Magazine · date: 2012-02-18
+  https://commons.wikimedia.org/wiki/File:Seoul_Skyline_(6907571755).jpg
+seoul-02.jpg — File:Skyline view from Seoul City (South Korea).jpg
+  licence: CC BY-SA 2.0 · author: Flickr - Laurie Nevay
+
+https://www.flickr.com/photos/laurienevay/ · date: 2016-05-01
+  https://commons.wikimedia.org/wiki/File:Skyline_view_from_Seoul_City_(South_Korea).jpg
+seoul-04.jpg — File:Han River Seoul skyline Pixabay 1214950.jpg
+  licence: CC0 · author: USAGI_POST · date: 2010-10-09
+  https://commons.wikimedia.org/wiki/File:Han_River_Seoul_skyline_Pixabay_1214950.jpg
+seoul-05.jpg — File:Seoul night skyline 2018.jpg
+  licence: CC BY-SA 4.0 · author: Takipoint123 · date: 2018-07-16
+  https://commons.wikimedia.org/wiki/File:Seoul_night_skyline_2018.jpg
+seoul-06.jpg — File:Seoul Night Skyline 2022.jpg
+  licence: CC BY-SA 4.0 · author: Takipoint123 · date: 2022-08-18
+  https://commons.wikimedia.org/wiki/File:Seoul_Night_Skyline_2022.jpg
+seoul-07.jpg — File:Seoul View 2017.jpg
+  licence: CC BY 2.0 · author: Anthony Surace · date: 2017-05-07
+  https://commons.wikimedia.org/wiki/File:Seoul_View_2017.jpg
+seoul-08.jpg — File:여의도에서 서울의 스카이 라인 Seoul Skyline from Hangang Park - panoramio.jpg
+  licence: CC BY 3.0 · author: Bohao Zhao · date: Taken on 1
+  https://commons.wikimedia.org/wiki/File:%EC%97%AC%EC%9D%98%EB%8F%84%EC%97%90%EC%84%9C_%EC%84%9C%EC%9A%B8%EC%9D%98_%EC%8A%A4%EC%B9%B4%EC%9D%B4_%EB%9D%BC%EC%9D%B8_Seoul_Skyline_from_Hangang_Park_-_panoramio.jpg
+seoul-09.jpg — File:Smoggy Seoul (6907570245).jpg
+  licence: CC BY-SA 2.0 · author: Jimmy McIntyre - Editor HDR One Magazine · date: 2012-02-18
+  https://commons.wikimedia.org/wiki/File:Smoggy_Seoul_(6907570245).jpg
+seoul-10.jpg — File:Seoul-Yongsan.gu-01.jpg
+  licence: CC BY-SA 2.0 · author: m-louis (a flickr user) · date: 2006-12-28
+  https://commons.wikimedia.org/wiki/File:Seoul-Yongsan.gu-01.jpg
+seoul-11.jpg — File:Seoul (175734251).jpeg
+  licence: CC BY-SA 3.0 · author: Joon Kyu Park · date: 3 October 
+  https://commons.wikimedia.org/wiki/File:Seoul_(175734251).jpeg
+seoul-12.jpg — File:Seoul Building63.jpg
+  licence: Public domain · author: Pavel Kanzelsberger · date: 2005-03-12
+  https://commons.wikimedia.org/wiki/File:Seoul_Building63.jpg
+seoul-14.jpg — File:Skyline of Yeouido, a prominent finance district in Seoul.jpg
+  licence: CC BY 4.0 · author: S h y numis · date: 2024-03-26
+  https://commons.wikimedia.org/wiki/File:Skyline_of_Yeouido,_a_prominent_finance_district_in_Seoul.jpg

@@ -1,4 +1,0 @@
-selfie_segmenter.tflite
-  MediaPipe Selfie Segmenter (float16), Google, Apache License 2.0.
-  https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite
-  Downloaded 2026-11-16.

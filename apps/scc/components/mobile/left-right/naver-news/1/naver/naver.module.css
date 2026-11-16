@@ -11,10 +11,17 @@
   --naver-text: #303038;
   --naver-sub: #767678;
   --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Party colour by tilt: 민주당 blue to the left, 국민의힘 red to the right,
+     deeper the further the mobile leans (--tint 0–1, set by the stage). */
+  --ground: color-mix(in srgb, var(--party, #fff) calc(var(--tint, 0) * 34%), #fff);
+  /* Tilted, the screen is one ground: Naver's bands and hairlines fade into it. */
+  --band: color-mix(in srgb, var(--ground) calc(var(--tint, 0) * 100%), #eff1f6);
+  --line: color-mix(in srgb, var(--ground) calc(var(--tint, 0) * 100%), #f2f2f2);
+  --rule: color-mix(in srgb, var(--ground) calc(var(--tint, 0) * 100%), #e5e5e5);
   position: fixed;
   inset: 0 0 var(--readout-height, 0px);
   overflow: hidden;
-  background: #fff;
+  background: var(--ground);
   color: #000;
   font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Apple SD Gothic Neo", sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -44,7 +51,7 @@
   inset: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  background: #fff;
+  background: var(--ground);
   scrollbar-width: none;
 }
 
@@ -66,11 +73,16 @@
 
 /* Service bar (.Ngnb) */
 
+.gnb {
+  position: relative;
+  z-index: 2;
+}
+
 .bar {
   display: flex;
   align-items: center;
   height: 52px;
-  background: #fff;
+  background: var(--ground);
 }
 
 .logo {
@@ -131,8 +143,8 @@
   box-sizing: border-box;
   overflow-x: auto;
   overflow-y: hidden;
-  border-bottom: 1px solid #e5e5e5;
-  background: #fff;
+  border-bottom: 1px solid var(--rule);
+  background: var(--ground);
   scrollbar-width: none;
 }
 
@@ -183,7 +195,7 @@
 
 .section {
   padding: 20px 0 9px;
-  border-top: 8px solid #eff1f6;
+  border-top: 8px solid var(--band);
 }
 
 .section[data-first="true"] {
@@ -208,8 +220,23 @@
   margin: 2px 0 0 1px;
 }
 
+/* The list is a window on a belt of rows (app.tsx moves the ul): rows enter
+   and leave at its edges. Every row is 98 px (75 of content, 11 above and
+   below, a hairline on top); the belt is pulled up by the first row's
+   padding and hairline, as Naver's first row has neither. */
 .list {
   padding: 0 20px;
+  overflow: clip;
+}
+
+.list > ul {
+  margin-top: -12px;
+  will-change: transform;
+}
+
+/* Ten headline rows. */
+.list[data-headlines="true"] {
+  max-height: 968px;
 }
 
 .itemInner {
@@ -219,21 +246,7 @@
   min-height: 75px;
   box-sizing: content-box;
   padding: 11px 0;
-  border-top: 1px solid #f2f2f2;
-}
-
-.item:first-child .itemInner {
-  padding-top: 0;
-  border-top-width: 0;
-}
-
-/* A row that has just turned over fades in. */
-.itemInner[data-turned="true"] {
-  animation: turn 0.42s ease-out both;
-}
-
-@keyframes turn {
-  from { opacity: 0; }
+  border-top: 1px solid var(--line);
 }
 
 .thumb {
@@ -350,7 +363,7 @@
   justify-content: center;
   gap: 4px;
   padding: 11px 7px;
-  border-top: 8px solid #eff1f6;
+  border-top: 8px solid var(--band);
   color: var(--naver-text);
   font-size: 15px;
   line-height: 1.25;
@@ -553,8 +566,7 @@
 @media (prefers-reduced-motion: reduce) {
   .page,
   .endScroll,
-  .endScroll[data-closing="true"],
-  .itemInner[data-turned="true"] {
+  .endScroll[data-closing="true"] {
     transition: none;
     animation: none;
   }
