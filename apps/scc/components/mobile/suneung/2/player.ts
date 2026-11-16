@@ -2,16 +2,21 @@
 // authored pace, written like a pen under the question: words come in bursts
 // at their own speed, the hand drifts faster and slower, rests after commas
 // and full stops and now and then stops to think, with every step still
-// ending on its authored time. Writing never leaves the screen: when a line
-// would fall below the fold the reader turns down to it. When the solution is
-// done the reader waits half a second, goes back up to the question if it had
-// turned down, marks the answer (a pen loop, or the boxed 답), then the marker
-// circles the question number in red; two seconds later the reader turns to
-// the next question. Whichever question the reader settles on, by a turn or a
-// person's scroll, starts its solution there.
+// ending on its authored time. Writing never leaves the screen: a solution
+// that starts below the fold is turned to before its clock starts, and when a
+// line would fall below the fold the reader turns down to it. When the
+// solution is done the reader waits half a second, goes back up to the answer
+// and marks it (a pen loop, or the boxed 답 already written), then up to the
+// top of the question, where the marker circles its number in red; two
+// seconds later the reader turns to the next question. Whichever question the
+// reader settles on, by a turn or a person's scroll, starts its solution there.
 
 /** Solutions play at this multiple of the authored pace. */
 const SPEED = 2;
+/** A question is shown this long before the reader turns down to a solution that starts below the fold. */
+const BEFORE_WRITING_MS = 350;
+/** That turn puts the solution's first line this far down the screen. */
+const FIRST_LINE = 0.5;
 /** After the last character, before going back up to the question. */
 const AFTER_WRITING_MS = 500;
 /** The answer is marked first; the red circle follows after this long. */
@@ -40,7 +45,7 @@ type Step = {
   written: number;
 };
 
-type Phase = "writing" | "written" | "returning" | "answered" | "graded" | "done";
+type Phase = "opening" | "approaching" | "writing" | "written" | "toAnswer" | "answered" | "toTop" | "graded" | "done";
 
 type Play = {
   screen: HTMLElement;
@@ -52,6 +57,8 @@ type Play = {
   phase: Phase;
   /** When the current phase began. */
   since: number;
+  /** Where a turn of the page is heading. */
+  target: number;
   /** Where the reader is heading while it follows the writing; null when at rest. */
   view: number | null;
 };
@@ -149,8 +156,9 @@ export function startPlayer(reader: HTMLElement) {
       answer: mark ? screen.querySelector<HTMLElement>(`[data-choice="${mark}"]`) : null,
       duration: Number(solution.dataset.duration) / SPEED,
       start: now,
-      phase: "writing",
+      phase: "opening",
       since: now,
+      target: screen.offsetTop,
       view: null,
     };
   };
@@ -161,12 +169,11 @@ export function startPlayer(reader: HTMLElement) {
       active.view = null;
       return;
     }
-    const box = line.getBoundingClientRect();
-    const offset = reader.scrollTop - reader.getBoundingClientRect().top;
+    const at = span(line);
     const view = active.view ?? reader.scrollTop;
-    if (box.bottom + offset <= view + reader.clientHeight - FOOT_CLEARANCE) return;
+    if (at.bottom <= view + reader.clientHeight - FOOT_CLEARANCE) return;
     const last = active.screen.offsetTop + active.screen.offsetHeight - reader.clientHeight;
-    const target = Math.min(last, box.top + offset - reader.clientHeight * PAGE_LINE);
+    const target = Math.min(last, at.top - reader.clientHeight * PAGE_LINE);
     if (target <= view + 1) return;
     active.view = target;
     reader.scrollTo({ top: target, behavior: "smooth" });
@@ -175,6 +182,31 @@ export function startPlayer(reader: HTMLElement) {
   const enter = (active: Play, phase: Phase, now: number) => {
     active.phase = phase;
     active.since = now;
+  };
+
+  /** Turn the page to a position inside the active question. */
+  const turn = (active: Play, target: number) => {
+    const top = active.screen.offsetTop;
+    const last = top + Math.max(0, active.screen.offsetHeight - reader.clientHeight);
+    active.target = Math.max(top, Math.min(last, target));
+    active.view = null;
+    if (Math.abs(reader.scrollTop - active.target) > 2 && current() === active.screen) {
+      reader.scrollTo({ top: active.target, behavior: "smooth" });
+    }
+  };
+
+  const arrived = (active: Play, waited: number) => Math.abs(reader.scrollTop - active.target) <= 2 || waited >= ARRIVE_MS;
+
+  /** An element's top and bottom in the reader's scroll coordinates. */
+  const span = (element: HTMLElement) => {
+    const box = element.getBoundingClientRect();
+    const offset = reader.scrollTop - reader.getBoundingClientRect().top;
+    return { top: box.top + offset, bottom: box.bottom + offset };
+  };
+
+  const startWriting = (active: Play, now: number) => {
+    active.start = now;
+    enter(active, "writing", now);
   };
 
   const write = (active: Play, now: number) => {
@@ -214,22 +246,50 @@ export function startPlayer(reader: HTMLElement) {
     const waited = now - active.since;
     const top = active.screen.offsetTop;
     switch (active.phase) {
+      case "opening": {
+        // A solution that starts below the fold is turned to before it is written.
+        const first = active.steps[0];
+        if (!first || handsOff(now)) {
+          startWriting(active, now);
+          break;
+        }
+        const line = span(first.caret);
+        if (line.bottom <= top + reader.clientHeight - FOOT_CLEARANCE) {
+          startWriting(active, now);
+          break;
+        }
+        if (waited < BEFORE_WRITING_MS) break;
+        turn(active, line.top - reader.clientHeight * FIRST_LINE);
+        enter(active, "approaching", now);
+        break;
+      }
+      case "approaching":
+        if (arrived(active, waited) || handsOff(now)) startWriting(active, now);
+        break;
       case "writing":
         write(active, now);
         break;
-      case "written":
-        // Back up to the question if the writing took the reader down.
+      case "written": {
         if (waited < AFTER_WRITING_MS || handsOff(now)) break;
-        if (Math.abs(reader.scrollTop - top) > 2 && current() === active.screen) reader.scrollTo({ top, behavior: "smooth" });
-        enter(active, "returning", now);
+        // Up to the top of the question if the answer shows from there, otherwise to the answer first.
+        const answer = active.answer ? span(active.answer) : null;
+        const fromTop = !answer || answer.bottom <= top + reader.clientHeight - FOOT_CLEARANCE;
+        turn(active, fromTop || !answer ? top : (answer.top + answer.bottom - reader.clientHeight) / 2);
+        enter(active, "toAnswer", now);
         break;
-      case "returning":
-        if (Math.abs(reader.scrollTop - top) > 2 && waited < ARRIVE_MS) break;
+      }
+      case "toAnswer":
+        if (!arrived(active, waited)) break;
         active.answer?.setAttribute("data-circled", "");
         enter(active, "answered", now);
         break;
       case "answered":
-        if (waited < (active.answer ? GRADE_AFTER_MS : 0)) break;
+        if (waited < (active.answer ? GRADE_AFTER_MS : 0) || handsOff(now)) break;
+        turn(active, top);
+        enter(active, "toTop", now);
+        break;
+      case "toTop":
+        if (!arrived(active, waited)) break;
         active.screen.setAttribute("data-graded", "");
         enter(active, "graded", now);
         break;

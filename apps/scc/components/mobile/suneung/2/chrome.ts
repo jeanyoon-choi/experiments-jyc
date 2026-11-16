@@ -94,7 +94,7 @@ export function headerFor(n: number, pages: ReadonlyMap<number, PaperPage>): Pap
   const bottom = rule.y + rule.sw / 2;
   const items = page.items
     .filter((item) => !isColumnRule(item) && item.y <= bottom + 0.5)
-    .flatMap((item) => (item.k === "line" ? splitLine(item) : [item]))
+    .flatMap((item): PaperItem[] => (item.k === "line" ? splitLine(item) : [item]))
     .map((item) => {
       if (!isPageNumber(item)) return item;
       const box = extent(item);
