@@ -1,15 +1,13 @@
 import type { PaperItem, PaperLine, PaperPage } from "../paper/types";
 
 // Each question is one page of the mobile booklet, so it takes the paper's
-// own header and page-number box, exactly as printed and renumbered for the
+// own header, exactly as printed and renumbered for the
 // question: the cover header on 1 and 23 (first page of the 미적분 booklet),
 // the running header elsewhere, mirrored by parity like the paper (odd: 홀수형
 // box left, number right; even: number left, box right).
 
 const HEADER_LEFT = 87.2;
 const HEADER_RIGHT = 754.8;
-/** Advance of one 견명조 digit in the page-number box, in em (from the printed `20`). */
-const DIGIT_EM = 0.666;
 /** Header numbers were printed one digit wide; two digits set at the face's own tighter advance. */
 const HEADER_DIGIT_EM = 0.56;
 
@@ -102,19 +100,4 @@ export function headerFor(n: number, pages: ReadonlyMap<number, PaperPage>): Pap
     });
   const top = Math.min(...items.map((item) => extent(item).top)) - 1;
   return { x: HEADER_LEFT, y: top, w: HEADER_RIGHT - HEADER_LEFT, h: bottom + 0.5 - top, items };
-}
-
-/** The printed page-number box, reading `n` over `total`. */
-export function footerFor(n: number, total: number, pages: ReadonlyMap<number, PaperPage>): PaperRegion {
-  const page = pages.get(1)!;
-  const items = page.items
-    .filter((item) => !isColumnRule(item) && item.y > 1075)
-    .map((item) => {
-      if (item.k !== "line") return item;
-      const value = item.runs[0].t === "1" ? n : total;
-      const text = String(value);
-      const width = text.length * DIGIT_EM * item.s;
-      return { ...item, w: width, runs: [{ ...item.runs[0], t: text, x: 0, w: width, e: width }] };
-    });
-  return { x: 394.6, y: 1081, w: 53, h: 24.4, items };
 }

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
-import { BALL_R, GONE, ON_TABLE, RAIL, RAIL_TOP, TABLE_W } from "../model/physics";
+import { BALL_R, GONE, ON_TABLE, PLAY_W, RAIL, RAIL_TOP, TABLE_W } from "../model/physics";
 import type { Table } from "../model/physics";
 import { buildTable } from "./table";
 import type { TableMaterials } from "./table";
@@ -13,6 +13,46 @@ const MAX_PIXELS = 2_600_000;
 const HALF_VIEW = (21 * Math.PI) / 180;
 const CUE_LENGTH = 1.45;
 const CUE_LIFT = (4 * Math.PI) / 180;
+const CUE_MAX_LIFT = (40 * Math.PI) / 180;
+/** The cue's radius at `s` metres from its tip. */
+const cueRadius = (s: number) => 0.009 + (0.02 - 0.009) * (Math.min(CUE_LENGTH, s) / CUE_LENGTH);
+/** What the cue must pass over beyond the cushions: rail tops and the castings standing proud of them. */
+const RAIL_CLEAR = RAIL_TOP + 0.005;
+
+/**
+ * Tip height and lift that carry the cue over every ball under it and over the rail, as a player
+ * raises the butt when something is in the way.
+ */
+function cueClearance(table: Table, tipX: number, tipY: number, wx: number, wy: number) {
+  const hw = PLAY_W / 2;
+  const hl = table.length / 2;
+  // How far along the cue (from the tip) it leaves the cloth for the rail.
+  let exit = Infinity;
+  if (wx > 0) exit = Math.min(exit, (hw - tipX) / wx);
+  if (wx < 0) exit = Math.min(exit, (-hw - tipX) / wx);
+  if (wy > 0) exit = Math.min(exit, (hl - tipY) / wy);
+  if (wy < 0) exit = Math.min(exit, (-hl - tipY) / wy);
+  const height = BALL_R;
+  // A tip already over the rail is lifted clear of it.
+  if (exit <= 0.01) return { height: Math.max(height, RAIL_CLEAR + cueRadius(0)), lift: CUE_LIFT };
+  let slope = Math.tan(CUE_LIFT);
+  const need = (s: number, above: number) => {
+    if (s > 0.001) slope = Math.max(slope, (above - height) / s);
+  };
+  need(exit, RAIL_CLEAR + cueRadius(exit));
+  for (const ball of table.balls) {
+    if (ball.id === 0 || ball.state !== ON_TABLE) continue;
+    const ox = ball.x - tipX;
+    const oy = ball.y - tipY;
+    const s = ox * wx + oy * wy;
+    if (s <= 0 || s > CUE_LENGTH) continue;
+    const side = Math.abs(ox * wy - oy * wx);
+    const clear = BALL_R + cueRadius(s) + 0.002;
+    if (side >= clear) continue;
+    need(s, BALL_R + Math.sqrt(clear * clear - side * side));
+  }
+  return { height, lift: Math.min(CUE_MAX_LIFT, Math.atan(slope)) };
+}
 const ASSETS = "/3d/pool/";
 
 /** Where the cue lies: its line, how far its tip is behind the cue ball, and whether to sight along it. */
@@ -62,7 +102,7 @@ export function createStage(canvas: HTMLCanvasElement, onReady: () => void) {
   let disposed = false;
   let environment: THREE.WebGLRenderTarget | null = null;
   // What the balls and lacquer reflect: a photographed billiard hall.
-  new HDRLoader().load(`${ASSETS}billiard_hall_512.hdr`, (panorama) => {
+  new HDRLoader().load(`${ASSETS}billiard_hall_256.hdr`, (panorama) => {
     if (disposed) {
       panorama.dispose();
       return;
@@ -160,8 +200,8 @@ export function createStage(canvas: HTMLCanvasElement, onReady: () => void) {
     for (const ball of balls) ball.paint(pictures.faces, pictures.marks);
     onReady();
   };
-  loadAtlas(`${ASSETS}faces.jpg`, arrived("faces"));
-  loadAtlas(`${ASSETS}logos.png`, arrived("marks"));
+  loadAtlas(`${ASSETS}faces-768.jpg`, arrived("faces"));
+  loadAtlas(`${ASSETS}logos-768.png`, arrived("marks"));
 
   const cue = buildCue();
   cue.rotation.order = "ZYX";
@@ -242,8 +282,11 @@ export function createStage(canvas: HTMLCanvasElement, onReady: () => void) {
     ghost.visible = line.visible;
     if (shown) {
       const back = BALL_R + pose.back;
-      cue.position.set(white.x - pose.ux * back, white.y - pose.uy * back, BALL_R);
-      cue.rotation.set(0, -CUE_LIFT, Math.atan2(-pose.uy, -pose.ux));
+      const tipX = white.x - pose.ux * back;
+      const tipY = white.y - pose.uy * back;
+      const { height, lift } = cueClearance(table, tipX, tipY, -pose.ux, -pose.uy);
+      cue.position.set(tipX, tipY, height);
+      cue.rotation.set(0, -lift, Math.atan2(-pose.uy, -pose.ux));
       if (pose.guide) {
         const length = Math.max(0, Math.hypot(traceEnd.x - white.x, traceEnd.y - white.y) - BALL_R * 2);
         const middle = BALL_R + length / 2;

@@ -26,9 +26,12 @@
 // rest on, of the background's colour, reflected below the horizon; and the
 // camera's tilt, from straight above (the horizon runs round every rim: the
 // spheres float in a tank) to the side (bubble/2: the horizon crosses them).
-// Nothing persists between frames.
+// Nothing persists between frames but the frame itself: the raft is drawn into a texture with its heights as depth
+// (what is drawn after it, objects/, shades only its nearest surface from them), shown by present(), and kept at
+// half size for the next frame's surfaces to see their neighbours in (materials/surface.ts lastScene).
 
 import { COAT, FACE_ENVIRONMENT, keyOnScreen, LOOK_DEFAULTS, SHADING, type Look } from "./shading";
+import { MIX_MATERIAL } from "./materials/mix";
 import { PRINT_MATERIAL } from "./materials/print";
 import { createPrintMap, PRINT_UNIT } from "./materials/print-sheets";
 
@@ -161,6 +164,71 @@ void main() {
 }
 `;
 
+// The frame kept for the next one (materials/surface.ts lastScene), at half size: its colours averaged, and the
+// height and body of one of each four pixels (in eighths of a CSS px, the body's id as its fraction).
+const KEEP_FRAGMENT = /* glsl */ `#version 300 es
+precision highp float;
+uniform sampler2D sceneColour;
+uniform highp sampler2D sceneDepth;
+out vec4 kept;
+void main() {
+  ivec2 limit = textureSize(sceneColour, 0) - 1;
+  ivec2 at = min(ivec2(gl_FragCoord.xy) * 2, limit);
+  vec4 one = texelFetch(sceneColour, at, 0);
+  vec3 sum = one.rgb
+    + texelFetch(sceneColour, min(at + ivec2(1, 0), limit), 0).rgb
+    + texelFetch(sceneColour, min(at + ivec2(0, 1), limit), 0).rgb
+    + texelFetch(sceneColour, min(at + ivec2(1, 1), limit), 0).rgb;
+  float height = max((0.5 - texelFetch(sceneDepth, at, 0).r) * 8192.0, 0.0);
+  kept = vec4(sum * 0.25, floor(height * 8.0 + 0.5) + min(one.a, 0.99));
+}
+`;
+
+// The frame, onto the canvas. 맞닿은 틈, between bodies (user, 2026-11-17): where an object meets another body at
+// one height (they stand in one another; not one in front of the other), their colours run into each other over
+// `reach` device px, as a rounded join does, instead of ending on a cut line. Only across the join: a body's own
+// texture is never blurred, nor its outline on the ground, nor the seams between the raft's spheres.
+const PRESENT_FRAGMENT = /* glsl */ `#version 300 es
+precision highp float;
+uniform sampler2D sceneColour;        // a: the body's id (SHADING bodyId)
+uniform highp sampler2D sceneDepth;
+uniform float reach;
+uniform float cssPerPixel;
+out vec4 pixel;
+float heightAt(ivec2 at) {
+  return max((0.5 - texelFetch(sceneDepth, at, 0).r) * 8192.0, 0.0);
+}
+void main() {
+  ivec2 at = ivec2(gl_FragCoord.xy);
+  vec4 here = texelFetch(sceneColour, at, 0);
+  pixel = vec4(here.rgb, 1.0);
+  if (reach <= 0.0 || here.a <= 0.0) return;
+  ivec2 limit = textureSize(sceneColour, 0) - 1;
+  float height = -1.0;
+  vec3 sum = here.rgb * 2.0;
+  float weight = 2.0;
+  for (int i = 0; i < 8; i += 1) {
+    float ring = i < 4 ? 0.5 : 1.0;
+    float angle = (float(i) + (i < 4 ? 0.0 : 0.5)) * 1.5707963;
+    vec2 off = vec2(cos(angle), sin(angle)) * reach * ring;
+    ivec2 tap = clamp(at + ivec2(round(off)), ivec2(0), limit);
+    vec4 other = texelFetch(sceneColour, tap, 0);
+    float w = i < 4 ? 1.5 : 1.0;
+    weight += w;
+    bool joined = other.a > 0.0 && abs(other.a - here.a) > 0.002 && max(other.a, here.a) >= 0.5;
+    if (joined) {
+      if (height < 0.0) height = heightAt(at);
+      joined = abs(heightAt(tap) - height) < 2.5 * length(off) * cssPerPixel + 1.5;
+    }
+    sum += w * (joined ? other.rgb : here.rgb);
+  }
+  pixel = vec4(sum / weight, 1.0);
+}
+`;
+
+/** The texture unit the last frame is bound to on every program that includes SHADING (0–7 the raft's, 8–19 the objects'). */
+const LAST_UNIT = 20;
+
 const SPHERE_FRAGMENT = /* glsl */ `#version 300 es
 precision highp float;
 in vec2 uv;
@@ -214,7 +282,7 @@ void main() {
   }
   // Open ground: nothing else to compute.
   if (count == 0) {
-    pixel = vec4(background, 1.0);
+    pixel = vec4(background, 0.0);
     gl_FragDepth = 1.0;
     return;
   }
@@ -280,7 +348,7 @@ void main() {
     ground = mix(ground, ground * mix(vec3(1.0), nearCoat * 1.6 + 0.08, 0.6), colourBleed * near.a);
   }
   if (cover <= 0.0) {
-    pixel = vec4(ground, 1.0);
+    pixel = vec4(ground, 0.0);
     gl_FragDepth = 1.0;
     return;
   }
@@ -326,7 +394,8 @@ void main() {
     sf.relief = ball.z;
     sf.behind = ground;
     sf.melt = 0.0;
-    pixel = vec4(mix(ground, shadeMaterial(sf), cover), 1.0);
+    sf.body = bodyId(seedRaw, 0.0);
+    pixel = vec4(mix(ground, shadeMaterial(sf), cover), cover >= 0.5 ? sf.body : 0.0);
     gl_FragDepth = cover >= 0.5 ? 0.5 - lift / 8192.0 : 1.0;
     return;
   }
@@ -394,7 +463,7 @@ void main() {
   colour *= mix(mix(0.5, 0.05, crease), 1.0, smoothstep(0.0, 2.5 * seamWidth, toWall));
   vec3 shown = filmic(colour * 1.25 * exposure);
   // A crisp silhouette: anti-aliased over one device pixel.
-  pixel = vec4(mix(ground, shown, cover), 1.0);
+  pixel = vec4(mix(ground, shown, cover), cover >= 0.5 ? bodyId(seedRaw, 0.0) : 0.0);
   // Its height as depth, so what is drawn after in the raft's frame (objects/) passes behind it where it is lower.
   gl_FragDepth = cover >= 0.5 ? 0.5 - from.z / 8192.0 : 1.0;
 }
@@ -427,6 +496,10 @@ function compile(gl: WebGL2RenderingContext, vertex: string, fragment: string) {
 const LIGHT_FILES = ["photo_studio_loft_hall", "kloofendal_overcast", "studio_small_09", "shanghai_bund", "forest_slope", "lakeside"] as const;
 
 const FACE_IMAGE = "/images/0908/tech-power-faces/008.jpg";
+/** 맥시멀 믹스's leather: a scanned hide's normal and grain (public/assets/goldfishes/materials/sources.txt). */
+const HIDE_IMAGE = "/assets/goldfishes/materials/leather-red-02.png";
+/** The stills' layers (SHADING plates) are this size. */
+const PLATE_SIZE = 512;
 
 export type FoamRenderer = {
   /** Per bubble: x y radius seed (CSS px; seed in [0, 1)). */
@@ -440,6 +513,13 @@ export type FoamRenderer = {
   /** the last frame's look set on such a program (in use), and the field in CSS px and the canvas in device pixels. */
   shade(program: WebGLProgram): void;
   size(): { width: number; height: number; pixelWidth: number; pixelHeight: number };
+  /**
+   * Where what is drawn after the raft goes: `full` the frame with its heights as depth (drawn there with colour
+   * masked off, a pass leaves only its heights), `colour` the frame alone, to shade into while reading `depth`.
+   */
+  targets(): { full: WebGLFramebuffer; colour: WebGLFramebuffer; depth: WebGLTexture };
+  /** Shows the frame on the canvas and keeps it for the next (after everything is drawn; `look` for 맞닿은 틈). */
+  present(look?: Look): void;
   /** Waits for the GPU to finish the last frame (measurement only). */
   sync(): void;
   dispose(): void;
@@ -452,6 +532,10 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
   const splatProgram = compile(gl, SPLAT_VERTEX, SPLAT_FRAGMENT);
   const shadowProgram = compile(gl, SHADOW_VERTEX, SHADOW_FRAGMENT);
   const sphereProgram = compile(gl, SCREEN_VERTEX, SPHERE_FRAGMENT);
+  const keepProgram = compile(gl, SCREEN_VERTEX, KEEP_FRAGMENT);
+  const presentProgram = compile(gl, SCREEN_VERTEX, PRESENT_FRAGMENT);
+  // The kept frame's blur is its mips, which a float texture has only where it can be filtered.
+  const floatLinear = gl.getExtension("OES_texture_float_linear") !== null;
   // Uniform locations, looked up once per program and name rather than every frame.
   const locations = new Map<WebGLProgram, Map<string, WebGLUniformLocation | null>>();
   const location = (program: WebGLProgram, name: string) => {
@@ -550,30 +634,46 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
       .catch(() => {});
   };
 
-  // The portrait, loaded when first wanted (grey until then).
-  const faceMap = gl.createTexture()!;
-  gl.bindTexture(gl.TEXTURE_2D, faceMap);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([90, 90, 90, 255]));
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.generateMipmap(gl.TEXTURE_2D);
+  // The stills (SHADING plates): the portrait and the hide, each loaded when first wanted (grey, and flat, until then).
+  const plates = gl.createTexture()!;
+  gl.bindTexture(gl.TEXTURE_2D_ARRAY, plates);
+  gl.texStorage3D(gl.TEXTURE_2D_ARRAY, Math.log2(PLATE_SIZE) + 1, gl.RGBA8, PLATE_SIZE, PLATE_SIZE, 2);
+  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.REPEAT);
+  for (const [layer, value] of [[0, 90], [1, 128]] as const) {
+    gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, layer, PLATE_SIZE, PLATE_SIZE, 1, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(PLATE_SIZE * PLATE_SIZE * 4).fill(value));
+  }
+  gl.generateMipmap(gl.TEXTURE_2D_ARRAY);
+  /** Loads an image into a layer, drawn to the layer's size, and calls back with it once it is there. */
+  const loadPlate = (layer: number, source: string, loaded?: (image: HTMLImageElement) => void) => {
+    const image = new Image();
+    image.onload = () => {
+      if (disposed) return;
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = PLATE_SIZE;
+      canvas.getContext("2d")!.drawImage(image, 0, 0, PLATE_SIZE, PLATE_SIZE);
+      gl.bindTexture(gl.TEXTURE_2D_ARRAY, plates);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+      gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, layer, PLATE_SIZE, PLATE_SIZE, 1, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+      gl.generateMipmap(gl.TEXTURE_2D_ARRAY);
+      loaded?.(image);
+    };
+    image.src = source;
+  };
   let faceAspect = 1;
   let faceWanted = false;
   const wantFace = () => {
     if (faceWanted) return;
     faceWanted = true;
-    const image = new Image();
-    image.onload = () => {
-      if (disposed) return;
-      gl.bindTexture(gl.TEXTURE_2D, faceMap);
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-      gl.generateMipmap(gl.TEXTURE_2D);
-      faceAspect = image.naturalWidth / Math.max(1, image.naturalHeight);
-    };
-    image.src = FACE_IMAGE;
+    loadPlate(0, FACE_IMAGE, (image) => (faceAspect = image.naturalWidth / Math.max(1, image.naturalHeight)));
+  };
+  let hideWanted = false;
+  const wantHide = () => {
+    if (hideWanted) return;
+    hideWanted = true;
+    loadPlate(1, HIDE_IMAGE);
   };
 
   // 인쇄물's sheets (materials/print-sheets.ts): painted in a worker the first time that material is chosen.
@@ -586,6 +686,9 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     { texture: gl.createTexture(), target: gl.createFramebuffer() },
   ] as const satisfies readonly Layer[];
   const shadow = { field: gl.createTexture(), tint: gl.createTexture(), target: gl.createFramebuffer() };
+  // The frame (colour, the body's id in its alpha; heights as depth) and the last one, kept at half size.
+  const scene = { colour: gl.createTexture(), depth: gl.createTexture(), full: gl.createFramebuffer(), shaded: gl.createFramebuffer() };
+  const last = { texture: gl.createTexture(), target: gl.createFramebuffer(), width: 1, height: 1 };
   let frame = { width: 1, height: 1 };
   let pixels = { width: 1, height: 1 };
   let sim = { width: 1, height: 1 };
@@ -620,6 +723,30 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + at, gl.TEXTURE_2D, texture, 0);
     }
     gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
+    const plain = (texture: WebGLTexture, filter: number) => {
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter === gl.NEAREST ? gl.NEAREST : gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    };
+    plain(scene.colour, gl.NEAREST);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, pixels.width, pixels.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    plain(scene.depth, gl.NEAREST);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, pixels.width, pixels.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, scene.full);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, scene.colour, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, scene.depth, 0);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, scene.shaded);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, scene.colour, 0);
+    last.width = Math.max(1, Math.ceil(pixels.width / 2));
+    last.height = Math.max(1, Math.ceil(pixels.height / 2));
+    plain(last.texture, floatLinear ? gl.LINEAR_MIPMAP_LINEAR : gl.NEAREST);
+    // Empty until the first frame is kept: no height anywhere, so nothing is met.
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, last.width, last.height, 0, gl.RGBA, gl.FLOAT, null);
+    if (floatLinear) gl.generateMipmap(gl.TEXTURE_2D);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, last.target);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, last.texture, 0);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   };
 
@@ -713,9 +840,9 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
       gl.disable(gl.BLEND);
     }
 
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, scene.full);
     gl.viewport(0, 0, pixels.width, pixels.height);
-    // The spheres' heights go to the canvas's depth (ALWAYS: every pixel is written once).
+    // The spheres' heights go to the frame's depth (ALWAYS: every pixel is written once).
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.ALWAYS);
     gl.clearDepth(1);
@@ -748,6 +875,41 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     gl.disable(gl.DEPTH_TEST);
   };
 
+  const present: FoamRenderer["present"] = (look = lastLook) => {
+    gl.disable(gl.DEPTH_TEST);
+    gl.disable(gl.BLEND);
+    gl.colorMask(true, true, true, true);
+    gl.bindVertexArray(screen);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, scene.colour);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, scene.depth);
+    // Kept for the next frame, its blur in its mips.
+    gl.bindFramebuffer(gl.FRAMEBUFFER, last.target);
+    gl.viewport(0, 0, last.width, last.height);
+    gl.useProgram(keepProgram);
+    gl.uniform1i(location(keepProgram, "sceneColour"), 0);
+    gl.uniform1i(location(keepProgram, "sceneDepth"), 1);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    if (floatLinear) {
+      gl.activeTexture(gl.TEXTURE0 + LAST_UNIT);
+      gl.bindTexture(gl.TEXTURE_2D, last.texture);
+      gl.generateMipmap(gl.TEXTURE_2D);
+    }
+    // Onto the canvas.
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, pixels.width, pixels.height);
+    gl.useProgram(presentProgram);
+    gl.uniform1i(location(presentProgram, "sceneColour"), 0);
+    gl.uniform1i(location(presentProgram, "sceneDepth"), 1);
+    const cssPerPixel = frame.width / pixels.width;
+    gl.uniform1f(location(presentProgram, "cssPerPixel"), cssPerPixel);
+    // 맞닿은 틈 0: no join; otherwise 0.6–2 CSS px either side of it.
+    gl.uniform1f(location(presentProgram, "reach"), look.crease > 0 ? (0.6 + 1.4 * look.crease) / cssPerPixel : 0);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    gl.bindVertexArray(null);
+  };
+
   // The look's uniforms and the rooms it reflects, on a program in use that includes SHADING.
   const setLook = (program: WebGLProgram, look: Look) => {
     const keyScreen = keyOnScreen(look.viewTilt, look.lightTurn);
@@ -762,9 +924,10 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     }
     if (look.photoStrength > 0) wantLightMap(look.photo);
     if (look.photo === FACE_ENVIRONMENT) wantFace();
+    if (Math.round(look.material) === MIX_MATERIAL.id) wantHide();
     gl.activeTexture(gl.TEXTURE7);
-    gl.bindTexture(gl.TEXTURE_2D, faceMap);
-    gl.uniform1i(location(program, "faceMap"), 7);
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, plates);
+    gl.uniform1i(location(program, "plates"), 7);
     gl.uniform1f(location(program, "faceAspect"), faceAspect);
     if (Math.round(look.material) === PRINT_MATERIAL.id) printMap.want(Math.round(look.printRegion ?? 0));
     gl.activeTexture(gl.TEXTURE0 + PRINT_UNIT);
@@ -773,6 +936,9 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     gl.activeTexture(gl.TEXTURE4);
     gl.bindTexture(gl.TEXTURE_2D, lightMap);
     gl.uniform1i(location(program, "lightMap"), 4);
+    gl.activeTexture(gl.TEXTURE0 + LAST_UNIT);
+    gl.bindTexture(gl.TEXTURE_2D, last.texture);
+    gl.uniform1i(location(program, "lastScene"), LAST_UNIT);
   };
 
   const pixel = new Uint8Array(4);
@@ -784,7 +950,7 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
   const dispose = () => {
     disposed = true;
     gl.deleteTexture(lightMap);
-    gl.deleteTexture(faceMap);
+    gl.deleteTexture(plates);
     printMap.dispose();
     gl.deleteTexture(bubbleData);
     gl.deleteTexture(neighbourData);
@@ -795,12 +961,16 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     gl.deleteTexture(shadow.field);
     gl.deleteTexture(shadow.tint);
     gl.deleteFramebuffer(shadow.target);
+    for (const texture of [scene.colour, scene.depth, last.texture]) gl.deleteTexture(texture);
+    for (const target of [scene.full, scene.shaded, last.target]) gl.deleteFramebuffer(target);
     gl.deleteRenderbuffer(depth);
     for (const buffer of [square, bubbleBuffer]) gl.deleteBuffer(buffer);
     for (const vao of [screen, bubbleMesh]) gl.deleteVertexArray(vao);
     gl.deleteProgram(splatProgram);
     gl.deleteProgram(shadowProgram);
     gl.deleteProgram(sphereProgram);
+    gl.deleteProgram(keepProgram);
+    gl.deleteProgram(presentProgram);
   };
 
   return {
@@ -811,6 +981,8 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     program: (vertex, fragment) => compile(gl, vertex, fragment),
     shade: (program) => setLook(program, lastLook),
     size: () => ({ width: frame.width, height: frame.height, pixelWidth: pixels.width, pixelHeight: pixels.height }),
+    targets: () => ({ full: scene.full, colour: scene.shaded, depth: scene.depth }),
+    present,
     sync,
     dispose,
   };

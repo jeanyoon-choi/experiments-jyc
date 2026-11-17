@@ -3,10 +3,10 @@ used at the user's decision in this experiment only.
 
 South (left half of news.mp4, left audio channel)
   MBC 뉴스데스크 2026년 11월 12일 [풀영상], MBCNEWS — https://www.youtube.com/watch?v=t9GC323YnhA
-  1080p; anchor links from 15:41 and 51:33 of the upload.
+  1080p; four anchor links, from 15:41, 19:58, 51:33 and 53:47 of the upload.
 
 North (right half of news.mp4, right audio channel)
-  조선중앙텔레비죤 20시보도, 2026년 11월 11일 (re-upload by supersuhui) — https://www.youtube.com/watch?v=YIMgD9ta_JE
-  720p60; anchor links from 0:20 and 7:33 of the upload.
+  조선중앙텔레비죤 20시보도, 2026년 10월 13일 (re-upload by supersuhui) — https://www.youtube.com/watch?v=Zjus941gFCo
+  720p60; one take, 0:02 to 1:15 of the upload.
 
 track.bin / track.json: measured on the aligned clips with apps/scc/scripts/tv-news/.

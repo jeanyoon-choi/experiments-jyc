@@ -1,6 +1,5 @@
 /* One question per screen inside the paper's own frame: printed header on
-   top, the question set as live text in the booklet's grammar, the printed
-   page-number box at the foot. Scrolling snaps question by question; a long
+   top, the question set as live text in the booklet's grammar. Scrolling snaps question by question; a long
    question scrolls within its screen. */
 .reader {
   --side: 16px;
@@ -43,11 +42,6 @@
 .body {
   flex: 1 0 auto;
   padding: 1.5em 0 2em;
-}
-
-.footer {
-  flex: none;
-  align-self: center;
 }
 
 /* Printed regions: sized by --w/--h (points) times --k, written by the reader. */

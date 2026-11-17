@@ -164,4 +164,79 @@ set as live text that reflows to the screen.
   A person who scrolled in the last 1.5 s keeps the page: follow, return and turn all wait for them.
 - Timing is authored, not measured (solutions.json `timing.source`: 157 s in all, the user's 2분 37초). Measured in
   the browser at 480 × 639 over a full run: the caret was inside the screen on every frame it was showing.
+- No page-number box at the foot (removed 2026-11-16); the header alone numbers the question.
 - Known gap: the 고딕 subset lacks super/subscript digits and Greek (Σ π θ β λ), which fall back to a system face.
+
+## /3 — the swarm (2026-11-17)
+
+`/mobile/suneung/3`, code in `components/mobile/suneung/3/` (a standalone copy of `/2`). Baseline: `/2`. Changed
+variable: who works the paper — not a lecturer writing a solution under the question, but a swarm of agents as
+multiplayer cursors, after Joel Califa's [Swarm](https://califa.github.io/swarm-site/) and
+[swarm-cursors](https://github.com/DhvanilPatel/swarm-cursors) (grammar only: neither has a licence, no code taken).
+The aim: the exam reads as something machines dispatch in parallel, faster than reading, not a human domain.
+
+- Invariants: the mobile booklet of `/1`–`/2` (header, question text, figures, choices), the blue pen loop on the
+  answer and the red grade circle on the number, the page turns.
+- Per question (`swarm.ts`): crosshairs box every equation and badge it with its linear form (`work.ts` `linear`), a
+  figure with its printed size, then sweep it; I-beams type the solution's operations into the margin, several lines
+  at once, with synthesized key clicks (`audio.ts`, after the first tap); all five choices are evaluated beside
+  themselves at once, the four that are not the value struck; the swarm converges on the answer, the number is graded
+  in red, and the swarm turns the page. Short answers end on the boxed `답`. Agents are scheduled greedily (each task
+  to the active agent free first); harder questions bring more agents in from the sides (easy 6, mid 10, hard 14,
+  killer 22, pool 24). One colour per agent; red is kept for grading.
+- The margin is set in LaTeX's face: every operation (prose stripped from `solutions.json` steps) is converted to the
+  booklet's math source (`work.ts` `mathSource`: scripts, roots, simple fractions) and typeset by `math.tsx` in Latin
+  Modern, in its writer's colour, numbered in a mono gutter like code. Badges and the gutter are mono; the maths is
+  LaTeX. Typing reveals each line by a clip at measured glyph edges, so it changes no layout.
+- Computed, not authored: every choice value and the solution value are evaluated by `work.ts` (all 21 numeric choice
+  sets match the official answers); question 1 evaluates its powers; question 7 draws both curves and refines a
+  midpoint Riemann sum n = 4 → 256 (3.150000 → 3.199988 → 16/5); question 22 drops 24 candidate points on h(b),
+  brackets the sign change, bisects to b = 1.750000 and recovers a·b = 441/16 by continued fractions → 457.
+- Geometry: question 14's figure is constructed over the print (points from `math-2026/figures/p5-circles`) beside
+  the margin line that uses each step — AC = 5, the radii AE = AG = 2, CE = 3, CG = 2√6, GE = √6, triangle CEG, its
+  circumcircle, ∠HCG, GH.
+- End: after question 30 the swarm fills the answer sheet (선택형 ①–⑤; 단답형 by 백·십·일 digit), writes `100점` and
+  the measured time against the 100 minutes, fires one confetti burst (`confetti.ts`, 2D canvas, 140 pieces, < 3 s)
+  and leaves off the sides. The sheet is a schematic of an OMR card, not checked against a real one.
+- Pace (user target: about two minutes in all): a question's computation gets 0.29 of its authored duration
+  (0.6–2.4 s); hold after grading 0.75 s. Measured (Brave, reader narrowed to 390 px, from load): question 30 graded
+  at 114.2 s, sheet written at 1 분 57 초. (Performance below was measured at the faster 1 분 25 초 pace.)
+- Performance: a frame reads first and writes after; geometry is measured once per task and kept in scroll
+  coordinates, scroll and box come from events, typing is a clip, unmoved cursors are not written, and the loop sleeps
+  when nothing moves. Script per frame over a full run (5 563 frames): mean 0.18 ms, p95 0.50, p99 1.30, max 3.6
+  (before: mean 0.49, p95 1.20, p99 1.70 over 1 500 frames). One 20.8 ms frame in an earlier run did not reproduce.
+- Long questions: the follow-scroll uses the real scroll position once a smooth scroll has had time to land, scroll
+  snapping is off while a question taller than the screen plays, and only scrolling (wheel, touchmove, keys), not a
+  tap, takes the page from the player — so the line being written stays on screen (reported on 28).
+- Known gaps: marks placed on a question do not follow a resize until the next question; sound starts only after the
+  first tap. A 서울대 mark at the end was asked for, then dropped.
+
+## /4 — the cell (2026-11-17)
+
+`/mobile/suneung/4`, code in `components/mobile/suneung/4/` (a standalone copy of `/3` without the cursors). Baseline:
+`/3`. Changed variable: the agent's presence — no cursors; the work is code. Under each question a cell of
+JavaScript is streamed in, run, and checks the choices; the user's direction was "more computational, more like
+coding".
+
+- `program.ts` writes each question's cell: a header comment (topic, points), `const given = [...]` with the linear
+  form of every equation the question prints (each one is underlined in the question as its line streams), the
+  solution's operations as comments set in LaTeX (Latin Modern, up to 7), the value as JavaScript (`jsOf` turns
+  `√3(3+8ln2)/16` into `Math.sqrt(3) * (3 + 8 * Math.log(2)) / 16`), the choices, `hit`, `answer`. Questions 1, 2, 7,
+  14, 16, 17, 22, 23 are solved by their code (powers, a difference quotient, a 10⁵-term Riemann sum, the triangle
+  by `Math.hypot` and the cosine law, a recurrence, F(2), bisection with a search for the denominator, tan 6x / 2x
+  at 10⁻⁹). The cell is run when the page is built; every printed `// → …` is its actual value (`0.9999999999999999`
+  for question 1 included), and the build stops if a cell's answer is not the official one (all 30 pass).
+- `runner.ts` plays it: lines stream in token-sized bursts (1–5 glyphs at an uneven pace, a key click each), then a
+  marker runs the code line by line and outputs appear; lines that draw — the curves and Riemann rectangles of 7, the
+  curve and scan of 22, the construction of 14 (each statement draws its segment, angle, triangle or circumcircle on
+  the printed figure) — first glide the page up to the figure. The last line prints the cell's run time measured in
+  this browser (mean of repeated runs). Each choice then gets `true` / `false`, the false ones are struck, the
+  answer circled, the number graded red. The sheet is filled by `answers.forEach(mark)`, then the score, the time,
+  and the confetti.
+- The page glides on its own eased scroll (260 ms within a question, 300 ms to the next) with snapping off while it
+  moves; streaming and the run advance by time, several lines a frame when due.
+- Pace (user target: about two minutes in all): streaming 2.4 ms per character, run 26 ms per line, hold after grading
+  0.8 s. Measured (Brave, reader narrowed to 390 px, from load): question 30 graded at 118.9 s, sheet written at
+  2 분 1 초. Script per frame (at the earlier 1 분 2 초 pace, 3 762 frames, first 5 excluded): mean 0.21 ms, p95 1.10,
+  p99 1.60, max 5.8; the first frame after load takes ~31 ms (initial layout).
+- Known gaps: while the page shows a figure being drawn, the outputs printed below it are off screen.

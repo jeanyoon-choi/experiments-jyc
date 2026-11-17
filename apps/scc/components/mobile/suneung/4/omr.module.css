@@ -1,0 +1,113 @@
+/* The answer sheet: hairline ovals on white, filled solid black as a
+   computer-use sign pen fills them. */
+
+.sheet {
+  justify-content: center;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2em;
+  font-family: var(--suneung-gothic), sans-serif;
+  font-weight: 500;
+}
+
+.title {
+  margin: 0;
+  padding-bottom: 0.45em;
+  border-bottom: 1.14px solid #000;
+  font-weight: 700;
+  font-size: 1.05em;
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: repeat(3, max-content);
+  grid-template-rows: repeat(7, auto);
+  grid-auto-flow: column;
+  justify-content: space-between;
+  row-gap: 0.4em;
+  font-size: 0.8em;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+}
+
+.n {
+  min-width: 1.4em;
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.row .n {
+  margin-right: 0.2em;
+}
+
+.bubble {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 1.15em;
+  height: 1.6em;
+  border: 0.5px solid #000;
+  border-radius: 50%;
+  font-size: 0.72em;
+  line-height: 1;
+}
+
+.bubble::after {
+  content: "";
+  position: absolute;
+  inset: -0.5px;
+  border-radius: 50%;
+  background: #000;
+  transform: scale(0);
+  transition: transform 140ms ease-out;
+}
+
+.bubble[data-filled]::after {
+  transform: scale(1);
+}
+
+.shorts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  row-gap: 1em;
+  font-size: 0.8em;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3em;
+}
+
+.digits {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  column-gap: 0.12em;
+  row-gap: 0.1em;
+  justify-items: center;
+}
+
+.place {
+  font-size: 0.72em;
+}
+
+.result {
+  font-family: var(--suneung-myeongjo), serif;
+  line-height: 1.7;
+}
+
+.line {
+  margin: 0;
+}

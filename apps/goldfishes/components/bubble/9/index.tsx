@@ -59,6 +59,7 @@ function openingOf(index: number) {
     fish: { ...PRESET_3.fish, ...setup.fish },
     feedback: { ...PRESET_3.feedback, ...setup.feedback },
     objects: { ...PRESET_3.objects, ...setup.liquid } as ObjectParameters,
+    visual: { ...PRESET_3.visual, ...setup.look } as Visual,
   };
 }
 
@@ -84,7 +85,7 @@ export default function RankedWebIteration({ setup: openingSetup = OPENING_SETUP
   const [groups, setGroups] = useState(PRESET_3.groups);
   const [diversity, setDiversity] = useState(DEFAULT_DIVERSITY);
   // 비주얼
-  const [visual, setVisual] = useState<Visual>(PRESET_3.visual);
+  const [visual, setVisual] = useState<Visual>(opening.visual);
   // 금붕어
   const [fishCount, setFishCount] = useState(PRESET_3.fishCount);
   const [fish, setFish] = useState<FishParameters>(opening.fish);
@@ -109,7 +110,7 @@ export default function RankedWebIteration({ setup: openingSetup = OPENING_SETUP
   // What the frame loop reads every frame, kept current after each render.
   const settingsRef = useRef<LoopSettings>({
     parameters: { ...DEFAULT_PARAMETERS, ...opening.rates },
-    visual: PRESET_3.visual,
+    visual: opening.visual,
     fishCount: PRESET_3.fishCount,
     fish: opening.fish,
     fishPalette: PRESET_3.fishPalette,
@@ -282,7 +283,7 @@ export default function RankedWebIteration({ setup: openingSetup = OPENING_SETUP
           spread={spread}
           setSpread={setSpread}
           setups={SETUPS}
-          setup={setupOf({ rates, fish, feedback, liquid: objects })}
+          setup={setupOf({ rates, fish, feedback, liquid: objects, look: visual })}
           onSetup={(index) => {
             // Values only: the web, the school and whatever is on the screen carry on under them.
             const next = SETUPS[index]!;
@@ -290,6 +291,7 @@ export default function RankedWebIteration({ setup: openingSetup = OPENING_SETUP
             setFish((current) => ({ ...current, ...next.fish }));
             setFeedback((current) => ({ ...current, ...next.feedback }));
             setObjects((current) => ({ ...current, ...next.liquid }));
+            setVisual((current) => ({ ...current, ...next.look }));
           }}
         />
         <div className={styles.control}>

@@ -26,7 +26,7 @@
 //     reflections broken by a fine network of dark cracks;
 //   - leather product photography (FlixStudio's guide, studio close-ups;
 //     https://www.google.com/search?q=brown+leather+object+product+photography+grain+close+up+studio&udm=2): pebble
-//     grain cells with dark creases between, a low broken sheen;
+//     grain cells with dark creases between, a low broken sheen (the hide itself is a scan: mixOf, leather);
 //   - Peter Tarka's playful 3D illustration (https://petertarka.com ,
 //     https://www.google.com/search?q=Peter+Tarka+3d+illustration&udm=2): pastel matte-to-satin solids on light grounds.
 // Common to all: each object is ONE clean material, legible at a glance; colour is flat and dense (primaries plus a
@@ -110,6 +110,9 @@ vec3 mixColourOf(int kind, float seed, Surface s) {
 vec3 mixOf(Surface s) {
   float seed = s.seed;
   vec2 gp = s.q * s.radius;                        // CSS px on it, fixed to it
+  // How it runs across the screen, for the hide's mips (taken here, before anything branches).
+  vec2 grainX = dFdx(gp);
+  vec2 grainY = dFdy(gp);
   float seamShade = 1.0;
   // 부분 나눔: a part slotted onto it, cut along a wavering line, a fine dark seam between.
   if (hash(vec3(seed * 13.9 + mixSeed, 5.7, 3.2)) < mixParts) {
@@ -157,18 +160,21 @@ vec3 mixOf(Surface s) {
     vec3 clear = mirrorOf(s, rough) * (0.045 + 0.955 * fresnel) * mix(0.5, 1.0, open);
     colour = body * (1.0 - 0.6 * fresnel) + clear;
   } else if (kind == 6) {
-    // Leather: pebble grain cells with dark creases, a low broken sheen.
-    float k = max(2.2, s.radius * 0.024);
-    float h0 = noise(vec3(gp / k, seed * 9.0));
-    float hx = noise(vec3((gp + vec2(0.7, 0.0)) / k, seed * 9.0));
-    float hy = noise(vec3((gp + vec2(0.0, 0.7)) / k, seed * 9.0));
-    float crease = 1.0 - smoothstep(0.0, 0.09, abs(h0 - 0.5));
+    // Leather: a scanned hide (SHADING plates, layer 1: Poly Haven's "Leather Red 02", CC0 — its normal and its
+    // grain's height), not drawn cells (user, 2026-11-17: "지금 가죽 이렇게 안생김"): pebbles a few px across
+    // between creases, on any size of object; dark in the creases, a low sheen broken by the grain, a little
+    // more of it on the pebbles' tops.
+    float tile = clamp(s.radius * 1.6, 110.0, 300.0);
+    vec4 hide = textureGrad(plates, vec3(gp / tile + seed * vec2(13.7, 7.3), 1.0), grainX / tile, grainY / tile);
+    // The hide's slopes (its normal map's x and y; the map's y runs up, q's down), turned onto the screen.
+    vec2 slope = (hide.rg * 2.0 - 1.0) * vec2(1.0, -1.0);
+    float creased = 1.0 - smoothstep(0.22, 0.5, hide.b);
     Surface m = s;
-    m.nS = normalize(s.nS + vec3(vec2(hx - h0, hy - h0) * 0.9 * mixGrain, 0.0));
+    m.nS = normalize(s.nS + vec3(s.qTurn * slope * 2.6 * mixGrain, 0.0));
     m.n = s.turn * toWorld(m.nS);
-    vec3 body = albedo * irradiance(m.o, m.n) * open * (1.0 - 0.28 * mixGrain * crease);
-    vec3 sheen = mirrorOf(m, 0.42) * (0.035 + 0.35 * fresnel) * (1.0 - 0.7 * crease) * open;
-    colour = body + sheen * 0.8;
+    vec3 body = albedo * irradiance(m.o, m.n) * open * (1.0 - 0.5 * mixGrain * creased);
+    vec3 sheen = mirrorOf(m, 0.42) * (0.045 + 0.4 * fresnel) * (1.0 - 0.8 * creased) * mix(0.75, 1.25, hide.b) * open;
+    colour = body + sheen * 0.85;
   } else {
     vec3 n = s.n;
     float ndl = dot(n, toKey);

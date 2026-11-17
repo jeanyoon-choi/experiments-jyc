@@ -66,7 +66,16 @@ export type Ball = {
   qw: number;
 };
 
-export type Pocket = { x: number; y: number; radius: number };
+/** A hole, with points along the part of its edge that is the casting's wall (the rail side). */
+export type Pocket = { x: number; y: number; radius: number; wall: number[] };
+
+export const HIT_BALL = 0;
+export const HIT_CUSHION = 1;
+export const HIT_POCKET = 2;
+/** Something the table heard: what struck, and how fast (m/s). */
+export type Hit = { kind: number; speed: number };
+/** Impacts softer than this are not heard. */
+const HEARD = 0.03;
 
 /** One strip of cushion: nose from a to b, the outward normal, and how far each end is cut back. */
 export type Cushion = {
@@ -90,7 +99,13 @@ export type Table = {
   segments: Segment[];
   /** How many balls have gone down a pocket since the table was made. */
   drops: number;
+  /** Impacts since the caller last emptied this list (it keeps at most 48). */
+  hits: Hit[];
 };
+
+function hear(table: Table, kind: number, speed: number) {
+  if (speed > HEARD && table.hits.length < 48) table.hits.push({ kind, speed });
+}
 
 /** The cushion's back corners at each end, where its facings meet the rail. */
 export function cushionBack(c: Cushion) {
@@ -127,10 +142,17 @@ function lay(table: Table, length: number) {
   const pockets: Pocket[] = [];
   for (const sy of [-1, 1]) {
     for (const sx of [-1, 1]) {
-      pockets.push({ x: sx * (hw + CORNER_OFFSET), y: sy * (hl + CORNER_OFFSET), radius: CORNER_HOLE });
+      pockets.push({ x: sx * (hw + CORNER_OFFSET), y: sy * (hl + CORNER_OFFSET), radius: CORNER_HOLE, wall: [] });
     }
   }
-  for (const sx of [-1, 1]) pockets.push({ x: sx * (hw + SIDE_OFFSET), y: 0, radius: SIDE_HOLE });
+  for (const sx of [-1, 1]) pockets.push({ x: sx * (hw + SIDE_OFFSET), y: 0, radius: SIDE_HOLE, wall: [] });
+  for (const pocket of pockets) {
+    for (let k = 0; k < 72; k += 1) {
+      const x = pocket.x + Math.cos((k / 72) * Math.PI * 2) * pocket.radius;
+      const y = pocket.y + Math.sin((k / 72) * Math.PI * 2) * pocket.radius;
+      if (Math.abs(x) > hw + CUSHION_DEPTH || Math.abs(y) > hl + CUSHION_DEPTH) pocket.wall.push(x, y);
+    }
+  }
   table.length = length;
   table.cushions = cushions;
   table.segments = segments;
@@ -165,7 +187,7 @@ export function rack(table: Table) {
 
 export function createTable(length: number): Table {
   const balls = Array.from({ length: 16 }, (_, id) => ({ id }) as Ball);
-  const table: Table = { length, balls, pockets: [], cushions: [], segments: [], drops: 0 };
+  const table: Table = { length, balls, pockets: [], cushions: [], segments: [], drops: 0, hits: [] };
   lay(table, length);
   rack(table);
   return table;
@@ -278,18 +300,27 @@ function roll(ball: Ball, dt: number) {
   ball.wy = ball.vx / r;
 }
 
+/** Top of the pocket's casting above the cloth: the wall a falling ball meets on the rail side. */
+const CASTING_TOP = RAIL_TOP + 0.003;
+
+// A falling ball never goes into the table. Toward the room the hole's edge is only the cloth's
+// edge, which the ball rolls over as it sinks; toward the rail it is the casting's wall, standing
+// from below the cloth to above the rail.
 function fall(table: Table, ball: Ball, dt: number) {
   const pocket = table.pockets[ball.pocket];
+  const r = BALL_R;
   ball.vz -= G * dt;
   ball.x += ball.vx * dt;
   ball.y += ball.vy * dt;
   ball.z += ball.vz * dt;
-  // The lip lets the ball in as it sinks; below the cloth it is inside the pocket's wall.
-  const sunk = Math.min(1, Math.max(0, -ball.z / BALL_R));
-  const room = pocket.radius - BALL_R * sunk;
+  // Height of the ball's centre above the cloth, and how far it reaches sideways at a height.
+  const h = r + ball.z;
+  const reachAbove = (top: number) => (h <= top ? r : h - top < r ? Math.sqrt(r * r - (h - top) * (h - top)) : 0);
+  // The cloth's edge, all round: below the cloth the hole is a tube.
   const dx = ball.x - pocket.x;
   const dy = ball.y - pocket.y;
   const d = Math.hypot(dx, dy);
+  const room = Math.max(0, pocket.radius - reachAbove(0));
   if (d > room && d > 0) {
     const nx = dx / d;
     const ny = dy / d;
@@ -297,8 +328,26 @@ function fall(table: Table, ball: Ball, dt: number) {
     ball.y = pocket.y + ny * room;
     const out = ball.vx * nx + ball.vy * ny;
     if (out > 0) {
-      ball.vx -= 1.35 * out * nx;
-      ball.vy -= 1.35 * out * ny;
+      ball.vx -= out * nx;
+      ball.vy -= out * ny;
+    }
+  }
+  // The casting's wall on the rail side knocks the ball back.
+  const reach = reachAbove(CASTING_TOP);
+  for (let k = 0; k < pocket.wall.length; k += 2) {
+    const ox = ball.x - pocket.wall[k];
+    const oy = ball.y - pocket.wall[k + 1];
+    const gap = Math.hypot(ox, oy);
+    if (gap >= reach || gap === 0) continue;
+    const ux = ox / gap;
+    const uy = oy / gap;
+    ball.x += ux * (reach - gap);
+    ball.y += uy * (reach - gap);
+    const into = ball.vx * ux + ball.vy * uy;
+    if (into < 0) {
+      hear(table, HIT_CUSHION, -into * 0.6);
+      ball.vx -= 1.35 * into * ux;
+      ball.vy -= 1.35 * into * uy;
     }
   }
   if (ball.z < -POCKET_DEPTH) {
@@ -313,6 +362,7 @@ function fall(table: Table, ball: Ball, dt: number) {
 
 function drop(table: Table, ball: Ball, pocket: number) {
   table.drops += 1;
+  hear(table, HIT_POCKET, Math.max(HEARD * 2, Math.hypot(ball.vx, ball.vy)));
   ball.state = FALLING;
   ball.pocket = pocket;
   ball.vz = 0;
@@ -364,6 +414,7 @@ function tick(table: Table, dt: number) {
         // Equal masses, no friction between balls: only the velocity along the line of centres is
         // exchanged, and each ball keeps its spin (so a rolling cue ball follows, a sliding one stops).
         const impulse = ((1 + BALL_BOUNCE) / 2) * closing;
+        hear(table, HIT_BALL, closing);
         a.vx -= ux * impulse;
         a.vy -= uy * impulse;
         b.vx += ux * impulse;
@@ -405,6 +456,7 @@ function tick(table: Table, dt: number) {
       if (into >= 0) continue;
       // Rubber gives less back the harder it is hit.
       const bounce = s.bounce * (1 - Math.min(0.25, -into * 0.03));
+      hear(table, HIT_CUSHION, -into);
       ball.vx -= (1 + bounce) * into * ux;
       ball.vy -= (1 + bounce) * into * uy;
       // The nose grips the ball above its centre and turns its roll round with it: the ball

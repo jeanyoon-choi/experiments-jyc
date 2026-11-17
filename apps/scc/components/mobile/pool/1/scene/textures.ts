@@ -81,15 +81,19 @@ export function ballSkin(id: number, anisotropy: number) {
   return { texture, paint };
 }
 
-/** Loads a 4 × 4 atlas of 256 px cells (in ball order) and hands back its pixels. */
+/**
+ * Loads a 4 × 4 atlas (in ball order) and hands back its pixels as 256 px cells. The files are
+ * smaller (192 px cells, enough for a ball about 100 device pixels across) and are scaled up here.
+ */
 export function loadAtlas(url: string, done: (atlas: ImageData) => void) {
   const image = new Image();
   image.onload = () => {
     const canvas = document.createElement("canvas");
-    canvas.width = image.naturalWidth;
-    canvas.height = image.naturalHeight;
+    canvas.width = FACE * 4;
+    canvas.height = FACE * 4;
     const g = canvas.getContext("2d", { willReadFrequently: true })!;
-    g.drawImage(image, 0, 0);
+    g.imageSmoothingQuality = "high";
+    g.drawImage(image, 0, 0, canvas.width, canvas.height);
     done(g.getImageData(0, 0, canvas.width, canvas.height));
   };
   image.src = url;

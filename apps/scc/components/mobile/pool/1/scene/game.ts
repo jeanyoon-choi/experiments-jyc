@@ -2,7 +2,7 @@ import { advance, createTable, cueBall, isMoving, resize, strike, trace, ON_TABL
 import type { Table } from "../model/physics";
 import { createStage } from "./stage";
 import type { CuePose } from "./stage";
-import { createVoice } from "./voice";
+import { createSound } from "./sound";
 
 /** A pull shorter than this (CSS px) leaves the cue where it lies. */
 const MIN_PULL = 10;
@@ -17,11 +17,14 @@ const FOLLOW_SECONDS = 0.18;
 const AWAY = 2.4;
 const AWAY_SECONDS = 0.4;
 
-/** Runs the game on a canvas that fills `page`; returns its teardown. */
-export function mount(page: HTMLElement, canvas: HTMLCanvasElement) {
+/**
+ * Runs the game on a canvas that fills `page`. `onSound` hears whether the browser lets sound out;
+ * `unlock` is for the tap that asks it to.
+ */
+export function mount(page: HTMLElement, canvas: HTMLCanvasElement, onSound: (open: boolean) => void) {
   let table: Table | null = null;
-  // Every ball that goes down a pocket is told so.
-  const voice = createVoice("/3d/pool/fired.mp3");
+  // The table's own sounds, and every ball that goes down a pocket is told it is fired.
+  const sound = createSound("/3d/pool/table.mp3", "/3d/pool/youre-fired.mp3", onSound);
   let heard = 0;
   let frame = 0;
   let last = 0;
@@ -88,12 +91,20 @@ export function mount(page: HTMLElement, canvas: HTMLCanvasElement) {
       if (!stroke.struck && stroke.time >= STROKE_SECONDS) {
         stroke.struck = true;
         strike(table, aim.ux, aim.uy, stroke.power);
+        sound.strike(stroke.power);
       }
       if (stroke.time >= STROKE_SECONDS + FOLLOW_SECONDS) stroke = null;
     }
     const wasMoving = isMoving(table);
     const moving = wasMoving && advance(table, seconds);
-    for (let n = 0; heard < table.drops; n += 1, heard += 1) voice.say(n * 0.18);
+    sound.frame();
+    for (const hit of table.hits) sound.hit(hit.kind, hit.speed);
+    table.hits.length = 0;
+    // After the ball's own drop into the pocket.
+    for (let n = 0; heard < table.drops; n += 1, heard += 1) sound.fired(0.12 + n * 0.18);
+    let rolling = 0;
+    if (moving) for (const ball of table.balls) if (ball.state === ON_TABLE) rolling += Math.hypot(ball.vx, ball.vy);
+    sound.roll(rolling);
     if (wasMoving && !moving) address();
     // Out of the way while anything rolls, back to the ball once it has all stopped.
     const target = moving && !stroke ? 1 : moving ? away : 0;
@@ -124,7 +135,6 @@ export function mount(page: HTMLElement, canvas: HTMLCanvasElement) {
 
   const ready = () => table !== null && !stroke && away === 0 && !isMoving(table) && cueBall(table).state === ON_TABLE;
   const down = (event: PointerEvent) => {
-    voice.unlock();
     if (pull || !ready()) return;
     pull = { id: event.pointerId, x: event.clientX, y: event.clientY, size: 0 };
   };
@@ -166,8 +176,11 @@ export function mount(page: HTMLElement, canvas: HTMLCanvasElement) {
   window.addEventListener("pointerup", up);
   window.addEventListener("pointercancel", cancel);
   document.addEventListener("visibilitychange", visible);
+  // Sound may only be opened inside a gesture, and which event counts differs by browser: try them all.
+  const gestures = ["pointerdown", "touchstart", "mousedown", "touchend", "pointerup", "click", "keydown"] as const;
+  for (const gesture of gestures) window.addEventListener(gesture, sound.unlock);
 
-  return () => {
+  const dispose = () => {
     alive = false;
     cancelAnimationFrame(frame);
     observer.disconnect();
@@ -176,7 +189,9 @@ export function mount(page: HTMLElement, canvas: HTMLCanvasElement) {
     window.removeEventListener("pointerup", up);
     window.removeEventListener("pointercancel", cancel);
     document.removeEventListener("visibilitychange", visible);
+    for (const gesture of gestures) window.removeEventListener(gesture, sound.unlock);
     stage.dispose();
-    voice.close();
+    sound.close();
   };
+  return { dispose, unlock: sound.unlock };
 }

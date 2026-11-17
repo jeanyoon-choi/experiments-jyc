@@ -18,7 +18,7 @@ const FACES = ["400", "700", "800"].map((weight) => ({ weight, variable: "--sune
 const PAPER_BODY = 10.93;
 
 /**
- * Plays the solutions once the booklet is fitted (./player). Sizes the printed header to the measure, the footer box and figures to the
+ * Plays the solutions once the booklet is fitted (./player). Sizes the printed header to the measure, figures to the
  * body's scale, shrinks a display equation that would overflow, and fits the
  * printed lines once the fonts are in.
  */

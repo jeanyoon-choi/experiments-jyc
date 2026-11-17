@@ -30,7 +30,6 @@ export default function SuneungMathLecture() {
             key={question.n}
             question={question}
             pages={pageByNumber}
-            total={booklet.length}
             figures={figures}
             sizes={sizes}
             solution={solutionByNumber.get(question.n)}

@@ -374,6 +374,7 @@ class RaftLoop implements FrameLoop {
       frame.caught = spreading ? this.contagion.caught : null;
       this.objectPass.draw(pageStart, this.bubbleCount, this.pageOf, this.headingOf, objects, frame);
     }
+    this.renderer.present(look);
     mark(5);
     if (MEASURE) {
       this.renderer.sync();
@@ -487,6 +488,7 @@ class RaftLoop implements FrameLoop {
       },
       settings.objects,
     );
+    this.renderer.present();
   }
 
   /** Adds a bubble for the renderer (a portion: with its target page and share of its way). */

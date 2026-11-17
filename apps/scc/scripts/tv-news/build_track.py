@@ -10,7 +10,7 @@ from PIL import Image
 
 W, H = 608, 1080
 MW, MH = 152, 270
-CUTS = [0, 408, 657]  # shot boundaries: smoothing never crosses them
+CUTS = json.load(open("cuts.json"))  # shot boundaries per side: smoothing never crosses them
 SCALE = 8192
 
 
@@ -63,9 +63,9 @@ def silhouette(face, mask):
     return np.array(out)
 
 
-def smooth(a, sigma):
+def smooth(a, sigma, cuts):
     out = a.copy()
-    for s, e in zip(CUTS[:-1], CUTS[1:]):
+    for s, e in zip(cuts[:-1], cuts[1:]):
         out[s:e] = gaussian_filter1d(a[s:e], sigma, axis=0, mode="nearest")
     return out
 
@@ -81,7 +81,7 @@ sides = {}
 for side in "SN":
     face, mask = load(side)
     sil = silhouette(face, mask)
-    sides[side] = (smooth(face, 0.9), smooth(sil, 2.5))
+    sides[side] = (smooth(face, 0.9, CUTS[side]), smooth(sil, 2.5, CUTS[side]))
 
 # Vision repeats some landmarks across regions: keep one of each.
 mean_face = (sides["S"][0].mean(axis=0) + sides["N"][0].mean(axis=0)) / 2
@@ -106,7 +106,7 @@ tri = np.array([t for t in tri if area(t) > 1e-7])
 packed = np.stack([track["S"], track["N"]], axis=1)  # frames, side, points, xy
 np.round(packed * SCALE).astype("<i2").tofile("track.bin")
 json.dump({"fps": 30, "frames": frames, "points": int(points), "scale": SCALE, "width": W, "height": H,
-           "cuts": CUTS[1:-1], "triangles": tri.flatten().tolist()}, open("track.json", "w"), separators=(",", ":"))
+           "cuts": {"south": CUTS["S"][1:-1], "north": CUTS["N"][1:-1]}, "triangles": tri.flatten().tolist()}, open("track.json", "w"), separators=(",", ":"))
 print("frames", frames, "points", points, "face kept", len(keep), "triangles", len(tri))
 
 # Folded triangles per frame at the halfway geometry (should be none).

@@ -270,7 +270,7 @@ export const PRESET_3 = {
 };
 
 /**
- * 셋업 A · B · C (user, 2026-11-13): three ways the bubbles and the morphs behave, one button each beside the mode
+ * 셋업 A · B · C (user, 2026-11-13; D added 2026-11-17, below): three ways the bubbles and the morphs behave, one button each beside the mode
  * switch, to go between them in one screen. Only these values change; everything else stays as it is — the material
  * and look, 버블 면적, the objects chosen and their 크기 · 부풂 · 각도, the fish and their count — and everything that
  * is code and not a value (흐름 버블, 물듦, how a retarget carries its melt …) is bubble/9's in all three.
@@ -280,33 +280,48 @@ export const PRESET_3 = {
  *   C — bubble/9b's: B on the clock that never quite sets.
  */
 const SETUP_B = {
-  rates: { growth: PRESET_3.rates.growth, burstAt: PRESET_3.rates.burstAt },
+  // 순위 쏠림 (floor) and 회복 are a setup's too since D (2026-11-17).
+  rates: { growth: PRESET_3.rates.growth, burstAt: PRESET_3.rates.burstAt, floor: PRESET_3.rates.floor, recovery: PRESET_3.rates.recovery },
   fish: { speed: PRESET_3.fish.speed },
   feedback: { influence: PRESET_3.feedback.influence, ceiling: PRESET_3.feedback.ceiling },
   // The liquid, and which groups the pages are and how the objects are turned (오브제 → 페이지, 각도): A has its own (user, 2026-11-14).
-  liquid: { style: 0, duration: MORPH_STYLES[0].duration as number, soften: LIQUID_DEFAULTS.soften, wobble: LIQUID_DEFAULTS.wobble, ripple: LIQUID_DEFAULTS.ripple, overshoot: LIQUID_DEFAULTS.overshoot, swell: LIQUID_DEFAULTS.swell, pages: OBJECT_DEFAULTS.pages as number, facing: OBJECT_DEFAULTS.facing as number },
+  liquid: { style: 0, duration: MORPH_STYLES[0].duration as number, soften: LIQUID_DEFAULTS.soften, wobble: LIQUID_DEFAULTS.wobble, ripple: LIQUID_DEFAULTS.ripple, overshoot: LIQUID_DEFAULTS.overshoot, swell: LIQUID_DEFAULTS.swell, pages: OBJECT_DEFAULTS.pages as number, facing: OBJECT_DEFAULTS.facing as number, size: OBJECT_DEFAULTS.size as number, puff: OBJECT_DEFAULTS.puff as number },
+  // 라프트 → 이웃 반사 (the visual panel's), the one value of the look a setup holds.
+  look: { neighbourReflection: PRESET_3.visual.neighbourReflection as number },
 };
 export type Setup = { id: string; label: string } & typeof SETUP_B;
 export const SETUPS: readonly Setup[] = [
   {
     id: "a",
     label: "A",
-    rates: { growth: DEFAULT_PARAMETERS.growth, burstAt: DEFAULT_PARAMETERS.burstAt },
+    rates: { ...SETUP_B.rates, growth: DEFAULT_PARAMETERS.growth, burstAt: DEFAULT_PARAMETERS.burstAt },
     fish: { speed: 2.2 },
     feedback: { influence: FEEDBACK_DEFAULTS.influence, ceiling: FEEDBACK_DEFAULTS.ceiling },
     // The user's own setup under A (exported 2026-11-14): the pages 테크 하이프 alone, the objects turned the way they move.
-    liquid: { style: 2, duration: MORPH_STYLES[2].duration, soften: 3.2, wobble: 0.05, ripple: 0.35, overshoot: 0.18, swell: 0.85, pages: groupBit(GROUPS[0]!), facing: 2 },
+    liquid: { ...SETUP_B.liquid, style: 2, duration: MORPH_STYLES[2].duration, soften: 3.2, wobble: 0.05, ripple: 0.35, overshoot: 0.18, swell: 0.85, pages: groupBit(GROUPS[0]!), facing: 2 },
+    look: SETUP_B.look,
   },
   { id: "b", label: "B", ...SETUP_B },
   { id: "c", label: "C", ...SETUP_B, liquid: { ...SETUP_B.liquid, style: 1, duration: MORPH_STYLES[1].duration } },
+  // The user's own setup (exported 2026-11-17, bubble-9-2026-11-17T07-27-27-078Z.json), every value in which it
+  // differs from B: more new pages, the rank far more concentrated (floor), a page swells further before it bursts
+  // and recovers slower, the objects larger, more blown up and turned the way they move, 이웃 반사 1.
+  {
+    id: "d",
+    label: "D",
+    ...SETUP_B,
+    rates: { growth: 0.9, burstAt: 100, floor: 0.2106029267357361, recovery: 19 },
+    liquid: { ...SETUP_B.liquid, size: 1.5, puff: 2, facing: 2 },
+    look: { neighbourReflection: 1 },
+  },
 ];
 /** bubble/9 opens on B. */
 export const OPENING_SETUP = 1;
 
 /** Which setup these values are exactly, or −1 once any of them has been moved. */
-export function setupOf(now: { rates: Setup["rates"]; fish: Setup["fish"]; feedback: Setup["feedback"]; liquid: Setup["liquid"] }) {
+export function setupOf(now: { rates: Setup["rates"]; fish: Setup["fish"]; feedback: Setup["feedback"]; liquid: Setup["liquid"]; look: Setup["look"] }) {
   const same = (a: object, b: object) => Object.entries(a).every(([key, value]) => Math.abs((b as Record<string, number>)[key]! - value) < 1e-6);
-  return SETUPS.findIndex((setup) => same(setup.rates, now.rates) && same(setup.fish, now.fish) && same(setup.feedback, now.feedback) && same(setup.liquid, now.liquid));
+  return SETUPS.findIndex((setup) => same(setup.rates, now.rates) && same(setup.fish, now.fish) && same(setup.feedback, now.feedback) && same(setup.liquid, now.liquid) && same(setup.look, now.look));
 }
 
 /**

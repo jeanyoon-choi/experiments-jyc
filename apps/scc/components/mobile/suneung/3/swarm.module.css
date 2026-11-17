@@ -1,0 +1,338 @@
+/* The swarm over the booklet: multiplayer cursors, the marks they leave on
+   the paper (selection boxes with what they read, sweeps, strikes), and the
+   margin they compute in. Each agent owns one colour; everything it leaves
+   is drawn in that colour. The paper itself stays black on white. */
+
+.reader {
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* Cursors live in one fixed layer over the reader, positioned in its scroll coordinates by the player. */
+.cursors {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+.cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  color: var(--c);
+  will-change: transform;
+}
+
+.cursor svg {
+  position: absolute;
+  display: none;
+  overflow: visible;
+}
+
+.cursor[data-mode="arrow"] .arrow,
+.cursor[data-mode="text"] .ibeam,
+.cursor[data-mode="cross"] .cross {
+  display: block;
+}
+
+/* Hotspots: the arrow's tip, the I-beam's and crosshair's centre. */
+.arrow {
+  left: -1.5px;
+  top: -1.5px;
+  width: 16px;
+  height: 20px;
+}
+
+.arrow path {
+  fill: currentColor;
+  stroke: #fff;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+
+.ibeam {
+  left: -5px;
+  top: -9px;
+  width: 10px;
+  height: 18px;
+}
+
+.cross {
+  left: -8px;
+  top: -8px;
+  width: 16px;
+  height: 16px;
+}
+
+.ibeam path,
+.cross path {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.under {
+  stroke: #fff;
+  stroke-width: 3.6;
+}
+
+.over {
+  stroke: currentColor;
+  stroke-width: 1.6;
+}
+
+/* Marks on a question: one layer over each screen. */
+.layer {
+  position: absolute;
+  inset: 0;
+  contain: layout style;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.box {
+  position: absolute;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--c);
+}
+
+.box::before,
+.box::after {
+  content: "";
+  position: absolute;
+  box-sizing: border-box;
+  width: 5px;
+  height: 5px;
+  border: 1px solid var(--c);
+  background: #fff;
+}
+
+.box::before {
+  left: -3px;
+  top: -3px;
+}
+
+.box::after {
+  right: -3px;
+  bottom: -3px;
+}
+
+.badge {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 2px 4px;
+  border-radius: 2px;
+  background: var(--c);
+  color: #fff;
+  font: 500 10px/1.2 var(--mono);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.sweep {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  background: var(--c);
+}
+
+/* The margin: what the swarm computes, line by line, set in LaTeX's face (the
+   booklet's Latin Modern) in its writer's colour, numbered like code. */
+.work {
+  margin: 1.2em 0 0;
+  contain: layout;
+  font-size: 0.92em;
+  line-height: 1.5;
+}
+
+.op {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7em;
+  margin: 0 0 0.28em;
+  white-space: nowrap;
+}
+
+.ln {
+  flex: none;
+  min-width: 1.5em;
+  color: #a3a3a3;
+  font: 500 0.6em/1 var(--mono);
+  text-align: right;
+}
+
+/* Typed text: laid out whole, revealed from the left by a clip; the caret rides the clip's edge. */
+.typed {
+  position: relative;
+  display: inline-block;
+  color: var(--c, #000);
+}
+
+.ink {
+  display: inline-block;
+  clip-path: inset(-0.7em 100% -0.7em 0);
+}
+
+.typed[data-done] > .ink {
+  clip-path: none;
+}
+
+.caret {
+  position: absolute;
+  left: 0;
+  top: 0.05em;
+  bottom: 0.05em;
+  border-left: 1.5px solid var(--c, #000);
+  visibility: hidden;
+}
+
+.typed[data-writing] > .caret {
+  visibility: visible;
+}
+
+.final {
+  margin: 0.5em 0 0;
+  font-weight: 700;
+  visibility: hidden;
+}
+
+.final[data-on] {
+  visibility: visible;
+}
+
+.final .value {
+  display: inline-block;
+  margin-left: 0.6em;
+  padding: 0 0.4em;
+  border: 1.5px solid #000;
+}
+
+/* A choice evaluated, struck when it is not the value. */
+.choiceText {
+  position: relative;
+  transition: opacity 240ms ease-out;
+}
+
+[data-out] .choiceText {
+  opacity: 0.3;
+}
+
+.strike {
+  position: absolute;
+  left: -0.15em;
+  right: -0.15em;
+  top: 52%;
+  height: 1.5px;
+  background: var(--c);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+.probe {
+  margin-left: 0.6em;
+  font-size: 0.92em;
+}
+
+/* Plots in the margin, drawn by the swarm's pen. */
+.plot {
+  display: block;
+  width: min(100%, 21em);
+  height: auto;
+  margin: 0.3em 0 0.7em;
+  overflow: visible;
+}
+
+.axis {
+  fill: none;
+  stroke: #000;
+  stroke-width: 0.6;
+}
+
+.curve {
+  fill: none;
+  stroke: var(--c, #000);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.sum {
+  visibility: hidden;
+}
+
+.sum rect {
+  fill: var(--c, #000);
+  fill-opacity: 0.16;
+  stroke: var(--c, #000);
+  stroke-width: 0.5;
+}
+
+.point {
+  fill: var(--c, #000);
+  visibility: hidden;
+}
+
+.point[data-off] {
+  fill: #b4b4b4;
+}
+
+.root {
+  visibility: hidden;
+}
+
+.root circle {
+  fill: none;
+  stroke: var(--c, #000);
+  stroke-width: 1.4;
+}
+
+.root text,
+.tick {
+  font: 500 8px var(--mono);
+  fill: #000;
+}
+
+/* A construction drawn over a printed figure: the pen's strokes, a light fill, and lengths in LaTeX's face. */
+.construction {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.cstroke {
+  fill: none;
+  stroke: var(--c, #000);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.cfill {
+  fill: var(--c, #000);
+  fill-opacity: 0;
+  stroke: none;
+  transition: fill-opacity 200ms ease-out;
+}
+
+.cfill[data-on] {
+  fill-opacity: 0.14;
+}
+
+.clabel {
+  fill: var(--c, #000);
+  font-family: var(--suneung-equation), var(--suneung-equation-symbols), serif;
+  font-size: 9px;
+  visibility: hidden;
+}

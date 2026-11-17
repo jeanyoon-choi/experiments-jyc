@@ -1,7 +1,7 @@
 import type { ComponentType, CSSProperties } from "react";
 import type { PaperPage } from "../paper/types";
 import type { Block, BookletQuestion } from "./booklet";
-import { footerFor, headerFor } from "./chrome";
+import { headerFor } from "./chrome";
 import { PaperCut } from "./cut";
 import { Equation, Text } from "./math";
 import screen from "./screen.module.css";
@@ -114,14 +114,12 @@ function ItemRow({ mark, text }: { mark: string; text: string }) {
 export function QuestionScreen({
   question,
   pages,
-  total,
   figures,
   sizes,
   solution,
 }: {
   question: BookletQuestion;
   pages: ReadonlyMap<number, PaperPage>;
-  total: number;
   figures: Figures;
   sizes: FigureSizes;
   solution?: Solution;
@@ -145,7 +143,6 @@ export function QuestionScreen({
         ))}
         {solution ? <SolutionView solution={solution} /> : null}
       </div>
-      <PaperCut region={footerFor(question.n, total, pages)} scale="body" className={screen.footer} />
     </section>
   );
 }

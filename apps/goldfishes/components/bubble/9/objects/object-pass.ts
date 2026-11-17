@@ -16,6 +16,11 @@
 // wobbles and ripples, and sets again into the next object's own surface. The
 // height it finds is written as depth, as the meshes' was.
 //
+// 2026-11-17: drawn twice into the raft's frame (foam.ts targets): first its heights alone, then its material, only
+// where it is the nearest surface — large objects lie many deep, and every layer under the top one was shaded and
+// thrown away. In its material an object sees the bodies round it in the last frame (materials/surface.ts): it
+// mirrors them (이웃 반사) and is joined to those it stands in (맞닿은 틈).
+//
 // Pages morph when what they are shown as changes (변신, the set's chips);
 // portions under way flow from their own object into the page they reach;
 // the 랩 draws one object, large, on its own morph.
@@ -40,6 +45,8 @@ import { brandOf } from "./shapes/marks";
 import { kindsInUse, pageKind, pagesAreObjects, portionKind, type ObjectKind, type ObjectParameters } from "./kinds/parameters";
 import { ADDRESS_BRAND, ADDRESS_TIER, levelsOf, poolsFor, Residency, TIER_FIELD, TIER_MEMBRANE, TIER_PAINT, TIERS, type Tier } from "./fields/tiers";
 
+/** The texture unit the frame's heights are read from while shading (8–19 the fields' and 인쇄물's, 20 the last frame). */
+const DEPTH_UNIT = 22;
 /** Neighbours each object mirrors, nearest first. */
 const NEIGHBOURS = 4;
 /**
@@ -147,6 +154,9 @@ uniform float swell;
 uniform float mercury;
 // 시계 (MORPH_STYLES): the melt floor the outline keeps swaying on; 0 under 금붕어.
 uniform float residue;
+// 0: its heights alone (the first pass); 1: its material, where it is the nearest surface in the frame's heights.
+uniform float shading;
+uniform highp sampler2D sceneDepth;
 out vec4 pixel;
 ${SHADING}
 
@@ -294,7 +304,14 @@ void main() {
   vec3 surface = vec3(screen, h * radius / size * puff);
   vec3 surfaceNormal = normalize(vec3(turn * n.xy * puff, n.z * size));
   // Depth 0.5 − height / 8192, as the composite writes the spheres'.
-  gl_FragDepth = 0.5 - surface.z / 8192.0;
+  float depth = 0.5 - surface.z / 8192.0;
+  gl_FragDepth = depth;
+  if (shading < 0.5) {
+    pixel = vec4(0.0);
+    return;
+  }
+  // Under another surface (a few thousandths of a px of height allowed for the depth's 24 bits): not shaded.
+  if (depth > texelFetch(sceneDepth, ivec2(gl_FragCoord.xy), 0).r + 4e-7) discard;
 
   setUpWorld();
   vec3 dir = normalize(2.0 * surfaceNormal.z * surfaceNormal - vec3(0.0, 0.0, 1.0));
@@ -330,7 +347,9 @@ void main() {
     sf.relief = h;
     sf.behind = background;
     sf.melt = melt;
-    pixel = vec4(shadeMaterial(sf), 1.0);
+    sf.body = bodyId(seed, 1.0);
+    joinNeighbours(sf);
+    pixel = vec4(shadeMaterial(sf), sf.body);
     return;
   }
   // 전파's strain or a logo's brand colour, over the page's own coat.
@@ -369,7 +388,7 @@ void main() {
   coat = mix(coat, vec3(0.86, 0.87, 0.88), bare);
   // A face's photograph is its surface's own colour (a scan's), not a metal's tint of the room: it is lacquer where it is scanned.
   vec3 colour = liquidSurfaceOf(o, wn, facing, coat, reflected, reflectedClear, mix(mix(metalness, 0.0, 0.85 * scanned), 1.0, bare));
-  pixel = vec4(filmic(colour * 1.25 * exposure), 1.0);
+  pixel = vec4(filmic(colour * 1.25 * exposure), bodyId(seed, 1.0));
 }
 `;
 
@@ -432,7 +451,15 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
     faceColour: uniform("faceColour"),
     brand: uniform("brand"),
     midSlots: uniform("midSlots"),
+    shading: uniform("shading"),
+    sceneDepth: uniform("sceneDepth"),
   };
+  // Stands in for the frame's heights while they are being written (a texture may not be read where it is drawn to).
+  const noDepth = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, noDepth);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 255, 255, 255]));
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
   // The tiers (tiers.ts): every kind's 64² layer, and the pools' slots, sized at the start from one budget.
   const pools = poolsFor(LAYERS);
@@ -766,11 +793,7 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
 
   const begin = (parameters: ObjectParameters, time: number) => {
     const size = foam.size();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, size.pixelWidth, size.pixelHeight);
-    // In depth with the spheres just drawn (the portions under way): each passes behind the other where it is lower.
-    gl.enable(gl.DEPTH_TEST);
-    gl.depthFunc(gl.LESS);
     gl.useProgram(program);
     foam.shade(program);
     gl.uniform1f(at.size, parameters.size);
@@ -797,9 +820,26 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
     gl.bindBuffer(gl.ARRAY_BUFFER, instances);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, data, 0, count * INSTANCE_FLOATS);
     gl.bindVertexArray(vao);
+    const targets = foam.targets();
+    gl.activeTexture(gl.TEXTURE0 + DEPTH_UNIT);
+    gl.uniform1i(at.sceneDepth, DEPTH_UNIT);
+    // Heights first, in depth with the spheres just drawn (the portions under way): each passes behind the other where it is lower.
+    gl.bindFramebuffer(gl.FRAMEBUFFER, targets.full);
+    gl.bindTexture(gl.TEXTURE_2D, noDepth);
+    gl.uniform1f(at.shading, 0);
+    gl.colorMask(false, false, false, false);
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LESS);
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, count);
-    gl.bindVertexArray(null);
     gl.disable(gl.DEPTH_TEST);
+    gl.colorMask(true, true, true, true);
+    // Then the material, of the nearest surface alone.
+    gl.bindFramebuffer(gl.FRAMEBUFFER, targets.colour);
+    gl.bindTexture(gl.TEXTURE_2D, targets.depth);
+    gl.uniform1f(at.shading, 1);
+    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, count);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    gl.bindVertexArray(null);
   };
 
   /** The room a set object needs for its style's floor sway (0 under 금붕어). */
@@ -927,6 +967,7 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
     gl.deleteBuffer(instances);
     gl.deleteVertexArray(vao);
     for (const texture of textures) gl.deleteTexture(texture);
+    gl.deleteTexture(noDepth);
     gl.deleteProgram(program);
   };
 

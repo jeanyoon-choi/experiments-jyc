@@ -2,7 +2,7 @@
 # the eyes of every shot at the same place of a 608x1080 frame.
 import json, statistics as st, sys
 W,H=608,1080; IO=87.0; EY=0.266
-SRC={"sb":(1920,1080),"sc":(1920,1080),"sa":(1920,1080),"na":(1280,720),"nb":(1280,720)}
+SRC={"sb":(1920,1080),"sc":(1920,1080),"sd":(1920,1080),"sa":(1920,1080),"na":(1280,720),"nb":(1280,720),"ne":(1280,720)}
 out={}
 for f,(sw,sh) in SRC.items():
     rows=[json.loads(l) for l in open(f+".jsonl")]

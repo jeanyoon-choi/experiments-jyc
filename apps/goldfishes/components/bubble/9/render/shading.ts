@@ -30,7 +30,9 @@ vec3 coatOf(float seed) {
 export const SHADING = /* glsl */ `
 uniform vec2 frame;                   // CSS px
 uniform sampler2D lightMap;           // the photographed room (CC0 HDRI), as a panorama
-uniform sampler2D faceMap;            // a portrait (환경 일론 머스크), as the whole environment
+// Stills, 512² layers of one array (a fragment shader has sixteen texture units, and the objects' use them all):
+// 0 a portrait (환경 일론 머스크), as the whole environment; 1 a scanned hide (materials/mix.ts leather).
+uniform mediump sampler2DArray plates;
 uniform float faceAspect;             // its width over its height
 uniform vec3 lightColour;             // the light's colour
 uniform vec3 background;              // the ground's colour (what the spheres rest in)
@@ -76,6 +78,12 @@ float hash(vec3 p) {
 }
 
 ${COAT}
+
+// Which body a pixel of the raft's frame is, kept in the frame's alpha (0: the ground; a sphere below a half, an
+// object above), so what is drawn next can tell another body from its own (materials/surface.ts, foam.ts PRESENT).
+float bodyId(float seed, float object) {
+  return (2.0 + floor(fract(seed * 7.31 + 0.137) * 120.0) + 128.0 * object) / 255.0;
+}
 
 // A sphere's own turn to the light (구슬마다 차이), as bubble/2's lobes were
 // turned: yaw about up, tip and roll.
@@ -132,7 +140,9 @@ vec3 faceAt(vec3 w, float blur) {
   vec2 disc = r.xy / max(m, 1e-3);
   // The disc covers the image's full width and its face (a portrait is taller than wide).
   vec2 at = vec2(0.5 + disc.x, 0.42 + disc.y * faceAspect);
-  return textureLod(faceMap, clamp(at, vec2(0.0), vec2(1.0)), blur).rgb;
+  // (A level more than its 243 × 320 original took: the layer is about twice its size. Kept off the layer's very
+  // edge, which repeats.)
+  return textureLod(plates, vec3(clamp(at, vec2(0.004), vec2(0.996)), 0.0), blur + 1.0).rgb;
 }
 
 // What a sphere's surface at world point o reflects along world direction w
