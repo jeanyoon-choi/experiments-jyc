@@ -31,6 +31,7 @@
 // half size for the next frame's surfaces to see their neighbours in (materials/surface.ts lastScene).
 
 import { COAT, FACE_ENVIRONMENT, keyOnScreen, LOOK_DEFAULTS, SHADING, type Look } from "./shading";
+import { materialOf } from "./materials";
 import { MIX_MATERIAL } from "./materials/mix";
 import { PRINT_MATERIAL } from "./materials/print";
 import { createPrintMap, PRINT_UNIT } from "./materials/print-sheets";
@@ -514,10 +515,11 @@ export type FoamRenderer = {
   shade(program: WebGLProgram): void;
   size(): { width: number; height: number; pixelWidth: number; pixelHeight: number };
   /**
-   * Where what is drawn after the raft goes: `full` the frame with its heights as depth (drawn there with colour
-   * masked off, a pass leaves only its heights), `colour` the frame alone, to shade into while reading `depth`.
+   * Where what is drawn after the raft goes: `heights` the frame's heights as depth with `winners` as its colour
+   * (cleared each frame: what a pass writes there is which of its instances won each pixel), then `colour`, the
+   * frame alone, to shade into while reading `winners`.
    */
-  targets(): { full: WebGLFramebuffer; colour: WebGLFramebuffer; depth: WebGLTexture };
+  targets(): { heights: WebGLFramebuffer; colour: WebGLFramebuffer; winners: WebGLTexture };
   /** Shows the frame on the canvas and keeps it for the next (after everything is drawn; `look` for 맞닿은 틈). */
   present(look?: Look): void;
   /** Waits for the GPU to finish the last frame (measurement only). */
@@ -687,7 +689,7 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
   ] as const satisfies readonly Layer[];
   const shadow = { field: gl.createTexture(), tint: gl.createTexture(), target: gl.createFramebuffer() };
   // The frame (colour, the body's id in its alpha; heights as depth) and the last one, kept at half size.
-  const scene = { colour: gl.createTexture(), depth: gl.createTexture(), full: gl.createFramebuffer(), shaded: gl.createFramebuffer() };
+  const scene = { colour: gl.createTexture(), depth: gl.createTexture(), winners: gl.createTexture(), full: gl.createFramebuffer(), shaded: gl.createFramebuffer(), heights: gl.createFramebuffer() };
   const last = { texture: gl.createTexture(), target: gl.createFramebuffer(), width: 1, height: 1 };
   let frame = { width: 1, height: 1 };
   let pixels = { width: 1, height: 1 };
@@ -739,6 +741,11 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, scene.depth, 0);
     gl.bindFramebuffer(gl.FRAMEBUFFER, scene.shaded);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, scene.colour, 0);
+    plain(scene.winners, gl.NEAREST);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, pixels.width, pixels.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, scene.heights);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, scene.winners, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, scene.depth, 0);
     last.width = Math.max(1, Math.ceil(pixels.width / 2));
     last.height = Math.max(1, Math.ceil(pixels.height / 2));
     plain(last.texture, floatLinear ? gl.LINEAR_MIPMAP_LINEAR : gl.NEAREST);
@@ -873,6 +880,10 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     gl.bindVertexArray(screen);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.disable(gl.DEPTH_TEST);
+    // No winners yet (targets): whatever is drawn next writes its own.
+    gl.bindFramebuffer(gl.FRAMEBUFFER, scene.heights);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
   };
 
   const present: FoamRenderer["present"] = (look = lastLook) => {
@@ -891,7 +902,8 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     gl.uniform1i(location(keepProgram, "sceneColour"), 0);
     gl.uniform1i(location(keepProgram, "sceneDepth"), 1);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    if (floatLinear) {
+    // Its mips are read only by a material that mirrors its neighbours (surface.ts mirrorOf), while 이웃 반사 is up.
+    if (floatLinear && look.neighbourReflection > 0 && (materialOf(look.material)?.glsl.includes("mirrorOf(") ?? false)) {
       gl.activeTexture(gl.TEXTURE0 + LAST_UNIT);
       gl.bindTexture(gl.TEXTURE_2D, last.texture);
       gl.generateMipmap(gl.TEXTURE_2D);
@@ -961,8 +973,8 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     gl.deleteTexture(shadow.field);
     gl.deleteTexture(shadow.tint);
     gl.deleteFramebuffer(shadow.target);
-    for (const texture of [scene.colour, scene.depth, last.texture]) gl.deleteTexture(texture);
-    for (const target of [scene.full, scene.shaded, last.target]) gl.deleteFramebuffer(target);
+    for (const texture of [scene.colour, scene.depth, scene.winners, last.texture]) gl.deleteTexture(texture);
+    for (const target of [scene.full, scene.shaded, scene.heights, last.target]) gl.deleteFramebuffer(target);
     gl.deleteRenderbuffer(depth);
     for (const buffer of [square, bubbleBuffer]) gl.deleteBuffer(buffer);
     for (const vao of [screen, bubbleMesh]) gl.deleteVertexArray(vao);
@@ -981,7 +993,7 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     program: (vertex, fragment) => compile(gl, vertex, fragment),
     shade: (program) => setLook(program, lastLook),
     size: () => ({ width: frame.width, height: frame.height, pixelWidth: pixels.width, pixelHeight: pixels.height }),
-    targets: () => ({ full: scene.full, colour: scene.shaded, depth: scene.depth }),
+    targets: () => ({ heights: scene.heights, colour: scene.shaded, winners: scene.winners }),
     present,
     sync,
     dispose,

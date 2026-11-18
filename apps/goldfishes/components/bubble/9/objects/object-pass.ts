@@ -18,7 +18,9 @@
 //
 // 2026-11-17: drawn twice into the raft's frame (foam.ts targets): first its heights alone, then its material, only
 // where it is the nearest surface — large objects lie many deep, and every layer under the top one was shaded and
-// thrown away. In its material an object sees the bodies round it in the last frame (materials/surface.ts): it
+// thrown away. 2026-11-18: the first pass also writes which object won each pixel, and the second reads that before
+// anything else, so a covered object's pixels cost one texel there (they read their fields a second time only to
+// find themselves covered: 8 ms of a 22 ms frame with large objects). In its material an object sees the bodies round it in the last frame (materials/surface.ts): it
 // mirrors them (이웃 반사) and is joined to those it stands in (맞닿은 틈).
 //
 // Pages morph when what they are shown as changes (변신, the set's chips);
@@ -45,7 +47,7 @@ import { brandOf } from "./shapes/marks";
 import { kindsInUse, pageKind, pagesAreObjects, portionKind, type ObjectKind, type ObjectParameters } from "./kinds/parameters";
 import { ADDRESS_BRAND, ADDRESS_TIER, levelsOf, poolsFor, Residency, TIER_FIELD, TIER_MEMBRANE, TIER_PAINT, TIERS, type Tier } from "./fields/tiers";
 
-/** The texture unit the frame's heights are read from while shading (8–19 the fields' and 인쇄물's, 20 the last frame). */
+/** The texture unit the first pass's winners are read from while shading (8–19 the fields' and 인쇄물's, 20 the last frame). */
 const DEPTH_UNIT = 22;
 /** Neighbours each object mirrors, nearest first. */
 const NEIGHBOURS = 4;
@@ -90,7 +92,10 @@ flat out mat2 turn;
 flat out float radius;
 flat out vec2 scans;     // the photographs of the layers it flows from and to (유명인 얼굴), −1 none
 flat out vec4 motion;    // sway, sheen (morph.ts motion), the from and to layers' extra blur (tiers.ts blurOf)
+flat out vec3 winner;    // which instance this is, as the first pass writes it (two bytes, and 1: an object)
 void main() {
+  float number = float(gl_InstanceID) + 1.0;
+  winner = vec3(mod(number, 256.0), floor(number / 256.0), 255.0) / 255.0;
   neighbours[0] = near0;
   neighbours[1] = near1;
   neighbours[2] = near2;
@@ -129,6 +134,7 @@ flat in mat2 turn;
 flat in float radius;
 flat in vec2 scans;
 flat in vec4 motion;
+flat in vec3 winner;
 // The fields' tiers (tiers.ts): 64² (every kind), 128², 256², 512² (pools); the membranes' 32², 64², and 128² for
 // the 256² pool's slots then the 512² pool's; the paints' (a face's photograph, a catalogue kind's colours) 32²–256².
 uniform sampler2DArray fields0;
@@ -154,9 +160,9 @@ uniform float swell;
 uniform float mercury;
 // 시계 (MORPH_STYLES): the melt floor the outline keeps swaying on; 0 under 금붕어.
 uniform float residue;
-// 0: its heights alone (the first pass); 1: its material, where it is the nearest surface in the frame's heights.
+// 0: its heights alone, and which object it is (the first pass); 1: its material, where the first pass left it the winner.
 uniform float shading;
-uniform highp sampler2D sceneDepth;
+uniform sampler2D sceneWinner;
 out vec4 pixel;
 ${SHADING}
 
@@ -238,6 +244,8 @@ vec3 liquidSurfaceOf(vec3 o, vec3 n, float facing, vec3 coat, vec3 reflected, ve
 }
 
 void main() {
+  // Under another surface: nothing more is read.
+  if (shading > 0.5 && any(greaterThan(abs(texelFetch(sceneWinner, ivec2(gl_FragCoord.xy), 0).rgb - winner), vec3(0.002)))) discard;
   float shape = clamp(flow.z, -0.4, 1.4);
   vec2 p = local;
   // It melts and sets in patches that run over it, not all at once (the T-1000 pulling itself back
@@ -272,46 +280,47 @@ void main() {
   if (melt > 0.0) {
     // The liquid: a drop held by surface tension over the outline as it is now — the two shapes'
     // membranes blended, rounded off at the flowing edge (a sphere's fall over the last stretch in).
-    float e = TEXEL * exp2(lod) * 1.5;
-    vec2 slope = vec2(outlineAt(p + vec2(e, 0.0), lod) - outlineAt(p - vec2(e, 0.0), lod), outlineAt(p + vec2(0.0, e), lod) - outlineAt(p - vec2(0.0, e), lod)) / (2.0 * e);
-    vec2 inward = -slope / max(length(slope), 1e-4);
     float d = max(-s, 1e-5);
     // The edge: rises as a sphere of radius EDGE does from its rim.
     const float EDGE = 0.45;
     float edge = sqrt(2.0 * EDGE * d);
-    vec2 edgeSlope = inward * sqrt(2.0 * EDGE) / (2.0 * sqrt(d));
-    float me = TEXEL * exp2(max(lod, 2.0)) * 2.0;
     float membrane = membraneAt(p, lod);
-    vec2 membraneSlope = vec2(membraneAt(p + vec2(me, 0.0), lod) - membraneAt(p - vec2(me, 0.0), lod), membraneAt(p + vec2(0.0, me), lod) - membraneAt(p - vec2(0.0, me), lod)) / (2.0 * me);
     // A smooth minimum of the two, so they meet without a crease.
     const float KNEE = 0.12;
     float pick = clamp(0.5 + 0.5 * (edge - membrane) / KNEE, 0.0, 1.0);
     float lh = swell * (mix(edge, membrane, pick) - KNEE * pick * (1.0 - pick));
-    vec2 grad = swell * mix(edgeSlope, membraneSlope, pick);
     // Ripples running in from the edge, a few, dying out inward (at one amplitude over all of it they were
     // rings parallel to its outline, a contour map; user, 2026-11-05).
     float wave = -s * 26.0 - time * 7.0 + seed * 40.0;
     float swing = ripple * 0.025 * sway * smoothstep(0.0, 0.05, d) * exp(-d / 0.12);
     lh += swing * sin(wave);
-    grad += inward * swing * 26.0 * cos(wave);
-    vec3 nl = normalize(vec3(-grad, 1.0));
-    float molten = smoothstep(0.0, 0.55, melt);
     h = mix(h, lh, melt);
-    n = normalize(mix(n, nl, molten));
+    // Its slopes (sixteen more reads of the fields) only where it is shaded: the first pass wants its height alone
+    // (2026-11-18: a melting object that filled the screen cost 20 ms of a 54 ms frame, most of it here).
+    if (shading > 0.5) {
+      float e = TEXEL * exp2(lod) * 1.5;
+      vec2 slope = vec2(outlineAt(p + vec2(e, 0.0), lod) - outlineAt(p - vec2(e, 0.0), lod), outlineAt(p + vec2(0.0, e), lod) - outlineAt(p - vec2(0.0, e), lod)) / (2.0 * e);
+      vec2 inward = -slope / max(length(slope), 1e-4);
+      vec2 edgeSlope = inward * sqrt(2.0 * EDGE) / (2.0 * sqrt(d));
+      float me = TEXEL * exp2(max(lod, 2.0)) * 2.0;
+      vec2 membraneSlope = vec2(membraneAt(p + vec2(me, 0.0), lod) - membraneAt(p - vec2(me, 0.0), lod), membraneAt(p + vec2(0.0, me), lod) - membraneAt(p - vec2(0.0, me), lod)) / (2.0 * me);
+      vec2 grad = swell * mix(edgeSlope, membraneSlope, pick);
+      grad += inward * swing * 26.0 * cos(wave);
+      vec3 nl = normalize(vec3(-grad, 1.0));
+      float molten = smoothstep(0.0, 0.55, melt);
+      n = normalize(mix(n, nl, molten));
+    }
   }
 
   // Into the raft's frame: turned with the object, heights stretched by puff (the normal's height shrinks by as much).
   vec3 surface = vec3(screen, h * radius / size * puff);
   vec3 surfaceNormal = normalize(vec3(turn * n.xy * puff, n.z * size));
   // Depth 0.5 − height / 8192, as the composite writes the spheres'.
-  float depth = 0.5 - surface.z / 8192.0;
-  gl_FragDepth = depth;
+  gl_FragDepth = 0.5 - surface.z / 8192.0;
   if (shading < 0.5) {
-    pixel = vec4(0.0);
+    pixel = vec4(winner, 1.0);
     return;
   }
-  // Under another surface (a few thousandths of a px of height allowed for the depth's 24 bits): not shaded.
-  if (depth > texelFetch(sceneDepth, ivec2(gl_FragCoord.xy), 0).r + 4e-7) discard;
 
   setUpWorld();
   vec3 dir = normalize(2.0 * surfaceNormal.z * surfaceNormal - vec3(0.0, 0.0, 1.0));
@@ -452,9 +461,9 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
     brand: uniform("brand"),
     midSlots: uniform("midSlots"),
     shading: uniform("shading"),
-    sceneDepth: uniform("sceneDepth"),
+    sceneWinner: uniform("sceneWinner"),
   };
-  // Stands in for the frame's heights while they are being written (a texture may not be read where it is drawn to).
+  // Stands in for the winners while they are being written (a texture may not be read where it is drawn to).
   const noDepth = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, noDepth);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 255, 255, 255]));
@@ -822,20 +831,19 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
     gl.bindVertexArray(vao);
     const targets = foam.targets();
     gl.activeTexture(gl.TEXTURE0 + DEPTH_UNIT);
-    gl.uniform1i(at.sceneDepth, DEPTH_UNIT);
-    // Heights first, in depth with the spheres just drawn (the portions under way): each passes behind the other where it is lower.
-    gl.bindFramebuffer(gl.FRAMEBUFFER, targets.full);
+    gl.uniform1i(at.sceneWinner, DEPTH_UNIT);
+    // Heights first, in depth with the spheres just drawn (the portions under way): each passes behind the other
+    // where it is lower, and the one left on top of a pixel is written there as its winner.
+    gl.bindFramebuffer(gl.FRAMEBUFFER, targets.heights);
     gl.bindTexture(gl.TEXTURE_2D, noDepth);
     gl.uniform1f(at.shading, 0);
-    gl.colorMask(false, false, false, false);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LESS);
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, count);
     gl.disable(gl.DEPTH_TEST);
-    gl.colorMask(true, true, true, true);
-    // Then the material, of the nearest surface alone.
+    // Then the material, of the winner alone.
     gl.bindFramebuffer(gl.FRAMEBUFFER, targets.colour);
-    gl.bindTexture(gl.TEXTURE_2D, targets.depth);
+    gl.bindTexture(gl.TEXTURE_2D, targets.winners);
     gl.uniform1f(at.shading, 1);
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, count);
     gl.bindTexture(gl.TEXTURE_2D, null);

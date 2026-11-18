@@ -4,7 +4,7 @@
 // Each mode's own settings fold out above the switch, the less used folded again (2026-11-05); the liquid's are the
 // objects' (objects/kinds/parameters.ts), so whatever is tuned in the 랩 is what the raft does.
 
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import base from "../bubble-three.module.css";
 import { Chip, Chips, Note, Reset, Section, Slider } from "./controls";
 import { LAB_DEFAULTS, type LabSettings } from "../objects/morph/lab";
@@ -38,17 +38,48 @@ type Props = {
   labMorph: { from: string; to: string };
   spread: SpreadParameters;
   setSpread: Dispatch<SetStateAction<SpreadParameters>>;
-  /** 셋업 A · B · C (settings.ts SETUPS): which the values now are (−1: none of them), and choosing one. */
-  setups: readonly { id: string; label: string }[];
-  setup: number;
-  onSetup: (index: number) => void;
+  /**
+   * The presets (settings.ts PRESET_FAMILIES): families of numbered members, which of them the values now are
+   * (null: none), and choosing one. One button shows where it is, steps to its neighbours, and opens the list.
+   */
+  families: readonly { letter: string; label: string; items: readonly { id: string; label: string; name: string }[] }[];
+  preset: { family: number; index: number } | null;
+  onPreset: (family: number, index: number) => void;
 };
 
 const STRAIN_NAMES = ["분홍", "청록", "형광 노랑", "파랑", "주황"] as const;
 const css = (colour: readonly [number, number, number]) => `rgb(${colour.map((value) => Math.round(value * 255)).join(",")})`;
 
-export function ModeControl({ mode, onMode, objects, setObjects, lab, setLab, labMorph, spread, setSpread, setups, setup, onSetup }: Props) {
+export function ModeControl({ mode, onMode, objects, setObjects, lab, setLab, labMorph, spread, setSpread, families, preset, onPreset }: Props) {
   const [open, setOpen] = useState(true);
+  // The presets as one run (A1 … B4), to step through; from the last one chosen once a value has been moved.
+  const [listed, setListed] = useState(false);
+  const run = families.flatMap((family, at) => family.items.map((item, index) => ({ family: at, index, item })));
+  const now = preset ? run.findIndex((entry) => entry.family === preset.family && entry.index === preset.index) : -1;
+  const last = useRef(now);
+  const choose = (at: number) => {
+    const entry = run[(at + run.length) % run.length];
+    if (!entry) return;
+    last.current = run.indexOf(entry);
+    onPreset(entry.family, entry.index);
+  };
+  const step = (by: number) => choose((now >= 0 ? now : Math.max(last.current, 0)) + by);
+  const stepRef = useRef(step);
+  useEffect(() => {
+    stepRef.current = step;
+  });
+  // [ and ]: the preset before and after, from anywhere but a field being typed in.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.target instanceof HTMLInputElement && event.target.type !== "range") return;
+      if (event.key === "[") stepRef.current(-1);
+      else if (event.key === "]") stepRef.current(1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+  const shown = now >= 0 ? run[now]!.item : null;
   const liquidSlider = (control: LiquidControl) => (
     <Slider
       key={control.key}
@@ -193,12 +224,32 @@ export function ModeControl({ mode, onMode, objects, setObjects, lab, setLab, la
           <Reset onClick={() => setSpread(SPREAD_DEFAULTS)}>전파 기본값으로</Reset>
         </div>
       )}
-      <div className={styles.switch} role="group" aria-label="셋업">
-        {setups.map((option, index) => (
-          <button key={option.id} type="button" aria-pressed={setup === index} onClick={() => onSetup(index)}>
-            {option.label}
-          </button>
-        ))}
+      {listed && (
+        <div id="bubble-nine-presets" className={styles.presets} role="group" aria-label="프리셋 목록">
+          {families.map((family, at) => (
+            <div key={family.letter} className={styles.family} role="group" aria-label={`${family.letter} ${family.label}`}>
+              <p>
+                <b>{family.letter}</b> {family.label}
+              </p>
+              {family.items.map((item, index) => (
+                <button key={item.id} type="button" aria-pressed={preset?.family === at && preset.index === index} onClick={() => choose(run.findIndex((entry) => entry.family === at && entry.index === index))}>
+                  <b>{item.label}</b> {item.name}
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+      <div className={`${styles.switch} ${styles.presetSwitch}`} role="group" aria-label="프리셋">
+        <button type="button" className={styles.fold} aria-label="이전 프리셋" onClick={() => step(-1)}>
+          ‹
+        </button>
+        <button type="button" className={styles.preset} aria-expanded={listed} aria-controls="bubble-nine-presets" onClick={() => setListed((current) => !current)}>
+          <b>{shown ? shown.label : "—"}</b> {shown ? shown.name : "직접 조정"}
+        </button>
+        <button type="button" className={styles.fold} aria-label="다음 프리셋" onClick={() => step(1)}>
+          ›
+        </button>
       </div>
       <div className={styles.switch} role="group" aria-label="모드">
         {MODES.map((option) => (

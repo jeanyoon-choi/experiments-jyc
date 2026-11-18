@@ -70,6 +70,7 @@ vec3 keyWorld;
 // highlight and reflection a little different from its neighbours'.
 float roomRadius;
 vec3 keyAt;
+vec3 roomAverage;
 
 float hash(vec3 p) {
   p = fract(p * 0.3183099 + 0.1);
@@ -115,9 +116,9 @@ vec3 photoAt(vec3 w, float blur) {
   vec2 at = vec2(atan(w.x, w.y) / 6.2831853 + 0.5 + lightTurn, acos(clamp(w.z, -1.0, 1.0)) / 3.1415927);
   vec3 seen = textureLod(lightMap, at, blur).rgb;
   // Towards the poles every azimuth meets; a blurred panorama would pinch
-  // there into a point, so it eases into the room's average.
-  vec3 average = textureLod(lightMap, vec2(0.5), 8.0).rgb;
-  return mix(average, seen, smoothstep(0.0, 0.15 + 0.6 * blur / 7.0, sqrt(max(1.0 - w.z * w.z, 0.0))));
+  // there into a point, so it eases into the room's average (read once a pixel, in setUpWorld: a material asks for
+  // the room several times).
+  return mix(roomAverage, seen, smoothstep(0.0, 0.15 + 0.6 * blur / 7.0, sqrt(max(1.0 - w.z * w.z, 0.0))));
 }
 
 // Where a ray from world point o along w meets the room's sphere, as a direction from its middle.
@@ -204,6 +205,7 @@ void setUpWorld() {
   keyWorld = toWorld(keyScreen);
   roomRadius = 1.5 * length(frame);
   keyAt = keyWorld * 0.9 * length(frame);
+  roomAverage = textureLod(lightMap, vec2(0.5), 8.0).rgb;
 }
 ${MATERIAL_GLSL}
 `;

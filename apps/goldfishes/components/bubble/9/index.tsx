@@ -29,7 +29,7 @@ import { SoundPanel } from "./panels/sound-panel";
 import { VisualPanel } from "./panels/visual-panel";
 import { ObjectPanel } from "./objects/panel/object-panel"; // 오브제
 import { Raft } from "./raft/raft";
-import { DEFAULT_FISH_PALETTE, DEFAULT_INFLUENCE, FEEDBACK_DEFAULTS, FIRST_BACKGROUND, lookOf, OPENING_SETUP, PRESET_3, saveSnapshot, SECOND_BACKGROUND, SETUPS, setupOf, type Feedback, type PanelId, type Visual } from "./settings";
+import { DEFAULT_FISH_PALETTE, DEFAULT_INFLUENCE, FEEDBACK_DEFAULTS, FIRST_BACKGROUND, lookOf, OPENING_SETUP, PRESET_3, PRESET_FAMILIES, saveSnapshot, SECOND_BACKGROUND, SETUPS, setupOf, TRIAL_BASE, TRIALS, trialOf, type Feedback, type PanelId, type Visual } from "./settings";
 import { SOUND_DEFAULTS, type SoundParameters } from "./sound/sound";
 import { useTouchSound } from "./sound/use-touch-sound";
 import type { ViewId } from "./raft/views";
@@ -70,6 +70,8 @@ export default function RankedWebIteration({ setup: openingSetup = OPENING_SETUP
   const fishCanvasRef = useRef<HTMLCanvasElement>(null);
   const [raft] = useState(() => new Raft({ pages: PRESET_3.pages, groups: PRESET_3.groups, damping: PRESET_3.damping }));
   const pressRef = useRef<Press | null>(null);
+  /** Whether the look on screen came from a trial (실험 E), until a setup is chosen again. */
+  const inTrial = useRef(false);
   /** 전파: each pointer's stroke, where it last brought a newcomer in and which. */
   const strokesRef = useRef(new Map<number, { x: number; y: number; last: number | null }>());
 
@@ -178,6 +180,36 @@ export default function RankedWebIteration({ setup: openingSetup = OPENING_SETUP
     raft.requestRestart(population);
   };
 
+  const chooseTrial = (index: number) => {
+    // From the opening each time, so nothing of one trial carries into the next.
+    const next = TRIALS[index]!;
+    inTrial.current = true;
+    setRates((current) => ({ ...current, ...TRIAL_BASE.rates, ...next.rates }));
+    setVisual({ ...TRIAL_BASE.visual, ...next.visual });
+    setObjects((current) => ({ ...current, ...TRIAL_BASE.objects, ...next.objects }));
+  };
+  const chooseSetup = (index: number) => {
+    // Values only: the web, the school and whatever is on the screen carry on under them.
+    const next = SETUPS[index]!;
+    // Out of a trial, its look and its portions go back to the opening's first: a setup holds neither. Known
+    // by a trial having been chosen, not by the values still being exactly its own (a slider moved since,
+    // and the material stayed: user, 2026-11-18).
+    if (inTrial.current) {
+      inTrial.current = false;
+      setVisual(TRIAL_BASE.visual);
+      setObjects((current) => ({ ...current, portions: TRIAL_BASE.objects.portions }));
+    }
+    setRates((current) => ({ ...current, ...next.rates }));
+    setFish((current) => ({ ...current, ...next.fish }));
+    setFeedback((current) => ({ ...current, ...next.feedback }));
+    setObjects((current) => ({ ...current, ...next.liquid }));
+    setVisual((current) => ({ ...current, ...next.look }));
+  };
+  // Which preset the values now are (PRESET_FAMILIES): a trial's first, since it holds a setup's values too.
+  const trialNow = trialOf({ rates, visual, objects });
+  const setupNow = setupOf({ rates, fish, feedback, liquid: objects, look: visual });
+  const preset = trialNow >= 0 ? { family: 1, index: trialNow } : setupNow >= 0 ? { family: 0, index: setupNow } : null;
+
   return (
     <main className={styles.page}>
       <canvas
@@ -282,17 +314,9 @@ export default function RankedWebIteration({ setup: openingSetup = OPENING_SETUP
           labMorph={labMorph}
           spread={spread}
           setSpread={setSpread}
-          setups={SETUPS}
-          setup={setupOf({ rates, fish, feedback, liquid: objects, look: visual })}
-          onSetup={(index) => {
-            // Values only: the web, the school and whatever is on the screen carry on under them.
-            const next = SETUPS[index]!;
-            setRates((current) => ({ ...current, ...next.rates }));
-            setFish((current) => ({ ...current, ...next.fish }));
-            setFeedback((current) => ({ ...current, ...next.feedback }));
-            setObjects((current) => ({ ...current, ...next.liquid }));
-            setVisual((current) => ({ ...current, ...next.look }));
-          }}
+          families={PRESET_FAMILIES}
+          preset={preset}
+          onPreset={(family, index) => (family === 0 ? chooseSetup(index) : chooseTrial(index))}
         />
         <div className={styles.control}>
           {panel === "network" && (

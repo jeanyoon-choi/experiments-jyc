@@ -37,6 +37,49 @@
 
 .switch button[aria-pressed="true"] { background: #fff; color: #171717; }
 .switch .fold { min-width: 36px; padding: 0; }
+
+/* The preset button: where it is (its address, then its name); the arrows either side step, it opens the list.
+   As wide as the mode switch under it (three 48 px buttons), and its list the same, so the three stack as one column. */
+.switch.presetSwitch { width: 154px; }
+.switch.presetSwitch .fold { min-width: 28px; flex: none; }
+.switch .preset { flex: 1; min-width: 0; padding: 0 2px; overflow: hidden; font-weight: 400; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.switch .preset b { margin-right: 3px; font-weight: 600; }
+
+/* The list, over the button: a family to a block, its members one to a line. */
+.presets {
+  display: grid;
+  gap: 8px;
+  width: 154px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 4px 28px #0004;
+}
+
+.family { display: grid; gap: 2px; }
+.family p { margin: 0 8px 2px; font-size: 12px; opacity: 0.62; }
+
+.family button {
+  overflow: hidden;
+  height: 30px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 8px;
+  background: transparent;
+  color: #171717;
+  font: 13px Arial, Helvetica, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.family button b { display: inline-block; min-width: 24px; font-weight: 600; }
+.family button:hover { background: #f0f0f0; }
+.family button[aria-pressed="true"] { background: #171717; color: #fff; }
+.family button:focus-visible { outline: 2px solid #1469d8; outline-offset: 1px; }
 .switch button:focus-visible { outline: 2px solid #1469d8; outline-offset: 2px; }
 
 /* 전파: the colours, the chosen one ringed and raised. */
