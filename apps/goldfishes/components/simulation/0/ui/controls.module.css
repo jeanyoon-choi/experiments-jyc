@@ -1,0 +1,153 @@
+/* bubble/9's option control, copied: the triggers and panels at the bottom right, the version switch at the bottom left. */
+.control,
+.versions {
+  position: fixed;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 10;
+  display: grid;
+  gap: 8px;
+  color: #171717;
+  font: 13px Arial, Helvetica, sans-serif;
+}
+
+.control { right: max(16px, env(safe-area-inset-right)); justify-items: end; }
+.versions { left: max(16px, env(safe-area-inset-left)); justify-items: start; }
+
+.control *, .versions * { box-sizing: border-box; }
+.control, .control *, .versions, .versions * { -webkit-text-fill-color: currentColor !important; }
+
+.triggers { display: flex; gap: 8px; }
+
+.trigger {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: #171717;
+  color: #fff;
+  box-shadow: 0 3px 16px #0003;
+  cursor: pointer;
+}
+
+.trigger[aria-expanded="true"] { background: #fff; color: #171717; }
+
+.panel {
+  width: min(280px, calc(100vw - 32px));
+  max-height: calc(100dvh - 96px - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 4px 28px #0004;
+}
+
+.heading { margin: 0 2px 2px; font-weight: 600; }
+
+.note {
+  margin: 0 2px 4px;
+  font-size: 12px;
+  opacity: 0.62;
+  word-break: keep-all;
+}
+
+.reset {
+  min-height: 34px;
+  border: 0;
+  border-radius: 7px;
+  padding: 6px 10px;
+  background: #f1f1f1;
+  color: #171717;
+  font: 600 13px Arial, Helvetica, sans-serif;
+  text-align: center;
+  cursor: pointer;
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+
+.chips button {
+  min-height: 30px;
+  border: 0;
+  border-radius: 7px;
+  padding: 5px 9px;
+  background: #f1f1f1;
+  color: #171717;
+  font: 600 12px Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.chips button[aria-pressed="true"] { background: #171717; color: #fff; }
+
+.row { display: grid; gap: 2px; padding: 4px 2px; }
+.row span { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; }
+.row output { opacity: 0.62; font-variant-numeric: tabular-nums; }
+.row input { width: 100%; accent-color: #171717; cursor: ew-resize; }
+
+.section { padding-top: 8px; border-top: 1px solid #f0f0f0; }
+.section > summary { margin: 0 2px 6px; font-weight: 600; cursor: pointer; }
+.body { display: grid; gap: 6px; padding-bottom: 4px; }
+
+/* The version switch: where the values are (its address, then its name); the arrows step, the button opens the list. */
+.switch {
+  display: flex;
+  gap: 2px;
+  width: 204px;
+  padding: 3px;
+  border-radius: 23px;
+  background: #171717;
+  box-shadow: 0 3px 16px #0003;
+}
+
+.switch button {
+  height: 36px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: #fff;
+  font: 13px Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.switch .fold { flex: none; width: 28px; padding: 0; font-weight: 600; }
+.switch .version { flex: 1; min-width: 0; padding: 0 2px; overflow: hidden; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.switch .version b, .list button b { font-weight: 600; }
+.switch .version b { margin-right: 3px; }
+
+.list {
+  display: grid;
+  gap: 2px;
+  width: 204px;
+  padding: 6px;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 4px 28px #0004;
+}
+
+.list button {
+  overflow: hidden;
+  height: 30px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 8px;
+  background: transparent;
+  color: #171717;
+  font: 13px Arial, Helvetica, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.list button b { display: inline-block; min-width: 38px; }
+.list button:hover { background: #f0f0f0; }
+.list button[aria-pressed="true"] { background: #171717; color: #fff; }
+
+.control button:focus-visible,
+.versions button:focus-visible,
+.row input:focus-visible,
+.section > summary:focus-visible { outline: 2px solid #1469d8; outline-offset: 2px; }

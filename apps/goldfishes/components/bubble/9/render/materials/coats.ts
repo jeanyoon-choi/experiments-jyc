@@ -1,6 +1,6 @@
 // Colours by HSL (user, 2026-11-06: "그냥 hsl 로"): no hand-picked palettes.
-//   hueWheel — a material's chips: the 12 hues of the colour wheel, 30° apart, at one saturation and lightness the
-//              material reads best at (액체, 젤 · 세럼, 유리 each pass their own).
+//   hsl / hslOf — the panels' chips and picker (a material's chips were once hueWheel here: the wheel's 12 hues at
+//              one saturation and lightness; removed unused, 2026-11-18).
 //   MIXED_COATS — 섞음: hues a golden angle (137.5°) apart, so each next one lands in the widest gap left and no two
 //              near in the list are near in hue, at full saturation and three lightnesses in turn. Each sphere or
 //              object takes one by its seed; the shader (shading.ts) and the school (frame-loop) read the same list.
@@ -25,13 +25,6 @@ export function hslOf([r, g, b]: Rgb): [number, number, number] {
   const saturation = d / (1 - Math.abs(2 * lightness - 1));
   const hue = max === r ? ((g - b) / d + 6) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
   return [hue * 60, Math.min(1, saturation), lightness];
-}
-
-const HUE_NAMES = ["빨강", "주황", "노랑", "연두", "초록", "청록", "시안", "하늘", "파랑", "보라", "자홍", "분홍"] as const;
-
-/** A material's chips: the colour wheel's 12 hues at `saturation` and `lightness`, ids `<prefix>-<hue>`. */
-export function hueWheel(prefix: string, saturation: number, lightness: number) {
-  return HUE_NAMES.map((label, index) => ({ id: `${prefix}-${index * 30}`, label, colour: hsl(index * 30, saturation, lightness) as [number, number, number] }));
 }
 
 const GOLDEN = 137.50776;

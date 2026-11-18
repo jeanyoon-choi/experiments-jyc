@@ -2,7 +2,7 @@
 // rank-sized discs up from largest to smallest, wrapping into rows, so the
 // ordering and the inequality of rank can be read directly.
 
-import type { Body, Frame } from "./layout";
+import type { Body, Frame } from "./layout.ts";
 
 export const VIEWS = [
   { id: "network", label: "네트워크" },

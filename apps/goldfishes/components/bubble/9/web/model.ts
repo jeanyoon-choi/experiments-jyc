@@ -17,7 +17,8 @@
 // Flammini & Menczer, PRL 96, 218701 (2006) "Scale-free network growth by
 // ranking"; Bianconi & Barabási, Europhys. Lett. 54, 436 (2001) for fitness.
 // The continuous attention weights and drifting quality are this route's
-// extension. Positions are not part of this model.
+// extension. Positions are not part of this model. Its measures for the summary
+// (concentration, leader) are in metrics.ts.
 //
 // bubble/6 (user, 2026-10-25): bubble/5's motion, untouched, with one
 // addition at the extreme. Quality still swings widely, so pages surge and
@@ -32,6 +33,8 @@
 // Tried first the same day and dropped: bounding quality's spread (small and
 // fast, it shuffled the largest pages every second; small and slow, the web
 // barely moved and lost bubble/5's organic, evolving feel; user: "거의 실패").
+
+export { concentration, leader } from "./metrics.ts";
 
 export const MAX_PAGES = 1_000;
 export const DEFAULT_PAGES = 100;
@@ -207,7 +210,9 @@ export function outWeight(web: RankedWeb, page: number) {
   return total;
 }
 
-// Scratch for computeRank and stepRankedWeb, reused between calls (web.size ≤ MAX_PAGES).
+// Scratch for computeRank and stepRankedWeb, reused between calls (web.size ≤ MAX_PAGES). Shared by every web and
+// not re-entrant: each call fills what it reads before reading it, so webs stepped in turn do not see one another,
+// but a call must finish before the next begins (one thread, nothing kept across calls).
 let rankCurrent = new Float64Array(MAX_PAGES);
 let rankNext = new Float64Array(MAX_PAGES);
 const rankTotals = new Float64Array(MAX_PAGES);
@@ -399,12 +404,15 @@ export function addPage(web: RankedWeb, quality = 0, group?: number) {
 /**
  * Advances the web by `seconds`: quality drifts, attention relaxes toward
  * appeal, candidates are discovered and faded, and new pages may arrive.
+ * `pendingPages` carries the fraction of a new page from one step to the
+ * next, so the caller keeps one per web (it was optional, and a caller without
+ * one silently never grew: a frame's growth is far less than a page).
  */
 export function stepRankedWeb(
   web: RankedWeb,
   seconds: number,
   parameters: WebParameters,
-  pendingPages = { value: 0 },
+  pendingPages: { value: number },
 ): WebEvent[] {
   const events: WebEvent[] = [];
   if (seconds <= 0) return events;
@@ -498,45 +506,4 @@ export function attend(web: RankedWeb, page: number, amount: number, most = ATTE
   const ceiling = web.profiles[web.group[page]!]!.quality + most;
   const quality = web.quality[page]!;
   if (quality < ceiling) web.quality[page] = Math.min(ceiling, quality + amount);
-}
-
-/**
- * Share of rank held by the top page and by the top 10% of pages; the Gini
- * coefficient of rank; how many times the median bubble's width the largest
- * one's is (area is rank, so √(top / median)); and how many pages are 2–5
- * times the median's width (the middle) and 5 times or more (the large).
- */
-export function concentration(web: RankedWeb) {
-  const ranks = Array.from(web.rank.subarray(0, web.size)).sort((a, b) => b - a);
-  const tenth = Math.max(1, Math.round(web.size / 10));
-  const n = ranks.length;
-  let weighted = 0;
-  let total = 0;
-  // Sorted descending: the i-th largest takes weight (n + 1 − 2(i + 1)) reversed.
-  for (let index = 0; index < n; index += 1) {
-    weighted += (n - 2 * index - 1) * ranks[index]!;
-    total += ranks[index]!;
-  }
-  const median = ranks[Math.floor(n / 2)] ?? 0;
-  let middle = 0;
-  let large = 0;
-  for (const rank of ranks) {
-    const width = median > 0 ? Math.sqrt(rank / median) : 0;
-    if (width >= 5) large += 1;
-    else if (width >= 2) middle += 1;
-  }
-  return {
-    middle,
-    large,
-    top: ranks[0] ?? 0,
-    topTenth: ranks.slice(0, tenth).reduce((sum, value) => sum + value, 0),
-    gini: n > 0 && total > 0 ? weighted / (n * total) : 0,
-    widest: median > 0 ? Math.sqrt((ranks[0] ?? 0) / median) : 0,
-  };
-}
-
-export function leader(web: RankedWeb) {
-  let best = 0;
-  for (let page = 1; page < web.size; page += 1) if (web.rank[page]! > web.rank[best]!) best = page;
-  return best;
 }

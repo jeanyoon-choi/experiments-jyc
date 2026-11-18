@@ -30,30 +30,36 @@ const GROUP_LAYOUTS: readonly (readonly (readonly [number, number])[])[] = [
   [[0.27, 0.3], [0.73, 0.3], [0.27, 0.72], [0.73, 0.72]],
 ];
 
-/** Bodies kept sorted along x between steps (nearly sorted, so an insertion sort is cheap). */
+/**
+ * Bodies kept sorted along x between steps (nearly sorted, so an insertion sort is cheap). Module state, shared by
+ * every raft: it starts over only when the body count changes, so a raft rebuilt at the same count begins from the
+ * last one's order (the sort is stable: ties keep it). Not re-entrant, like the scratch below.
+ */
 let order: Int32Array = new Int32Array(0);
-// Scratch, grown as needed and reused between steps.
+// Scratch, grown as needed and reused between steps (relaxBodies takes its arrays as locals after reserve).
 let capacity = 0;
-let xs = new Float64Array(0);
-let ys = new Float64Array(0);
-let vxs = new Float64Array(0);
-let vys = new Float64Array(0);
-let forceX = new Float64Array(0);
-let forceY = new Float64Array(0);
-let reaches = new Float64Array(0);
-let lefts = new Float64Array(0);
+const scratch = {
+  xs: new Float64Array(0),
+  ys: new Float64Array(0),
+  vxs: new Float64Array(0),
+  vys: new Float64Array(0),
+  forceX: new Float64Array(0),
+  forceY: new Float64Array(0),
+  reaches: new Float64Array(0),
+  lefts: new Float64Array(0),
+};
 
 function reserve(count: number) {
   if (count <= capacity) return;
   capacity = Math.max(count, capacity * 2, 64);
-  xs = new Float64Array(capacity);
-  ys = new Float64Array(capacity);
-  vxs = new Float64Array(capacity);
-  vys = new Float64Array(capacity);
-  forceX = new Float64Array(capacity);
-  forceY = new Float64Array(capacity);
-  reaches = new Float64Array(capacity);
-  lefts = new Float64Array(capacity);
+  scratch.xs = new Float64Array(capacity);
+  scratch.ys = new Float64Array(capacity);
+  scratch.vxs = new Float64Array(capacity);
+  scratch.vys = new Float64Array(capacity);
+  scratch.forceX = new Float64Array(capacity);
+  scratch.forceY = new Float64Array(capacity);
+  scratch.reaches = new Float64Array(capacity);
+  scratch.lefts = new Float64Array(capacity);
 }
 
 export function idealLength(frame: Frame, count: number) {
@@ -92,20 +98,22 @@ export function rescaleBodies(bodies: Body[], previous: Frame, next: Frame) {
   }
 }
 
-/** Sorts `order` by each disc's left edge (insertion sort: the order barely changes between calls). */
-function sortByLeft(count: number, radii: ArrayLike<number>) {
+/** Sorts `order` by each disc's left edge (insertion sort: the order barely changes between calls) and returns it. */
+function sortByLeft(count: number, radii: ArrayLike<number>, xs: Float64Array, lefts: Float64Array) {
   if (order.length !== count) order = Int32Array.from({ length: count }, (_, index) => index);
+  const sorted = order;
   for (let index = 0; index < count; index += 1) lefts[index] = xs[index]! - radii[index]!;
   for (let at = 1; at < count; at += 1) {
-    const index = order[at]!;
+    const index = sorted[at]!;
     const key = lefts[index]!;
     let to = at - 1;
-    while (to >= 0 && lefts[order[to]!]! > key) {
-      order[to + 1] = order[to]!;
+    while (to >= 0 && lefts[sorted[to]!]! > key) {
+      sorted[to + 1] = sorted[to]!;
       to -= 1;
     }
-    order[to + 1] = index;
+    sorted[to + 1] = index;
   }
+  return sorted;
 }
 
 /** The rest distance of two touching bubbles (see the contact passes below). */
@@ -131,6 +139,7 @@ export function relaxBodies(
 ) {
   const count = bodies.length;
   reserve(count);
+  const { xs, ys, vxs, vys, forceX, forceY, reaches, lefts } = scratch;
   const length = idealLength(frame, count);
   const softening = (length * 0.25) ** 2;
   const repulsion = length * length * REPULSION;
@@ -159,10 +168,12 @@ export function relaxBodies(
       const dx = ax - xs[second]!;
       const dy = ay - ys[second]!;
       const push = (scaled * reaches[second]!) / (dx * dx + dy * dy + softening);
-      fx += dx * push;
-      fy += dy * push;
-      forceX[second]! -= dx * push;
-      forceY[second]! -= dy * push;
+      const pushX = dx * push;
+      const pushY = dy * push;
+      fx += pushX;
+      fy += pushY;
+      forceX[second]! -= pushX;
+      forceY[second]! -= pushY;
     }
     forceX[first]! += fx;
     forceY[first]! += fy;
@@ -172,31 +183,38 @@ export function relaxBodies(
   // together by a gentle force, once per step. (Applied as a position
   // correction in every contact pass, it summed over a crowd's many
   // neighbours and collapsed small bubbles onto a single point.)
-  sortByLeft(count, radii);
+  let order = sortByLeft(count, radii, xs, lefts);
   for (let at = 0; at < count; at += 1) {
     const first = order[at]!;
     const ax = xs[first]!;
     const ay = ys[first]!;
     const ra = radii[first]!;
     const right = ax + ra + margin;
+    // `first`'s force in locals, written back after its neighbours (none of them is `first`).
+    let fx = forceX[first]!;
+    let fy = forceY[first]!;
     for (let after = at + 1; after < count; after += 1) {
       const second = order[after]!;
       const rb = radii[second]!;
       const bx = xs[second]!;
       if (bx - rb > right) break;
-      const by = ys[second]!;
-      if (Math.abs(by - ay) > ra + rb + margin) continue;
+      const dy = ys[second]! - ay;
+      const reach = ra + rb + margin;
+      if (Math.abs(dy) > reach) continue;
       const dx = bx - ax;
-      const dy = by - ay;
       const distance = Math.hypot(dx, dy);
       const gap = distance - restDistance(ra, rb);
-      if (gap <= 0 || distance > ra + rb + CAPILLARY_REACH) continue;
+      if (gap <= 0 || distance > reach) continue;
       const pull = (CAPILLARY * gap) / distance;
-      forceX[first]! += dx * pull;
-      forceY[first]! += dy * pull;
-      forceX[second]! -= dx * pull;
-      forceY[second]! -= dy * pull;
+      const pullX = dx * pull;
+      const pullY = dy * pull;
+      fx += pullX;
+      fy += pullY;
+      forceX[second]! -= pullX;
+      forceY[second]! -= pullY;
     }
+    forceX[first] = fx;
+    forceY[first] = fy;
   }
 
   for (const link of links) {
@@ -208,10 +226,12 @@ export function relaxBodies(
     // Rest length includes both discs, so big pages keep their neighbours at the rim.
     const rest = length * 0.6 * (0.35 + 0.65 * (reaches[from]! + reaches[to]!) / 2) + radii[from]! + radii[to]!;
     const pull = ((distance - rest) / distance) * SPRING;
-    forceX[from]! += dx * pull;
-    forceY[from]! += dy * pull;
-    forceX[to]! -= dx * pull;
-    forceY[to]! -= dy * pull;
+    const pullX = dx * pull;
+    const pullY = dy * pull;
+    forceX[from]! += pullX;
+    forceY[from]! += pullY;
+    forceX[to]! -= pullX;
+    forceY[to]! -= pullY;
   }
 
   const short = Math.min(frame.width, frame.height);
@@ -251,7 +271,7 @@ export function relaxBodies(
   // Positions move during a pass, so every read below is of the live value.
   for (let pass = 0; pass <= CONTACT_PASSES; pass += 1) {
     const settling = pass === CONTACT_PASSES;
-    sortByLeft(count, radii);
+    order = sortByLeft(count, radii, xs, lefts);
     for (let at = 0; at < count; at += 1) {
       const first = order[at]!;
       const ra = radii[first]!;
@@ -259,10 +279,14 @@ export function relaxBodies(
       for (let after = at + 1; after < count; after += 1) {
         const second = order[after]!;
         const rb = radii[second]!;
-        if (xs[second]! - rb > right) break;
-        if (Math.abs(ys[second]! - ys[first]!) > ra + rb + margin) continue;
-        let dx = xs[second]! - xs[first]!;
-        let dy = ys[second]! - ys[first]!;
+        const bx = xs[second]!;
+        if (bx - rb > right) break;
+        const by = ys[second]!;
+        let dy = by - ys[first]!;
+        // The capillary reach is the margin: one bound for the sweep and for the pair.
+        const reach = ra + rb + margin;
+        if (Math.abs(dy) > reach) continue;
+        let dx = bx - xs[first]!;
         // Two bubbles on the very same spot part along a direction of their own
         // (otherwise there is no direction to push them apart and they stay
         // stacked for good).
@@ -271,8 +295,8 @@ export function relaxBodies(
           dx = Math.cos(angle) * 1e-2;
           dy = Math.sin(angle) * 1e-2;
         }
-        const reach = ra + rb + CAPILLARY_REACH;
-        if (Math.abs(dx) > reach || Math.abs(dy) > reach) continue;
+        // (dy is within reach: tested above, and the parting direction is far shorter.)
+        if (Math.abs(dx) > reach) continue;
         const distance = Math.hypot(dx, dy);
         const overlap = restDistance(ra, rb) - distance;
         if (overlap <= 0) continue;
@@ -282,24 +306,26 @@ export function relaxBodies(
         const ratio = ra / rb;
         if (settling && ratio < 3 && ratio > 1 / 3) continue;
         const share = ratio >= 3 ? 0 : ratio <= 1 / 3 ? 1 : 0.5;
-        const shiftX = (dx / distance) * overlap;
-        const shiftY = (dy / distance) * overlap;
+        const nx = dx / distance;
+        const ny = dy / distance;
+        const shiftX = nx * overlap;
+        const shiftY = ny * overlap;
         xs[first]! -= shiftX * share;
         ys[first]! -= shiftY * share;
-        xs[second]! += shiftX * (1 - share);
-        ys[second]! += shiftY * (1 - share);
+        xs[second] = bx + shiftX * (1 - share);
+        ys[second] = by + shiftY * (1 - share);
         // Pressed together, they stop closing in (an inelastic contact): only
         // the part of their velocities that drives one into the other is taken
         // away, so nothing is set moving and gravity and springs cannot keep
         // pushing a bubble further into another.
-        const nx = dx / distance;
-        const ny = dy / distance;
         const closing = (vxs[second]! - vxs[first]!) * nx + (vys[second]! - vys[first]!) * ny;
         if (closing < 0) {
-          vxs[first]! += 0.5 * closing * nx;
-          vys[first]! += 0.5 * closing * ny;
-          vxs[second]! -= 0.5 * closing * nx;
-          vys[second]! -= 0.5 * closing * ny;
+          const stopX = 0.5 * closing * nx;
+          const stopY = 0.5 * closing * ny;
+          vxs[first]! += stopX;
+          vys[first]! += stopY;
+          vxs[second]! -= stopX;
+          vys[second]! -= stopY;
         }
       }
     }

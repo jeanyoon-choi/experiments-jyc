@@ -20,8 +20,5 @@ export const PRINT_KINDS = {
 
 export const SHEET_COUNT = 12;
 
-/** The texture unit the sheets are bound to (the raft's programs use 0–7, the objects' fields 8–18). */
-export const PRINT_UNIT = 19;
-
 export type PaintRequest = { region: number };
 export type PaintAnswer = { region: number; layer: number; bitmap: ImageBitmap };

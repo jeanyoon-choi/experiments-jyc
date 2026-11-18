@@ -20,8 +20,6 @@ export type Job = {
   random: () => number;
   /** The next photograph (they come round in a shuffled order). */
   photo: () => ImageBitmap;
-  /** Where screened photographs lie. */
-  screens: Rect[];
   press: Press;
   /** The stock's colour, 0–255. */
   paper: readonly [number, number, number];
@@ -55,7 +53,6 @@ export function photograph(job: Job, x: number, y: number, w: number, h: number,
   const pixels = job.ctx.getImageData(0, 0, job.size, job.size);
   screen(pixels.data, job.size, rect, news ? 4.4 : 3.1, job.paper, news ? 1.1 : 0.9, job.random);
   job.ctx.putImageData(pixels, 0, 0, rect[0], rect[1], rect[2], rect[3]);
-  job.screens.push(rect);
 }
 
 type TextStyle = {

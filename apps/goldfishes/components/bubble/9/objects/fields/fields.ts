@@ -5,7 +5,7 @@
 //   r: the height of its top surface (0 outside),
 //   g: the signed distance to its outline (negative inside, object units),
 //   b, a: the top surface's normal, x and y (z is the rest of a unit vector).
-// object-pass.ts samples two kinds' fields and blends them as a liquid: the
+// The object pass (pass/shader.ts) samples two kinds' fields and blends them as a liquid: the
 // outlines' distances interpolate (the outline flows from one shape to the
 // other), and while melted the height is that of a drop held by surface
 // tension over the flowing outline instead of either object's.
@@ -20,30 +20,10 @@ import { GLYPHS, GLYPH_BOLD } from "../shapes/currency.ts";
 import { KIND, type CurrencyKind, type LogoKind, type ObjectKind } from "../kinds/groups.ts";
 import { coverageOf, MARK_FILL, MARKS } from "../shapes/marks.ts";
 import { shapeOf, type MeshKind, type ShapeMesh } from "../shapes/shapes.ts";
+import { bubbleField } from "./bubble-field.ts";
+import { FIELD_EXTENT, FIELD_SIZE, MEMBRANE_SIZE, SUPERSAMPLE, type Field } from "./frame.ts";
 
-/** The field covers [−EXTENT, EXTENT]² of the object's frame (objects reach at most 1.4 of the disc). */
-export const FIELD_EXTENT = 1.5;
-/** Texels per side. */
-export const FIELD_SIZE = 512;
-/** The membrane's texels per side. */
-export const MEMBRANE_SIZE = 128;
-/** Rasterised this many times finer, then averaged down, so the outline's distance is exact to a fraction of a texel. */
-export const SUPERSAMPLE = 2;
-
-export type Field = {
-  /** FIELD_SIZE² texels, RGBA: height, signed distance, normal x, normal y. */
-  data: Float32Array;
-  /** The deepest point inside the outline (its inscribed radius), object units. */
-  thickness: number;
-  /** The highest point of its top surface. */
-  peak: number;
-  /** MEMBRANE_SIZE² texels: the outline's membrane height (see the header). */
-  membrane: Float32Array;
-  /** How far the outline reaches from the centre along x or y at most (the square it is drawn in). */
-  reach: number;
-  /** How far the outline reaches from the centre in any direction: the disc the goldfish keep out of. */
-  outline: number;
-};
+export { FIELD_EXTENT, FIELD_SIZE, MEMBRANE_SIZE, SUPERSAMPLE, type Field };
 
 /** What the fields are kept for: the bubble (layer 0), then every kind. */
 export type FieldKind = "bubble" | ObjectKind;
@@ -308,34 +288,6 @@ function reachOf(data: Float32Array) {
     }
   }
   return { reach: Math.min(FIELD_EXTENT, reach + 2 * unit), outline: Math.sqrt(outline) + 2 * unit };
-}
-
-/** The bubble's field, exactly and at once (the raft's first frames need it): a unit sphere over its disc. */
-function bubbleField(): Field {
-  const unit = (FIELD_EXTENT * 2) / FIELD_SIZE;
-  const data = new Float32Array(FIELD_SIZE * FIELD_SIZE * 4);
-  for (let y = 0; y < FIELD_SIZE; y += 1) {
-    for (let x = 0; x < FIELD_SIZE; x += 1) {
-      const px = (x + 0.5) * unit - FIELD_EXTENT;
-      const py = (y + 0.5) * unit - FIELD_EXTENT;
-      const r = Math.hypot(px, py);
-      const at = (y * FIELD_SIZE + x) * 4;
-      const h = r < 1 ? Math.sqrt(1 - r * r) : 0;
-      data[at] = h;
-      data[at + 1] = r - 1;
-      data[at + 2] = r < 1 ? px : 0;
-      data[at + 3] = r < 1 ? py : 0;
-    }
-  }
-  const membrane = new Float32Array(MEMBRANE_SIZE * MEMBRANE_SIZE);
-  const cell = (FIELD_EXTENT * 2) / MEMBRANE_SIZE;
-  for (let y = 0; y < MEMBRANE_SIZE; y += 1) {
-    for (let x = 0; x < MEMBRANE_SIZE; x += 1) {
-      const r = Math.hypot((x + 0.5) * cell - FIELD_EXTENT, (y + 0.5) * cell - FIELD_EXTENT);
-      membrane[y * MEMBRANE_SIZE + x] = r < 1 ? Math.sqrt(1 - r * r) : 0;
-    }
-  }
-  return { data, thickness: 1, peak: 1, membrane, reach: 1 + 2 * unit, outline: 1 + 2 * unit };
 }
 
 /** The membrane over the outline (negative distance) in `data`, by over-relaxed Gauss–Seidel on a coarse grid. */

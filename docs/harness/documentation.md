@@ -42,6 +42,23 @@ context for an unrelated fix.
 - Report what was actually checked. For doc-only edits, inspect the diff and
   local link targets; application builds and browser tests add no evidence.
 
+## Keep it lean as models change
+
+A harness is written for the agents of its day. When agents get better, cut
+what only compensated for weaker ones: repeated warnings, step-by-step
+procedure an agent would now choose itself, mandatory reading chains. Keep
+what no model can infer: facts of this environment (servers, pins, paths),
+the user's taste and corrections, and what was tried and failed. Name no
+model in a rule; say the class. A harness is the same for every agent
+(Claude, Codex or another): what one of them keeps in private memory and all
+of them need belongs in the repository.
+
+The 2026-09-08 cleanup set the pattern (root policy 2,261 to 744 words; the
+shared entry files cut by 65%; research and source ledgers kept whole). Its
+two lasting decisions: an agent loads only the policy file on its path, so
+savings come from a short entry policy and short reading chains; and a cut is
+measured in words, never claimed as a gain in model performance.
+
 Aim for a root policy readable in one pass and reference docs sized to their
 job. A 60–70% cut is a useful cleanup target where redundancy exists, not a
 reason to delete evidence. Word/byte reductions are measurable; token savings

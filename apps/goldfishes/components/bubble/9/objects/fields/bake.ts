@@ -7,12 +7,14 @@ import { fieldOfModel } from "../catalogue/model.ts";
 import { fieldOfRelief } from "../catalogue/relief.ts";
 import type { ModelMake, ReliefMake } from "../catalogue/types.ts";
 import { ALBEDO_SIZE, FACES, headAlbedo, loadPortrait, type Portrait } from "../shapes/faces.ts";
-import { FIELD_EXTENT, FIELD_SIZE, fieldOf, fieldOfHead, MEMBRANE_SIZE, type Field, type FieldKind } from "./fields.ts";
+import { FIELD_EXTENT, fieldOf, fieldOfHead, type Field, type FieldKind } from "./fields.ts";
 import { KIND, type FaceKind } from "../kinds/groups.ts";
-import { chainOf, fieldLevel, membraneLevel, paintChainOf, paintLevel, sliceChain, toHalf, type Tier } from "./tiers.ts";
 
-/** What its paint is: a face's photograph (얼굴 사진 색), a catalogue kind's own colours (브랜드 색), or none. */
-export type PaintKind = "face" | "brand" | null;
+// The tiers' slices (tier-data.ts), as the workers and the tests take them from here.
+export { tiersOf, type TierData } from "./tier-data.ts";
+
+/** What its paint is: a face's photograph (얼굴 사진 색), or none (the catalogue's kinds bake without paint: one material). */
+export type PaintKind = "face" | null;
 
 /** A baked kind: its field and, if it has one, its paint (ALBEDO_SIZE² RGBA, sRGB, over the field's frame). */
 export type Baked = { field: Field; albedo: Uint8ClampedArray | null; paint: PaintKind };
@@ -41,19 +43,4 @@ export async function bakeKind(kind: FieldKind): Promise<Baked> {
   const face = FACES[kind as FaceKind];
   const portrait = await loadPortrait(face).catch(() => BLANK);
   return { field: fieldOfHead(portrait, face.box), albedo: headAlbedo(portrait, face.box, ALBEDO_SIZE, FIELD_EXTENT), paint: "face" };
-}
-
-/** One tier's data: its field's mip chain (RGBA half floats), its membrane's (R half floats), its paint's (sRGB RGBA), or none. */
-export type TierData = { tier: Tier; field: Uint16Array; membrane: Uint16Array; paint: Uint8Array | null };
-/** A field's tiers from its full bake (also used on the main thread for the bubble). */
-export function tiersOf(field: { data: Float32Array; membrane: Float32Array }, albedo: Uint8ClampedArray | null, tiers: readonly Tier[]): TierData[] {
-  const fieldChain = toHalf(chainOf(field.data, FIELD_SIZE, 4));
-  const membraneChain = toHalf(chainOf(field.membrane, MEMBRANE_SIZE, 1));
-  const paintChain = albedo ? paintChainOf(albedo, ALBEDO_SIZE) : null;
-  return tiers.map((tier) => ({
-    tier,
-    field: sliceChain(fieldChain, FIELD_SIZE, 4, fieldLevel(tier)),
-    membrane: sliceChain(membraneChain, MEMBRANE_SIZE, 1, membraneLevel(tier)),
-    paint: paintChain ? sliceChain(paintChain, ALBEDO_SIZE, 4, paintLevel(tier)) : null,
-  }));
 }

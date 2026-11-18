@@ -10,7 +10,8 @@
     "dev": "next dev",
     "start": "next start",
     "audit:assets": "node scripts/audit-assets.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:bubble9": "node --test \"components/bubble/9/**/*.test.ts\""
   },
   "dependencies": {
     "leva": "0.10.1",

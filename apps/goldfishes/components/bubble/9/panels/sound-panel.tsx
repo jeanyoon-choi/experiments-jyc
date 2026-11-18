@@ -1,9 +1,8 @@
-import { Fragment, type Dispatch, type SetStateAction } from "react";
-import { SOUND_CONTROLS, SOUND_RAW_CONTROLS } from "../settings";
+import { Fragment, memo, type Dispatch, type SetStateAction } from "react";
+import { SOUND_CONTROLS, SOUND_RAW_CONTROLS } from "../state/controls";
 import { SOUND_DEFAULTS, SOUNDSCAPES, type SoundParameters } from "../sound/sound";
-import { RAW_GROUPS } from "../sound/sound-raw";
-import { REAL_SCAPES } from "../sound/sound-real";
-import { Chip, Chips, Note, Panel, Reset, Section, Slider } from "./controls";
+import { RAW_GROUPS, REAL_SCAPES } from "../sound/options";
+import { Chip, Chips, ControlSliders, Note, OnOff, Panel, Reset, Section } from "../ui/controls";
 
 type Props = {
   on: boolean;
@@ -19,9 +18,10 @@ const PILES = [
 ] as const;
 
 /** 소리 (folders, user 2026-11-05): on or off, the version and the volume open; 소리결, then how the sounds pile, ring and break, folded. */
-export function SoundPanel({ on, onToggle, sound, setSound }: Props) {
+export const SoundPanel = memo(function SoundPanel({ on, onToggle, sound, setSound }: Props) {
   const raw = sound.version >= 2;
   const controls = raw ? SOUND_RAW_CONTROLS : SOUND_CONTROLS;
+  const setValue = (key: (typeof controls)[number]["key"], value: number) => setSound((current) => ({ ...current, [key]: value }));
   const scapeLabel =
     sound.version === 3
       ? REAL_SCAPES.find((option) => option.id === sound.real)?.label
@@ -39,14 +39,7 @@ export function SoundPanel({ on, onToggle, sound, setSound }: Props) {
           ? "금붕어가 버블에 닿는 순간마다 · 플랫폼 알림 하나, 그대로 · 순위가 높을수록 크게, 여러 개 쌓여"
           : "금붕어가 버블에 닿는 순간마다 · 페이지마다 제 음, 순위가 높을수록 낮고 무겁게"}
       </Note>
-      <Chips label="소리 켜기">
-        <Chip pressed={!on} onClick={() => onToggle(false)}>
-          끔
-        </Chip>
-        <Chip pressed={on} onClick={() => onToggle(true)}>
-          켬
-        </Chip>
-      </Chips>
+      <OnOff label="소리 켜기" value={on} onChange={onToggle} />
       <Chips label="버전">
         {VERSIONS.map((version) => (
           <Chip key={version} pressed={sound.version === version} onClick={() => setSound((current) => ({ ...current, version }))}>
@@ -54,19 +47,7 @@ export function SoundPanel({ on, onToggle, sound, setSound }: Props) {
           </Chip>
         ))}
       </Chips>
-      {controls.filter((control) => control.key === "volume").map((control) => (
-        <Slider
-          key={control.key}
-          label={control.label}
-          output={sound[control.key].toFixed(2)}
-          ariaLabel={control.label}
-          min={control.min}
-          max={control.max}
-          step={control.step}
-          value={sound[control.key]}
-          onChange={(value) => setSound((current) => ({ ...current, [control.key]: value }))}
-        />
-      ))}
+      <ControlSliders controls={controls.filter((control) => control.key === "volume")} values={sound} onChange={setValue} />
       <Section id="sound/scape" title="소리결" value={scapeLabel} defaultOpen>
         {sound.version === 3 ? (
           <Chips label="소리결">
@@ -116,21 +97,9 @@ export function SoundPanel({ on, onToggle, sound, setSound }: Props) {
             ))}
           </Chips>
         )}
-        {controls.filter((control) => control.key !== "volume").map((control) => (
-          <Slider
-            key={control.key}
-            label={control.label}
-            output={sound[control.key].toFixed(2)}
-            ariaLabel={control.label}
-            min={control.min}
-            max={control.max}
-            step={control.step}
-            value={sound[control.key]}
-            onChange={(value) => setSound((current) => ({ ...current, [control.key]: value }))}
-          />
-        ))}
+        <ControlSliders controls={controls.filter((control) => control.key !== "volume")} values={sound} onChange={setValue} />
       </Section>
       <Reset onClick={() => setSound(SOUND_DEFAULTS)}>기본값으로</Reset>
     </Panel>
   );
-}
+});

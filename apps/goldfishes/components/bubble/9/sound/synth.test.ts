@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { beam, clang, pipe, tink } from "./sound-metal.ts";
-import { chime, droop, hymn, pop, swoosh, tap } from "./sound-notify.ts";
+import { beam, clang, pipe, tink } from "./voices/metal.ts";
+import { chime, droop, hymn, pop, swoosh, tap } from "./voices/notify.ts";
 import { midiToHz, SYNTH_RATE } from "./synth.ts";
 
 /** Share of the power within 25 Hz of the note's harmonics, over 4096 samples from `start` (s). */
@@ -68,7 +68,8 @@ test("the voices sit on their notes, so the harmony holds; 금속 stays off them
 });
 
 test("v2's notifications are finite, level and end without a click", async () => {
-  const { RAW_KINDS, rawVoice } = await import("./sound-raw.ts");
+  const { RAW_KINDS } = await import("./options.ts");
+  const { rawVoice } = await import("./voices/raw.ts");
   for (const kind of RAW_KINDS) {
     for (const count of [1, 3, 6]) {
       const data = rawVoice(kind, count);

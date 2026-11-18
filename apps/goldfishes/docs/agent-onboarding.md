@@ -1,6 +1,6 @@
 # Goldfishes working contract
 
-Start with the target route's document and modules plus `components/experiments.ts`; follow only relevant links. For a new or substantial experiment, also read root `AGENTS.md` and the SCC [tinkering](../../../docs/foundations/tinkering.md) guidance; use [design](../../../docs/foundations/design-guidelines.md) for a new/materially redesigned UI and [history](./research-and-rendering-history.md) only when its rendering or historical decisions apply.
+Start with the target route's document and modules plus `components/experiments.ts`; follow only relevant links. For a task about the work's meaning or its system, read [direction](./direction.md) and the artist's latest notes it points to first. For a new or substantial experiment, also read root `AGENTS.md` and the SCC [tinkering](../../../docs/foundations/tinkering.md) guidance; use [design](../../../docs/foundations/design-guidelines.md) for a new/materially redesigned UI and [history](./research-and-rendering-history.md) only when its rendering or historical decisions apply.
 
 ## Method
 
@@ -37,6 +37,15 @@ For any new object or sign group in the bubble family (bubble/5 onward: 기호�
 - **One rule per group, shown small first.** A group needs one line that decides whether a thing belongs; a list of things that illustrate a topic is not a group. Show a handful of kinds before making dozens (bubble/9's 금붕어의 천적: 61 kinds, removed the day it was made as cheesy and all over the place; [record](../components/bubble/docs/9.md#failure-금붕어의-천적-2026-11-12-removed-with-its-code)).
 - **Check in the raft, under the materials.** Before passing a kind, look at it in the running route in 쿤스 (코팅) and 맥시멀 믹스 beside bubble/5–8's objects (통화 기호 and 유명인 얼굴 are the reference that passed). A plaster-lit contact sheet is not acceptance.
 - **Never decide for the user.** Do not leave out, swap or rename kinds the user asked for, or switch some off; report doubts instead.
+
+## Standing corrections
+
+Each cost a rejected piece of work; they hold for every agent.
+
+- **The 2020s platforms, never earlier devices.** A goldfish is a person's attention, a bubble is feed content, a fish touching it is attention landing. Any sound, icon or reference comes from present smartphone and SNS platforms (iOS, Instagram, Slack, Discord, WhatsApp…), international rather than Korea-only, and for sounds the platforms' own files, not synthesised imitations (2026-10-28: feature-phone beeps were rejected outright).
+- **No explicit motif.** A material that should carry a feeling or a kind of matter is built from the real mechanism or the real source, never a drawn pattern or an invented stand-in (2026-11-12: [LSD and 인쇄물](../components/bubble/docs/9.md#재질-added-and-removed-2026-11-1112)). First versions are already bold; the artist has asked for stronger, never subtler.
+- **Use the signs the project has.** The goldfish is `components/bubble/9/fish/goldfish-scene.ts`; copy it into a new experiment as it is. Do not build a "more realistic" one (2026-11-13). If an existing model seems not to fit the request, ask once.
+- **"Mobile", never "phone",** in names, identifiers, comments, docs and replies (모바일). Older code that says `phone` was not asked to be renamed.
 
 ## Archive workflow
 

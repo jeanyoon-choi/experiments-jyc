@@ -8,15 +8,18 @@
 // again (transferred, not copied), so a frame allocates nothing.
 //
 // Where there is no Worker (tests, node), or the worker fails, the same frame
-// is stepped here at once: runFrame() is the worker's step, so both paths
-// give the same school.
+// is stepped here at once: SchoolCore.run() (school-core.ts) is the worker's
+// step, so both paths give the same school.
 
-import { MAX_FISH, type Fish, type FishParameters, type LifeContext, type SchoolWeb } from "./goldfish.ts";
-import { LIFE_DEFAULTS, type LifeParameters, type Rgb } from "./lifecycle.ts";
+import { LIFE_OFF, type LifeParameters, type Rgb } from "./lifecycle.ts";
+import { drain } from "./math.ts";
+import { clampCount, MAX_FISH, MAX_PAGES, type Fish, type FishParameters, type LifeContext, type SchoolWeb } from "./model.ts";
 import { buffersOf, emptyFrame, SchoolCore, unpackFish, type SchoolFrame } from "./school-core.ts";
 
-export { buffersOf, FISH_STRIDE, LinkView, packFish, SchoolCore, unpackFish, type SchoolFrame } from "./school-core.ts";
-
+/**
+ * The frame loop's school: GoldfishSchool's interface, stepped in a worker
+ * when there is one (`threaded`), at once otherwise.
+ */
 export class SchoolThread {
   /** The fish as last stepped (read-only copies; the school's own live in the worker). */
   readonly fish: Fish[] = [];
@@ -37,14 +40,14 @@ export class SchoolThread {
   private width: number;
   private height: number;
   private count = 0;
-  private life: LifeParameters = { ...LIFE_DEFAULTS, enabled: 0 };
+  private life: LifeParameters = LIFE_OFF;
   private forget = false;
   private noteFrom = 0;
   private noteTo = 0;
   /** Seconds not yet stepped (they gather while the worker is busy). */
   private pending = 0;
   /** Contact read from steps and not yet drained by the frame loop. */
-  private readonly contact = new Float64Array(1_000);
+  private readonly contact = new Float64Array(MAX_PAGES);
   private readonly colour: Rgb = [0, 0, 0];
 
   constructor(width: number, height: number, threaded = typeof Worker !== "undefined") {
@@ -91,7 +94,7 @@ export class SchoolThread {
   }
 
   setCount(count: number) {
-    this.count = Math.max(0, Math.min(MAX_FISH, Math.round(count)));
+    this.count = clampCount(count);
   }
 
   notePages(from: number, to: number) {
@@ -112,10 +115,7 @@ export class SchoolThread {
   }
 
   drainContact(pageCount: number, out: Float64Array) {
-    for (let page = 0; page < pageCount; page += 1) {
-      out[page] = this.contact[page]!;
-      this.contact[page] = 0;
-    }
+    drain(this.contact, pageCount, out);
   }
 
   /** As GoldfishSchool.step; the fish read back are the last step finished (in a worker, last frame's). */
@@ -185,6 +185,7 @@ export class SchoolThread {
     if (frame.coats.length < pageCount * 3) frame.coats = new Float64Array(pageCount * 6);
     if (frame.linkStart.length < pageCount + 1) frame.linkStart = new Int32Array(pageCount * 2 + 1);
     const colour = this.colour;
+    // The links cross flat, written afresh each frame: the web keeps no mark of when it last changed to go by.
     let links = 0;
     for (let page = 0; page < pageCount; page += 1) {
       frame.shown[page] = shown[page]!;

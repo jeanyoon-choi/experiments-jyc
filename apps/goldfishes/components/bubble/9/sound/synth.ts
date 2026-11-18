@@ -1,9 +1,10 @@
 // Sample-level building blocks for 금속 and 알림 (user, 2026-10-26). Pure: every
 // voice is a Float32Array computed from its note, so it can be checked in Node
-// (synth.test.ts) and wrapped in an AudioBuffer by the engine. Modes are damped
+// (synth.test.ts, voices/digest.test.ts) and wrapped in an AudioBuffer (buffers.ts). Modes are damped
 // two-pole resonators (two multiplies a sample), so a 3 s tone costs a few
 // milliseconds once and is cached.
 
+/** The one rate of everything rendered offline: the computed voices, 유리's tones, 군중's yells. */
 export const SYNTH_RATE = 32_000;
 const NYQUIST_GUARD = SYNTH_RATE * 0.45;
 
@@ -100,6 +101,7 @@ export function saturate(data: Float32Array, drive: number) {
   for (let index = 0; index < data.length; index += 1) data[index] = Math.tanh((drive * data[index]!) / peak) * scale * peak;
 }
 
+/** The largest absolute sample. */
 export function peakOf(data: Float32Array) {
   let largest = 0;
   for (const value of data) largest = Math.max(largest, Math.abs(value));

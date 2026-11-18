@@ -107,6 +107,12 @@ export const goldfishFamilies: readonly GoldfishFamily[] = [
     members: ["screen/goldfish-mobile/1"],
   },
   {
+    key: "screen:simulation",
+    area: "screen",
+    label: "simulation",
+    members: ["screen/simulation/0"],
+  },
+  {
     key: "pc:mobiles",
     area: "pc",
     label: "mobiles",

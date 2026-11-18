@@ -1,9 +1,13 @@
 // The goldfish school's step, its frame and its packing, apart from SchoolThread (school-thread.ts), so the worker
 // (school-worker.ts) imports this file and not the one that starts it: a worker importing its own parent locked
 // Turbopack's production build (bubble/8, 2026-11-05: `next build` hung at "Creating an optimized production build").
+//
+// So nothing here, or reached from here, may import school-thread.ts, three, react or anything outside fish/ (types of
+// web/ apart): model.ts and school.ts are imported directly, not through goldfish.ts, which also carries the palettes.
 
-import { GoldfishSchool, MAX_FISH, type Fish, type FishParameters, type LifeContext, type SchoolWeb } from "./goldfish.ts";
-import { LIFE_DEFAULTS, type LifeParameters, type Rgb } from "./lifecycle.ts";
+import { LIFE_OFF, type LifeParameters, type Rgb } from "./lifecycle.ts";
+import { MAX_FISH, MAX_PAGES, type Fish, type FishParameters, type LifeContext } from "./model.ts";
+import { GoldfishSchool } from "./school.ts";
 
 /** Floats per fish in the packed state. */
 export const FISH_STRIDE = 24;
@@ -28,7 +32,10 @@ export type SchoolFrame = {
   shown: Float64Array;
   /** Each page's bubble colour (r g b), for the tint a fish takes on watching it. */
   coats: Float64Array;
-  /** The web's links per page: page p's run [linkStart[p], linkStart[p + 1]) of linkTarget and linkWeight. */
+  /**
+   * The web's links per page: page p's run [linkStart[p], linkStart[p + 1]) of linkTarget and linkWeight (model.ts
+   * FlatLinks). The school reads them as they are, so a frame builds no link objects.
+   */
   linkStart: Int32Array;
   linkTarget: Int32Array;
   linkWeight: Float64Array;
@@ -51,42 +58,15 @@ export function buffersOf(frame: SchoolFrame): ArrayBuffer[] {
   );
 }
 
-/** The web's links as the worker reads them: arrays of reusable entries, rebuilt in place from a frame. */
-export class LinkView implements SchoolWeb {
-  readonly out: { target: number; weight: number }[][] = [];
-
-  read(frame: SchoolFrame) {
-    const { out } = this;
-    while (out.length < frame.pageCount) out.push([]);
-    for (let page = 0; page < frame.pageCount; page += 1) {
-      const list = out[page]!;
-      const start = frame.linkStart[page]!;
-      const end = frame.linkStart[page + 1]!;
-      const length = end - start;
-      while (list.length < length) list.push({ target: 0, weight: 0 });
-      list.length = length;
-      for (let index = 0; index < length; index += 1) {
-        const entry = list[index]!;
-        entry.target = frame.linkTarget[start + index]!;
-        entry.weight = frame.linkWeight[start + index]!;
-      }
-    }
-    // Pages beyond this frame's: no links (the school never reads them).
-    for (let page = frame.pageCount; page < out.length; page += 1) out[page]!.length = 0;
-    return this;
-  }
-}
-
 /** The school's side of a frame: steps it and writes the answer into the frame's out buffers. */
 export class SchoolCore {
   readonly school: GoldfishSchool;
-  private readonly links = new LinkView();
   private width: number;
   private height: number;
   private coats: Float64Array = new Float64Array(0);
   private pageStart = 0;
   private readonly context: LifeContext = {
-    parameters: { ...LIFE_DEFAULTS, enabled: 0 },
+    parameters: LIFE_OFF,
     colourOf: (bubble: number, out: Rgb) => {
       const at = (bubble - this.pageStart) * 3;
       out[0] = this.coats[at] ?? 0;
@@ -116,8 +96,8 @@ export class SchoolCore {
     this.coats = frame.coats;
     this.pageStart = frame.pageStart;
     this.context.parameters = frame.life;
-    school.step(frame.seconds, this.links.read(frame), frame.shown, frame.bubbles, frame.bubbleCount, frame.pageStart, frame.pageCount, frame.parameters, this.context);
-    if (frame.contact.length < frame.pageCount) frame.contact = new Float64Array(Math.max(frame.pageCount, 1_000));
+    school.step(frame.seconds, frame, frame.shown, frame.bubbles, frame.bubbleCount, frame.pageStart, frame.pageCount, frame.parameters, this.context);
+    if (frame.contact.length < frame.pageCount) frame.contact = new Float64Array(Math.max(frame.pageCount, MAX_PAGES));
     school.drainContact(frame.pageCount, frame.contact);
     if (frame.state.length < school.fish.length * FISH_STRIDE) frame.state = new Float64Array(MAX_FISH * FISH_STRIDE);
     packFish(school.fish, frame.state);
@@ -220,12 +200,13 @@ export function unpackFish(state: Float64Array, count: number, fish: Fish[]) {
   }
 }
 
+/** A frame with nothing in it yet, its buffers sized for MAX_PAGES pages and MAX_FISH fish (they grow if need be). */
 export function emptyFrame(width: number, height: number): SchoolFrame {
   return {
     width,
     height,
     count: 0,
-    life: { ...LIFE_DEFAULTS, enabled: 0 },
+    life: LIFE_OFF,
     parameters: {} as FishParameters,
     seconds: 0,
     forget: false,
@@ -235,14 +216,14 @@ export function emptyFrame(width: number, height: number): SchoolFrame {
     pageStart: 0,
     pageCount: 0,
     bubbles: new Float32Array(1_024 * 4),
-    shown: new Float64Array(1_000),
-    coats: new Float64Array(1_000 * 3),
-    linkStart: new Int32Array(1_001),
+    shown: new Float64Array(MAX_PAGES),
+    coats: new Float64Array(MAX_PAGES * 3),
+    linkStart: new Int32Array(MAX_PAGES + 1),
     linkTarget: new Int32Array(4_096),
     linkWeight: new Float64Array(4_096),
     state: new Float64Array(MAX_FISH * FISH_STRIDE),
     touches: new Float64Array(MAX_FISH * 3),
-    contact: new Float64Array(1_000),
+    contact: new Float64Array(MAX_PAGES),
     fishCount: 0,
     touchCount: 0,
     deaths: { spent: 0, crushed: 0, shut: 0 },
@@ -250,8 +231,3 @@ export function emptyFrame(width: number, height: number): SchoolFrame {
     stepMs: 0,
   };
 }
-
-/**
- * The frame loop's school: GoldfishSchool's interface, stepped in a worker
- * when there is one (`threaded`), at once otherwise.
- */

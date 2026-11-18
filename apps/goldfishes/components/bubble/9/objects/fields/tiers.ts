@@ -9,7 +9,7 @@
 //   tier 2  256²  a pool,
 //   tier 3  512²  a pool (the largest objects, the 랩's),
 //
-// each tier with its membrane (fields.ts) and paint (a face's photograph, a catalogue kind's albedo) at the same
+// each tier with its membrane (fields.ts) and paint (a face's photograph) at the same
 // relative size. The pools are fixed at the start from one memory budget, so GPU memory never grows with the
 // catalogue; a kind is drawn from the finest tier it has. Every frame the object pass records each kind's largest
 // object on screen; a few times a second `Residency.plan` ranks the kinds wanting each pool (largest first, the
@@ -39,8 +39,6 @@ export const paintLevel = (tier: Tier) => Math.log2(FULL_PAINT / TIER_PAINT[tier
 
 /** A shader address: tier × ADDRESS_TIER + slot (tier 0's slot is the layer itself). */
 export const ADDRESS_TIER = 4096;
-/** Added to a paint's address when it is a catalogue kind's own colours (브랜드 색), not a face's photograph (얼굴 사진 색). */
-export const ADDRESS_BRAND = 16384;
 
 /** Mip levels of a square of `size` down to 1². */
 export const levelsOf = (size: number) => Math.log2(size) + 1;
@@ -192,7 +190,7 @@ export function toHalf(data: Float32Array): Uint16Array {
 }
 
 /**
- * Which kinds hold which pool slots, and which want which (no GL here: object-pass.ts uploads what it says).
+ * Which kinds hold which pool slots, and which want which (no GL here: field-textures.ts uploads what it says).
  * Tier 0 is every kind's own layer; the pools' slots are taken by the kinds whose objects on screen are largest.
  */
 /** Seconds a layer moved to a finer tier takes to sharpen into it. */
@@ -306,13 +304,6 @@ export class Residency {
       }
     }
     return best;
-  }
-
-  /** Whether `tier` has a slot `layer` could take now. */
-  canPlace(layer: number, tier: Tier) {
-    if (tier === 0) return !this.baked[layer];
-    if (this.slotOf[tier]![layer]! >= 0) return false;
-    return this.slotFor(tier) >= 0;
   }
 
   /**

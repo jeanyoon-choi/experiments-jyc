@@ -382,8 +382,8 @@ export function headSurface(portrait: Portrait, box: FaceBox, size: number, exte
   return { height, normal };
 }
 
-/** Texels per side of a face's colour (its albedo) over the field's frame. */
-export const ALBEDO_SIZE = 256;
+/** Texels per side of a face's colour (its albedo) over the field's frame (fields/frame.ts). */
+export { ALBEDO_SIZE } from "../fields/frame.ts";
 
 /**
  * The portrait's colours over the field's frame ([−extent, extent]², as headSurface lays the head), RGBA sRGB,

@@ -15,22 +15,17 @@ export type FieldRequest = { layer: number; kind: FieldKind; tiers: Tier[] };
 /** A baked layer: what every tier shares (its outline's measures, what its paint is), then each tier asked for. */
 export type FieldAnswer = {
   layer: number;
-  thickness: number;
-  peak: number;
   reach: number;
   outline: number;
   paint: PaintKind;
   tiers: TierData[];
-  /** Milliseconds the bake took (the field, then the chains). */
-  took: number;
 };
 
 self.onmessage = async (event: MessageEvent<FieldRequest>) => {
   const { layer, kind, tiers } = event.data;
-  const started = performance.now();
   const { field, albedo, paint } = await bakeKind(kind);
   const data = tiersOf(field, albedo, tiers);
-  const answer: FieldAnswer = { layer, thickness: field.thickness, peak: field.peak, reach: field.reach, outline: field.outline, paint, tiers: data, took: performance.now() - started };
+  const answer: FieldAnswer = { layer, reach: field.reach, outline: field.outline, paint, tiers: data };
   const transfer: ArrayBuffer[] = data.flatMap((tier) => [tier.field.buffer, tier.membrane.buffer, ...(tier.paint ? [tier.paint.buffer] : [])] as ArrayBuffer[]);
   (self as unknown as Worker).postMessage(answer, transfer);
 };

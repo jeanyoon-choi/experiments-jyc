@@ -117,7 +117,7 @@ test("candidates enter at zero, fade out before removal, and stay bounded", () =
   const target = web.out[page]![0]!.target;
   const weight = web.out[page]![0]!.weight;
   fadeCandidate(web, page, target);
-  stepRankedWeb(web, 1 / 60, DEFAULT_PARAMETERS);
+  stepRankedWeb(web, 1 / 60, DEFAULT_PARAMETERS, { value: 0 });
   const fading = web.out[page]!.find((entry) => entry.target === target);
   assert.ok(fading && fading.weight < weight && fading.weight > 0);
   run(web, 20);

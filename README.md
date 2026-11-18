@@ -63,6 +63,5 @@ operational rules.
 ## Documentation
 
 - [Documentation index](./docs/README.md)
-- [Harness overview](./docs/harness/overview.md)
 - [Monorepo apps and Vercel setup](./docs/harness/monorepo.md)
 - [Experiment structure](./docs/harness/experiments.md)

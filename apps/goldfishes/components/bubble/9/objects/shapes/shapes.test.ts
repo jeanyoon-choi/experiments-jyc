@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { GROUPS, KIND, KINDS_OF, type ObjectGroup } from "../kinds/groups.ts";
+import { BRAND_HEX, brandOf } from "./brands.ts";
 import { polygonsOf, MARKS } from "./marks.ts";
 import { groupBit, OBJECT_DEFAULTS, OBJECT_KINDS, pageKind, pagesAreObjects, PORTION_SHOWS, portionKind, type ObjectParameters } from "../kinds/parameters.ts";
 import { shapeOf, type MeshKind } from "./shapes.ts";
@@ -85,4 +86,10 @@ test("pages take any combination of groups, mixed: every selected group comes, n
   const noLogos = Object.fromEntries(KINDS_OF.logo.map((kind) => [`${kind}On`, 0]));
   const parameters = { ...OBJECT_DEFAULTS, ...noLogos, pages: groupBit("tech") | groupBit("logo") };
   for (let page = 0; page < 100; page += 1) assert.equal(KIND[pageKind(page, parameters)!].group, "tech");
+});
+
+test("the brand colours kept apart from the marks (brands.ts) are the marks' own", () => {
+  assert.deepEqual(Object.keys(BRAND_HEX), Object.keys(MARKS));
+  for (const [kind, mark] of Object.entries(MARKS)) assert.equal(BRAND_HEX[kind as keyof typeof MARKS], mark.hex, kind);
+  assert.deepEqual(brandOf("claude"), [0xd9 / 255, 0x77 / 255, 0x57 / 255]);
 });

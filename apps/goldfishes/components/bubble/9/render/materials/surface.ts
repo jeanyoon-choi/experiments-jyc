@@ -1,12 +1,13 @@
 // 재질 (bubble/8, user 2026-11-03): every material other than bubble/7's coat is
-// one entry here — 액체, 젤 · 세럼, 석고, 석고 v2, 유리, 맥시멀 믹스 — each in its own file with
+// one entry here — 젤 · 세럼, 석고, 석고 v2, 유리, 맥시멀 믹스 … (액체 until 2026-11-11) — each in its own file with
 // its GLSL, its uniforms' defaults, its sliders and its 연출. The raft's spheres
 // (render/foam.ts) and the objects (objects/object-pass.ts) describe the point
 // they shade as one Surface and call shadeMaterial(s) (index.ts), so a material
 // is written once and draws both. The coat (material 0) stays in the passes, as
 // bubble/7 drew it.
 
-import type { Colour } from "../shading";
+import type { Colour } from "../look";
+import { float, HEIGHT_STEPS } from "../units";
 
 /** A slider for one of a material's uniforms. */
 export type MaterialControl = { key: string; label: string; min: number; max: number; step: number };
@@ -83,7 +84,7 @@ vec2 lastUv(vec2 p) {
 vec2 lastBody(vec2 p) {
   ivec2 cells = textureSize(lastScene, 0);
   float kept = texelFetch(lastScene, clamp(ivec2(lastUv(p) * vec2(cells)), ivec2(0), cells - 1), 0).a;
-  return vec2(floor(kept) * 0.125, fract(kept));
+  return vec2(floor(kept) * ${float(1 / HEIGHT_STEPS)}, fract(kept));
 }
 
 // The same between the last frame's cells (its height from the four round the point, its body the nearest's), where
@@ -99,7 +100,7 @@ vec2 lastBodySmooth(vec2 p) {
   float c = texelFetch(lastScene, clamp(corner + ivec2(0, 1), ivec2(0), limit), 0).a;
   float d = texelFetch(lastScene, clamp(corner + ivec2(1, 1), ivec2(0), limit), 0).a;
   float nearest = f.x < 0.5 ? (f.y < 0.5 ? a : c) : (f.y < 0.5 ? b : d);
-  return vec2(mix(mix(floor(a), floor(b), f.x), mix(floor(c), floor(d), f.x), f.y) * 0.125, fract(nearest));
+  return vec2(mix(mix(floor(a), floor(b), f.x), mix(floor(c), floor(d), f.x), f.y) * ${float(1 / HEIGHT_STEPS)}, fract(nearest));
 }
 
 // The light a shown colour was (filmic's inverse, at about the exposure the materials show with).
@@ -225,8 +226,5 @@ float noise(vec3 x) {
 }
 float fbm2(vec3 x) {
   return 0.5 * noise(x) + 0.25 * noise(x * 2.03 + vec3(1.7, 9.2, 3.1));
-}
-float fbm3(vec3 x) {
-  return 0.5 * noise(x) + 0.25 * noise(x * 2.03 + vec3(1.7, 9.2, 3.1)) + 0.125 * noise(x * 4.12 + vec3(5.1, 2.3, 7.7));
 }
 `;

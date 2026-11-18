@@ -29,478 +29,31 @@
 // Nothing persists between frames but the frame itself: the raft is drawn into a texture with its heights as depth
 // (what is drawn after it, objects/, shades only its nearest surface from them), shown by present(), and kept at
 // half size for the next frame's surfaces to see their neighbours in (materials/surface.ts lastScene).
+//
+// This file is the composition: the targets, the passes in order, and what is shown. The programs' GLSL is in
+// programs/, the units and encodings they share in units.ts, the plumbing in gl.ts, the neighbour lists in
+// neighbours.ts, the rooms, stills and sheets in assets.ts, a look's uniforms in look.ts.
 
-import { COAT, FACE_ENVIRONMENT, keyOnScreen, LOOK_DEFAULTS, SHADING, type Look } from "./shading";
+import { createAssets } from "./assets";
+import { compile, createUniforms, sampling } from "./gl";
+import { applyLook, LOOK_DEFAULTS, type Look } from "./look";
 import { materialOf } from "./materials";
-import { MIX_MATERIAL } from "./materials/mix";
-import { PRINT_MATERIAL } from "./materials/print";
-import { createPrintMap, PRINT_UNIT } from "./materials/print-sheets";
+import { createNeighbourSweep } from "./neighbours";
+import { KEEP_FRAGMENT, PRESENT_FRAGMENT, SCREEN_VERTEX, SHADOW_FRAGMENT, SHADOW_VERTEX, SPHERE_FRAGMENT, SPLAT_FRAGMENT, SPLAT_VERTEX } from "./programs";
+import { BUBBLE_FLOATS, MAX_BUBBLES, NEIGHBOUR_TEXELS, ROW, UNIT } from "./units";
 
-export { LOOK_DEFAULTS, MIXED_COATS, type Colour, type Look } from "./shading";
+export { LOOK_DEFAULTS, type Colour, type Look } from "./look";
+export { BUBBLE_FLOATS, MAX_BUBBLES } from "./units";
 
-export const MAX_BUBBLES = 16_384;
-/** Floats per bubble: x y radius seed (CSS px). */
-export const BUBBLE_FLOATS = 4;
 /** The ownership passes run at this share of the CSS resolution. */
 const SCALE = 0.75;
-/** Bubble data and neighbour lists are kept in textures this many bubbles wide. */
-const ROW = 128;
-/** Each bubble lists up to this many neighbours it overlaps (4 per texel), most deeply pressed first. */
-const NEIGHBOUR_TEXELS = 4;
-const NEIGHBOURS = NEIGHBOUR_TEXELS * 4;
 
-// How far (CSS px) past its own radius a bubble is drawn: its anti-aliased
-// edge and, when the ground reacts (groundHalo 1), its halo there. The same
-// in every program.
-const HALO = /* glsl */ `
-uniform float groundHalo;
-float haloOf(float r) {
-  return 2.0 + groundHalo * min(1.2 * r + 4.0, 160.0);
-}
-`;
-
-const SPLAT_VERTEX = /* glsl */ `#version 300 es
-layout(location = 0) in vec2 corner;
-layout(location = 1) in vec4 bubble;  // x, y, radius, seed
-uniform vec2 frame;
-out vec2 local;
-flat out vec4 disc;
-${HALO}
-void main() {
-  float extent = bubble.z + haloOf(bubble.z);
-  local = (corner * 2.0 - 1.0) * extent;
-  // Its index (from 1) travels with it, so the composite can look up its data.
-  disc = vec4(bubble.xyz, float(gl_InstanceID) + 1.0);
-  vec2 clip = (bubble.xy + local) / frame * 2.0 - 1.0;
-  gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);
-}
-`;
-
-const SPLAT_FRAGMENT = /* glsl */ `#version 300 es
-precision highp float;
-in vec2 local;
-flat in vec4 disc;
-uniform highp sampler2D first;
-uniform bool second;
-out vec4 result;
-${HALO}
-void main() {
-  float f = dot(local, local) / disc.z - disc.z;
-  if (length(local) > disc.z + haloOf(disc.z)) discard;
-  if (second) {
-    vec4 found = texelFetch(first, ivec2(gl_FragCoord.xy), 0);
-    if (found.z > 0.0 && distance(found.xy, disc.xy) < 1e-3 && abs(found.z - disc.z) < 1e-3) discard;
-  }
-  gl_FragDepth = clamp((f + 8192.0) / 16384.0, 0.0, 1.0);
-  result = disc;
-}
-`;
-
-// The ground round the spheres (when it reacts), drawn per sphere into two
-// low-resolution targets and read back filtered, so every sphere around
-// counts and nothing steps where the nearest sphere changes. Both fall off
-// smoothly with the distance in radii, as a sphere's occlusion of the light
-// over the ground does, so a large sphere shades further and a bead barely
-// at all; there is no ring or band. First target: the colour weights' sum
-// and the shade (the darkest wins), the shade's centre a little away from
-// the key. Second: each sphere's colour by how near it is (adds), and the
-// nearest's weight (the largest wins).
-const SHADOW_VERTEX = /* glsl */ `#version 300 es
-layout(location = 0) in vec2 corner;
-layout(location = 1) in vec4 bubble;  // x, y, radius, seed
-uniform vec2 frame;
-out vec2 local;
-flat out float radius;
-flat out float seed;
-${HALO}
-void main() {
-  float extent = bubble.z + haloOf(bubble.z);
-  local = (corner * 2.0 - 1.0) * extent;
-  radius = bubble.z;
-  seed = bubble.w;
-  vec2 clip = (bubble.xy + local) / frame * 2.0 - 1.0;
-  gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);
-}
-`;
-
-const SHADOW_FRAGMENT = /* glsl */ `#version 300 es
-precision highp float;
-in vec2 local;
-flat in float radius;
-flat in float seed;
-uniform vec3 keyScreen;               // towards the key light, on screen (z towards the camera)
-layout(location = 0) out vec4 field;
-layout(location = 1) out vec4 tint;
-${HALO}
-float hash(vec3 p) {
-  p = fract(p * 0.3183099 + 0.1);
-  p *= 17.0;
-  return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
-}
-${COAT}
-void main() {
-  vec2 keyFlat = normalize(keyScreen.xy + vec2(1e-4, 0.0));
-  float rho = max(length(local), 1e-3);
-  float halo = haloOf(radius);
-  if (rho - radius > halo) discard;
-  // Fading out before the drawn circle's edge.
-  float fade = 1.0 - smoothstep(0.7 * halo, halo, max(rho - radius, 0.0));
-  // The light the sphere hides from the ground: about (r / distance)^4,
-  // centred a little away from the key (further for a lower key).
-  vec2 centre = -keyFlat * radius * 0.35 * (1.0 - keyScreen.z);
-  float shade = 0.5 * pow(radius / max(length(local - centre), radius), 4.0) * fade;
-  // Colour bounced onto the ground only right beside the sphere.
-  float near = pow(radius / max(rho, radius), 10.0) * fade;
-  field = vec4(0.0, 0.0, near, shade);
-  tint = vec4(coatOf(seed) * near, near);
-}
-`;
-
-const SCREEN_VERTEX = /* glsl */ `#version 300 es
-layout(location = 0) in vec2 corner;
-out vec2 uv;
-void main() {
-  uv = corner;
-  gl_Position = vec4(corner * 2.0 - 1.0, 0.0, 1.0);
-}
-`;
-
-// The frame kept for the next one (materials/surface.ts lastScene), at half size: its colours averaged, and the
-// height and body of one of each four pixels (in eighths of a CSS px, the body's id as its fraction).
-const KEEP_FRAGMENT = /* glsl */ `#version 300 es
-precision highp float;
-uniform sampler2D sceneColour;
-uniform highp sampler2D sceneDepth;
-out vec4 kept;
-void main() {
-  ivec2 limit = textureSize(sceneColour, 0) - 1;
-  ivec2 at = min(ivec2(gl_FragCoord.xy) * 2, limit);
-  vec4 one = texelFetch(sceneColour, at, 0);
-  vec3 sum = one.rgb
-    + texelFetch(sceneColour, min(at + ivec2(1, 0), limit), 0).rgb
-    + texelFetch(sceneColour, min(at + ivec2(0, 1), limit), 0).rgb
-    + texelFetch(sceneColour, min(at + ivec2(1, 1), limit), 0).rgb;
-  float height = max((0.5 - texelFetch(sceneDepth, at, 0).r) * 8192.0, 0.0);
-  kept = vec4(sum * 0.25, floor(height * 8.0 + 0.5) + min(one.a, 0.99));
-}
-`;
-
-// The frame, onto the canvas. 맞닿은 틈, between bodies (user, 2026-11-17): where an object meets another body at
-// one height (they stand in one another; not one in front of the other), their colours run into each other over
-// `reach` device px, as a rounded join does, instead of ending on a cut line. Only across the join: a body's own
-// texture is never blurred, nor its outline on the ground, nor the seams between the raft's spheres.
-const PRESENT_FRAGMENT = /* glsl */ `#version 300 es
-precision highp float;
-uniform sampler2D sceneColour;        // a: the body's id (SHADING bodyId)
-uniform highp sampler2D sceneDepth;
-uniform float reach;
-uniform float cssPerPixel;
-out vec4 pixel;
-float heightAt(ivec2 at) {
-  return max((0.5 - texelFetch(sceneDepth, at, 0).r) * 8192.0, 0.0);
-}
-void main() {
-  ivec2 at = ivec2(gl_FragCoord.xy);
-  vec4 here = texelFetch(sceneColour, at, 0);
-  pixel = vec4(here.rgb, 1.0);
-  if (reach <= 0.0 || here.a <= 0.0) return;
-  ivec2 limit = textureSize(sceneColour, 0) - 1;
-  float height = -1.0;
-  vec3 sum = here.rgb * 2.0;
-  float weight = 2.0;
-  for (int i = 0; i < 8; i += 1) {
-    float ring = i < 4 ? 0.5 : 1.0;
-    float angle = (float(i) + (i < 4 ? 0.0 : 0.5)) * 1.5707963;
-    vec2 off = vec2(cos(angle), sin(angle)) * reach * ring;
-    ivec2 tap = clamp(at + ivec2(round(off)), ivec2(0), limit);
-    vec4 other = texelFetch(sceneColour, tap, 0);
-    float w = i < 4 ? 1.5 : 1.0;
-    weight += w;
-    bool joined = other.a > 0.0 && abs(other.a - here.a) > 0.002 && max(other.a, here.a) >= 0.5;
-    if (joined) {
-      if (height < 0.0) height = heightAt(at);
-      joined = abs(heightAt(tap) - height) < 2.5 * length(off) * cssPerPixel + 1.5;
-    }
-    sum += w * (joined ? other.rgb : here.rgb);
-  }
-  pixel = vec4(sum / weight, 1.0);
-}
-`;
-
-/** The texture unit the last frame is bound to on every program that includes SHADING (0–7 the raft's, 8–19 the objects'). */
-const LAST_UNIT = 20;
-
-const SPHERE_FRAGMENT = /* glsl */ `#version 300 es
-precision highp float;
-in vec2 uv;
-uniform highp sampler2D first;
-uniform highp sampler2D second;
-uniform float cssPerPixel;            // one device pixel, in CSS px
-uniform highp sampler2D bubbleData;   // per bubble: x, y, radius, seed
-uniform highp sampler2D neighbours;   // per bubble: indices (from 1) of the bubbles it overlaps
-uniform sampler2D liquidField;        // round the spheres: meniscus slope, colour weights, shade (SHADOW_FRAGMENT)
-uniform sampler2D liquidTint;         // round the spheres: their colours by nearness, the nearest's weight
-out vec4 pixel;
-${HALO}
-${SHADING}
-
-vec4 bubbleAt(float index) {
-  int i = int(index) - 1;
-  return texelFetch(bubbleData, ivec2(i % ${ROW}, i / ${ROW}), 0);
-}
-
-float own(vec4 b, vec2 p) {
-  if (b.z <= 0.0) return 1e9;
-  vec2 d = p - b.xy;
-  return dot(d, d) / b.z - b.z;
-}
-
-void main() {
-  setUpWorld();
-  vec2 p = vec2(uv.x, 1.0 - uv.y) * frame;
-  // The passes are per texel at a coarser grid; gather every bubble they
-  // found around this pixel and decide exactly here, so walls fall where the
-  // geometry puts them, not on the texel grid.
-  ivec2 centre = ivec2(uv * vec2(textureSize(first, 0)));
-  ivec2 limit = textureSize(first, 0) - 1;
-  vec4 found[18];
-  int count = 0;
-  // Nearest bubbles first: where none lies around, this is open ground and
-  // the second layer is never read.
-  for (int layer = 0; layer < 2; layer += 1) {
-    if (layer == 1 && count == 0) break;
-    for (int y = -1; y <= 1; y += 1) {
-      for (int x = -1; x <= 1; x += 1) {
-        ivec2 at = clamp(centre + ivec2(x, y), ivec2(0), limit);
-        vec4 c = layer == 0 ? texelFetch(first, at, 0) : texelFetch(second, at, 0);
-        // Repeats are harmless (they give the same distances), so they are
-        // kept rather than searched for.
-        if (c.z <= 0.0) continue;
-        found[count] = c;
-        count += 1;
-      }
-    }
-  }
-  // Open ground: nothing else to compute.
-  if (count == 0) {
-    pixel = vec4(background, 0.0);
-    gl_FragDepth = 1.0;
-    return;
-  }
-  vec4 a = vec4(0.0);
-  float fa = 1e9;
-  for (int i = 0; i < 18; i += 1) {
-    if (i >= count) break;
-    float f = own(found[i], p);
-    if (f < fa) {
-      fa = f;
-      a = found[i];
-    }
-  }
-  // Distances in px, each from f's own gradient: to the free face (f = 0)
-  // and to the nearest wall with any neighbour that overlaps here. Taking
-  // the nearest over all neighbours keeps the surface whole where the
-  // second-nearest bubble changes.
-  vec2 da = p - a.xy;
-  float rho = max(length(da), 1e-3);
-  float slopeA = max(2.0 * rho / max(a.z, 1e-3), 1e-3);
-  float toFace = -fa / slopeA;
-  // The distance's gradient, exactly (toFace = (r² − ρ²) / 2ρ), and for the
-  // nearest wall that of the wall distance.
-  vec2 edgeGradient = -(a.z * a.z + rho * rho) / (2.0 * rho * rho) * (da / rho);
-  // The nearest wall over every bubble this one overlaps — the same list for
-  // all of its pixels, so the surface never changes with the texel grid.
-  float toWall = 1e4;
-  vec2 wallGradient = vec2(0.0);
-  int self = int(a.w) - 1;
-  for (int t = 0; t < ${NEIGHBOUR_TEXELS}; t += 1) {
-    vec4 ids = texelFetch(neighbours, ivec2((self % ${ROW}) * ${NEIGHBOUR_TEXELS} + t, self / ${ROW}), 0);
-    for (int k = 0; k < 4; k += 1) {
-    float id = ids[k];
-    if (id <= 0.0) continue;
-    vec4 c = bubbleAt(id);
-    float fc = own(c, p);
-    if (fc >= 0.0) continue;
-    vec2 dc = p - c.xy;
-    vec2 gradient = 2.0 * da / a.z - 2.0 * dc / c.z;
-    float g = max(length(gradient), 1e-3);
-    float candidate = (fc - fa) / g;
-    if (candidate < toWall) {
-      toWall = candidate;
-      wallGradient = -gradient / g;
-    }
-    }
-  }
-  float toEdge = min(toFace, toWall);
-  if (toWall < toFace) edgeGradient = wallGradient;
-  float rr = max(a.z, 1e-3);
-  float seedRaw = bubbleAt(a.w).w;
-  vec3 coat = coatOf(seedRaw);
-
-  // The ground round the sphere (only where some of this pixel is ground).
-  float cover = clamp(toFace / cssPerPixel + 0.5, 0.0, 1.0);
-  vec3 ground = background;
-  if (cover < 1.0 && groundHalo > 0.5) {
-    vec4 field = texture(liquidField, uv);
-    vec4 near = texture(liquidTint, uv);
-    ground *= 1.0 - edgeShadow * field.w;
-    // The spheres' colour, bounced onto the ground next to them.
-    vec3 nearCoat = near.rgb / max(field.z, 1e-3);
-    ground = mix(ground, ground * mix(vec3(1.0), nearCoat * 1.6 + 0.08, 0.6), colourBleed * near.a);
-  }
-  if (cover <= 0.0) {
-    pixel = vec4(ground, 0.0);
-    gl_FragDepth = 1.0;
-    return;
-  }
-
-  // 재질 (bubble/8, render/materials): every material but the coat shades the sphere from one Surface — a ball,
-  // darkened into the seams where it presses its neighbours. For 액체 막 (render/film.ts), bubble/1's film: its cap
-  // (depth 돔 깊이 of the radius) leans its normal only by what one device pixel of it would (SCC bubble/1), so the
-  // film lies nearly flat, its drainage and swirl read across it, and only the last pixels at its walls turn
-  // edge-on; 구면 (filmRound) rounds it towards a ball, held to the cap at the walls so neighbours meet along one line.
-  if (material > 0.5) {
-    vec2 ballAt = da / rr;
-    vec3 ball = vec3(ballAt, sqrt(max(1.0 - dot(ballAt, ballAt), 0.0)));
-    vec3 nS = ball;
-    float lift = ball.z * rr;
-    if (int(material + 0.5) == 1) {
-      float capDepth = filmDome * rr + 2.0;
-      float capRise = clamp(toEdge / capDepth, 0.0, 1.0);
-      float capH = sqrt(max(1.0 - (1.0 - capRise) * (1.0 - capRise), 0.0));
-      vec2 capSlope = capRise > 0.0 && capRise < 1.0 ? cssPerPixel * (1.0 - capRise) / max(capH, 1e-3) * edgeGradient : vec2(0.0);
-      float capReach = capDepth * sqrt(min(1.0, 2.0 * cssPerPixel / capDepth));
-      capSlope /= max(1.0, length(capSlope) / capReach);
-      vec3 capN = normalize(vec3(-capSlope, max(capH, 0.05) + 0.6));
-      float wallHold = toWall < toFace ? exp(-toWall / 3.0) : 0.0;
-      nS = normalize(mix(capN, normalize(ball + vec3(0.0, 0.0, 0.02)), filmRound * (1.0 - wallHold)));
-      lift = capH * capDepth;
-    }
-    float seam = toWall < toFace ? smoothstep(0.0, 0.35 * rr, toWall) : 1.0;
-    Surface sf;
-    sf.o = toWorld(vec3(p - frame * 0.5, lift));
-    sf.nS = nS;
-    sf.turn = turnOf(seedRaw);
-    sf.n = sf.turn * toWorld(nS);
-    sf.facing = clamp(nS.z, 0.0, 1.0);
-    sf.albedo = coat;
-    sf.dyed = 0.0;
-    sf.occlusion = mix(0.3, 1.0, seam);
-    sf.grainAt = vec3(da * 1.6, seedRaw * 13.0);
-    sf.q = da / rr;
-    sf.qTurn = mat2(1.0);
-    sf.seed = seedRaw;
-    sf.radius = rr;
-    sf.edge = toEdge;
-    sf.relief = ball.z;
-    sf.behind = ground;
-    sf.melt = 0.0;
-    sf.body = bodyId(seedRaw, 0.0);
-    pixel = vec4(mix(ground, shadeMaterial(sf), cover), cover >= 0.5 ? sf.body : 0.0);
-    gl_FragDepth = cover >= 0.5 ? 0.5 - lift / 8192.0 : 1.0;
-    return;
-  }
-
-  // The sphere: round to its edge; where it presses against a neighbour the
-  // two meet in one narrow dark seam, turned down only over the last few
-  // pixels so the seam is smooth at any size.
-  vec2 out2 = da / rr;
-  vec3 round3 = vec3(out2, sqrt(max(1.0 - dot(out2, out2), 0.0)));
-  float seamWidth = (min(0.05 * rr, 4.0) + 1.0) * mix(0.5, 1.6, crease);
-  float riseM = clamp(toEdge / seamWidth, 0.0, 1.0);
-  float hM = sqrt(max(1.0 - (1.0 - riseM) * (1.0 - riseM), 0.0));
-  vec3 pinched = normalize(vec3(-min((1.0 - riseM) / max(hM, 0.05), 20.0) * edgeGradient, 1.0));
-  float atWall = toWall < toFace ? 1.0 - riseM : 0.0;
-  vec3 n = normalize(mix(round3, pinched, atWall * atWall * (3.0 - 2.0 * atWall)));
-  float facing = clamp(n.z, 0.0, 1.0);
-  vec3 dir = normalize(2.0 * n.z * n - vec3(0.0, 0.0, 1.0));
-  mat3 turn = turnOf(seedRaw);
-  float rough = clamp(roughness * (1.0 + 0.6 * variety * (hash(vec3(seedRaw * 61.3, 5.5, 8.8)) - 0.5)), 0.0, 1.0);
-  // The reflected ray, traced against the neighbouring spheres (centres on
-  // one plane, the surface point raised by the sphere's own curvature). A
-  // hit shows that sphere — its coat, its own reflection — darkened deep in
-  // the seam, where light barely reaches.
-  vec3 from = vec3(p, n.z * rr);
-  float nearest = 1e9;
-  vec4 hit = vec4(0.0);
-  for (int t = 0; t < ${NEIGHBOUR_TEXELS}; t += 1) {
-    vec4 ids = texelFetch(neighbours, ivec2((self % ${ROW}) * ${NEIGHBOUR_TEXELS} + t, self / ${ROW}), 0);
-    for (int k = 0; k < 4; k += 1) {
-      float id = ids[k];
-      if (id <= 0.0) continue;
-      vec4 c = bubbleAt(id);
-      vec3 oc = from - vec3(c.xy, 0.0);
-      float b = dot(oc, dir);
-      float cc = dot(oc, oc) - c.z * c.z;
-      float disc = b * b - cc;
-      if (cc <= 0.0 || disc <= 0.0) continue;
-      float along = -b - sqrt(disc);
-      if (along > 0.5 && along < nearest) {
-        nearest = along;
-        hit = c;
-      }
-    }
-  }
-  vec2 half2 = frame * 0.5;
-  vec3 o = toWorld(vec3(from.xy - half2, from.z));
-  vec3 wn = turn * toWorld(n);
-  vec3 reflected = envAt(o, turn * toWorld(dir), rough);
-  vec3 reflectedClear = clearcoat > 0.0 ? envAt(o, turn * toWorld(dir), rough * 0.3) : reflected;
-  if (nearest < 1e8) {
-    vec3 at = from + dir * nearest;
-    vec3 n2 = normalize(at - vec3(hit.xy, 0.0));
-    vec3 o2 = toWorld(vec3(at.xy - half2, at.z));
-    vec3 seen = envAt(o2, turn * toWorld(reflect(dir, n2)), rough);
-    // Seen through its own coat as well; the second tint is softened (a hue
-    // that drifts red reads as a different colour, not as depth).
-    vec3 other = surfaceOf(o2, turn * toWorld(n2), abs(dot(dir, n2)), sqrt(coatOf(hit.w)), seen, seen) * mix(0.55, 1.0, smoothstep(0.0, 0.35 * rr, nearest));
-    // A rough surface blurs its neighbours away with the rest of what it reflects.
-    float mirrored = neighbourReflection * (1.0 - smoothstep(0.3, 1.0, rough));
-    reflected = mix(reflected, other, mirrored);
-    reflectedClear = mix(reflectedClear, other, neighbourReflection * (1.0 - smoothstep(0.3, 1.0, rough * 0.3)));
-  }
-  vec3 colour = surfaceOf(o, wn, facing, coat, reflected, reflectedClear);
-  // Deep in a seam little light arrives at all.
-  colour *= mix(mix(0.5, 0.05, crease), 1.0, smoothstep(0.0, 2.5 * seamWidth, toWall));
-  vec3 shown = filmic(colour * 1.25 * exposure);
-  // A crisp silhouette: anti-aliased over one device pixel.
-  pixel = vec4(mix(ground, shown, cover), cover >= 0.5 ? bodyId(seedRaw, 0.0) : 0.0);
-  // Its height as depth, so what is drawn after in the raft's frame (objects/) passes behind it where it is lower.
-  gl_FragDepth = cover >= 0.5 ? 0.5 - from.z / 8192.0 : 1.0;
-}
-`;
-
-function compile(gl: WebGL2RenderingContext, vertex: string, fragment: string) {
-  const program = gl.createProgram();
-  const shaders = [
-    [gl.VERTEX_SHADER, vertex],
-    [gl.FRAGMENT_SHADER, fragment],
-  ] as const;
-  for (const [type, source] of shaders) {
-    const shader = gl.createShader(type)!;
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      const log = gl.getShaderInfoLog(shader);
-      gl.deleteShader(shader);
-      throw new Error(`bubble/9 shader: ${log}`);
-    }
-    gl.attachShader(program, shader);
-    gl.deleteShader(shader);
-  }
-  gl.linkProgram(program);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(`bubble/9 program: ${gl.getProgramInfoLog(program)}`);
-  return program;
-}
-
-/** The photographed rooms (환경), CC0 HDRIs from Poly Haven, shared with bubble/2. */
-const LIGHT_FILES = ["photo_studio_loft_hall", "kloofendal_overcast", "studio_small_09", "shanghai_bund", "forest_slope", "lakeside"] as const;
-
-const FACE_IMAGE = "/images/0908/tech-power-faces/008.jpg";
-/** 맥시멀 믹스's leather: a scanned hide's normal and grain (public/assets/goldfishes/materials/sources.txt). */
-const HIDE_IMAGE = "/assets/goldfishes/materials/leather-red-02.png";
-/** The stills' layers (SHADING plates) are this size. */
-const PLATE_SIZE = 512;
+// Each program's samplers and the units they read (units.ts), set once per program (gl.ts samplers).
+const SPLAT_SAMPLERS = { first: UNIT.first };
+const SPHERE_SAMPLERS = { first: UNIT.first, second: UNIT.second, bubbleData: UNIT.bubbleData, neighbours: UNIT.neighbours, liquidField: UNIT.shadowField, liquidTint: UNIT.shadowTint };
+/** Of every program that includes SHADING (the spheres' and, through shade(), the objects'). */
+const SHADING_SAMPLERS = { plates: UNIT.plates, printMap: UNIT.printMap, lightMap: UNIT.lightMap, lastScene: UNIT.lastScene };
+const SCENE_SAMPLERS = { sceneColour: UNIT.sceneColour, sceneDepth: UNIT.sceneDepth };
 
 export type FoamRenderer = {
   /** Per bubble: x y radius seed (CSS px; seed in [0, 1)). */
@@ -513,6 +66,8 @@ export type FoamRenderer = {
   program(vertex: string, fragment: string): WebGLProgram;
   /** the last frame's look set on such a program (in use), and the field in CSS px and the canvas in device pixels. */
   shade(program: WebGLProgram): void;
+  /** That look's material (0: the coat), for what a pass need not work out under another. */
+  material(): number;
   size(): { width: number; height: number; pixelWidth: number; pixelHeight: number };
   /**
    * Where what is drawn after the raft goes: `heights` the frame's heights as depth with `winners` as its colour
@@ -522,6 +77,10 @@ export type FoamRenderer = {
   targets(): { heights: WebGLFramebuffer; colour: WebGLFramebuffer; winners: WebGLTexture };
   /** Shows the frame on the canvas and keeps it for the next (after everything is drawn; `look` for 맞닿은 틈). */
   present(look?: Look): void;
+  /** Whether every room, still and sheet asked for is in (loop/replay.ts `?replay`). */
+  loaded(): boolean;
+  /** The materials' clock, in seconds, in place of the page's (loop/replay.ts `?replay`). */
+  setClock(clock: () => number): void;
   /** Waits for the GPU to finish the last frame (measurement only). */
   sync(): void;
   dispose(): void;
@@ -538,15 +97,8 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
   const presentProgram = compile(gl, SCREEN_VERTEX, PRESENT_FRAGMENT);
   // The kept frame's blur is its mips, which a float texture has only where it can be filtered.
   const floatLinear = gl.getExtension("OES_texture_float_linear") !== null;
-  // Uniform locations, looked up once per program and name rather than every frame.
-  const locations = new Map<WebGLProgram, Map<string, WebGLUniformLocation | null>>();
-  const location = (program: WebGLProgram, name: string) => {
-    let known = locations.get(program);
-    if (!known) locations.set(program, (known = new Map()));
-    let found = known.get(name);
-    if (found === undefined) known.set(name, (found = gl.getUniformLocation(program, name)));
-    return found;
-  };
+  const uniforms = createUniforms(gl);
+  const location = uniforms.at;
 
   const square = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, square);
@@ -574,112 +126,14 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, width, height, 0, gl.RGBA, gl.FLOAT, null);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    sampling(gl, gl.TEXTURE_2D, gl.NEAREST, gl.NEAREST);
     return texture;
   };
   const bubbleData = dataTexture(ROW, MAX_BUBBLES / ROW);
   const neighbourData = dataTexture(ROW * NEIGHBOUR_TEXELS, MAX_BUBBLES / ROW);
-  const neighbourIds = new Float32Array(MAX_BUBBLES * NEIGHBOURS);
-  const neighbourDepths = new Float32Array(MAX_BUBBLES * NEIGHBOURS);
-  // Bubbles sorted by their left edge, reused between frames.
-  const order = new Int32Array(MAX_BUBBLES);
-  const lefts = new Float32Array(MAX_BUBBLES);
-  const byLeft = (a: number, b: number) => lefts[a]! - lefts[b]!;
-  // Kept in place: a bubble's slots hold its deepest overlaps so far.
-  const keep = (index: number, other: number, depth: number) => {
-    const base = index * NEIGHBOURS;
-    let slot = -1;
-    let shallowest = Infinity;
-    for (let at = 0; at < NEIGHBOURS; at += 1) {
-      if (neighbourIds[base + at] === 0) {
-        slot = at;
-        break;
-      }
-      if (neighbourDepths[base + at]! < shallowest) {
-        shallowest = neighbourDepths[base + at]!;
-        slot = at;
-      }
-    }
-    if (neighbourIds[base + slot] !== 0 && depth <= shallowest) return;
-    neighbourIds[base + slot] = other + 1;
-    neighbourDepths[base + slot] = depth;
-  };
+  const neighboursOf = createNeighbourSweep();
 
-  // The photographed rooms: fetched when first wanted.
-  // 256 × 128 RGBA half floats (see components/bubble/docs/2.md).
-  const lightMap = gl.createTexture()!;
-  gl.bindTexture(gl.TEXTURE_2D, lightMap);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, 1, 1, 0, gl.RGBA, gl.FLOAT, new Float32Array([0.7, 0.7, 0.7, 1]));
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.generateMipmap(gl.TEXTURE_2D);
-  let lightWanted = -1;
-  let disposed = false;
-  const wantLightMap = (wanted: number) => {
-    // The portrait (FACE_ENVIRONMENT) hangs in the studio.
-    const mode = wanted === FACE_ENVIRONMENT ? 2 : wanted;
-    const file = LIGHT_FILES[Math.min(Math.max(Math.round(mode), 0), LIGHT_FILES.length - 1)]!;
-    if (mode === lightWanted) return;
-    lightWanted = mode;
-    void fetch(`/assets/goldfishes/koons-light/${file}.bin`)
-      .then((response) => response.arrayBuffer())
-      .then((data) => {
-        if (disposed || lightWanted !== mode) return;
-        gl.bindTexture(gl.TEXTURE_2D, lightMap);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, 256, 128, 0, gl.RGBA, gl.HALF_FLOAT, new Uint16Array(data));
-        gl.generateMipmap(gl.TEXTURE_2D);
-      })
-      .catch(() => {});
-  };
-
-  // The stills (SHADING plates): the portrait and the hide, each loaded when first wanted (grey, and flat, until then).
-  const plates = gl.createTexture()!;
-  gl.bindTexture(gl.TEXTURE_2D_ARRAY, plates);
-  gl.texStorage3D(gl.TEXTURE_2D_ARRAY, Math.log2(PLATE_SIZE) + 1, gl.RGBA8, PLATE_SIZE, PLATE_SIZE, 2);
-  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.REPEAT);
-  gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.REPEAT);
-  for (const [layer, value] of [[0, 90], [1, 128]] as const) {
-    gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, layer, PLATE_SIZE, PLATE_SIZE, 1, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(PLATE_SIZE * PLATE_SIZE * 4).fill(value));
-  }
-  gl.generateMipmap(gl.TEXTURE_2D_ARRAY);
-  /** Loads an image into a layer, drawn to the layer's size, and calls back with it once it is there. */
-  const loadPlate = (layer: number, source: string, loaded?: (image: HTMLImageElement) => void) => {
-    const image = new Image();
-    image.onload = () => {
-      if (disposed) return;
-      const canvas = document.createElement("canvas");
-      canvas.width = canvas.height = PLATE_SIZE;
-      canvas.getContext("2d")!.drawImage(image, 0, 0, PLATE_SIZE, PLATE_SIZE);
-      gl.bindTexture(gl.TEXTURE_2D_ARRAY, plates);
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-      gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, layer, PLATE_SIZE, PLATE_SIZE, 1, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
-      gl.generateMipmap(gl.TEXTURE_2D_ARRAY);
-      loaded?.(image);
-    };
-    image.src = source;
-  };
-  let faceAspect = 1;
-  let faceWanted = false;
-  const wantFace = () => {
-    if (faceWanted) return;
-    faceWanted = true;
-    loadPlate(0, FACE_IMAGE, (image) => (faceAspect = image.naturalWidth / Math.max(1, image.naturalHeight)));
-  };
-  let hideWanted = false;
-  const wantHide = () => {
-    if (hideWanted) return;
-    hideWanted = true;
-    loadPlate(1, HIDE_IMAGE);
-  };
-
-  // 인쇄물's sheets (materials/print-sheets.ts): painted in a worker the first time that material is chosen.
-  const printMap = createPrintMap(gl);
+  const assets = createAssets(gl);
 
   type Layer = { texture: WebGLTexture; target: WebGLFramebuffer };
   const depth = gl.createRenderbuffer();
@@ -691,25 +145,26 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
   // The frame (colour, the body's id in its alpha; heights as depth) and the last one, kept at half size.
   const scene = { colour: gl.createTexture(), depth: gl.createTexture(), winners: gl.createTexture(), full: gl.createFramebuffer(), shaded: gl.createFramebuffer(), heights: gl.createFramebuffer() };
   const last = { texture: gl.createTexture(), target: gl.createFramebuffer(), width: 1, height: 1 };
-  let frame = { width: 1, height: 1 };
-  let pixels = { width: 1, height: 1 };
-  let sim = { width: 1, height: 1 };
+  // The field in CSS px and the canvas in device pixels (size()), and the ownership passes' grid; changed in place by resize.
+  const size = { width: 1, height: 1, pixelWidth: 1, pixelHeight: 1 };
+  const sim = { width: 1, height: 1 };
+  const targets = { heights: scene.heights, colour: scene.shaded, winners: scene.winners };
 
   const resize: FoamRenderer["resize"] = (width, height, ratio) => {
-    frame = { width: Math.max(1, width), height: Math.max(1, height) };
-    pixels = { width: Math.max(1, Math.round(width * ratio)), height: Math.max(1, Math.round(height * ratio)) };
-    sim = { width: Math.max(1, Math.round(width * SCALE)), height: Math.max(1, Math.round(height * SCALE)) };
-    canvas.width = pixels.width;
-    canvas.height = pixels.height;
+    size.width = Math.max(1, width);
+    size.height = Math.max(1, height);
+    size.pixelWidth = Math.max(1, Math.round(width * ratio));
+    size.pixelHeight = Math.max(1, Math.round(height * ratio));
+    sim.width = Math.max(1, Math.round(width * SCALE));
+    sim.height = Math.max(1, Math.round(height * SCALE));
+    canvas.width = size.pixelWidth;
+    canvas.height = size.pixelHeight;
     gl.bindRenderbuffer(gl.RENDERBUFFER, depth);
     gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, sim.width, sim.height);
     for (const layer of layers) {
       gl.bindTexture(gl.TEXTURE_2D, layer.texture);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, sim.width, sim.height, 0, gl.RGBA, gl.FLOAT, null);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      sampling(gl, gl.TEXTURE_2D, gl.NEAREST, gl.NEAREST, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
       gl.bindFramebuffer(gl.FRAMEBUFFER, layer.target);
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, layer.texture, 0);
       gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depth);
@@ -718,36 +173,30 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     for (const [at, texture] of [shadow.field, shadow.tint].entries()) {
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, sim.width, sim.height, 0, gl.RGBA, gl.HALF_FLOAT, null);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      sampling(gl, gl.TEXTURE_2D, gl.LINEAR, gl.LINEAR, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + at, gl.TEXTURE_2D, texture, 0);
     }
     gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
     const plain = (texture: WebGLTexture, filter: number) => {
       gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter === gl.NEAREST ? gl.NEAREST : gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      sampling(gl, gl.TEXTURE_2D, filter, filter === gl.NEAREST ? gl.NEAREST : gl.LINEAR, gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
     };
     plain(scene.colour, gl.NEAREST);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, pixels.width, pixels.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, size.pixelWidth, size.pixelHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     plain(scene.depth, gl.NEAREST);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, pixels.width, pixels.height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, size.pixelWidth, size.pixelHeight, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
     gl.bindFramebuffer(gl.FRAMEBUFFER, scene.full);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, scene.colour, 0);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, scene.depth, 0);
     gl.bindFramebuffer(gl.FRAMEBUFFER, scene.shaded);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, scene.colour, 0);
     plain(scene.winners, gl.NEAREST);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, pixels.width, pixels.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, size.pixelWidth, size.pixelHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     gl.bindFramebuffer(gl.FRAMEBUFFER, scene.heights);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, scene.winners, 0);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, scene.depth, 0);
-    last.width = Math.max(1, Math.ceil(pixels.width / 2));
-    last.height = Math.max(1, Math.ceil(pixels.height / 2));
+    last.width = Math.max(1, Math.ceil(size.pixelWidth / 2));
+    last.height = Math.max(1, Math.ceil(size.pixelHeight / 2));
     plain(last.texture, floatLinear ? gl.LINEAR_MIPMAP_LINEAR : gl.NEAREST);
     // Empty until the first frame is kept: no height anywhere, so nothing is met.
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, last.width, last.height, 0, gl.RGBA, gl.FLOAT, null);
@@ -758,45 +207,36 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
   };
 
   let lastLook = LOOK_DEFAULTS;
+  let clock: (() => number) | null = null;
+
+  // The look's uniforms and the rooms it reflects, on a program in use that includes SHADING. The look itself is
+  // sent only when it changes (look.ts applyLook) and the samplers' units once; the field's size, the clock, the
+  // portrait's shape and every binding are set each frame.
+  const shade = (program: WebGLProgram, look: Look) => {
+    gl.uniform2f(location(program, "frame"), size.width, size.height);
+    // What moves on its own in a material (surface.ts time) runs on the page's clock, kept small for float precision.
+    gl.uniform1f(location(program, "time"), clock ? clock() : (performance.now() / 1000) % 3600);
+    applyLook(gl, uniforms, program, look);
+    assets.use(look);
+    uniforms.samplers(program, SHADING_SAMPLERS);
+    gl.uniform1f(location(program, "faceAspect"), assets.faceAspect());
+    gl.activeTexture(gl.TEXTURE0 + UNIT.lastScene);
+    gl.bindTexture(gl.TEXTURE_2D, last.texture);
+  };
+
   const render: FoamRenderer["render"] = (bubbleCount, look = LOOK_DEFAULTS, from = 0) => {
     lastLook = look;
     // Only these bubbles, as if they were all there were.
     const bubbles = all.subarray(Math.min(from, bubbleCount) * BUBBLE_FLOATS);
     bubbleCount -= Math.min(from, bubbleCount);
-    // The ground reacts (meniscus, shade, colour) only when asked to; otherwise no halos are drawn.
+    // The ground reacts (shade, colour) only when asked to; otherwise no halos are drawn.
     const groundHalo = look.edgeShadow > 0 || look.colourBleed > 0 ? 1 : 0;
-    const keyScreen = keyOnScreen(look.viewTilt, look.lightTurn);
     const count = Math.min(bubbleCount, MAX_BUBBLES);
     gl.bindBuffer(gl.ARRAY_BUFFER, bubbleBuffer);
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, bubbles, 0, count * BUBBLE_FLOATS);
-    // Per bubble, the bubbles it overlaps (sweep and prune along x), most
-    // deeply pressed first.
+    // Per bubble, the bubbles it overlaps, most deeply pressed kept (neighbours.ts).
     const rows = Math.max(1, Math.ceil(count / ROW));
-    neighbourIds.fill(0, 0, rows * ROW * NEIGHBOURS);
-    neighbourDepths.fill(0, 0, count * NEIGHBOURS);
-    for (let index = 0; index < count; index += 1) {
-      order[index] = index;
-      lefts[index] = bubbles[index * 4]! - bubbles[index * 4 + 2]!;
-    }
-    const sorted = order.subarray(0, count).sort(byLeft);
-    for (let at = 0; at < count; at += 1) {
-      const a = sorted[at]!;
-      const ax = bubbles[a * 4]!;
-      const ay = bubbles[a * 4 + 1]!;
-      const ar = bubbles[a * 4 + 2]!;
-      for (let next = at + 1; next < count; next += 1) {
-        const b = sorted[next]!;
-        const br = bubbles[b * 4 + 2]!;
-        if (bubbles[b * 4]! - br > ax + ar) break;
-        const dx = bubbles[b * 4]! - ax;
-        const dy = bubbles[b * 4 + 1]! - ay;
-        const reach = ar + br;
-        if (Math.abs(dy) >= reach || dx * dx + dy * dy >= reach * reach) continue;
-        const depth = reach - Math.hypot(dx, dy);
-        keep(a, b, depth);
-        keep(b, a, depth);
-      }
-    }
+    const neighbourIds = neighboursOf(bubbles, count);
     gl.bindTexture(gl.TEXTURE_2D, bubbleData);
     gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, ROW, rows, gl.RGBA, gl.FLOAT, bubbles, 0);
     gl.bindTexture(gl.TEXTURE_2D, neighbourData);
@@ -804,9 +244,9 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LESS);
     gl.useProgram(splatProgram);
-    gl.uniform2f(location(splatProgram, "frame"), frame.width, frame.height);
+    gl.uniform2f(location(splatProgram, "frame"), size.width, size.height);
     gl.uniform1f(location(splatProgram, "groundHalo"), groundHalo);
-    gl.uniform1i(location(splatProgram, "first"), 0);
+    uniforms.samplers(splatProgram, SPLAT_SAMPLERS);
     for (let peel = 0; peel < 2; peel += 1) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, layers[peel]!.target);
       gl.viewport(0, 0, sim.width, sim.height);
@@ -815,68 +255,59 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       if (count === 0) continue;
       gl.uniform1i(location(splatProgram, "second"), peel);
-      gl.activeTexture(gl.TEXTURE0);
+      gl.activeTexture(gl.TEXTURE0 + UNIT.first);
       gl.bindTexture(gl.TEXTURE_2D, peel === 1 ? layers[0].texture : null);
       gl.bindVertexArray(bubbleMesh);
       gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, count);
     }
     gl.disable(gl.DEPTH_TEST);
 
-    // The liquid round the spheres: slopes and colours add, shade and nearness keep the largest.
-    gl.bindFramebuffer(gl.FRAMEBUFFER, shadow.target);
-    gl.viewport(0, 0, sim.width, sim.height);
-    gl.clearColor(0, 0, 0, 0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    if (count > 0 && groundHalo > 0) {
-      gl.useProgram(shadowProgram);
-      gl.uniform2f(location(shadowProgram, "frame"), frame.width, frame.height);
-      gl.uniform1f(location(shadowProgram, "groundHalo"), groundHalo);
-      gl.uniform3f(location(shadowProgram, "keyScreen"), keyScreen[0], keyScreen[1], keyScreen[2]);
-      gl.uniform3f(location(shadowProgram, "coating"), look.coating[0], look.coating[1], look.coating[2]);
-      gl.uniform1f(location(shadowProgram, "coatingMix"), look.coatingMix);
-      gl.uniform1f(location(shadowProgram, "mixHue"), look.mixHue);
-      gl.uniform1f(location(shadowProgram, "mixDepth"), look.mixDepth);
-      gl.uniform1f(location(shadowProgram, "mixSaturation"), look.mixSaturation);
-      gl.uniform1f(location(shadowProgram, "mixLightness"), look.mixLightness);
-      gl.uniform1f(location(shadowProgram, "variety"), look.variety);
-      gl.enable(gl.BLEND);
-      gl.blendEquationSeparate(gl.FUNC_ADD, gl.MAX);
-      gl.blendFunc(gl.ONE, gl.ONE);
-      gl.bindVertexArray(bubbleMesh);
-      gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, count);
-      gl.disable(gl.BLEND);
+    // The ground round the spheres: colours add, shade and nearness keep the largest. Read by the composite only
+    // while the ground reacts (programs/sphere.ts: groundHalo > 0.5), so left as it was otherwise.
+    if (groundHalo > 0) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, shadow.target);
+      gl.viewport(0, 0, sim.width, sim.height);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      if (count > 0) {
+        gl.useProgram(shadowProgram);
+        gl.uniform2f(location(shadowProgram, "frame"), size.width, size.height);
+        gl.uniform1f(location(shadowProgram, "groundHalo"), groundHalo);
+        // keyScreen and the coat (COAT's uniforms: the only ones of a look this program has).
+        applyLook(gl, uniforms, shadowProgram, look);
+        gl.enable(gl.BLEND);
+        gl.blendEquationSeparate(gl.FUNC_ADD, gl.MAX);
+        gl.blendFunc(gl.ONE, gl.ONE);
+        gl.bindVertexArray(bubbleMesh);
+        gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, count);
+        gl.disable(gl.BLEND);
+      }
     }
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, scene.full);
-    gl.viewport(0, 0, pixels.width, pixels.height);
+    gl.viewport(0, 0, size.pixelWidth, size.pixelHeight);
     // The spheres' heights go to the frame's depth (ALWAYS: every pixel is written once).
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.ALWAYS);
     gl.clearDepth(1);
     gl.clear(gl.DEPTH_BUFFER_BIT);
     gl.useProgram(sphereProgram);
-    gl.activeTexture(gl.TEXTURE0);
+    gl.activeTexture(gl.TEXTURE0 + UNIT.first);
     gl.bindTexture(gl.TEXTURE_2D, layers[0].texture);
-    gl.activeTexture(gl.TEXTURE1);
+    gl.activeTexture(gl.TEXTURE0 + UNIT.second);
     gl.bindTexture(gl.TEXTURE_2D, layers[1].texture);
-    gl.uniform1i(location(sphereProgram, "first"), 0);
-    gl.uniform1i(location(sphereProgram, "second"), 1);
-    gl.uniform2f(location(sphereProgram, "frame"), frame.width, frame.height);
-    gl.uniform1f(location(sphereProgram, "cssPerPixel"), frame.width / pixels.width);
+    uniforms.samplers(sphereProgram, SPHERE_SAMPLERS);
+    gl.uniform1f(location(sphereProgram, "cssPerPixel"), size.width / size.pixelWidth);
     gl.uniform1f(location(sphereProgram, "groundHalo"), groundHalo);
-    setLook(sphereProgram, look);
-    gl.activeTexture(gl.TEXTURE2);
+    shade(sphereProgram, look);
+    gl.activeTexture(gl.TEXTURE0 + UNIT.bubbleData);
     gl.bindTexture(gl.TEXTURE_2D, bubbleData);
-    gl.uniform1i(location(sphereProgram, "bubbleData"), 2);
-    gl.activeTexture(gl.TEXTURE3);
+    gl.activeTexture(gl.TEXTURE0 + UNIT.neighbours);
     gl.bindTexture(gl.TEXTURE_2D, neighbourData);
-    gl.uniform1i(location(sphereProgram, "neighbours"), 3);
-    gl.activeTexture(gl.TEXTURE5);
+    gl.activeTexture(gl.TEXTURE0 + UNIT.shadowField);
     gl.bindTexture(gl.TEXTURE_2D, shadow.field);
-    gl.uniform1i(location(sphereProgram, "liquidField"), 5);
-    gl.activeTexture(gl.TEXTURE6);
+    gl.activeTexture(gl.TEXTURE0 + UNIT.shadowTint);
     gl.bindTexture(gl.TEXTURE_2D, shadow.tint);
-    gl.uniform1i(location(sphereProgram, "liquidTint"), 6);
     gl.bindVertexArray(screen);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.disable(gl.DEPTH_TEST);
@@ -886,71 +317,46 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     gl.clear(gl.COLOR_BUFFER_BIT);
   };
 
+  // Whether a material mirrors its neighbours (surface.ts mirrorOf): asked of its GLSL once per material.
+  const mirroring = new Map<number, boolean>();
+  const mirrors = (material: number) => {
+    let known = mirroring.get(material);
+    if (known === undefined) mirroring.set(material, (known = materialOf(material)?.glsl.includes("mirrorOf(") ?? false));
+    return known;
+  };
+
   const present: FoamRenderer["present"] = (look = lastLook) => {
     gl.disable(gl.DEPTH_TEST);
     gl.disable(gl.BLEND);
     gl.colorMask(true, true, true, true);
     gl.bindVertexArray(screen);
-    gl.activeTexture(gl.TEXTURE0);
+    gl.activeTexture(gl.TEXTURE0 + UNIT.sceneColour);
     gl.bindTexture(gl.TEXTURE_2D, scene.colour);
-    gl.activeTexture(gl.TEXTURE1);
+    gl.activeTexture(gl.TEXTURE0 + UNIT.sceneDepth);
     gl.bindTexture(gl.TEXTURE_2D, scene.depth);
     // Kept for the next frame, its blur in its mips.
     gl.bindFramebuffer(gl.FRAMEBUFFER, last.target);
     gl.viewport(0, 0, last.width, last.height);
     gl.useProgram(keepProgram);
-    gl.uniform1i(location(keepProgram, "sceneColour"), 0);
-    gl.uniform1i(location(keepProgram, "sceneDepth"), 1);
+    uniforms.samplers(keepProgram, SCENE_SAMPLERS);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     // Its mips are read only by a material that mirrors its neighbours (surface.ts mirrorOf), while 이웃 반사 is up.
-    if (floatLinear && look.neighbourReflection > 0 && (materialOf(look.material)?.glsl.includes("mirrorOf(") ?? false)) {
-      gl.activeTexture(gl.TEXTURE0 + LAST_UNIT);
+    if (floatLinear && look.neighbourReflection > 0 && mirrors(look.material)) {
+      gl.activeTexture(gl.TEXTURE0 + UNIT.lastScene);
       gl.bindTexture(gl.TEXTURE_2D, last.texture);
       gl.generateMipmap(gl.TEXTURE_2D);
     }
     // Onto the canvas.
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.viewport(0, 0, pixels.width, pixels.height);
+    gl.viewport(0, 0, size.pixelWidth, size.pixelHeight);
     gl.useProgram(presentProgram);
-    gl.uniform1i(location(presentProgram, "sceneColour"), 0);
-    gl.uniform1i(location(presentProgram, "sceneDepth"), 1);
-    const cssPerPixel = frame.width / pixels.width;
+    uniforms.samplers(presentProgram, SCENE_SAMPLERS);
+    const cssPerPixel = size.width / size.pixelWidth;
     gl.uniform1f(location(presentProgram, "cssPerPixel"), cssPerPixel);
     // 맞닿은 틈 0: no join; otherwise 0.6–2 CSS px either side of it.
     gl.uniform1f(location(presentProgram, "reach"), look.crease > 0 ? (0.6 + 1.4 * look.crease) / cssPerPixel : 0);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     gl.bindVertexArray(null);
-  };
-
-  // The look's uniforms and the rooms it reflects, on a program in use that includes SHADING.
-  const setLook = (program: WebGLProgram, look: Look) => {
-    const keyScreen = keyOnScreen(look.viewTilt, look.lightTurn);
-    gl.uniform2f(location(program, "frame"), frame.width, frame.height);
-    gl.uniform3f(location(program, "keyScreen"), keyScreen[0], keyScreen[1], keyScreen[2]);
-    // The film's currents (film.ts) run on the page's clock, kept small for float precision.
-    gl.uniform1f(location(program, "time"), (performance.now() / 1000) % 3600);
-    for (const name in look) {
-      const value = look[name as keyof Look];
-      if (typeof value === "number") gl.uniform1f(location(program, name), value);
-      else gl.uniform3f(location(program, name), value[0], value[1], value[2]);
-    }
-    if (look.photoStrength > 0) wantLightMap(look.photo);
-    if (look.photo === FACE_ENVIRONMENT) wantFace();
-    if (Math.round(look.material) === MIX_MATERIAL.id) wantHide();
-    gl.activeTexture(gl.TEXTURE7);
-    gl.bindTexture(gl.TEXTURE_2D_ARRAY, plates);
-    gl.uniform1i(location(program, "plates"), 7);
-    gl.uniform1f(location(program, "faceAspect"), faceAspect);
-    if (Math.round(look.material) === PRINT_MATERIAL.id) printMap.want(Math.round(look.printRegion ?? 0));
-    gl.activeTexture(gl.TEXTURE0 + PRINT_UNIT);
-    gl.bindTexture(gl.TEXTURE_2D_ARRAY, printMap.texture());
-    gl.uniform1i(location(program, "printMap"), PRINT_UNIT);
-    gl.activeTexture(gl.TEXTURE4);
-    gl.bindTexture(gl.TEXTURE_2D, lightMap);
-    gl.uniform1i(location(program, "lightMap"), 4);
-    gl.activeTexture(gl.TEXTURE0 + LAST_UNIT);
-    gl.bindTexture(gl.TEXTURE_2D, last.texture);
-    gl.uniform1i(location(program, "lastScene"), LAST_UNIT);
   };
 
   const pixel = new Uint8Array(4);
@@ -960,10 +366,7 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
   };
 
   const dispose = () => {
-    disposed = true;
-    gl.deleteTexture(lightMap);
-    gl.deleteTexture(plates);
-    printMap.dispose();
+    assets.dispose();
     gl.deleteTexture(bubbleData);
     gl.deleteTexture(neighbourData);
     for (const layer of layers) {
@@ -991,10 +394,15 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     render,
     gl,
     program: (vertex, fragment) => compile(gl, vertex, fragment),
-    shade: (program) => setLook(program, lastLook),
-    size: () => ({ width: frame.width, height: frame.height, pixelWidth: pixels.width, pixelHeight: pixels.height }),
-    targets: () => ({ heights: scene.heights, colour: scene.shaded, winners: scene.winners }),
+    shade: (program) => shade(program, lastLook),
+    material: () => lastLook.material,
+    size: () => size,
+    targets: () => targets,
     present,
+    loaded: assets.loaded,
+    setClock: (next) => {
+      clock = next;
+    },
     sync,
     dispose,
   };

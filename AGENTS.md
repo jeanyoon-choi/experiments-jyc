@@ -6,12 +6,12 @@
 - Inspect `git status`; preserve others' modified/untracked work. Re-read shared files before surgical edits. Never revert, relocate, or finish another task's work unasked.
 - `apps/scc`, `apps/goldfishes`, `apps/six-sigma`, and `apps/xyt-cube` are experimental archives: use bounded, reversible trials and preserve baselines, stable routes, and useful failures. In `apps/scc`, prefer merging a variant into an existing experiment or exposing it as an option (original behavior as the default) over adding another numbered experiment; this is a preference, not a hard rule. `apps/c-val` and `apps/ddong-meong` are finished projects: maintain established behavior and presentation unless the user requests an extension.
 - Navigation lists experiments by latest activity. When a request changes what an existing SCC, Goldfishes, six-sigma, or xyt-cube experiment does or means (new mechanism, option, model, or visual direction), set `updated: "<today ISO>"` on its navigation registry entry as part of that change; leave it for renames, moves, config, docs, refactors, lint, or small tuning. Do not backfill or audit other entries.
-- Keep six independent app roots. Routes stay thin; implementation/data/registries belong in the owning `components/` family, sockets in `apps/<owner>/socket/experiments/`, and notes in `apps/<owner>/docs/` (Goldfishes: each family's notes sit beside its code in `components/<family>/docs/`, a protocol's in its socket folder; `apps/goldfishes/docs/` holds only the index, onboarding and history).
+- Keep six independent app roots. Routes stay thin; implementation/data/registries belong in the owning `components/` family, sockets in `apps/<owner>/socket/experiments/`, and notes in `apps/<owner>/docs/` (Goldfishes: each family's notes sit beside its code in `components/<family>/docs/`, a protocol's in its socket folder; `apps/goldfishes/docs/` holds only what belongs to no family).
 
 ## Model and token policy
 
-- Respect the user's model selection, including mid-session switches. Current preference: Claude Opus 5.5 class or stronger (`claude-opus-5-5`, or `claude-fable-5-1` where available) for all work — composition, architecture, diagnosis, integration and everyday edits alike. Do not force a primary-model switch or change global configuration.
-- Delegate independent, bounded tasks to subagents of Opus 5.5 class or stronger, never a weaker model, when this saves total work. Keep composition and final review with the lead; if model selection is unavailable, disclose the fallback.
+- These rules hold for any agent (Claude, Codex or another). Respect the user's model selection, including mid-session switches; the preference is the strongest class the tool offers, for all work. Do not force a primary-model switch or change global configuration.
+- Delegate independent, bounded tasks to subagents of the lead's own class, never a weaker model, when this saves total work. Keep composition and final review with the lead; if model selection is unavailable, disclose the fallback.
 - The lead gatekeeps every update, delegated or not, for visual and performance quality: verify it yourself in the browser (captures against the stated criteria and references) and by measurement (frame timing before/after under the same conditions). Below standard is never reported as done: fix it yourself or send it back to the agent with the specific failures until it passes, and report remaining gaps plainly.
 - Give subagents only the objective, owned paths, relevant constraints, and acceptance criteria; avoid full-history forks. Request concise findings/diffs/checks. Avoid delegation for trivial tasks, overlapping edits, or recursive fan-out without concrete benefit.
 - Search narrowly, load task-relevant docs, and summarize routine output. Verify proportionately; stop after sufficient checks. Keep updates/handoffs concise. In reference or precedent research reports, link each work inline where it is named, not only in a trailing source list. The user can replace these model preferences.
@@ -39,7 +39,7 @@
 - Data/math/input/transport changes do not authorize visual changes. Preserve unmentioned geometry, typography, spacing, interaction, and domain language; reuse existing visual primitives.
 - Derive new interfaces from the participant's perceptual/action task. Avoid generic themed dashboards, fake live/debug chrome, decorative labels, captions, footers, badges, and dividers. Use spacing and typography for hierarchy.
 - Non-scrollable content fits the viewport. Fixed-format artifacts scale internal text, spacing, and controls with their container at usable visual size.
-- Goldfishes bubble objects (any new object or sign group): the object is only a volume and the chosen material covers every object whole — no own colours, lines or textures, no flat slabs, slightly abstracted rather than super-real; accept only in the running raft under 쿤스 and 맥시멀 믹스. Read [object party rules](apps/goldfishes/docs/agent-onboarding.md#object-party-rules) first.
+- Goldfishes: a new object or sign group follows the [object party rules](apps/goldfishes/docs/agent-onboarding.md#object-party-rules) (a volume only, one material over all of it); every agent follows its [standing corrections](apps/goldfishes/docs/agent-onboarding.md#standing-corrections).
 - Never add unmeasured GPU/particle cost that risks freezing the device. Read the particle safety budget before particle/compute work.
 - Never use iframes to show clones, apps, or experiments inside another page (grids, side-by-side, multi-phone fields). Render the components directly; scope viewport units, pointer scale, and document-wide effects to each instance.
 
@@ -50,6 +50,7 @@ Start with target code and the app's `docs/README.md`; follow relevant links, no
 | Task | Required reference |
 | --- | --- |
 | Create/substantially change an SCC, Goldfishes, six-sigma, or xyt-cube experiment | [Tinkering](docs/foundations/tinkering.md) |
+| Goldfishes: the work's meaning, its system or logic, a new family | [Direction](apps/goldfishes/docs/direction.md), then the artist's latest notes it points to |
 | New/materially redesigned UI | [Design](docs/foundations/design-guidelines.md) |
 | Routes, registries, component organization | [Structure](docs/harness/experiments.md) |
 | New rendering techniques/current references | [Rendering research](docs/harness/visual-rendering-research.md) |

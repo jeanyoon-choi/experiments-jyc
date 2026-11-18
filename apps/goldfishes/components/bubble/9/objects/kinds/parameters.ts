@@ -14,12 +14,13 @@
 // then (변신), portions under way morph from their source page into what they carry and on into the page they reach
 // (모핑), and the 랩 shows one object at a time to tune the liquid on.
 //
-// The whole feature is objects/: kinds/ (this file and the registry, groups.ts),
-// catalogue/ (bubble/9's groups), shapes/ (how each source makes its volume),
-// fields/ (the bakes, their tiers and the workers), morph/ (the liquid and the
-// 랩), panel/ (오브제's controls); object-pass.ts draws the objects on the
-// raft's canvas with the raft's own shading (render/shading.ts), so every look
-// and material carries over unchanged.
+// The whole feature is objects/: kinds/ (this file, the registry, groups.ts, and
+// the layers, layers.ts), catalogue/ (bubble/9's groups), shapes/ (how each source
+// makes its volume), fields/ (the bakes, their tiers, the workers and their queue,
+// the textures), morph/ (the liquid and the 랩), panel/ (오브제's controls), pass/
+// (the object pass's parts); object-pass.ts draws the objects on the raft's canvas
+// with the raft's own shading (render/shading.ts), so every look and material
+// carries over unchanged.
 
 import { CATALOGUE_GROUP_IDS, type BaseKind, GROUP_LABEL, GROUPS, KIND, KINDS_OF, OBJECT_GROUPS, OBJECT_KINDS, SUBGROUPS_OF, type ObjectGroup, type ObjectKind } from "./groups.ts";
 import { LIQUID_DEFAULTS, type Liquid } from "../morph/liquid.ts";
@@ -66,7 +67,6 @@ export type ObjectParameters = {
   puff: number;
   /** Index in FACINGS: how each object is turned in the screen's plane. */
   facing: number;
-  /** 변신: a page melts into another object of its group about this often, seconds; 0 never. */
   /**
    * 1: a portion under way morphs at both ends of its link, whatever it is shown as — from its source page's shape
    * into its own, and from its own into the shape of the page it reaches (morph.ts passage); 0: it keeps its own.
@@ -87,7 +87,7 @@ export const OBJECT_DEFAULTS: ObjectParameters = {
   // 왔다갔다 하는 것: 하트만 (user, 2026-11-14; $ 만 on 2026-11-13; SNS — hearts and likes — from 2026-10-25).
   portions: PORTION_SHOWS.indexOf("heart"),
   // 1.05 (user, 2026-11-13; 1.21 from the user's bubble/8 tuning, 1.2 on 2026-11-04): the goldfish keep out of the
-  // drawn outline, not the bubble's disc (ObjectPass.pageExtent). The same under every setup (settings.ts SETUPS).
+  // drawn outline, not the bubble's disc (ObjectPass.pageExtent). The same under every setup (presets/families.ts).
   size: 1.05,
   // 부풂 1.62 (user's bubble/8 tuning, 2026-11-06; 1.5 user, 2026-10-25; bubble/5 opens at 0.2).
   puff: 1.62,
@@ -228,7 +228,7 @@ export function onCount(parameters: ObjectParameters, kinds: readonly ObjectKind
 
 /**
  * What a page is shown as: a kind in one of the pages' groups, or null for a bubble. `turn` is how many times it has
- * moved on (bubble/9, user 2026-11-06: by the goldfish's attention, not a clock; frame-loop.ts pageTurns).
+ * moved on (bubble/9, user 2026-11-06: by the goldfish's attention, not a clock; simulation/attention.ts turns).
  */
 export function pageKind(page: number, parameters: ObjectParameters, turn = 0): ObjectKind | null {
   return pageKindAt(turn === 0 ? page : page + turn * 1.618, parameters);

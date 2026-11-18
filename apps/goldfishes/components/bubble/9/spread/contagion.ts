@@ -12,10 +12,13 @@
 // web's links do.
 //
 // Pure CPU state per page, stepped by the frame loop; the object pass tints the
-// coat by it (and morphs the shape, 모양도 전파).
+// coat by it (and morphs the shape, 모양도 전파). The simulation only: it knows the
+// web and nothing of the objects or the panel, whose tables are in controls.ts.
 
-import { groupBit } from "../objects/kinds/parameters.ts";
 import { MAX_PAGES, type RankedWeb } from "../web/model.ts";
+
+// For the importers that take them from here; the simulation uses none of them.
+export { SPREAD_CONTROLS, SPREAD_DEFAULTS, SPREAD_ROUTE_LABELS, SPREAD_ROUTES, type SpreadControl } from "./controls.ts";
 
 /** The strains' colours, one per newcomer in turn: Squid Game's pink and teal, acid yellow, electric blue, orange. */
 export const STRAINS: readonly (readonly [number, number, number])[] = [
@@ -25,9 +28,6 @@ export const STRAINS: readonly (readonly [number, number, number])[] = [
   [0.08, 0.3, 1.0],
   [1.0, 0.42, 0.04],
 ];
-
-export const SPREAD_ROUTES = ["contact", "links", "both"] as const;
-export const SPREAD_ROUTE_LABELS: Record<(typeof SPREAD_ROUTES)[number], string> = { contact: "맞닿음", links: "링크", both: "둘 다" };
 
 export type SpreadParameters = {
   /** Chance per second that a page catches it from one exposing neighbour (a rate). */
@@ -45,23 +45,11 @@ export type SpreadParameters = {
    * the objects' `pages` (groupBit), any combination mixed (user, 2026-11-03); 0 bubbles.
    */
   unit: number;
-  /** Index in SPREAD_ROUTES. */
+  /** Index in SPREAD_ROUTES (controls.ts): 0 contacts, 1 links, 2 both. */
   route: number;
   /** 1: the newcomer's object spreads too (the pages morph into it). */
   shape: number;
 };
-
-// Measured at 0.6 and 2.5 s (2026-10-27): the whole raft in 20 s; now a hop takes several seconds.
-// Every page catching it fades again after 20 s on average (user, 2026-11-04); bubble/7 kept it for ever.
-export const SPREAD_DEFAULTS: SpreadParameters = { rate: 0.1, takeOn: 3.5, keep: 20, strain: 0, pick: "heart", unit: groupBit("sns"), route: 0, shape: 1 };
-
-export type SpreadControl = { key: "rate" | "takeOn" | "keep"; label: string; min: number; max: number; step: number };
-
-export const SPREAD_CONTROLS: readonly SpreadControl[] = [
-  { key: "rate", label: "전염률 (이웃 하나당 초당)", min: 0, max: 3, step: 0.01 },
-  { key: "takeOn", label: "물드는 시간 (초)", min: 0.2, max: 10, step: 0.1 },
-  { key: "keep", label: "유지 시간 (초, 0 영원히)", min: 0, max: 120, step: 1 },
-];
 
 /** Exposure is checked this often (seconds): contacts are found anew each time. */
 const CHECK = 0.1;
@@ -119,7 +107,10 @@ export class Contagion {
     this.level[page] = 1;
   }
 
-  /** One frame: exposure through the raft's contacts or the web's links, taking on and fading; `random` is the raft's. */
+  /**
+   * One frame: exposure through the raft's contacts or the web's links, taking on and fading; `random` is the raft's
+   * (the frame loop hands it the layout's stream, so 전파 running moves where later pages are placed).
+   */
   step(delta: number, web: RankedWeb, points: Float64Array, radii: Float64Array, parameters: SpreadParameters, random: () => number) {
     const count = Math.min(web.size, MAX_PAGES);
     // A new web (a restart) starts clean.

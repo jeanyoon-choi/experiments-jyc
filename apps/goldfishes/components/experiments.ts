@@ -314,6 +314,15 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     load: () => import("./bubble/9"),
   },
   {
+    key: "screen/simulation/0",
+    legacyKeys: ["simulation/0"],
+    area: "screen",
+    section: "dated",
+    date: "2026-11-18",
+    phrase: "The logic apart from the visuals: two myopic agents (model M9) — goldfish after something less boring, bubbles after their own audience — and nothing new unless a finger is drawn across the field",
+    load: () => import("./simulation/0"),
+  },
+  {
     key: "screen/goldfish-mobile/1",
     area: "screen",
     section: "dated",

@@ -8,12 +8,15 @@
 // fish there are uploaded, the body and fin colours are uploaded once for all
 // their parts, and the parts' geometry is as fine as the fish's size on
 // screen can show (LEVELS: below LIGHT_SCALE the outline differs from the full
-// geometry's by under 0.15 px), its vertices shared.
+// geometry's by under 0.15 px), its vertices shared. Each fish's colour is
+// worked out again only when what it comes from changes (Look, 2026-11-18).
 
 import * as THREE from "three";
-import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { FISH_PALETTES, MAX_FISH, MIX_PALETTES, type Fish, type FishPaletteId } from "./goldfish";
-import { LIFE_DEFAULTS, lifeColour, rgbOf, sinkRoll, SPENT_BODY, SPENT_FIN, type LifeParameters, type Rgb } from "./lifecycle";
+import { mergeVertices } from "three/addons/utils/BufferGeometryUtils.js";
+import { greyness, LIFE_OFF, lifeColour, sinkRoll, type LifeParameters, type Rgb } from "./lifecycle.ts";
+import { MAX_FISH, type Fish } from "./model.ts";
+import { FISH_PALETTES, paletteOf, rgbOf, SPENT_BODY, SPENT_FIN, type FishPaletteId } from "./palettes.ts";
+import { localMatrix, place } from "./part-matrix.ts";
 
 /** How finely each part is built: curve segments for the fins, segments for the spheres and the peduncle. */
 type Level = { tail: [number, number]; fin: [number, number]; body: [number, number]; peduncle: number; eye: [number, number] };
@@ -67,50 +70,25 @@ function partsOf(level: Level): THREE.BufferGeometry[] {
   return [body, peduncle, tail, fin, fin, fin, eye, eye];
 }
 
-/** A part's matrix on the body (column-major): position, Euler rotation (XYZ, as Object3D's), scale. */
-function localMatrix(out: Float64Array, x: number, y: number, z: number, rx: number, ry: number, rz: number, sx: number, sy: number, sz: number) {
-  const a = Math.cos(rx);
-  const b = Math.sin(rx);
-  const c = Math.cos(ry);
-  const d = Math.sin(ry);
-  const e = Math.cos(rz);
-  const f = Math.sin(rz);
-  const ae = a * e;
-  const af = a * f;
-  const be = b * e;
-  const bf = b * f;
-  out[0] = c * e * sx;
-  out[1] = (af + be * d) * sx;
-  out[2] = (bf - ae * d) * sx;
-  out[3] = 0;
-  out[4] = -c * f * sy;
-  out[5] = (ae - bf * d) * sy;
-  out[6] = (be + af * d) * sy;
-  out[7] = 0;
-  out[8] = d * sz;
-  out[9] = -b * c * sz;
-  out[10] = a * c * sz;
-  out[11] = 0;
-  out[12] = x;
-  out[13] = y;
-  out[14] = z;
-  out[15] = 1;
-  return out;
-}
-
-/** `root` × `local` (both affine, column-major) into `out` at `at`. */
-function place(out: Float32Array, at: number, root: Float64Array, local: Float64Array) {
-  for (let column = 0; column < 4; column += 1) {
-    const l0 = local[column * 4]!;
-    const l1 = local[column * 4 + 1]!;
-    const l2 = local[column * 4 + 2]!;
-    const w = column === 3 ? 1 : 0;
-    out[at + column * 4] = root[0]! * l0 + root[4]! * l1 + root[8]! * l2 + root[12]! * w;
-    out[at + column * 4 + 1] = root[1]! * l0 + root[5]! * l1 + root[9]! * l2 + root[13]! * w;
-    out[at + column * 4 + 2] = root[2]! * l0 + root[6]! * l1 + root[10]! * l2 + root[14]! * w;
-    out[at + column * 4 + 3] = w;
-  }
-}
+/**
+ * What the scene keeps of a fish between frames, by its id (the whole of its seed): its tail-beat phase and the frame
+ * it was last drawn, and its colour — its own body and fin colours under the palette of `epoch`, and the colours last
+ * drawn, linear, with the greyness they were worked out for (`grey`; -1: work them out again).
+ */
+type Look = {
+  phase: number;
+  frame: number;
+  epoch: number;
+  body: Rgb;
+  fin: Rgb;
+  grey: number;
+  bodyR: number;
+  bodyG: number;
+  bodyB: number;
+  finR: number;
+  finG: number;
+  finB: number;
+};
 
 export class GoldfishScene {
   private readonly renderer: THREE.WebGLRenderer;
@@ -121,12 +99,15 @@ export class GoldfishScene {
   private readonly eyeMaterial = new THREE.MeshStandardMaterial({ color: "#050403", roughness: 0.045, metalness: 0.025 });
   /** body, peduncle, tail, dorsal fin, left fin, right fin, left eye, right eye. */
   private readonly meshes: readonly THREE.InstancedMesh[];
+  /** Their instance matrices' arrays, in the same order (the buffers are never replaced). */
+  private readonly matrices: readonly Float32Array[];
   /** Each level's geometry, built when first drawn, and the level drawn now. */
   private readonly levels: Partial<Record<keyof typeof LEVELS, THREE.BufferGeometry[]>> = {};
   private level: keyof typeof LEVELS | null = null;
   /** Colours per fish, one buffer for the body's parts and one for the fins'. */
   private readonly bodyColours = new THREE.InstancedBufferAttribute(new Float32Array(MAX_FISH * 3).fill(1), 3);
   private readonly finColours = new THREE.InstancedBufferAttribute(new Float32Array(MAX_FISH * 3).fill(1), 3);
+  private readonly colourBuffers = [this.bodyColours, this.finColours] as const;
   /** Scratch matrices: the fish's own, and a moving part's on it. */
   private readonly root = new Float64Array(16);
   private readonly local = new Float64Array(16);
@@ -137,9 +118,11 @@ export class GoldfishScene {
     leftEye: localMatrix(new Float64Array(16), 3.85, 2.1, 2.45, 0, 0, 0, 2, 2, 2),
     rightEye: localMatrix(new Float64Array(16), 3.85, 2.1, -2.45, 0, 0, 0, 2, 2, 2),
   };
-  /** Each fish's tail-beat phase and the frame it was last drawn, by its seed (fish come and go, so their order does not hold). */
-  private readonly phases = new Map<number, { phase: number; frame: number }>();
+  /** Each fish's tail-beat phase, colour and the frame it was last drawn, by its seed (fish come and go, so their order does not hold). */
+  private readonly looks = new Map<number, Look>();
   private frame = 0;
+  /** Counts the palettes set: a Look of another epoch holds another palette's colours. */
+  private epoch = 0;
   /** Palette colours as sRGB triples, parsed once. */
   private readonly parsed = new Map<string, Rgb>();
   private readonly colour = new THREE.Color();
@@ -149,8 +132,6 @@ export class GoldfishScene {
   private width = 1;
   private height = 1;
   private shownCount = -1;
-  /** Anything else drawn with the fish, in their light (반응's 3D reactions). */
-  private readonly extras = new THREE.Group();
 
   constructor(canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, canvas, powerPreference: "high-performance" });
@@ -160,7 +141,6 @@ export class GoldfishScene {
     const light = new THREE.DirectionalLight("#ffd6a0", 2.15);
     light.position.set(-0.35, 1, 0.55);
     this.scene.add(light);
-    this.scene.add(this.extras);
     const geometry = this.geometryOf("full");
     const materials = [this.bodyMaterial, this.bodyMaterial, this.finMaterial, this.finMaterial, this.finMaterial, this.finMaterial, this.eyeMaterial, this.eyeMaterial];
     this.level = "full";
@@ -177,6 +157,7 @@ export class GoldfishScene {
       this.scene.add(mesh);
       return mesh;
     });
+    this.matrices = this.meshes.map((mesh) => mesh.instanceMatrix.array as Float32Array);
   }
 
   private geometryOf(level: keyof typeof LEVELS) {
@@ -218,28 +199,27 @@ export class GoldfishScene {
     deltaSeconds: number,
     scale: number,
     palette: FishPaletteId,
-    life: LifeParameters = { ...LIFE_DEFAULTS, enabled: 0 },
+    life: LifeParameters = LIFE_OFF,
   ) {
     const count = Math.min(MAX_FISH, fish.length);
     // Nothing to draw and nothing drawn: leave the cleared canvas alone.
     if (count === 0 && this.shownCount === 0) return;
     this.setMaterials(palette);
     this.setLevel(scale);
-    const choices = palette === "mix" ? MIX_PALETTES : [palette];
-    const [body, peduncle, tail, dorsalFin, leftFin, rightFin, leftEye, rightEye] = this.meshes.map((mesh) => mesh.instanceMatrix.array as Float32Array) as [
-      Float32Array,
-      Float32Array,
-      Float32Array,
-      Float32Array,
-      Float32Array,
-      Float32Array,
-      Float32Array,
-      Float32Array,
-    ];
+    const matrices = this.matrices;
+    const body = matrices[0]!;
+    const peduncle = matrices[1]!;
+    const tail = matrices[2]!;
+    const dorsalFin = matrices[3]!;
+    const leftFin = matrices[4]!;
+    const rightFin = matrices[5]!;
+    const leftEye = matrices[6]!;
+    const rightEye = matrices[7]!;
     for (const mesh of this.meshes) if (mesh.count !== count) mesh.count = count;
     const bodyColours = this.bodyColours.array as Float32Array;
     const finColours = this.finColours.array as Float32Array;
-    const { root, local, fixedParts } = this;
+    const { root, local, fixedParts, colour, epoch } = this;
+    const tinting = life.tint >= 0.5;
     this.frame += 1;
     for (let index = 0; index < count; index += 1) {
       const agent = fish[index]!;
@@ -247,8 +227,8 @@ export class GoldfishScene {
       const sinking = agent.life.dying;
       const speed = Math.hypot(agent.vx, agent.vy);
       // A sinking fish's tail is still: its beat stops where it was and settles straight.
-      let beat = this.phases.get(id);
-      if (!beat) this.phases.set(id, (beat = { phase: id * 1.719, frame: 0 }));
+      let beat = this.looks.get(id);
+      if (!beat) this.looks.set(id, (beat = { phase: id * 1.719, frame: 0, epoch: -1, body: SPENT_BODY, fin: SPENT_FIN, grey: -1, bodyR: 0, bodyG: 0, bodyB: 0, finR: 0, finG: 0, finB: 0 }));
       if (!sinking) beat.phase = THREE.MathUtils.euclideanModulo(beat.phase + deltaSeconds * (5.2 + speed * 0.018), Math.PI * 2);
       beat.frame = this.frame;
       const phase = beat.phase;
@@ -285,35 +265,54 @@ export class GoldfishScene {
       place(leftEye, at, root, fixedParts.leftEye);
       place(rightEye, at, root, fixedParts.rightEye);
       // Its colour: its own (섞음 deals one per fish, by its seed), what it has watched, then grey.
-      const hashed = Math.sin(id * 12.9898 + 78.233) * 43_758.5453;
-      const own = FISH_PALETTES[choices[Math.floor((hashed - Math.floor(hashed)) * choices.length)] ?? palette];
-      lifeColour(agent.life, life, this.rgb(own.body), SPENT_BODY, this.body3);
-      lifeColour(agent.life, life, this.rgb(own.fin), SPENT_FIN, this.fin3, 0.75);
-      this.colour.setRGB(this.body3[0], this.body3[1], this.body3[2], THREE.SRGBColorSpace);
-      this.colour.toArray(bodyColours, index * 3);
-      this.colour.setRGB(this.fin3[0], this.fin3[1], this.fin3[2], THREE.SRGBColorSpace);
-      this.colour.toArray(finColours, index * 3);
+      if (beat.epoch !== epoch) {
+        const own = FISH_PALETTES[paletteOf(palette, id)];
+        beat.body = this.rgb(own.body);
+        beat.fin = this.rgb(own.fin);
+        beat.epoch = epoch;
+        beat.grey = -1;
+      }
+      // With nothing taken on from the bubbles (물듦 끔, or nothing watched yet) its colour comes from its own and its
+      // greyness alone, whatever its tint holds: the colours last worked out for that greyness are its colours still.
+      const plain = !tinting || agent.life.tintAmount === 0;
+      const grey = greyness(agent.life, life);
+      if (!plain || grey !== beat.grey) {
+        lifeColour(agent.life, life, beat.body, SPENT_BODY, this.body3);
+        lifeColour(agent.life, life, beat.fin, SPENT_FIN, this.fin3, 0.75);
+        colour.setRGB(this.body3[0], this.body3[1], this.body3[2], THREE.SRGBColorSpace);
+        beat.bodyR = colour.r;
+        beat.bodyG = colour.g;
+        beat.bodyB = colour.b;
+        colour.setRGB(this.fin3[0], this.fin3[1], this.fin3[2], THREE.SRGBColorSpace);
+        beat.finR = colour.r;
+        beat.finG = colour.g;
+        beat.finB = colour.b;
+        beat.grey = plain ? grey : -1;
+      }
+      // Written every frame all the same: a fish's slot shifts when others leave.
+      const slot = index * 3;
+      bodyColours[slot] = beat.bodyR;
+      bodyColours[slot + 1] = beat.bodyG;
+      bodyColours[slot + 2] = beat.bodyB;
+      finColours[slot] = beat.finR;
+      finColours[slot + 1] = beat.finG;
+      finColours[slot + 2] = beat.finB;
     }
     // Fish that are gone: forgotten now and then, not every frame.
-    if (this.frame % 120 === 0) for (const [id, beat] of this.phases) if (beat.frame !== this.frame) this.phases.delete(id);
+    if (this.frame % 120 === 0) for (const [id, beat] of this.looks) if (beat.frame !== this.frame) this.looks.delete(id);
     // Only the fish there are go to the GPU.
     for (const mesh of this.meshes) {
       mesh.instanceMatrix.clearUpdateRanges();
       mesh.instanceMatrix.addUpdateRange(0, Math.max(1, count) * 16);
       mesh.instanceMatrix.needsUpdate = true;
     }
-    for (const colours of [this.bodyColours, this.finColours]) {
+    for (const colours of this.colourBuffers) {
       colours.clearUpdateRanges();
       colours.addUpdateRange(0, Math.max(1, count) * 3);
       colours.needsUpdate = true;
     }
     this.renderer.render(this.scene, this.camera);
     this.shownCount = count;
-  }
-
-  /** Builds something to draw with the fish: it gets a parent in the scene and the renderer. */
-  extend<T>(make: (parent: THREE.Object3D, renderer: THREE.WebGLRenderer) => T) {
-    return make(this.extras, this.renderer);
   }
 
   /** Waits for the GPU to finish this canvas's last frame (measurement only). */
@@ -349,6 +348,7 @@ export class GoldfishScene {
   private setMaterials(id: FishPaletteId) {
     if (this.palette === id) return;
     this.palette = id;
+    this.epoch += 1;
     const palette = FISH_PALETTES[id];
     this.bodyMaterial.color.set("#ffffff");
     this.bodyMaterial.emissive.set(palette.body);

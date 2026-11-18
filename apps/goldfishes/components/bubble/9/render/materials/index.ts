@@ -5,7 +5,7 @@
 import { ACID_MATERIAL } from "./acid";
 import { GLASS_MATERIAL } from "./glass";
 import { HMR_MATERIAL } from "./hmr";
-import { LIQUID_MATERIAL } from "./liquid";
+import { FILM_DEFAULTS } from "./liquid";
 import { MIX_MATERIAL } from "./mix";
 import { PLASTER_MATERIAL } from "./plaster";
 import { PRINT_MATERIAL } from "./print";
@@ -14,12 +14,13 @@ import { STONE_MATERIAL } from "./stone";
 import { SURFACE } from "./surface";
 
 // 액체 is no longer offered (user, 2026-11-11): it is out of MATERIALS, so the panels, 연출 and shadeMaterial no longer
-// reach it. Its GLSL and its uniforms' defaults stay, since the raft's film path (foam.ts, film.ts) is written on them.
+// reach it, and its GLSL is gone (2026-11-18). Only its uniforms' defaults stay (liquid.ts), for the Look's type and
+// saved 연출.
 export const MATERIALS = [SERUM_MATERIAL, PLASTER_MATERIAL, STONE_MATERIAL, GLASS_MATERIAL, MIX_MATERIAL, HMR_MATERIAL, PRINT_MATERIAL, ACID_MATERIAL] as const;
 
 /** Every material's uniforms at their defaults (a look's starting values). */
 export const MATERIAL_DEFAULTS = {
-  ...LIQUID_MATERIAL.defaults,
+  ...FILM_DEFAULTS,
   ...PLASTER_MATERIAL.defaults,
   ...STONE_MATERIAL.defaults,
   ...GLASS_MATERIAL.defaults,
@@ -35,7 +36,7 @@ export type MaterialValues = typeof MATERIAL_DEFAULTS;
 export const MATERIAL_GLSL = [
   SURFACE,
   // 석고 first: other materials (and placeholders) may build on its plasterOf.
-  ...[PLASTER_MATERIAL, LIQUID_MATERIAL, ...MATERIALS.filter((entry) => entry !== PLASTER_MATERIAL)].map((entry) => entry.glsl),
+  ...[PLASTER_MATERIAL, ...MATERIALS.filter((entry) => entry !== PLASTER_MATERIAL)].map((entry) => entry.glsl),
   /* glsl */ `
 vec3 shadeMaterial(Surface s) {
   int id = int(material + 0.5);

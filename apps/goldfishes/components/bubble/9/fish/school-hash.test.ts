@@ -6,37 +6,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { FISH_DEFAULTS, GoldfishSchool, type LifeContext } from "./goldfish.ts";
 import { LIFE_DEFAULTS, type Rgb } from "./lifecycle.ts";
-import { FISH_STRIDE, packFish } from "./school-thread.ts";
+import { FISH_STRIDE, packFish } from "./school-core.ts";
+import { HEIGHT, raft, WIDTH } from "./test-raft.ts";
 import { createRankedWeb, DEFAULT_PARAMETERS, stepRankedWeb } from "../web/model.ts";
-
-const WIDTH = 1200;
-const HEIGHT = 700;
 
 /** FNV-1a over the bytes of `values`, folded into `hash`. */
 function fold(hash: number, values: ArrayLike<number>) {
   const bytes = new Uint8Array(Float64Array.from(values).buffer);
   for (const byte of bytes) hash = Math.imul(hash ^ byte, 16_777_619) >>> 0;
   return hash;
-}
-
-/** A pressed raft after travelling portions, one page swelling to crush fish now and then. */
-function raft(count: number, time: number, bubbles: Float32Array, portions: number) {
-  let at = 0;
-  for (let portion = 0; portion < portions; portion += 1) {
-    bubbles[at++] = 100 + ((time * 0.2 + portion / portions) % 1) * (WIDTH - 200);
-    bubbles[at++] = 120 + portion * 40;
-    bubbles[at++] = 6;
-    bubbles[at++] = 0.5;
-  }
-  for (let page = 0; page < count; page += 1) {
-    const r = 9 * Math.sqrt(page + 0.5);
-    const a = page * 2.39996;
-    bubbles[at++] = WIDTH / 2 + Math.cos(a) * r * 1.4 + Math.sin(time * 0.3) * 10;
-    bubbles[at++] = HEIGHT / 2 + Math.sin(a) * r;
-    bubbles[at++] = page === 3 ? 16 * (1 + 0.8 * Math.sin(time * 2)) : 7 + 10 * (((page * 37) % 10) / 10);
-    bubbles[at++] = (page * 0.137) % 1;
-  }
-  return at / 4;
 }
 
 function schoolDigest(lifeOn: boolean) {

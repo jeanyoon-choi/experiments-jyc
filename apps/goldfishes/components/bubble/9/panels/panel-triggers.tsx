@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 import styles from "../bubble-three.module.css";
-import type { PanelId } from "../settings";
+import type { PanelId } from "../state/schema";
 
 const TRIGGERS: readonly { id: PanelId; label: string; icon: (soundOn: boolean) => ReactNode }[] = [
   {
@@ -61,7 +61,7 @@ const TRIGGERS: readonly { id: PanelId; label: string; icon: (soundOn: boolean) 
 ];
 
 /** The round buttons that open one panel at a time (생애주기 lives in 금붕어's since 2026-11-05). */
-export function PanelTriggers({
+export const PanelTriggers = memo(function PanelTriggers({
   panel,
   onToggle,
   soundOn,
@@ -89,4 +89,4 @@ export function PanelTriggers({
       ))}
     </div>
   );
-}
+});

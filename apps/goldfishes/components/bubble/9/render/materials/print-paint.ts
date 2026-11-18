@@ -829,7 +829,6 @@ export function paintSheet(canvas: OffscreenCanvas, region: number, layer: numbe
     size: S,
     random,
     photo: () => photos[(next += 1 + Math.floor(random() * 3)) % photos.length]!,
-    screens: [],
     press: sheet.press,
     paper,
   };

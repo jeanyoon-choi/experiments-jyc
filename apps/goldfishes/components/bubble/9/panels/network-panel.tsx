@@ -1,12 +1,12 @@
+import { memo } from "react";
 import styles from "../bubble-three.module.css";
 import { BURST_RANGE, DAMPING_RANGE, FLOOR_RANGE, GROWTH_RANGE, MAX_GROUPS, MAX_PAGES, RECOVERY_RANGE, VOLATILITY_RANGE } from "../web/model";
-import { FLOW_CONTROL, MIN_PAGES } from "../settings";
+import { FLOW_CONTROL, MIN_PAGES } from "../state/controls";
+import type { Rates } from "../state/schema";
 import { VIEWS, type ViewId } from "../raft/views";
-import { Chip, Chips, Note, Panel, Reset, Section, Slider } from "./controls";
+import { Chip, Chips, Note, OnOff, Panel, Reset, Section, Slider } from "../ui/controls";
 
-/** The web parameters this panel sets. */
-export type Rates = { growth: number; volatility: number; floor: number; dynamics: number; burstAt: number; recovery: number };
-
+const DYNAMICS_LABELS = ["기존 (bubble/5)", "+ 극단에서 터짐"] as const;
 const GROUP_COUNTS = Array.from({ length: MAX_GROUPS }, (_, index) => index + 1);
 
 /** 순위 쏠림: the slider runs over the appeal floor on a log scale, high floor (even) at 0. */
@@ -40,7 +40,7 @@ type Props = {
 };
 
 /** 네트워크 (folders, user 2026-11-05): the view and the number of pages open; attention, the web's motion and its groups folded. */
-export function NetworkPanel({ view, onView, rates, onRates, damping, onDamping, population, onPopulation, groups, onGroups, diversity, onDiversity, onReshuffle, flow, onFlow, portions, onPortions }: Props) {
+export const NetworkPanel = memo(function NetworkPanel({ view, onView, rates, onRates, damping, onDamping, population, onPopulation, groups, onGroups, diversity, onDiversity, onReshuffle, flow, onFlow, portions, onPortions }: Props) {
   return (
     <Panel id="network" label="네트워크">
       <Note>크기가 곧 PageRank · 빈 곳을 누르면 새 페이지, 페이지에서 페이지로 끌면 링크</Note>
@@ -53,14 +53,7 @@ export function NetworkPanel({ view, onView, rates, onRates, damping, onDamping,
       </div>
       {/* 흐름 버블 (user, 2026-11-12): off in one press, and its amount here rather than under 비주얼 → 라프트. */}
       <Note>흐름 버블 (링크를 따라 오가는 작은 버블)</Note>
-      <Chips label="흐름 버블">
-        <Chip pressed={!flow} onClick={() => onFlow(false)}>
-          끔
-        </Chip>
-        <Chip pressed={flow} onClick={() => onFlow(true)}>
-          켬
-        </Chip>
-      </Chips>
+      <OnOff label="흐름 버블" value={flow} onChange={onFlow} />
       {flow && <Slider label={FLOW_CONTROL.label} output={portions.toFixed(2)} ariaLabel={FLOW_CONTROL.label} min={FLOW_CONTROL.min} max={FLOW_CONTROL.max} step={FLOW_CONTROL.step} value={portions} onChange={onPortions} />}
       <Slider
         label="페이지 수"
@@ -74,14 +67,7 @@ export function NetworkPanel({ view, onView, rates, onRates, damping, onDamping,
       />
       <Section id="network/dynamics" title="관심 역학" value={rates.dynamics >= 0.5 ? "+ 극단에서 터짐" : "기존 (bubble/5)"}>
         <Note>bubble/6: bubble/5 그대로, 화면을 덮을 만큼 커진 페이지만 지쳐 터진다</Note>
-        <Chips label="관심 역학">
-          <Chip pressed={rates.dynamics < 0.5} onClick={() => onRates({ dynamics: 0 })}>
-            기존 (bubble/5)
-          </Chip>
-          <Chip pressed={rates.dynamics >= 0.5} onClick={() => onRates({ dynamics: 1 })}>
-            + 극단에서 터짐
-          </Chip>
-        </Chips>
+        <OnOff label="관심 역학" value={rates.dynamics} labels={DYNAMICS_LABELS} onChange={(on) => onRates({ dynamics: on ? 1 : 0 })} />
         {rates.dynamics >= 0.5 && (
           <>
             <Slider
@@ -175,4 +161,4 @@ export function NetworkPanel({ view, onView, rates, onRates, damping, onDamping,
       </Section>
     </Panel>
   );
-}
+});

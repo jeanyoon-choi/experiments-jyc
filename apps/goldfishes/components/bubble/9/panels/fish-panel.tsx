@@ -1,11 +1,10 @@
-import type { Dispatch, SetStateAction } from "react";
+import { memo, type Dispatch, type SetStateAction } from "react";
 import { FISH_PALETTES, MAX_FISH, type FishPaletteId, type FishParameters } from "../fish/goldfish";
 import type { LifeParameters } from "../fish/lifecycle";
-import { FEEDBACK_CONTROLS, FISH_CONTROLS, type Feedback } from "../settings";
-import { Chip, Chips, Note, Panel, Reset, Section, Slider } from "./controls";
-import { LifeSection } from "./life-panel";
-import { ReactionSection } from "../reactions/reaction-section"; // 반응
-import type { ReactionParameters } from "../reactions/reactions"; // 반응
+import { FEEDBACK_CONTROLS, FISH_CONTROLS } from "../state/controls";
+import type { Feedback } from "../state/schema";
+import { Chip, Chips, ControlSliders, Note, Panel, Reset, Section, Slider } from "../ui/controls";
+import { LifeSection } from "./life-section";
 
 const PALETTE_IDS = Object.keys(FISH_PALETTES) as FishPaletteId[];
 
@@ -22,20 +21,17 @@ type Props = {
   /** 생애주기 (its own panel until 2026-11-05). */
   life: LifeParameters;
   setLife: Dispatch<SetStateAction<LifeParameters>>;
-  /** 반응: hearts, likes and comments as fish reach bubbles. */
-  reactions: ReactionParameters;
-  setReactions: Dispatch<SetStateAction<ReactionParameters>>;
   /** 기본값으로 (black) or 기본값 2 (grey). */
   onDefaults: (second: boolean) => void;
   /** 기본값 3: every panel back to the set this experiment opens with. */
-  onPreset3: () => void;
+  onOpening: () => void;
 };
 
 /**
  * 금붕어's panel (folders, user 2026-11-05): how many and their colour open; how they swim, their life, what their
- * watching does to the web and their reactions folded away, one under another.
+ * watching does to the web folded away, one under another.
  */
-export function FishPanel({ count, onCount, fish, setFish, palette, onPalette, feedback, setFeedback, life, setLife, reactions, setReactions, onDefaults, onPreset3 }: Props) {
+export const FishPanel = memo(function FishPanel({ count, onCount, fish, setFish, palette, onPalette, feedback, setFeedback, life, setLife, onDefaults, onOpening }: Props) {
   return (
     <Panel id="fish" label="금붕어">
       <Note>버블 가장자리를 오가며 링크를 따라 옮겨 다니고, 오래 머문 페이지의 품질을 올립니다</Note>
@@ -49,40 +45,15 @@ export function FishPanel({ count, onCount, fish, setFish, palette, onPalette, f
         ))}
       </Chips>
       <Section id="fish/swim" title="헤엄 · 주의">
-        {FISH_CONTROLS.map((control) => (
-          <Slider
-            key={control.key}
-            label={control.label}
-            output={fish[control.key].toFixed(2)}
-            ariaLabel={control.label}
-            min={control.min}
-            max={control.max}
-            step={control.step}
-            value={fish[control.key]}
-            onChange={(value) => setFish((current) => ({ ...current, [control.key]: value }))}
-          />
-        ))}
+        <ControlSliders controls={FISH_CONTROLS} values={fish} onChange={(key, value) => setFish((current) => ({ ...current, [key]: value }))} />
       </Section>
       <LifeSection life={life} setLife={setLife} />
       <Section id="fish/feedback" title="웹에 주는 영향">
-        {FEEDBACK_CONTROLS.map((control) => (
-          <Slider
-            key={control.key}
-            label={control.label}
-            output={feedback[control.key].toFixed(2)}
-            ariaLabel={control.label}
-            min={control.min}
-            max={control.max}
-            step={control.step}
-            value={feedback[control.key]}
-            onChange={(value) => setFeedback((current) => ({ ...current, [control.key]: value }))}
-          />
-        ))}
+        <ControlSliders controls={FEEDBACK_CONTROLS} values={feedback} onChange={(key, value) => setFeedback((current) => ({ ...current, [key]: value }))} />
       </Section>
-      <ReactionSection reactions={reactions} setReactions={setReactions} />
       <Reset onClick={() => onDefaults(false)}>기본값으로</Reset>
       <Reset onClick={() => onDefaults(true)}>기본값 2</Reset>
-      <Reset onClick={onPreset3}>기본값 3</Reset>
+      <Reset onClick={onOpening}>기본값 3</Reset>
     </Panel>
   );
-}
+});

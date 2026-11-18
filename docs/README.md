@@ -18,9 +18,7 @@ history when their subject affects the task, not for every code change.
 
 ## Harness and foundations
 
-- [Harness overview](./harness/overview.md)
 - [Documentation writing policy](./harness/documentation.md)
-- [2026-09-08 harness review](./harness/2026-09-08-harness-review.md)
 - [Monorepo apps and Vercel setup](./harness/monorepo.md)
 - [Experiment and component structure](./harness/experiments.md)
 - [Next.js notes](./harness/nextjs.md)
@@ -88,8 +86,7 @@ history when their subject affects the task, not for every code change.
 | `apps/scc/components/standalone/spoon-class` | `default`, `1`, `2`, `3` | [spoon-class baseline, module field, human-life fork and dense scaled wall](../apps/scc/docs/experiments/standalone/spoon-class/README.md) |
 | `apps/scc/components/standalone/grid` | `1`, `2`, `3`, `4`, `5` | [grid](../apps/scc/docs/experiments/standalone/grid/README.md) |
 | `apps/scc/components/parametric-interface` | `1`, `2`, `0815/flight`, `0815/stock`, `0815/apollo`, `0815/led-text` | [parametric-interface](../apps/scc/docs/experiments/parametric-interface/README.md) |
-| `apps/goldfishes/components/screen` | `default`, `2d/1`, `attraction-targets`, `pillars`, `media-grid`, `keyword-field`, `overlay-3d`, `overlay-2d`, `attention-print`, `tech-eyes` (`<family>/<serial>`, serials by date) | [archive](../apps/goldfishes/docs/README.md), [agent onboarding](../apps/goldfishes/docs/agent-onboarding.md) |
-| `apps/goldfishes/components/pc` | `news-phones`, `image-search` | [archive](../apps/goldfishes/docs/README.md) |
+| `apps/goldfishes/components` | `simulation`, `bubble`, `mobiles`, `native-windows`, and the archived screen and pc families (`<family>/<serial>`) | [archive](../apps/goldfishes/docs/README.md), [direction](../apps/goldfishes/docs/direction.md), [agent onboarding](../apps/goldfishes/docs/agent-onboarding.md) |
 | `apps/scc/components/dj` | `1` | [dj](../apps/scc/docs/experiments/dj/README.md) |
 | `apps/c-val/components` | Unversioned finished app; numbered records are history | [c-val](../apps/c-val/docs/README.md) |
 | `apps/scc/components/network-system` | `default`, `macro-economy`, `cycle`, `population`, `competitive-firms` | [network-system index](../apps/scc/docs/experiments/network-system/README.md) |

@@ -13,7 +13,8 @@
 // does when the page opens. Nobody is born of anybody.
 //
 // Pure functions over a fish's `Life`; the school steps them and the scene
-// reads their colour and pose. Colours are sRGB, 0–1.
+// reads their colour and pose. Colours are sRGB, 0–1 (the palettes and the
+// grey of the spent are palettes.ts).
 
 export type Rgb = [number, number, number];
 
@@ -56,6 +57,9 @@ export const LIFE_DEFAULTS: LifeParameters = {
   waveEvery: 6,
 };
 
+/** The lifecycle off (bubble/3: nobody wears down): what the school and the scene assume until told otherwise. */
+export const LIFE_OFF: Readonly<LifeParameters> = Object.freeze({ ...LIFE_DEFAULTS, enabled: 0 });
+
 export type Life = {
   /** 1 fresh … 0 spent. */
   vitality: number;
@@ -71,10 +75,6 @@ export type Life = {
   /** Its velocity when spent, which dies away as it starts to sink (px/s). */
   drift: [number, number];
 };
-
-/** The pale grey a spent fish turns: body and fins (the monochrome palette, lightened). */
-export const SPENT_BODY: Rgb = [0.66, 0.66, 0.66];
-export const SPENT_FIN: Rgb = [0.84, 0.84, 0.84];
 
 /** A fresh life; `random` is in [0, 1). `vitality` below 1 staggers the first school's deaths. */
 export function createLife(parameters: LifeParameters, random: number, vitality = 1): Life {
@@ -163,10 +163,4 @@ export function fallVelocity(life: Life, vx: number, vy: number, seconds: number
 /** How far a sinking fish has rolled onto its side, radians. */
 export function sinkRoll(life: Life) {
   return life.dying ? (Math.PI / 2) * 0.85 * smooth(life.dyingTime / 0.8) : 0;
-}
-
-/** sRGB 0–1 from "#rrggbb". */
-export function rgbOf(hex: string): Rgb {
-  const value = Number.parseInt(hex.slice(1), 16);
-  return [((value >> 16) & 255) / 255, ((value >> 8) & 255) / 255, (value & 255) / 255];
 }

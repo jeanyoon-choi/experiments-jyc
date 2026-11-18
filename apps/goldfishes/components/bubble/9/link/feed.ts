@@ -30,7 +30,7 @@ export type FeedFrame = {
   objects: ObjectParameters;
   /** 전파's strain kind per page (an index into FIELD_KINDS, −1 none), or null. */
   caught: ArrayLike<number> | null;
-  /** Per page: how many times it has moved on (frame-loop.ts pageTurns). */
+  /** Per page: how many times it has moved on (simulation/attention.ts turns). */
   turns: ArrayLike<number>;
   /** Each page's attention as drawn, for its rank. */
   shown: ArrayLike<number>;
@@ -47,8 +47,11 @@ export class BubbleFeed {
   /** Fish serial → what it was last told as. */
   private sent = new Map<number, Sent>();
   private alive = new Set<number>();
+  private readonly now: () => number;
 
-  constructor() {
+  /** `now`: the clock the gaps are measured on, in ms (the page's unless given). */
+  constructor(now: () => number = () => performance.now()) {
+    this.now = now;
     this.link.setVocabulary(VOCABULARY);
   }
 
@@ -66,7 +69,7 @@ export class BubbleFeed {
   observe(fish: readonly Fish[], frame: FeedFrame) {
     let largest = 0;
     for (let page = 0; page < frame.pageCount; page += 1) largest = Math.max(largest, frame.shown[page] ?? 0);
-    const now = performance.now();
+    const now = this.now();
     const alive = this.alive;
     alive.clear();
     for (const one of fish) {

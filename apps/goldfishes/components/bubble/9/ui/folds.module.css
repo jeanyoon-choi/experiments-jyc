@@ -1,0 +1,32 @@
+/* The panels' folders (user, 2026-11-05), drawn as 오브제's 세부: a rule, a bold summary, the browser's arrow. */
+div.panel {
+  max-height: calc(100dvh - 96px - env(safe-area-inset-bottom));
+  overscroll-behavior: contain;
+}
+
+.section {
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.section > summary {
+  margin: 0 2px 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.section > summary:focus-visible { outline: 2px solid #1469d8; outline-offset: 2px; }
+
+/* The current choice after the title, in the note's type. */
+.value {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.62;
+}
+
+.body {
+  display: grid;
+  gap: 6px;
+  padding-bottom: 4px;
+}

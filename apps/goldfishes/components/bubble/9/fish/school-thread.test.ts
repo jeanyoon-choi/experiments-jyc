@@ -2,31 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { FISH_DEFAULTS, GoldfishSchool, MAX_FISH, type LifeContext } from "./goldfish.ts";
 import { LIFE_DEFAULTS, type Rgb } from "./lifecycle.ts";
-import { FISH_STRIDE, packFish, SchoolThread, unpackFish } from "./school-thread.ts";
+import { FISH_STRIDE, packFish, unpackFish } from "./school-core.ts";
+import { SchoolThread } from "./school-thread.ts";
+import { HEIGHT, raft, WIDTH } from "./test-raft.ts";
 import { createRankedWeb } from "../web/model.ts";
-
-const WIDTH = 1200;
-const HEIGHT = 700;
-
-/** A pressed raft of `count` pages after `portions` travelling portions, a page swelling to crush fish now and then. */
-function raft(count: number, time: number, bubbles: Float32Array, portions: number) {
-  let at = 0;
-  for (let portion = 0; portion < portions; portion += 1) {
-    bubbles[at++] = 100 + ((time * 0.2 + portion / portions) % 1) * (WIDTH - 200);
-    bubbles[at++] = 120 + portion * 40;
-    bubbles[at++] = 6;
-    bubbles[at++] = 0.5;
-  }
-  for (let page = 0; page < count; page += 1) {
-    const r = 9 * Math.sqrt(page + 0.5);
-    const a = page * 2.39996;
-    bubbles[at++] = WIDTH / 2 + Math.cos(a) * r * 1.4 + Math.sin(time * 0.3) * 10;
-    bubbles[at++] = HEIGHT / 2 + Math.sin(a) * r;
-    bubbles[at++] = page === 3 ? 16 * (1 + 0.8 * Math.sin(time * 2)) : 7 + 10 * (((page * 37) % 10) / 10);
-    bubbles[at++] = (page * 0.137) % 1;
-  }
-  return at / 4;
-}
 
 test("packed fish read back exactly", () => {
   const school = new GoldfishSchool(WIDTH, HEIGHT);

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { concentration, createRankedWeb, DEFAULT_PARAMETERS, FLOOR_RANGE, stepRankedWeb, type RankedWeb } from "./model.ts";
 
-// bubble/6's opening parameters (settings.ts PRESET_3.rates), on 800 pages as it opens.
+// bubble/6's opening parameters (state/opening.ts OPENING.rates), on 800 pages as it opens.
 const PARAMETERS = { ...DEFAULT_PARAMETERS, volatility: 1.5, floor: FLOOR_RANGE[0] * (FLOOR_RANGE[1] / FLOOR_RANGE[0]) ** (1 - 0.03) };
 
 /** A stand-in for the goldfish: every second the ten largest pages are watched, as frame-loop's attend raises them. */
@@ -29,7 +29,7 @@ function run(dynamics: number) {
   let moves = 0;
   let before: Float64Array | null = null;
   for (let step = 1; step <= 90 * 30; step += 1) {
-    stepRankedWeb(web, 1 / 30, parameters);
+    stepRankedWeb(web, 1 / 30, parameters, { value: 0 });
     if (step % 30 !== 0) continue;
     watch(web);
     let lead = 0;

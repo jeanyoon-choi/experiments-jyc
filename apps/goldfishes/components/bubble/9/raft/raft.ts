@@ -1,68 +1,42 @@
-// The raft's state, shared by the frame loop and the pointer: the web, each
+// The raft's state, shared by the frame loop and the pointer: the model (behind
+// its contract, model/world.ts), each
 // page's body in the force layout, the drawn centres and radii, and the view.
 // Browser-side and React-free; the frame loop advances it, gestures edit it.
+// It holds the state and the order things happen in; what is computed is in
+// display.ts (radii, presence, pulling links), layout.ts (the bodies' step),
+// views.ts (the centres' targets) and picking.ts (what is under a point).
 
-import { bodyAt, groupAnchors, relaxBodies, rescaleBodies, type Body, type Frame, type Pair } from "./layout";
-import {
-  addCandidate,
-  addPage,
-  candidate,
-  createRankedWeb,
-  DEFAULT_DAMPING,
-  DEFAULT_DIVERSITY,
-  DEFAULT_PAGES,
-  fadeCandidate,
-  leader,
-  MAX_GROUPS,
-  MAX_PAGES,
-  setDamping,
-  type RankedWeb,
-} from "../web/model";
-import { AREA_BUDGET, DEFAULT_GROUPS, DEFAULT_SEED } from "../settings";
-import { LINK_VISIBILITY, viewTargets, type ViewId } from "./views";
+import { bodyAt, groupAnchors, relaxBodies, rescaleBodies, type Body, type Frame, type Pair } from "./layout.ts";
+import { PageRankWorld } from "../model/pagerank.ts";
+import { DEFAULT_DAMPING, DEFAULT_DIVERSITY, DEFAULT_PAGES, MAX_GROUPS, MAX_PAGES, type RankedWeb, type WebParameters } from "../web/model.ts";
+import { DEFAULT_GROUPS, DEFAULT_SEED } from "./defaults.ts";
+import { followRanks, pullingLinks, radiusFor } from "./display.ts";
+import { linkAt, pageAt } from "./picking.ts";
+import { LINK_VISIBILITY, viewTargets, type ViewId } from "./views.ts";
 
-const MIN_RADIUS = 5;
+export { radiusFor } from "./display.ts";
+
 /** Weight a link drawn by hand starts with; it then follows appeal like any other. */
 const HAND_LINK_WEIGHT = 0.5;
-const HIT_SLOP = 6;
-/** Links lighter than this do not pull in the layout. */
-const PULLING_WEIGHT = 0.08;
-/** Links lighter than this cannot be tapped. */
-const TAPPABLE_WEIGHT = 0.05;
 const TRANSITION_SECONDS = 0.9;
 /** Displayed pools follow the layout slowly, so packing jitter never reaches the surface. */
 const FOLLOW_RATE = 4;
 
 type Transition = { from: Float64Array; linksFrom: number; startedAt: number };
 
-/** Disc area is exactly proportional to rank: πr² = rank × budget. */
-export function radiusFor(rank: number, field: Frame, area = AREA_BUDGET) {
-  return Math.max(MIN_RADIUS, Math.sqrt((rank * area * field.width * field.height) / Math.PI));
-}
-
-function distanceToSegment(px: number, py: number, x1: number, y1: number, x2: number, y2: number) {
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const length = dx * dx + dy * dy || 1;
-  const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / length));
-  return Math.hypot(px - (x1 + dx * t), py - (y1 + dy * t));
-}
-
 function easeInOut(value: number) {
   return value < 0.5 ? 4 * value ** 3 : 1 - (-2 * value + 2) ** 3 / 2;
 }
 
 export class Raft {
-  web: RankedWeb;
+  /** The model: started over where the web is (rebuild), never replaced. The loop reads it only as a `World`. */
+  readonly world: PageRankWorld;
   bodies: Body[] = [];
-  /** Drawn radius per page, following the displayed rank. */
+  /** Drawn radius per page, following the displayed rank; also its contact radius in the layout (see layout.ts). */
   readonly radii = new Float64Array(MAX_PAGES);
-  /** Contact radius per page in the layout (see layout.ts). */
-  readonly spacing = new Float64Array(MAX_PAGES);
   /** Drawn centre per page (x, y): the view's target, eased. */
   readonly points = new Float64Array(MAX_PAGES * 2);
   size: Frame = { width: 0, height: 0 };
-  pendingPages = { value: 0 };
   /** Seconds since the start, slowed by nothing (view transitions run on it). */
   time = 0;
   /** The tapped page whose links always flow, or null. */
@@ -102,13 +76,17 @@ export class Raft {
   constructor(start: { pages: number; groups: number; damping: number } = { pages: DEFAULT_PAGES, groups: DEFAULT_GROUPS, damping: DEFAULT_DAMPING }) {
     this.groups = start.groups;
     this.damping = start.damping;
-    this.web = createRankedWeb(start.pages, this.seed, this.groups, this.diversity);
-    setDamping(this.web, this.damping);
+    this.world = new PageRankWorld({ pages: start.pages, seed: this.seed, groups: this.groups, diversity: this.diversity, damping: this.damping });
+  }
+
+  /** The web itself, for those that read it as one (전파, a tapped link): the same object as `world.state`. */
+  get web(): RankedWeb {
+    return this.world.web;
   }
 
   setDamping(value: number) {
     this.damping = value;
-    setDamping(this.web, value);
+    this.world.setDamping(value);
   }
 
   /** Tapping a page highlights its links; tapping it again clears that. */
@@ -144,10 +122,7 @@ export class Raft {
   /** Starts the web, and the layout, over at the requested page count. */
   rebuild(pages: number) {
     this.repopulate = null;
-    const fresh = createRankedWeb(pages, this.seed, this.groups, this.diversity);
-    setDamping(fresh, this.damping);
-    this.web = fresh;
-    this.pendingPages = { value: 0 };
+    this.world.restart({ pages, seed: this.seed, groups: this.groups, diversity: this.diversity, damping: this.damping });
     this.transition = null;
     this.focus = null;
     this.seedPages(this.size);
@@ -176,6 +151,21 @@ export class Raft {
       this.points[page * 2] = body.x;
       this.points[page * 2 + 1] = body.y;
       this.radii[page] = radiusFor(web.rank[page]!, field);
+    }
+  }
+
+  /** The model's step; a new page appears beside the first page it links to. */
+  step(seconds: number, parameters: WebParameters) {
+    const field = this.size;
+    const random = this.random;
+    for (const event of this.world.step(seconds, parameters)) {
+      const anchor = this.bodies[event.targets[0] ?? 0];
+      const angle = random() * Math.PI * 2;
+      this.placePage(
+        event.page,
+        (anchor?.x ?? field.width / 2) + Math.cos(angle) * 24,
+        (anchor?.y ?? field.height / 2) + Math.sin(angle) * 24,
+      );
     }
   }
 
@@ -213,30 +203,10 @@ export class Raft {
   arrange(shown: Float64Array, delta: number, step: number, still: boolean, area: number) {
     const web = this.web;
     const field = this.size;
-    const { radii, spacing, presence, points, targets } = this;
+    const { radii, presence, points, targets } = this;
 
-    // Radii follow the displayed rank; small pages may cluster (as in 7-glsl-3).
-    const grow = 1 - Math.exp(-8 * delta);
-    for (let page = 0; page < web.size; page += 1) {
-      radii[page] = radii[page]! + (radiusFor(shown[page]!, field, area) - radii[page]!) * grow;
-      presence[page] = Math.min(1, Math.max(0.35, Math.sqrt((web.rank[page]! * web.size) / 4)));
-      // Bubbles rest at their contact distance (see layout.ts).
-      spacing[page] = radii[page]!;
-    }
-
-    // The layout pulls on links that matter.
-    let pullingCount = 0;
-    for (let from = 0; from < web.size; from += 1) {
-      for (const entry of web.out[from]!) {
-        if (!(entry.weight > PULLING_WEIGHT)) continue;
-        const link = (this.pullingPool[pullingCount] ??= { from: 0, to: 0 });
-        link.from = from;
-        link.to = entry.target;
-        this.pulling[pullingCount] = link;
-        pullingCount += 1;
-      }
-    }
-    this.pulling.length = pullingCount;
+    followRanks(shown, web.rank, web.size, field, area, delta, radii, presence);
+    pullingLinks(web, this.pulling, this.pullingPool);
     if (web.groups > 1) {
       // Each group's gravity pulls toward its own place, so disconnected groups float apart.
       groupAnchors(web.groups, field, this.groupPoints);
@@ -245,13 +215,13 @@ export class Raft {
         this.anchors[page * 2] = this.groupPoints[group * 2]!;
         this.anchors[page * 2 + 1] = this.groupPoints[group * 2 + 1]!;
       }
-      relaxBodies(this.bodies, this.pulling, spacing, field, step, presence, this.anchors);
+      relaxBodies(this.bodies, this.pulling, radii, field, step, presence, this.anchors);
     } else {
-      relaxBodies(this.bodies, this.pulling, spacing, field, step, presence);
+      relaxBodies(this.bodies, this.pulling, radii, field, step, presence);
     }
 
     const view = this.view;
-    viewTargets(view, this.bodies, spacing, web.rank, web.size, field, targets);
+    viewTargets(view, this.bodies, radii, web.rank, web.size, field, targets);
     const transition = this.transition;
     const progress = transition ? Math.min(1, (this.time - transition.startedAt) / (still ? 0.01 : TRANSITION_SECONDS)) : 1;
     const eased = easeInOut(progress);
@@ -268,32 +238,12 @@ export class Raft {
 
   /** The page drawn under (x, y), with a little slop; the nearest if several. */
   pageAt(x: number, y: number) {
-    const points = this.points;
-    let best: number | null = null;
-    let bestDistance = Infinity;
-    for (let page = 0; page < this.web.size; page += 1) {
-      const distance = Math.hypot(points[page * 2]! - x, points[page * 2 + 1]! - y);
-      if (distance <= this.radii[page]! + HIT_SLOP && distance < bestDistance) {
-        best = page;
-        bestDistance = distance;
-      }
-    }
-    return best;
+    return pageAt(this.points, this.radii, this.web.size, x, y);
   }
 
   /** A live link drawn under (x, y), or null. */
   linkAt(x: number, y: number) {
-    const web = this.web;
-    const points = this.points;
-    for (let from = 0; from < web.size; from += 1) {
-      for (const entry of web.out[from]!) {
-        if (entry.fading || entry.weight < TAPPABLE_WEIGHT) continue;
-        const to = entry.target;
-        const d = distanceToSegment(x, y, points[from * 2]!, points[from * 2 + 1]!, points[to * 2]!, points[to * 2 + 1]!);
-        if (d <= HIT_SLOP) return { from, to };
-      }
-    }
-    return null;
+    return linkAt(this.web, this.points, x, y);
   }
 
   /** The group whose raft gathers nearest (x, y). */
@@ -310,26 +260,27 @@ export class Raft {
 
   /** Adds a page at (x, y), linked from `linkedFrom` when given; null at the page cap. */
   createPage(x: number, y: number, linkedFrom: number | null) {
-    const web = this.web;
+    const world = this.world;
     // A page made by hand joins the group it is linked from, or the group it is placed nearest.
-    const group = linkedFrom !== null ? web.group[linkedFrom]! : this.nearestGroup(x, y);
-    const page = addPage(web, 0, group);
+    const group = linkedFrom !== null ? world.state.group[linkedFrom]! : this.nearestGroup(x, y);
+    const page = world.add(group);
     if (page === null) return null;
-    if (linkedFrom !== null) addCandidate(web, linkedFrom, page, HAND_LINK_WEIGHT);
+    if (linkedFrom !== null) world.relate(linkedFrom, page, HAND_LINK_WEIGHT);
     this.placePage(page, x, y);
     return page;
   }
 
   /** A link dragged from one page to another: added (by hand), or let fade if it is live. */
   toggleLink(from: number, to: number) {
-    const existing = candidate(this.web, from, to);
-    if (existing && !existing.fading) fadeCandidate(this.web, from, to);
-    else addCandidate(this.web, from, to, HAND_LINK_WEIGHT);
+    const world = this.world;
+    const existing = world.relation(from, to);
+    if (existing && !existing.fading) world.release(from, to);
+    else world.relate(from, to, HAND_LINK_WEIGHT);
   }
 
   /** A page linked from the leader, a little off it (key N). */
   createPageFromLeader() {
-    const top = leader(this.web);
+    const top = this.world.metrics().leader;
     const anchor = this.bodies[top];
     return this.createPage((anchor?.x ?? 0) + 30, (anchor?.y ?? 0) + 30, top);
   }

@@ -10,17 +10,14 @@
 //          surface tension), stays, then sets 1 → 0 at the end;
 //   shape  0 → 1 while melted, as a spring: it overshoots the new outline and
 //          settles (말랑말랑), so the liquid seems to have mass.
-// The shader (object-pass.ts) turns (from, to, shape, melt) into a surface.
+// The shader (pass/shader.ts) turns (from, to, shape, melt) into a surface.
 
-import { OBJECT_KINDS, type ObjectKind } from "../kinds/parameters.ts";
+import type { ObjectKind } from "../kinds/groups.ts";
 import type { FieldKind } from "../fields/fields";
 import { styleOf, type Liquid } from "./liquid.ts";
 
-/** The fields' layers: the bubble first, then every kind. */
-export const FIELD_KINDS: readonly FieldKind[] = ["bubble", ...OBJECT_KINDS];
-const LAYER = new Map(FIELD_KINDS.map((kind, layer) => [kind, layer]));
-/** A kind's layer (0 for none: the bubble; −1 unknown), by a map: it runs per page per frame, over hundreds of kinds. */
-export const layerOf = (kind: FieldKind | null) => (kind === null ? 0 : (LAYER.get(kind) ?? -1));
+// The fields' layers (kinds/layers.ts), as they have always been imported from here.
+export { FIELD_KINDS, layerOf } from "../kinds/layers.ts";
 
 const smooth = (from: number, to: number, value: number) => {
   const t = Math.min(1, Math.max(0, (value - from) / (to - from)));
@@ -48,12 +45,23 @@ const RING_HZ = 1.6;
 
 /** Shape and melt at a share `u` of the morph (u ≥ 1: set). */
 export function envelope(u: number, liquid: Liquid) {
-  if (u >= 1) return { shape: 1, melt: 0 };
-  if (u <= 0) return { shape: 0, melt: 0 };
-  const melt = liquid.melt * smooth(0, 0.2, u) * (1 - smooth(0.66, 1, u));
-  // The shape moves while melted and has settled by the time it sets.
-  const shape = spring((u - 0.1) / 0.62, liquid.overshoot);
-  return { shape, melt };
+  return envelopeInto({ shape: 0, melt: 0 }, u, liquid);
+}
+
+/** `envelope`, written into `out` (the object pass's, per object per frame: nothing is made). */
+export function envelopeInto(out: { shape: number; melt: number }, u: number, liquid: Liquid) {
+  if (u >= 1) {
+    out.shape = 1;
+    out.melt = 0;
+  } else if (u <= 0) {
+    out.shape = 0;
+    out.melt = 0;
+  } else {
+    out.melt = liquid.melt * smooth(0, 0.2, u) * (1 - smooth(0.66, 1, u));
+    // The shape moves while melted and has settled by the time it sets.
+    out.shape = spring((u - 0.1) / 0.62, liquid.overshoot);
+  }
+  return out;
 }
 
 /**
@@ -62,11 +70,22 @@ export function envelope(u: number, liquid: Liquid) {
  * damped swing rather than freezing with the melt, and the mirror leaves last.
  */
 export function motion(u: number, melt: number, liquid: Liquid) {
-  if (!styleOf(liquid).ring || u <= SETTLED) return { sway: melt, sheen: melt };
+  return motionInto({ sway: 0, sheen: 0 }, u, melt, liquid);
+}
+
+/** `motion`, written into `out`. */
+export function motionInto(out: { sway: number; sheen: number }, u: number, melt: number, liquid: Liquid) {
+  if (!styleOf(liquid).ring || u <= SETTLED) {
+    out.sway = melt;
+    out.sheen = melt;
+    return out;
+  }
   const after = (u - SETTLED) * liquid.duration;
   const peak = liquid.melt * (1 - smooth(0.66, 1, SETTLED));
   const ring = peak * Math.exp(-after / RING_DECAY) * (0.6 + 0.4 * Math.cos(2 * Math.PI * RING_HZ * after));
-  return { sway: Math.max(melt, ring), sheen: Math.sqrt(Math.max(0, melt)) * liquid.melt };
+  out.sway = Math.max(melt, ring);
+  out.sheen = Math.sqrt(Math.max(0, melt)) * liquid.melt;
+  return out;
 }
 
 /** The share u of the rising flank (0 … 0.2) at which the melt is `melt` (smoothstep inverted). */
@@ -81,10 +100,29 @@ function riseTo(melt: number, liquid: Liquid) {
  * Liquid the whole way (bubble/9, user 2026-11-06: it used to set for 0.1–0.2 s mid-way between two quick morphs);
  * it sets only as it leaves and arrives. `u`: its share of the way. */
 export function passage(u: number, source: number, own: number, target: number, liquid: Liquid) {
-  if (u >= 1) return { from: own, to: target, shape: 1, melt: 0 };
-  const melt = liquid.melt * smooth(0, 0.1, u) * (1 - smooth(0.9, 1, u));
-  if (u < 0.5) return { from: source, to: own, shape: smooth(0.04, 0.46, u), melt };
-  return { from: own, to: target, shape: smooth(0.54, 0.96, u), melt };
+  return passageInto({ from: 0, to: 0, shape: 0, melt: 0 }, u, source, own, target, liquid);
+}
+
+/** `passage`, written into `out`. */
+export function passageInto(out: { from: number; to: number; shape: number; melt: number }, u: number, source: number, own: number, target: number, liquid: Liquid) {
+  if (u >= 1) {
+    out.from = own;
+    out.to = target;
+    out.shape = 1;
+    out.melt = 0;
+    return out;
+  }
+  out.melt = liquid.melt * smooth(0, 0.1, u) * (1 - smooth(0.9, 1, u));
+  if (u < 0.5) {
+    out.from = source;
+    out.to = own;
+    out.shape = smooth(0.04, 0.46, u);
+  } else {
+    out.from = own;
+    out.to = target;
+    out.shape = smooth(0.54, 0.96, u);
+  }
+  return out;
 }
 /** One object's morph: from one field to another, started at `start` (seconds). */
 export type Morph = { from: number; to: number; start: number };

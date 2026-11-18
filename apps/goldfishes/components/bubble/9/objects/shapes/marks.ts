@@ -49,11 +49,8 @@ export const MARKS: Record<LogoKind, Mark> = {
   android: siAndroid,
 };
 
-/** A mark's brand colour, 0–1. */
-export function brandOf(kind: LogoKind): [number, number, number] {
-  const value = Number.parseInt(MARKS[kind].hex, 16);
-  return [((value >> 16) & 255) / 255, ((value >> 8) & 255) / 255, (value & 255) / 255];
-}
+// A mark's brand colour, 0–1: from brands.ts, which holds the hexes alone (the object pass takes them without the paths).
+export { brandOf } from "./brands.ts";
 
 type Point = [number, number];
 

@@ -1,11 +1,14 @@
 // The material and its surroundings, shared by the raft's spheres (foam.ts)
 // and by anything drawn in the same material (objects/): the coat (bubble/7:
-// coloured metal or lacquer under a clear coat) or the liquid film (film.ts,
+// coloured metal or lacquer under a clear coat) or a material (materials/,
 // bubble/8), the photographed room and key light, the ground. Every Look
-// parameter is a uniform of the same name, set by FoamRenderer.shade.
+// parameter (look.ts) is a uniform of the same name, set by FoamRenderer.shade.
 
-import { MATERIAL_DEFAULTS, MATERIAL_GLSL, type MaterialValues } from "./materials";
-import { MIX_DEPTH, MIX_HUE, MIX_LIGHTNESS, MIX_SATURATION, MIXED_COAT_GLSL, MIXED_COATS } from "./materials/coats";
+import { MATERIAL_GLSL } from "./materials";
+import { MIXED_COAT_GLSL } from "./materials/coats";
+import { BODY_IDS, BODY_LEVELS, BODY_OBJECT, float } from "./units";
+
+export { FACE_ENVIRONMENT, keyOnScreen, LOOK_DEFAULTS, type Colour, type Look } from "./look";
 
 // A sphere's coat: chosen, its hue drifting a little by 구슬마다 차이. (Uses hash.)
 export const COAT = /* glsl */ `
@@ -81,9 +84,9 @@ float hash(vec3 p) {
 ${COAT}
 
 // Which body a pixel of the raft's frame is, kept in the frame's alpha (0: the ground; a sphere below a half, an
-// object above), so what is drawn next can tell another body from its own (materials/surface.ts, foam.ts PRESENT).
+// object above), so what is drawn next can tell another body from its own (materials/surface.ts, programs/present.ts).
 float bodyId(float seed, float object) {
-  return (2.0 + floor(fract(seed * 7.31 + 0.137) * 120.0) + 128.0 * object) / 255.0;
+  return (2.0 + floor(fract(seed * 7.31 + 0.137) * ${float(BODY_IDS)}) + ${float(BODY_OBJECT)} * object) / ${float(BODY_LEVELS)};
 }
 
 // A sphere's own turn to the light (구슬마다 차이), as bubble/2's lobes were
@@ -209,89 +212,3 @@ void setUpWorld() {
 }
 ${MATERIAL_GLSL}
 `;
-
-/** Towards the key light, on screen (y down, z towards the camera): 50° above the horizon, turned by lightTurn, the world tilted by viewTilt. */
-export function keyOnScreen(viewTilt: number, lightTurn: number): [number, number, number] {
-  const tilt = viewTilt * (Math.PI / 2);
-  const turn = lightTurn * Math.PI * 2;
-  const elevation = (50 * Math.PI) / 180;
-  const right = Math.cos(elevation) * Math.sin(turn);
-  const north = Math.cos(elevation) * Math.cos(turn);
-  const up = Math.sin(elevation);
-  // world right (1, 0, 0), north (0, −cos, −sin), up (0, −sin, cos), on screen
-  return [right, -north * Math.cos(tilt) - up * Math.sin(tilt), -north * Math.sin(tilt) + up * Math.cos(tilt)];
-}
-
-/** 환경 6: a portrait as the whole environment (a sphere map), from Goldfishes' own tech-power faces. */
-export const FACE_ENVIRONMENT = 6;
-
-export type Colour = readonly [number, number, number];
-
-/** 섞음's coats (materials/coats.ts), as the shader's mixedCoat picks them by fract(seed × 7.31). */
-export { MIXED_COATS };
-export { mixedCoatOf } from "./materials/coats";
-
-/** The renderer's visual parameters; every one is a uniform of the same name (see the shader for each). */
-export type Look = {
-  lightColour: Colour;
-  background: Colour;
-  coating: Colour;
-  coatingMix: number;
-  /** 섞음's H, S and L (materials/coats.ts mixedCoatOf). */
-  mixHue: number;
-  mixDepth: number;
-  mixSaturation: number;
-  mixLightness: number;
-  exposure: number;
-  metalness: number;
-  roughness: number;
-  clearcoat: number;
-  variety: number;
-  viewTilt: number;
-  lightTurn: number;
-  photo: number;
-  photoStrength: number;
-  keyStrength: number;
-  keySize: number;
-  shadowLift: number;
-  groundLight: number;
-  edgeShadow: number;
-  colourBleed: number;
-  neighbourReflection: number;
-  crease: number;
-  /** 0 the coat (bubble/7, drawn by the passes); otherwise a material's id (render/materials). */
-  material: number;
-} & MaterialValues;
-
-/** bubble/2's look (its magenta steel in a photographed loft, seen from the side), in these parameters. */
-export const LOOK_DEFAULTS: Look = {
-  lightColour: [1, 1, 1],
-  background: [1, 1, 1],
-  coating: [0.92, 0.1, 0.48],
-  coatingMix: 0,
-  mixHue: MIX_HUE,
-  mixDepth: MIX_DEPTH,
-  mixSaturation: MIX_SATURATION,
-  mixLightness: MIX_LIGHTNESS,
-  exposure: 0.8,
-  metalness: 1,
-  roughness: 0.29,
-  clearcoat: 0.26,
-  variety: 1,
-  viewTilt: 1,
-  lightTurn: 0,
-  photo: 0,
-  photoStrength: 1,
-  keyStrength: 0,
-  keySize: 0.5,
-  shadowLift: 0.2,
-  groundLight: 0.15,
-  edgeShadow: 0,
-  colourBleed: 0,
-  neighbourReflection: 0.85,
-  crease: 0.5,
-  // The coat, as bubble/7; every material's uniforms at their own defaults.
-  material: 0,
-  ...MATERIAL_DEFAULTS,
-};
-
