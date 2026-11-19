@@ -8,7 +8,7 @@ One folder is one unit: a family holds its versions and its own notes, and is mo
 
 | Where | What |
 | --- | --- |
-| `components/<family>/<serial>/` | A version's code. Serials rise with creation date. Current families: `simulation`, `bubble`, `mobiles`, `native-windows`. |
+| `components/<family>/<serial>/` | A version's code. Serials rise with creation date. Current families: `screen/simulation`, `screen/bubble` (the screen's families sit under `components/screen/`, user 2026-11-19; `<family>` below includes that part), `mobiles`, `native-windows`. |
 | `components/<family>/docs/<serial>.md` | That version's notes, beside the code (`9b.md` for a route with no folder of its own). Other notes of the family sit in the same folder. |
 | `components/_experiments/<name>/<serial>/` | Light trials that may not be kept, with their `docs/` (`goldfish-mobile`). |
 | `components/screen-archive/<family>/…` | The screen families before 2026-10-20 (`default`, `2d`, `attraction-targets`, `pillars`, `media-grid`, `keyword-field`, `overlay-2d`, `overlay-3d`, `attention-print`, `tech-eyes`), each with its `docs/`. |
@@ -21,8 +21,8 @@ One folder is one unit: a family holds its versions and its own notes, and is mo
 
 Rules:
 - Experiments never import from each other, and nothing in `components/` is shared between families. The one shared import is a socket protocol's `client/` (`@/socket/experiments/feed/1/client`), picked by version in the import path; `native-windows/shared/` is shared inside its own family only.
-- A new family is a new folder under `components/` with its `docs/`, registry entries and a `families.ts` entry. A breaking protocol change copies `socket/experiments/<protocol>/<n>/` whole to `<n+1>` and registers it in `socket/experiments/index.mjs`.
-- Routes are registry keys and did not move with the folders (2026-11-13): `/screen/bubble/9` is `components/bubble/9/`. A key's first part is its area (`screen`, `pc`, `desktop`), which the index pages filter by. Archived routes are never repurposed. Dates are registry data; date archives stay at `/<area>/<MMDD>`.
+- A new family is a new folder under `components/` (a screen family under `components/screen/`) with its `docs/`, registry entries and a `families.ts` entry. A breaking protocol change copies `socket/experiments/<protocol>/<n>/` whole to `<n+1>` and registers it in `socket/experiments/index.mjs`.
+- Routes are registry keys, not folder paths, and stay when a folder moves: `/screen/bubble/9` is `components/screen/bubble/9/` (it was `components/bubble/9/` from 2026-11-13 to 11-19), `/pc/mobiles/1` is `components/mobiles/1/`. A key's first part is its area (`screen`, `pc`, `desktop`), which the index pages filter by. Archived routes are never repurposed. Dates are registry data; date archives stay at `/<area>/<MMDD>`.
 - Removed: `components/mobile/` (`mobile/keyword-grid/1–2`, 2026-09-30) with its routes and notes, on 2026-11-13 at the user's request. It is in git history at commit `14c9b1fb`.
 
 Local macOS control: `/desktop` → independent versions [1](../components/native-windows/docs/1.md), [2](../components/native-windows/docs/2.md), [3](../components/native-windows/docs/3.md) at `components/native-windows/{1,2,3}/`. Their control API stays at `/api/desktop/0915/{1,2,3}`; process control, app adapters, motion and controller primitives are shared in `components/native-windows/shared/` ([details](../components/native-windows/docs/1.md#shared-infrastructure)). [Original fixed-score history](../components/native-windows/docs/0915-desktop-a.md).
@@ -33,8 +33,8 @@ Families (the registry `components/experiments.ts` holds every route's date, phr
 
 | Family | Versions | What it is |
 | --- | --- | --- |
-| `simulation` | 0 (2026-11-18) | **The logic.** Two myopic agents, apart from any visual. [0](../components/simulation/docs/0.md) |
-| `bubble` | 1–9 (2026-10-20 → 11-05) | **The visual ground.** A raft of bubbles as objects in one material, liquid morphs, up to 1,000 goldfish with lifecycles; PageRank underneath. Current: [9](../components/bubble/docs/9.md). 9b is unlisted. |
+| `simulation` | 0 (2026-11-18) | **The logic.** Two myopic agents, apart from any visual. [0](../components/screen/simulation/docs/0.md) |
+| `bubble` | 1–9 (2026-10-20 → 11-05) | **The visual ground.** A raft of bubbles as objects in one material, liquid morphs, up to 1,000 goldfish with lifecycles; PageRank underneath. Current: [9](../components/screen/bubble/docs/9.md). 9b is unlisted. |
 | `mobiles` | 1–2 (2026-10-27/28) | One mobile per goldfish over [socket feed/1](../socket/experiments/feed/1/README.md). 1 failed ([record](../components/mobiles/docs/1.md#failure-record-and-handoff-2026-10-28)); [2](../components/mobiles/docs/2.md) was rebuilt from zero. |
 | `_experiments/goldfish-mobile` | 1 | Light trial. [1](../components/_experiments/goldfish-mobile/docs/1.md) |
 | `native-windows` | 1–3 (2026-09-15) | Real macOS windows as the field; see the paragraph above. |

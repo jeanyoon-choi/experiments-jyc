@@ -1,4 +1,4 @@
-// The yell of Goldfishes bubble/9's 소리 v1 · 군중 (apps/goldfishes/components/bubble/9/sound/
+// The yell of Goldfishes bubble/9's 소리 v1 · 군중 (apps/goldfishes/components/screen/bubble/9/sound/
 // sound-crowd.ts, 2026-10-12), ported on 2026-11-16 so this experiment stands alone.
 // One shouted "ah": a glottal pulse with a flat tilt (pressed, high-effort phonation)
 // through Csound's formant tables, three voices a few cents and milliseconds apart, a

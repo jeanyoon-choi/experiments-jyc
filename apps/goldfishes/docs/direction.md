@@ -19,12 +19,12 @@ Goldfish are people; bubbles are platforms and their algorithms; a bubble carrie
 ## Where it stands (2026-11-18)
 
 - **`bubble/` is the visual ground.** Materials, objects, the liquid morph, the goldfish and their deaths. Its logic is PageRank on purpose: a cheap engine that is already lively, there so the visuals could be worked on. Work in `bubble/` stays visual; do not "fix" its logic.
-- **`simulation/` is the logic**, begun 2026-11-18: the agents' rules on their own first, then on bubble's body. [simulation/0](../components/simulation/docs/0.md) has the engine, what was measured and the next steps.
+- **`simulation/` is the logic**, begun 2026-11-18: the agents' rules on their own first, then on bubble's body. [simulation/0](../components/screen/simulation/docs/0.md) has the engine, what was measured and the next steps.
 - **Later, in this order:** agents that differ (each fish and bubble with its own numerical disposition, changing as it interacts), then a slow semantic layer driven by AI agents. No runtime LLM calls yet: there is no budget for them and the system is not settled.
 
 ## What was tried: the model, M1–M9.1 (2026-11-14/16)
 
-A weekend of modelling in a plain 2D canvas, with the artist judging each version. None was accepted; `bubble/9` still looked better. Sources: [all versions, runnable](../components/simulation/docs/model/goldfishes-all-versions.html) and [the document](../components/simulation/docs/model/goldfishes-model.pdf) (formulas, measurements, the artist's 25 corrections).
+A weekend of modelling in a plain 2D canvas, with the artist judging each version. None was accepted; `bubble/9` still looked better. Sources: [all versions, runnable](../components/screen/simulation/docs/model/goldfishes-all-versions.html) and [the document](../components/screen/simulation/docs/model/goldfishes-model.pdf) (formulas, measurements, the artist's 25 corrections).
 
 | Version | Rule in one line | Verdict |
 |---|---|---|

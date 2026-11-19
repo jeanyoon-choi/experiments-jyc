@@ -1,4 +1,4 @@
-// The pieces every option panel is built from: bubble/9's (components/bubble/9/panels/controls.tsx), copied so this
+// The pieces every option panel is built from: bubble/9's (components/screen/bubble/9/panels/controls.tsx), copied so this
 // trial speaks the same control language (experiments stand alone: copied, not imported).
 
 import { useState, type ReactNode } from "react";

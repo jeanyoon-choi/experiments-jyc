@@ -1,4 +1,4 @@
-// The goldfish of this work (components/bubble/9/fish/goldfish-scene.ts: an ellipsoid body, a peduncle, a forked
+// The goldfish of this work (components/screen/bubble/9/fish/goldfish-scene.ts: an ellipsoid body, a peduncle, a forked
 // tail, a dorsal and two side fins, two black eyes, the same palettes), kept as that sign and made as an object one
 // could hold (user, 2026-11-13: "조금 더 hyperreal 한걸로"): the body and peduncle are one seamless glazed volume,
 // the fins the same outlines cast in tinted glass, the eyes polished and set on the sides of the head. Nothing is

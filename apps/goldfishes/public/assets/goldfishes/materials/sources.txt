@@ -2,4 +2,4 @@ leather-red-02.png
   Poly Haven "Leather Red 02" by Rob Tuytel, CC0 — https://polyhaven.com/a/leather_red_02
   From its 2k maps: a 23 cm window of the hide, cross-faded at its edges so it tiles, at 512 px.
   R, G: its normal map (OpenGL, x and y); B: the grain's height (the hide's slow wrinkles taken out; 0 crease … 1 pebble top).
-  Read by components/bubble/9/render/materials/mix.ts (맥시멀 믹스's leather) through foam.ts `plates` layer 1.
+  Read by components/screen/bubble/9/render/materials/mix.ts (맥시멀 믹스's leather) through foam.ts `plates` layer 1.

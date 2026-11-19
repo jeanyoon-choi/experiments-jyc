@@ -242,7 +242,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-10-20",
     phrase: "SCC bubble/3's PageRank foam raft and goldfish, opening on 기본값 3",
-    load: () => import("./bubble/1"),
+    load: () => import("./screen/bubble/1"),
   },
   {
     key: "screen/bubble/2",
@@ -250,7 +250,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-10-20",
     phrase: "bubble/1's raft with every bubble a lobe of Koons's coated mirror steel",
-    load: () => import("./bubble/2"),
+    load: () => import("./screen/bubble/2"),
   },
   {
     key: "screen/bubble/3",
@@ -258,7 +258,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-10-22",
     phrase: "bubble/2's raft as a material lab: physically based parameters, a view from above or the side, looks to switch between",
-    load: () => import("./bubble/3"),
+    load: () => import("./screen/bubble/3"),
   },
   {
     key: "screen/bubble/4",
@@ -267,7 +267,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     date: "2026-10-22",
     updated: "2026-10-24",
     phrase: "bubble/3 copied as the start of the goldfish's lifecycle",
-    load: () => import("./bubble/4"),
+    load: () => import("./screen/bubble/4"),
   },
   {
     key: "screen/bubble/5",
@@ -275,7 +275,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-10-25",
     phrase: "bubble/4 with its pages shown as 3D objects — AI sparkle, cloud, GPU, robot — in the bubbles' material",
-    load: () => import("./bubble/5"),
+    load: () => import("./screen/bubble/5"),
   },
   {
     key: "screen/bubble/6",
@@ -284,7 +284,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     date: "2026-10-25",
     updated: "2026-10-26",
     phrase: "bubble/5 with the web's attention bounded and tiring: it keeps churning without a few pages taking it all",
-    load: () => import("./bubble/6"),
+    load: () => import("./screen/bubble/6"),
   },
   {
     key: "screen/bubble/7",
@@ -293,7 +293,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     date: "2026-10-27",
     updated: "2026-11-07",
     phrase: "bubble/6 with an object lab: one object at a time, morphing like liquid metal from one shape into the next, its settings shared with the raft",
-    load: () => import("./bubble/7"),
+    load: () => import("./screen/bubble/7"),
   },
   {
     key: "screen/bubble/8",
@@ -302,7 +302,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     date: "2026-11-03",
     updated: "2026-11-07",
     phrase: "bubble/7 beyond Koons's steel: materials to switch (liquid, gel, plaster and marble, concrete, glass, a maximal mix), objects in groups (tech logos, celebrity heads, currency signs) and up to 1,000 goldfish",
-    load: () => import("./bubble/8"),
+    load: () => import("./screen/bubble/8"),
   },
   {
     key: "screen/bubble/9",
@@ -311,7 +311,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     date: "2026-11-05",
     updated: "2026-11-18",
     phrase: "bubble/8 with its bugs fixed, as the ground for a new vocabulary of signs",
-    load: () => import("./bubble/9"),
+    load: () => import("./screen/bubble/9"),
   },
   {
     key: "screen/simulation/0",
@@ -320,7 +320,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     section: "dated",
     date: "2026-11-18",
     phrase: "The logic apart from the visuals: two myopic agents (model M9) — goldfish after something less boring, bubbles after their own audience — and nothing new unless a finger is drawn across the field",
-    load: () => import("./simulation/0"),
+    load: () => import("./screen/simulation/0"),
   },
   {
     key: "screen/goldfish-mobile/1",

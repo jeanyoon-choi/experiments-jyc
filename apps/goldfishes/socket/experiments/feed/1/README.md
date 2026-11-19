@@ -3,7 +3,7 @@
 - Date: 2026-10-27
 - Relay: `socket/experiments/feed/1/` (`protocol.mjs`, `index.mjs`, `protocol.test.mjs`)
 - Browser: `socket/experiments/feed/1/`; the phone slots are `slots.mjs` (+ `slots.test.mjs`)
-- Speakers: [`/screen/bubble/7`](../../../../components/bubble/docs/7.md#연결-main-screen-of-socket-feed1) (screen) → [`/pc/mobiles/1`](../../../../components/mobiles/docs/1.md), [`/pc/mobiles/2`](../../../../components/mobiles/docs/2.md) (pc)
+- Speakers: [`/screen/bubble/7`](../../../../components/screen/bubble/docs/7.md#연결-main-screen-of-socket-feed1) (screen) → [`/pc/mobiles/1`](../../../../components/mobiles/docs/1.md), [`/pc/mobiles/2`](../../../../components/mobiles/docs/2.md) (pc)
 
 The main screen keeps a fixed set of phone slots, each following one goldfish, and sends what changed. The relay forwards it to every pc at once (NOTES 1023: one goldfish, one mobile).
 
