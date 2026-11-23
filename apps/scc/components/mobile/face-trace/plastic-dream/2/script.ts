@@ -97,8 +97,9 @@ export const LINES: readonly Line[] = [
 
 /**
  * Ids of the lines and laughs that have been recorded and sit in
- * /public/audio/plastic-dream/ as `<id>.mp3`. Nothing sounds until a line is
- * listed here.
+ * /public/audio/plastic-dream/ as `<id>.mp3`; only these sound. The present
+ * recordings are stand-ins made with macOS's built-in Korean voices (Yuna,
+ * Flo, Sandy), to be replaced file for file by realistic ones.
  */
-export const RECORDED: readonly string[] = [];
-export const LAUGHS: readonly string[] = [];
+export const RECORDED: readonly string[] = LINES.map((entry) => entry.id);
+export const LAUGHS: readonly string[] = ["laugh-1", "laugh-2", "laugh-3"];

@@ -6,3 +6,12 @@ face.webp
 
 Changes: a copy of public/images/scroll-rot/face.webp (the 374 x 499 crop kept in apps/goldfishes, enlarged 2x and
 cut out with that app's head mask).
+
+kim.webp
+* subject: Kim Jong-un, Vladivostok, 2019-04-25
+* source: https://commons.wikimedia.org/wiki/File:Kim_Jong-un_April_2019_(cropped).jpg (from http://www.kremlin.ru/events/president/news/60363/photos)
+* author: Alexei Nikolsky, The Presidential Press and Information Office
+* license: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0)
+
+Changes: cropped to the head (600 x 760 at 225, 40 of the 1028 x 1429 file), reduced to 520 wide, cut out with
+MediaPipe's selfie multiclass segmenter (hair plus face skin) and trimmed to the head's bounds, 463 x 563.

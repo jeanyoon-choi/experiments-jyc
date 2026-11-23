@@ -60,7 +60,7 @@ Not checked: a real mobile (safe-area insets, the marks under the iOS motion pop
 
 ## /3: more pairs under the anchors
 
-`/mobile/south-north/tv-news/3` (2026-11-23). A copy of /2 (nothing imported from it). The question is whether the anchors' relation, two broadcasts of the same kind read on one tilt, holds for other kinds of footage. /2 is the baseline. Changed variable: more South/North pairs under the anchors, one swipe each (three at first, nine by the end of the day). The tilt, the flag, the information button and the popup are /2's; the information card now names the sources of the part on screen.
+`/mobile/south-north/tv-news/3` (2026-11-23). A copy of /2 (nothing imported from it). The question is whether the anchors' relation, two broadcasts of the same kind read on one tilt, holds for other kinds of footage. /2 is the baseline. Changed variable: more South/North pairs under the anchors, one swipe each (three at first, nine by the end of the day). The tilt, the flag and the popup are /2's; /2's information button gave way to a reels rail (below).
 
 Sources and cut times are in [`public/video/south-north/tv-news/3/sources.txt`](../../../../public/video/south-north/tv-news/3/sources.txt); real footage, at the user's decision (2026-11-23), who chose these three pairs from a list of candidates. Each pair is 20 s at 30 fps in one 1216 × 1080 file, South left and North right, South's sound on the left channel and North's on the right (each side to −17 LUFS), built by `scripts/tv-news/build_pairs.py`. The 16 : 9 sources are cut to a 608 × 1080 vertical slice whose centre follows the subject shot by shot; nothing is stretched.
 
@@ -77,18 +77,26 @@ Six more pairs were added the same day, at the user's request for the other fiel
 - **dance** (7.5 MB). People dancing in the open before a monumental building: 대한문 and a Pyongyang square. The North's film is a foreign travel agency's, not a state one.
 - **missile** (6.8 MB). 현무-5 and 화성-20형 on their carriers from the front quarter; both in frame from 4 s to 14 s.
 
-Mechanism:
+Mechanism (rebuilt as a reels feed the same day, at the user's requests: play at once on the swipe "like Reels", a smoother swipe, the next reel when one ends, the action rail of [scroll-rot](../scroll-rot/README.md) on the right, the information button out):
 
-- **Scroll** (`screen.module.css`, `index.tsx`). The parts are sections of one vertical scroller with mandatory snap, one screen each. ↑ / ↓ stay the tilt keys on a desktop and do not scroll.
-- **One video.** A single video element plays the part that fills the screen (half or more of it); when another part takes over, the element's source is changed and it starts from 0. Sound is /2's graph on that one element.
-- **Stills.** Every part has a JPEG of its first frame. A part that is not playing shows its still, mixed by the same share, so a part coming up under the finger is not black and the video joins at the frame the still shows.
-- **Picture.** Each part near the screen has its own canvas and WebGL context running /1's renderer; parts more than one away have no canvas, and their context is given up (`REACH` in `index.tsx`), so ten parts hold three contexts. The anchors keep their measured track; the other pairs have no corresponding points, so they use a four-corner track that does not move (`plainTrack`): a mix in linear light of two pictures cut to the same place, not a morph.
+- **Pager** (`pager.ts`). The track follows the finger and settles on a page with UIScrollView's paging spring; logic and constants are copied from `scroll-rot/eye/2`'s scene (nothing imported). A wheel, PageDown/PageUp or Space turn a page on a desktop; ↑ / ↓ stay the tilt keys. The feed has no end: reel n shows part n mod 10.
+- **Videos.** Three video elements take turns; reel n uses element n mod 3, so the reel on screen and its two neighbours never share one. The neighbours are loaded and wait on their first frame. The page is decided when the finger lets go, and its video starts then, while the page is still sliding in. A reel that plays to its end turns the page (or plays again if a finger holds the track). A watch in the frame loop restarts the playing video if anything paused it.
+- **Sound** (`sound.ts`). One audio context; each of the three elements is split into its two sides as in /1 and only the one playing is let through. Sound is unlocked on a finished touch (`pointerup`) or a key: on the first one, every element is started and the waiting ones stopped again, so that later reels may start with sound without a touch. If a browser still refuses to start a reel with sound, it is started muted and gets its sound back on the next touch.
+- **Stills.** Every part has a JPEG of its first frame. A reel that is not playing shows its still, mixed by the same share, so a reel coming up under the finger is not black and the video joins at the frame the still shows.
+- **Picture.** The reel on screen and two on either side exist, each with its own canvas and WebGL context running /1's renderer (five contexts; a reel further away is unmounted and its context given up). The anchors keep their measured track; the other pairs have no corresponding points, so they use a four-corner track that does not move (`plainTrack`): a mix in linear light of two pictures cut to the same place, not a morph.
+- **Rail.** Like, comment, repost and share with scroll-rot's glyphs, geometry and count formula (`reels/`, copied). Like and repost toggle; comment and share open nothing yet. The flag stays lower left.
 
-Useful failure (2026-11-23): the first cut gave every part its own video element, played every part touching the screen (an observer counts a neighbour that only shares an edge), and on the first touch started all of them unmuted. The user reported videos stopping and not playing properly. A mobile lets one video sound at a time and decodes few at once, so each start could stop another and nothing started it again. Hence the one video.
+Useful failures (2026-11-23), both reported by the user as videos stopping or not starting on the scroll:
+- The first cut gave every part its own video element, played every part touching the screen and, on the first touch, started all of them unmuted.
+- The second cut had one video element whose source changed once a part was half on screen: nothing was loaded ahead, so each part began with a wait.
+- Found while measuring: sound was unlocked on `pointerdown`. A touch that has only begun is not yet a user gesture, and Chrome pauses a muted autoplaying video that is unmuted without one; the first touch stopped the video. /1 and /2 still unlock on `pointerdown`.
+- An element carrying the `autoplay` attribute starts by itself whenever it is handed a new source; the first element did, and two reels played at once. The attribute is cleared after the first start.
 
-Checked, 2026-11-23: typecheck and lint; all nine files by frame sheets every 2 s (subject inside the slice in every shot, the stated cuts aligned). Not checked in a browser: the connected browser refused the local certificate that day, at every attempt. So the fix above is reasoned from the code, not observed; the scroll snap, the change of source and its delay, frame timing during a swipe, and everything on a real mobile are open.
+Checked, 2026-11-23, headless Chrome on the Mac with a throwaway profile, 390 × 844 at 2×, touch emulated (the connected browser refused the local certificate that day): after the popup's tap, six swipes in a row each had the next reel playing 60 ms after the finger left (0.04–0.06 s into the video) and no other video running; a reel seeked to its last 0.6 s handed over to the next; two flicks 120 ms apart landed two reels on with only that one playing; like toggled. 413 frames across the six swipes: median 16.7 ms, 95th percentile 16.8 ms, max 16.8 ms. All nine files by frame sheets every 2 s.
 
-Unresolved for /3: nothing tells a first-time viewer that there is more below; the new pairs only cross-fade; a part restarts from 0 each time it is returned to; the folder is 80 MB.
+Not checked: a real mobile. Above all iOS Safari: whether the waiting elements start with sound after the first touch, how many decoders and WebGL contexts it allows, and the frame timing of a real device.
+
+Unresolved for /3: nothing tells a first-time viewer that there is more below; the new pairs only cross-fade; a reel starts from 0 each time it is returned to; the folder is 80 MB; the 현무-5 caption of the KBS broadcast shows in the missile reel's lower left; comment and share have no sheets.
 
 ## Unresolved
 

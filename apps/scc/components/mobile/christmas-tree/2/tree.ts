@@ -68,7 +68,7 @@ export function plantTree(seed = 1225): Leaf[] {
           z: Math.sin(azimuth) * out,
           azimuth,
           slope,
-          lean: 0.2 + random() * 0.14,
+          lean: 0.28 + random() * 0.14,
           roll: (random() - 0.5) * 0.36,
           size: size * (0.86 + random() * 0.28),
         });

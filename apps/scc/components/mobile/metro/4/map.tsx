@@ -41,13 +41,29 @@ type Panner = { kind: "pan"; x: number; y: number };
  * next stations, line by line, in real time. A released station stays where
  * it was put and the rest settles around it.
  */
-export function MetroMap({ scene, hidden, rideTo }: { scene: Scene; hidden: boolean; /** 소요시간: the station rides are shown to, or null. */ rideTo: string | null }) {
+export function MetroMap({
+  scene,
+  hidden,
+  rideTo,
+  onRides,
+}: {
+  scene: Scene;
+  hidden: boolean;
+  /** 소요시간: the station rides are shown to, or null. */
+  rideTo: string | null;
+  /** Called with each frame drawn while rides are shown: the chosen station's node and the rides to it as printed. */
+  onRides?: (origin: number, printed: Map<number, number>) => void;
+}) {
   const pageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const miniRef = useRef<HTMLCanvasElement>(null);
   const zoomRef = useRef<(ratio: number) => void>(() => {});
   const wakeRef = useRef<() => void>(() => {});
   const rideRef = useRef<{ origin: number; printed: Map<number, number> } | null>(null);
+  const onRidesRef = useRef(onRides);
+  useEffect(() => {
+    onRidesRef.current = onRides;
+  }, [onRides]);
 
   // The rides as printed are worked out once per chosen station; the frame scales them by the map as it lies.
   useEffect(() => {
@@ -106,7 +122,10 @@ export function MetroMap({ scene, hidden, rideTo }: { scene: Scene; hidden: bool
       labels.frozen = now - zoomedAt < ZOOM_SETTLE_MS;
       const unfinished = draw(ctx, scene, labels, cam, view) && !labels.frozen;
       const ride = rideRef.current;
-      if (ride) drawRides(ctx, scene, cam, view, ride.origin, ride.printed);
+      if (ride) {
+        drawRides(ctx, scene, cam, view, ride.origin, ride.printed);
+        onRidesRef.current?.(ride.origin, ride.printed);
+      }
       if (mini && miniCtx) {
         const side = Math.round(MINIMAP_PX * view.dpr);
         if (mini.width !== side) {

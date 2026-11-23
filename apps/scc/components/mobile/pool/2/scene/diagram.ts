@@ -1,6 +1,6 @@
 // The same table as a drawing: white line on black, nothing else. Every ball is a circle with its
 // company's ticker where the table shows a face, and every tie of money between two of them is a
-// line between their circles, running the way the money runs. The ties are always there, faintly;
+// line between their middles, laid through the circles, running the way the money runs. The ties are always there, faintly;
 // one comes forward as its two balls come together, and for a moment after they strike, and is
 // then written out in the ledger. Nothing here moves by itself: the balls are where the table has
 // them, so what is read off the drawing is whatever the hand has just thrown together.
@@ -20,7 +20,7 @@ const TYPE = 'ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospac
 const MAX_RATIO = 2.5;
 /** A tie is faint until its balls are closer than this (m between their surfaces). */
 const REACH = 0.5;
-const FAINT = 0.15;
+const FAINT = 0.3;
 /** A strike keeps its tie forward for this long (s). */
 const HEAT = 2.6;
 /** How fast the dashes travel along a tie, payer to payee (CSS px/s). */
@@ -162,46 +162,45 @@ export function createDiagram(canvas: HTMLCanvasElement) {
       const amount = Math.max(near * near, hot);
       forward[i] = amount;
 
+      // Middle to middle, straight through the circles: two balls lying together still show their tie.
       const p = at[r.from];
       const q = at[r.to];
       const dx = q.x - p.x;
       const dy = q.y - p.y;
-      const size = Math.hypot(dx, dy);
-      if (size < radius * 2 + 2) continue;
+      const size = Math.hypot(dx, dy) || 1;
       const ux = dx / size;
       const uy = dy / size;
-      const sx = p.x + ux * radius;
-      const sy = p.y + uy * radius;
-      const ex = q.x - ux * radius;
-      const ey = q.y - uy * radius;
-      // A bow leans to its own left, so the two of a pair lean apart.
-      const lean = bowed[i] ? Math.min(26, (size - radius * 2) * 0.22) : 0;
-      const cx = (sx + ex) / 2 + uy * lean;
-      const cy = (sy + ey) / 2 - ux * lean;
+      // A bow leans to its own left, so the two of a pair lean apart and close a loop.
+      const lean = bowed[i] ? Math.min(30, size * 0.24) : 0;
+      const cx = (p.x + q.x) / 2 + uy * lean;
+      const cy = (p.y + q.y) / 2 - ux * lean;
       g.globalAlpha = FAINT + (1 - FAINT) * amount;
       g.lineWidth = 0.75 + amount * 0.55 * r.weight;
       g.setLineDash(DASH[r.kind]);
       g.lineDashOffset = -travelled;
       g.beginPath();
-      g.moveTo(sx, sy);
-      g.quadraticCurveTo(cx, cy, ex, ey);
+      g.moveTo(p.x, p.y);
+      g.quadraticCurveTo(cx, cy, q.x, q.y);
       g.stroke();
-      // The head, on the payee.
-      const hx = ex - cx;
-      const hy = ey - cy;
+      // The head, past the middle, pointing at the payee.
+      const t = 0.62;
+      const mx = (1 - t) * (1 - t) * p.x + 2 * (1 - t) * t * cx + t * t * q.x;
+      const my = (1 - t) * (1 - t) * p.y + 2 * (1 - t) * t * cy + t * t * q.y;
+      const hx = (1 - t) * (cx - p.x) + t * (q.x - cx);
+      const hy = (1 - t) * (cy - p.y) + t * (q.y - cy);
       const hs = Math.hypot(hx, hy) || 1;
-      const head = 4 + amount * 3;
+      const head = 3.5 + amount * 3;
       const tx = hx / hs;
       const ty = hy / hs;
       g.setLineDash([]);
       g.beginPath();
-      g.moveTo(ex - tx * head - ty * head * 0.5, ey - ty * head + tx * head * 0.5);
-      g.lineTo(ex, ey);
-      g.lineTo(ex - tx * head + ty * head * 0.5, ey - ty * head - tx * head * 0.5);
+      g.moveTo(mx - tx * head - ty * head * 0.55, my - ty * head + tx * head * 0.55);
+      g.lineTo(mx, my);
+      g.lineTo(mx - tx * head + ty * head * 0.55, my - ty * head - tx * head * 0.55);
       g.stroke();
     }
 
-    // The balls, over the ties: a circle, the way it is heading, and its ticker upright.
+    // The balls, laid over the ties: a circle, the way it is heading, and its ticker upright.
     g.setLineDash([]);
     g.lineCap = "butt";
     g.textAlign = "center";
@@ -225,8 +224,6 @@ export function createDiagram(canvas: HTMLCanvasElement) {
       }
       g.beginPath();
       g.arc(p.x, p.y, radius, 0, Math.PI * 2);
-      g.fillStyle = GROUND;
-      g.fill();
       g.stroke();
       if (ball.id === 0) {
         // The one that is not a company.
@@ -235,8 +232,13 @@ export function createDiagram(canvas: HTMLCanvasElement) {
         g.stroke();
       }
       const code = CODES[ball.id];
+      const type = (code.length > 5 ? 7.5 : code.length > 4 ? 8.5 : 9.5) * scale;
+      g.font = `600 ${type}px ${TYPE}`;
+      // The ticker is cut clear of the lines that run under it.
+      const wide = g.measureText(code).width + 5;
+      g.fillStyle = GROUND;
+      g.fillRect(p.x - wide / 2, p.y - type * 0.75, wide, type * 1.5);
       g.fillStyle = INK;
-      g.font = `600 ${(code.length > 5 ? 7.5 : code.length > 4 ? 8.5 : 9.5) * scale}px ${TYPE}`;
       g.fillText(code, p.x, p.y + 0.5);
     }
 
@@ -252,14 +254,18 @@ export function createDiagram(canvas: HTMLCanvasElement) {
       const r = RELATIONS[i];
       const text = `${CODES[r.from]} → ${CODES[r.to]}  ${r.label}`;
       const y = top + n * 15;
+      // Written over whatever lies there, with only its own letters cut clear.
       g.globalAlpha = 1;
-      g.fillStyle = GROUND;
-      g.fillRect(left - 4, y - 2, g.measureText(text).width + 8, 15);
-      g.globalAlpha = 0.45 + 0.55 * Math.min(1, (forward[i] - WRITTEN) / (1 - WRITTEN) + 0.2);
+      g.lineWidth = 3;
+      g.lineJoin = "round";
+      g.strokeStyle = GROUND;
+      g.strokeText(text, left, y);
+      g.globalAlpha = 0.5 + 0.5 * Math.min(1, (forward[i] - WRITTEN) / (1 - WRITTEN) + 0.2);
       g.fillStyle = INK;
       g.fillText(text, left, y);
     }
     g.globalAlpha = 1;
+    g.strokeStyle = INK;
     return live;
   };
 

@@ -1,13 +1,13 @@
 import type { Scene } from "../scene";
 import { CENTRES, MAJOR, type Ride, ridesTo } from "../travel";
-import { PRESS, headline } from "./headlines";
+import { PRESS, body, headline, reporter } from "./headlines";
 import { PHOTOS } from "./photos";
 
 // The 부동산 archive. Every time the tab is opened, the rides that have
 // changed since they were last reported become reports, newest on top; what
 // was reported before stays underneath. Nothing is ever taken out.
 
-export type Item = { key: number; title: string; press: string; photo: string; at: number; comments: number };
+export type Item = { key: number; title: string; body: string[]; press: string; reporter: string; photo: string; at: number; comments: number };
 
 export type Archive = {
   items: Item[];
@@ -39,7 +39,9 @@ function report(archive: Archive, station: string, centre: string, before: numbe
   archive.items.unshift({
     key: archive.next,
     title: headline({ station, centre, before, now }, random),
+    body: body({ station, centre, before, now }, random),
     press: PRESS[Math.floor(random() * PRESS.length)],
+    reporter: reporter(random),
     photo,
     at,
     comments: Math.floor(8 + random() * 60 + Math.abs(now - before) * (4 + random() * 9)),

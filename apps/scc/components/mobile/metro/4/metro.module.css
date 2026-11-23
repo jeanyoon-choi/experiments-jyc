@@ -138,7 +138,7 @@
   color: #fff;
 }
 
-/* 소요시간: the major stations to count rides to, one scrolling line over the top of the map. */
+/* 소요시간: the four stations to count rides to, each with its own ride to the chosen one, in one line over the top of the map. */
 .picker {
   position: absolute;
   top: 0;
@@ -158,7 +158,7 @@
 .pick {
   flex: none;
   height: 36px;
-  padding: 0 14px;
+  padding: 0 12px;
   border: 0;
   border-radius: 999px;
   background: #fff;
@@ -172,9 +172,55 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+.pickMinutes {
+  margin-left: 5px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
 .pick[aria-selected="true"] {
   background: #000;
   color: #fff;
+}
+
+/* 소요시간: one line above the tabs — the rides that changed most; absent while nothing has moved. */
+.movers {
+  position: absolute;
+  right: 12px;
+  bottom: calc(72px + env(safe-area-inset-bottom));
+  left: 12px;
+  display: flex;
+  gap: 14px;
+  overflow: hidden;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.16),
+    0 3px 10px rgb(0 0 0 / 0.12);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 34px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.movers:empty {
+  display: none;
+}
+
+.movers span {
+  flex: none;
+}
+
+.movers b[data-way="up"] {
+  color: #e02d2d;
+}
+
+.movers b[data-way="down"] {
+  color: #1c64e0;
 }
 
 .times {

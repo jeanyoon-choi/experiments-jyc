@@ -10,11 +10,12 @@ const ago = (at: number, now: number) => {
 };
 
 /** The archive as a news list: thumbnail, two-line headline, outlet · time · comments. */
-export function News({ items, now }: { items: Item[]; now: number }) {
+export function News({ items, now, onOpen }: { items: Item[]; now: number; onOpen: (item: Item) => void }) {
   return (
     <ul className={styles.news}>
       {items.map((item) => (
-        <li key={item.key} className={styles.item}>
+        <li key={item.key}>
+          <button type="button" className={styles.item} onClick={() => onOpen(item)}>
           <span className={styles.thumb}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={photoUrl(item.photo)} alt="서울의 아파트 단지. 자료사진." width={110} height={75} loading="lazy" />
@@ -34,6 +35,7 @@ export function News({ items, now }: { items: Item[]; now: number }) {
               </span>
             </span>
           </span>
+          </button>
         </li>
       ))}
     </ul>

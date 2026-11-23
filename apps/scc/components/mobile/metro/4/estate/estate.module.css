@@ -1,12 +1,21 @@
-.heading {
-  margin: 0 0 12px;
-  padding: 6px 0;
-  font-size: 22px;
-  font-weight: 700;
+/* 공시가격 / 기사: stays at the top of the scroll and jumps between the two parts. */
+.estate {
+  padding-top: 0;
+}
+
+.parts {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0 -20px 4px;
+  padding: calc(env(safe-area-inset-top) + 12px) 20px 6px;
+  background: #fff;
 }
 
 .below {
-  margin-top: 36px;
+  margin-top: 28px;
+  padding-top: 8px;
+  border-top: 1px solid #231f20;
 }
 
 /* 기사: the row of a portal news list — thumbnail, two-line headline, outlet · time · comments. */
@@ -19,12 +28,19 @@
 .item {
   display: flex;
   align-items: center;
+  width: 100%;
   min-height: 75px;
   padding: 11px 0;
+  border: 0;
   border-top: 1px solid #f2f2f2;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.item:first-child {
+li:first-child > .item {
   border-top: 0;
 }
 
@@ -114,4 +130,113 @@
   min-width: 4.2em;
   text-align: right;
   font-weight: 600;
+}
+
+/* A report opened: the article page of the same portal. */
+.article {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: env(safe-area-inset-top) 0 calc(84px + env(safe-area-inset-bottom));
+  background: #fff;
+}
+
+.back {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 52px;
+  margin-left: 4px;
+  border: 0;
+  background: none;
+  color: #231f20;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.endTop {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 16px 0;
+}
+
+.endPressMark {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #2e2e2e;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.endPress {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 22px;
+}
+
+.endTitle {
+  margin: 0 15px;
+  padding: 5px 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 36px;
+  letter-spacing: -0.3px;
+  word-break: keep-all;
+}
+
+.endInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 15px 0;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.endName {
+  font-weight: 600;
+  color: #2e2e2e;
+}
+
+.endDate {
+  color: #737373;
+}
+
+.endBody {
+  padding: 30px 15px 0;
+  font-size: 21px;
+  line-height: 1.62;
+  letter-spacing: -0.4px;
+  color: #303038;
+}
+
+.endBody p {
+  margin: 0 0 30px;
+}
+
+.endPhoto {
+  margin: 0 -15px 20px;
+}
+
+.endPhoto img {
+  display: block;
+  width: 100%;
+}
+
+.endPhoto figcaption {
+  margin: 14px 15px 0;
+  font-size: 15px;
+  line-height: 21px;
+  color: #767678;
+}
+
+.endBody .endCopyright {
+  font-size: 13px;
+  line-height: 18px;
+  color: #737373;
 }

@@ -277,6 +277,9 @@ export default function TvNewsThree() {
         setLive(page);
       },
     });
+    // The first element starts by its attribute, before this code runs; from
+    // here on nothing may start by itself when it is handed a new reel.
+    SLOTS.forEach((slot) => { videos[slot].autoplay = false; });
     hold(1);
     kick();
 

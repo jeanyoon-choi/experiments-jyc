@@ -1,10 +1,14 @@
 import * as THREE from "three";
 import { TREE_RADIUS, TREE_TOP, plantTree } from "./tree";
 
-// Photo: The White House / Andrea Hanks, public domain (see public/images/christmas-tree/license.txt).
-const FACE_URL = "/images/christmas-tree/face.webp";
-// The same photograph as a relief head, built by build-model.mjs. Raise ?v= when its output changes.
-const HEAD_URL = "/3d/christmas-tree/face.json?v=6";
+// Whose head fills the tree. Each is a cut-out photograph and the same photograph as a relief head,
+// built by build-model.mjs (credits in public/images/christmas-tree/license.txt). Raise ?v= when a
+// build's output changes.
+export const FACES = [
+  { id: "zuckerberg", label: "저커버그", name: "마크 저커버그", image: "/images/christmas-tree/face.webp", head: "/3d/christmas-tree/zuckerberg.json?v=2" },
+  { id: "kim", label: "김정은", name: "김정은", image: "/images/christmas-tree/kim.webp", head: "/3d/christmas-tree/kim.json?v=2" },
+] as const;
+export type FaceId = (typeof FACES)[number]["id"];
 const MAX_DPR = 2;
 // Resolution governor, as in /1: when frames keep running late the canvas drops a step and stays there.
 const SLOW_MS = 22; // a frame later than this missed 60 Hz
@@ -22,7 +26,7 @@ const HIGHEST = 1.35; // rad, nearly from straight above
 
 type Head = { positions: number[]; uvs: number[]; indices: number[] };
 
-export function createTree(host: HTMLElement) {
+export function createTree(host: HTMLElement, first: FaceId) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
   let ratio = Math.min(window.devicePixelRatio || 1, MAX_DPR);
   const minRatio = Math.min(ratio, MIN_DPR);
@@ -45,62 +49,91 @@ export function createTree(host: HTMLElement) {
   const top = TREE_TOP + TOPPER * 0.8;
   const middle = top / 2;
 
-  const texture = new THREE.TextureLoader().load(FACE_URL);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 4;
   // the backs show from above, from under the boughs and behind the one at the top
-  const material = new THREE.MeshLambertMaterial({ map: texture, side: THREE.DoubleSide });
+  const material = new THREE.MeshLambertMaterial({ alphaTest: 0.5, side: THREE.DoubleSide });
 
   const tree = new THREE.Group();
   const topper = new THREE.Group();
   topper.position.set(0, TREE_TOP + TOPPER * 0.3, 0);
   scene.add(tree, topper);
 
-  // every head is one instance of the same relief
-  let disposed = false;
-  let geometry: THREE.BufferGeometry | null = null;
-  let heads: THREE.InstancedMesh | null = null;
-  fetch(HEAD_URL)
-    .then((response) => response.json() as Promise<Head>)
-    .then((head) => {
-      if (disposed) return;
-      geometry = new THREE.BufferGeometry();
-      geometry.setAttribute("position", new THREE.Float32BufferAttribute(head.positions, 3));
-      geometry.setAttribute("uv", new THREE.Float32BufferAttribute(head.uvs, 2));
-      geometry.setIndex(head.indices);
-      geometry.computeVertexNormals();
+  // every head is one instance of the same relief; where each sits does not depend on whose it is
+  const leaves = plantTree();
+  const placement = new THREE.InstancedBufferAttribute(new Float32Array(leaves.length * 16), 16);
+  {
+    const matrix = new THREE.Matrix4();
+    const basis = new THREE.Matrix4();
+    const tip = new THREE.Matrix4();
+    const roll = new THREE.Matrix4();
+    const along = new THREE.Vector3();
+    const normal = new THREE.Vector3();
+    const across = new THREE.Vector3();
+    const size = new THREE.Vector3();
+    leaves.forEach((leaf, i) => {
+      const cx = Math.cos(leaf.azimuth);
+      const cz = Math.sin(leaf.azimuth);
+      const s = Math.sin(leaf.slope);
+      const c = Math.cos(leaf.slope);
+      along.set(-cx * s, c, -cz * s); // up the skirt
+      normal.set(cx * c, s, cz * c); // out of it
+      across.crossVectors(along, normal);
+      basis.makeBasis(across, along, normal).setPosition(leaf.x, leaf.y, leaf.z);
+      tip.makeRotationX(leaf.lean);
+      roll.makeRotationZ(leaf.roll);
+      matrix.copy(basis).multiply(tip).multiply(roll).scale(size.setScalar(leaf.size));
+      matrix.toArray(placement.array, i * 16);
+    });
+  }
 
-      const leaves = plantTree();
-      heads = new THREE.InstancedMesh(geometry, material, leaves.length);
-      const matrix = new THREE.Matrix4();
-      const basis = new THREE.Matrix4();
-      const tip = new THREE.Matrix4();
-      const roll = new THREE.Matrix4();
-      const along = new THREE.Vector3();
-      const normal = new THREE.Vector3();
-      const across = new THREE.Vector3();
-      const size = new THREE.Vector3();
-      leaves.forEach((leaf, i) => {
-        const cx = Math.cos(leaf.azimuth);
-        const cz = Math.sin(leaf.azimuth);
-        const s = Math.sin(leaf.slope);
-        const c = Math.cos(leaf.slope);
-        along.set(-cx * s, c, -cz * s); // up the skirt
-        normal.set(cx * c, s, cz * c); // out of it
-        across.crossVectors(along, normal);
-        basis.makeBasis(across, along, normal).setPosition(leaf.x, leaf.y, leaf.z);
-        tip.makeRotationX(leaf.lean);
-        roll.makeRotationZ(leaf.roll);
-        matrix.copy(basis).multiply(tip).multiply(roll).scale(size.setScalar(leaf.size));
-        heads!.setMatrixAt(i, matrix);
+  let disposed = false;
+  let heads: THREE.InstancedMesh | null = null;
+  let star: THREE.Mesh | null = null;
+  const loaded = new Map<FaceId, Promise<{ geometry: THREE.BufferGeometry; texture: THREE.Texture }>>();
+  const load = (id: FaceId) => {
+    let entry = loaded.get(id);
+    if (!entry) {
+      const face = FACES.find((item) => item.id === id)!;
+      entry = Promise.all([
+        fetch(face.head).then((response) => response.json() as Promise<Head>),
+        new THREE.TextureLoader().loadAsync(face.image),
+      ]).then(([head, texture]) => {
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.anisotropy = 4;
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute("position", new THREE.Float32BufferAttribute(head.positions, 3));
+        geometry.setAttribute("uv", new THREE.Float32BufferAttribute(head.uvs, 2));
+        geometry.setIndex(head.indices);
+        geometry.computeVertexNormals();
+        return { geometry, texture };
       });
-      heads.instanceMatrix.needsUpdate = true;
-      tree.add(heads);
-      const star = new THREE.Mesh(geometry, material);
-      star.scale.setScalar(TOPPER);
-      topper.add(star);
-    })
-    .catch(() => {});
+      loaded.set(id, entry);
+    }
+    return entry;
+  };
+  let wanted: FaceId = first;
+  const setFace = (id: FaceId) => {
+    wanted = id;
+    load(id)
+      .then(({ geometry, texture }) => {
+        // a later choice may have overtaken this one while it loaded
+        if (disposed || wanted !== id) return;
+        material.map = texture;
+        material.needsUpdate = true;
+        if (!heads || !star) {
+          heads = new THREE.InstancedMesh(geometry, material, leaves.length);
+          heads.instanceMatrix = placement;
+          tree.add(heads);
+          star = new THREE.Mesh(geometry, material);
+          star.scale.setScalar(TOPPER);
+          topper.add(star);
+        } else {
+          heads.geometry = geometry;
+          star.geometry = geometry;
+        }
+      })
+      .catch(() => {});
+  };
+  setFace(first);
 
   let angle = 0;
   let elevation = ELEVATION;
@@ -211,6 +244,7 @@ export function createTree(host: HTMLElement) {
   });
 
   return {
+    setFace,
     dispose() {
       disposed = true;
       renderer.setAnimationLoop(null);
@@ -221,9 +255,13 @@ export function createTree(host: HTMLElement) {
       host.removeEventListener("pointercancel", onUp);
       host.removeEventListener("wheel", onWheel);
       heads?.dispose();
-      geometry?.dispose();
       material.dispose();
-      texture.dispose();
+      for (const entry of loaded.values()) {
+        void entry.then(({ geometry, texture }) => {
+          geometry.dispose();
+          texture.dispose();
+        }).catch(() => {});
+      }
       renderer.dispose();
       canvas.remove();
     },

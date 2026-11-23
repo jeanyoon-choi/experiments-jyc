@@ -1,11 +1,13 @@
 // Builds the relief head: node components/mobile/christmas-tree/2/build-model.mjs  (from apps/scc)
 //
-// The head is the same photograph /1 shows flat (public/images/christmas-tree/face.webp), given the depth
-// the photograph itself implies. face-source.json holds what was measured from it, once, in a browser:
+// Each head is a cut-out photograph (public/images/christmas-tree/, credits in license.txt), given the
+// depth the photograph itself implies. faces/<name>.json holds what was measured from it, once, in a browser:
 //   pts      MediaPipe Face Landmarker's 468 face points on the cut-out, in its pixels; z in the same
 //            pixels, smaller = nearer the camera (the model served at /models/gaze-tracking)
 //   tess     the landmarker's own mesh edges (FACE_LANDMARKS_TESSELATION)
 //   outline  the cut-out's silhouette, 96 points traced outward from its centre, 2.5 px inside the edge
+// The Kim Jong-un cut-out itself was made in the same pass: MediaPipe's selfie multiclass segmenter, hair
+// plus face skin, on the head cropped from the Commons portrait.
 //
 // The mesh is a height field over the picture: the landmarks that face the camera keep their measured
 // depth; the silhouette lies back behind them; hair, ear and neck, which the landmarker does not know,
@@ -15,16 +17,19 @@ import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 const here = import.meta.dirname;
-const OUT = path.resolve(here, "../../../../public/3d/christmas-tree/face.json");
-const { w, h, pts, tess, outline } = JSON.parse(readFileSync(path.join(here, "face-source.json"), "utf8"));
+const FACES = ["zuckerberg", "kim"]; // faces/<name>.json in, public/3d/christmas-tree/<name>.json out
 
 const FILL_STEP = 30; // px between the points added over hair, ear and neck
 const CLEAR = 15; // px a filler keeps from any landmark or the silhouette
 const RIM_BACK = 0.3; // how far behind the front of the face the silhouette lies at most, of the face's width
 const RIM_FALL = 0.6; // px the silhouette drops back per px it stands off the nearest landmark
-const FACING = 0.2; // a landmark seen more edge-on than this is left to the membrane
+const FACING = 0.5; // a landmark seen more edge-on than this is left to the membrane
 const INFLATE = 2.0; // px a free point rises over the mean of its neighbours, each pass
 const DEPTH = 0.7; // of the landmarker's own depth: at full depth the walls of the nose, which the photograph never saw, smear
+
+function build(name) {
+const OUT = path.resolve(here, `../../../../public/3d/christmas-tree/${name}.json`);
+const { w, h, pts, tess, outline } = JSON.parse(readFileSync(path.join(here, "faces", `${name}.json`), "utf8"));
 
 // --- which landmarks face the camera ------------------------------------------------------
 // triangles of the landmarker's mesh: every three points joined pairwise
@@ -38,6 +43,40 @@ for (let a = 0; a < pts.length; a += 1) for (const b of linked[a]) if (b > a) fo
 // The far cheek is turned away and folds under the near one in the picture. A point stays when the
 // mesh round it, taken as a whole, is seen from its front; the mesh's handedness is read off the
 // triangles nearest the camera, which certainly are.
+// The cliques come in no particular winding. Wind them alike: across a shared edge, two triangles of
+// one surface run that edge in opposite directions.
+{
+  const byEdge = new Map();
+  faceTriangles.forEach((t, index) => {
+    for (let k = 0; k < 3; k += 1) {
+      const p = t[k];
+      const q = t[(k + 1) % 3];
+      const key = p < q ? `${p},${q}` : `${q},${p}`;
+      if (!byEdge.has(key)) byEdge.set(key, []);
+      byEdge.get(key).push(index);
+    }
+  });
+  const runs = (t, p, q) => t.some((value, k) => value === p && t[(k + 1) % 3] === q);
+  const seen = new Uint8Array(faceTriangles.length);
+  for (let start = 0; start < faceTriangles.length; start += 1) {
+    if (seen[start]) continue;
+    seen[start] = 1;
+    const queue = [start];
+    while (queue.length) {
+      const t = faceTriangles[queue.pop()];
+      for (let k = 0; k < 3; k += 1) {
+        const p = t[k];
+        const q = t[(k + 1) % 3];
+        for (const other of byEdge.get(p < q ? `${p},${q}` : `${q},${p}`)) {
+          if (seen[other]) continue;
+          seen[other] = 1;
+          if (runs(faceTriangles[other], p, q)) faceTriangles[other].reverse();
+          queue.push(other);
+        }
+      }
+    }
+  }
+}
 const cross = ([a, b, c]) => (pts[b][0] - pts[a][0]) * (pts[c][1] - pts[a][1]) - (pts[b][1] - pts[a][1]) * (pts[c][0] - pts[a][0]);
 const depthOf = (t) => (pts[t[0]][2] + pts[t[1]][2] + pts[t[2]][2]) / 3;
 const nearest = [...faceTriangles].sort((s, t) => depthOf(s) - depthOf(t)).slice(0, 80);
@@ -47,7 +86,7 @@ for (const t of faceTriangles) {
   const [a, b, c] = t.map((i) => pts[i]);
   const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
   const v = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
-  const n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], (u[0] * v[1] - u[1] * v[0]) * hand];
+  const n = [(u[1] * v[2] - u[2] * v[1]) * hand, (u[2] * v[0] - u[0] * v[2]) * hand, (u[0] * v[1] - u[1] * v[0]) * hand];
   for (const i of t) for (let k = 0; k < 3; k += 1) normals[i][k] += n[k];
 }
 // how squarely each point faces the camera: 1 head on, 0 edge on, negative turned away
@@ -87,6 +126,7 @@ const edgeDistance = (x, y) => {
   return best;
 };
 
+if (process.env.DEBUG) console.log(name, "unfacing", facing.filter((f) => f < FACING).length, "hidden", hidden.filter(Boolean).length, "outside", pts.filter(([x, y]) => !inside(x, y, outline)).length, "edge", pts.filter(([x, y]) => edgeDistance(x, y) < 6).length, "hand", hand);
 // --- points -------------------------------------------------------------------------------
 // each: [x, y, z toward the viewer, fixed?]
 const points = [];
@@ -194,4 +234,7 @@ for (const [x, y, z] of points) {
 }
 writeFileSync(OUT, JSON.stringify({ positions, uvs, indices: triangles.flat() }));
 const depths = points.map((p) => (p[2] - rim) / h);
-console.log(`landmarks ${landmarkCount} of ${pts.length}, points ${points.length}, triangles ${triangles.length}, depth 0…${Math.max(...depths).toFixed(3)} of the head's height`);
+console.log(`${name}: landmarks ${landmarkCount} of ${pts.length}, points ${points.length}, triangles ${triangles.length}, depth 0…${Math.max(...depths).toFixed(3)} of the head's height`);
+}
+
+for (const name of FACES) build(name);
