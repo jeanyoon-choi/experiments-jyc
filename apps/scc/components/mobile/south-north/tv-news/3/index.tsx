@@ -8,6 +8,8 @@ import { createPager } from "./pager";
 import { PANELS } from "./panels";
 import { compactCount, reelOf } from "./reels/feed";
 import { Icon } from "./reels/glyph";
+import { CommentsSheet, ShareSheet, type Posted } from "./reels/panels";
+import sheets from "./reels/reels.module.css";
 import { createVoices } from "./sound";
 import { LEVEL_SAMPLES, leanOf, northShare, pitchOf } from "./tilt";
 import styles from "./screen.module.css";
@@ -62,6 +64,14 @@ export default function TvNewsThree() {
   /** Parts of the list the viewer has liked or reposted. */
   const [liked, setLiked] = useState<number[]>([]);
   const [reposted, setReposted] = useState<number[]>([]);
+  // The sheets over the rail: comments and share, for the part they were opened on.
+  const [sheet, setSheet] = useState<{ kind: "comments" | "share"; part: number } | null>(null);
+  const [posted, setPosted] = useState<Record<number, Posted[]>>({});
+  const [likedComments, setLikedComments] = useState<string[]>([]);
+  const [shared, setShared] = useState<Record<number, number>>({});
+  const [notice, setNotice] = useState("");
+  /** A sheet is up: the reel under it plays again at its end and does not move on. */
+  const sheetRef = useRef(false);
 
   const listen = () => {
     // The angle the mobile is held at when the reading starts is level.
@@ -244,7 +254,7 @@ export default function TvNewsThree() {
       // under a finger it plays again.
       const onEnded = () => {
         if (held[slot] !== playing) return;
-        if (!pager.step(1)) {
+        if (sheetRef.current || !pager.step(1)) {
           video.currentTime = 0;
           kick();
         }
@@ -322,6 +332,7 @@ export default function TvNewsThree() {
     const keyLean = () => (heldKeys.has("ArrowUp") ? 1 : 0) - (heldKeys.has("ArrowDown") ? 1 : 0);
     const down = (event: KeyboardEvent) => {
       unlock();
+      if (event.target instanceof Element && event.target.closest("input, [role=dialog]")) return; // typed into a sheet
       if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
       event.preventDefault();
       heldKeys.add(event.key);
@@ -401,8 +412,18 @@ export default function TvNewsThree() {
     arrangeRef.current?.(live);
   }, [live]);
 
-  const toggle = (part: number, set: (update: (list: number[]) => number[]) => void) => (
-    set((list) => (list.includes(part) ? list.filter((other) => other !== part) : [...list, part]))
+  useEffect(() => {
+    sheetRef.current = sheet !== null;
+  }, [sheet]);
+
+  useEffect(() => {
+    if (!notice) return;
+    const timer = window.setTimeout(() => setNotice(""), 1800);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
+
+  const toggle = <T,>(item: T, set: (update: (list: T[]) => T[]) => void) => (
+    set((list) => (list.includes(item) ? list.filter((other) => other !== item) : [...list, item]))
   );
   const reels: number[] = [];
   for (let reel = Math.max(0, live - REACH); reel <= live + REACH; reel += 1) reels.push(reel);
@@ -446,17 +467,17 @@ export default function TvNewsThree() {
                       <Icon name="heart" size={28} filled={isLiked} />
                       <small>{compactCount(counts.likes + Number(isLiked))}</small>
                     </button>
-                    <button type="button" aria-label="댓글">
+                    <button type="button" aria-label="댓글" onClick={() => setSheet({ kind: "comments", part })}>
                       <Icon name="message" size={28} />
-                      <small>{compactCount(counts.comments)}</small>
+                      <small>{compactCount(counts.comments + (posted[part]?.length ?? 0))}</small>
                     </button>
                     <button type="button" aria-label={isReposted ? "리포스트 취소" : "리포스트"} aria-pressed={isReposted} onClick={() => toggle(part, setReposted)}>
                       <Icon name="repost" size={28} filled={isReposted} />
                       <small>{compactCount(counts.reposts + Number(isReposted))}</small>
                     </button>
-                    <button type="button" aria-label="공유">
+                    <button type="button" aria-label="공유" onClick={() => setSheet({ kind: "share", part })}>
                       <Icon name="send" size={28} />
-                      <small>{compactCount(counts.shares)}</small>
+                      <small>{compactCount(counts.shares + (shared[part] ?? 0))}</small>
                     </button>
                   </div>
                 </div>
@@ -468,6 +489,28 @@ export default function TvNewsThree() {
       <div className={styles.frame}>
         <Flags ref={flagRef} />
       </div>
+      {sheet?.kind === "comments" && (
+        <CommentsSheet
+          reel={sheet.part}
+          posted={posted[sheet.part] ?? []}
+          liked={likedComments}
+          onLike={(id) => toggle(id, setLikedComments)}
+          onPost={(body) => setPosted((all) => ({ ...all, [sheet.part]: [{ id: `${sheet.part}-me-${all[sheet.part]?.length ?? 0}`, body }, ...(all[sheet.part] ?? [])] }))}
+          onClose={() => setSheet(null)}
+        />
+      )}
+      {sheet?.kind === "share" && (
+        <ShareSheet
+          onShared={(text) => {
+            setShared((all) => ({ ...all, [sheet.part]: (all[sheet.part] ?? 0) + 1 }));
+            if (text) setNotice(text);
+            setSheet(null);
+          }}
+          onFailed={setNotice}
+          onClose={() => setSheet(null)}
+        />
+      )}
+      {notice && <div className={sheets.toast} role="status">{notice}</div>}
       {(motion === "ask" || motion === "denied") && (
         // iOS hands out motion access on a tap: the whole screen takes it.
         <button type="button" className={styles.ask} onClick={() => { void enable(); }}>

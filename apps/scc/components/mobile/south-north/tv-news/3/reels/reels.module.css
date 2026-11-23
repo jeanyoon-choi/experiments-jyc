@@ -1,0 +1,67 @@
+/* The comments and share sheets of a reel: scroll-rot/eye/2's (copied, nothing imported), which are the Instagram iOS
+   app's white sheets as measured for components/mobile/clone/11. Its page, pager and rail are not here: this work has
+   its own (screen.module.css). The button reset that its page gave the sheets is scoped to the backdrop instead. */
+.liked svg { color: #ff3040; animation: likePop 0.45s ease-out; }
+@keyframes likePop { 0% { transform: scale(1); } 35% { transform: scale(1.25); } 70% { transform: scale(0.92); } 100% { transform: scale(1); } }
+.backdrop, .toast { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+.backdrop * { box-sizing: border-box; }
+.backdrop :where(button) { border: 0; background: none; padding: 0; font: inherit; color: inherit; cursor: pointer; }
+
+/* Comments and share: the iOS app's white sheets over the reel (structure and measures from components/mobile/clone/11:
+   32 pt comment pictures, 15/20 text). Flat fills only, no blur: the organ keeps drawing underneath. */
+.backdrop {
+  --ink: #0c1014; --muted: #6a717b; --line: #dbdee3; --blue: #4a5df9;
+  position: absolute; inset: 0; z-index: 10; display: flex; align-items: flex-end;
+  background: rgba(0, 0, 0, 0.35); color: var(--ink); animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } }
+.sheet {
+  width: 100%; height: 64%; display: flex; flex-direction: column; background: #fff; border-radius: 20px 20px 0 0; outline: 0;
+  padding-bottom: env(safe-area-inset-bottom); transition: height 0.3s ease, transform 0.3s ease; animation: sheetIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.sheetFull { height: calc(100% - 44px); }
+.sheetDragging { transition: none; }
+@keyframes sheetIn { from { transform: translateY(100%); } }
+.sheet :where(input) { user-select: text; -webkit-user-select: text; }
+.grab { flex: none; display: flex; flex-direction: column; align-items: center; padding: 14px 0 12px; touch-action: none; cursor: grab; }
+.grab span { width: 36px; height: 4px; border-radius: 2px; background: #c9ccd1; }
+.grab strong { margin-top: 18px; font-size: 16px; font-weight: 700; }
+
+.avatar { flex: none; display: block; width: 32px; height: 32px; border-radius: 50%; object-fit: cover; overflow: hidden; background: #dbdee3; }
+.avatar svg { display: block; width: 100%; height: 100%; fill: #fff; }
+
+.comments { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 8px 0; -webkit-overflow-scrolling: touch; }
+.comment { display: flex; align-items: flex-start; gap: 12px; padding: 8px 12px; }
+.comment > div { flex: 1; min-width: 0; }
+.comment p { margin: 0; font-size: 15px; line-height: 20px; overflow-wrap: anywhere; }
+.comment p b { font-weight: 400; color: #00376b; }
+.comment .meta { margin-bottom: 1px; font-size: 13px; line-height: 17px; }
+.meta strong { font-weight: 600; }
+.meta span { color: var(--muted); }
+.reply { margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--muted) !important; }
+.commentLike { flex: none; width: 32px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding-top: 12px !important; color: var(--muted) !important; }
+.commentLike small { font-size: 12px; line-height: 14px; }
+.emojis { flex: none; display: flex; justify-content: space-between; padding: 10px 12px; border-top: 1px solid var(--line); }
+.emojis button { width: 34px; font-size: 25px; line-height: 1; }
+.commentForm { flex: none; display: flex; align-items: center; gap: 10px; padding: 6px 11px 12px 16px; }
+.commentForm .avatar { width: 42px; height: 42px; }
+.commentForm label { flex: 1; min-width: 0; height: 42px; display: flex; align-items: center; border: 1.5px solid var(--line); border-radius: 21px; padding: 0 12px 0 14px; }
+.commentForm input, .search input { flex: 1; min-width: 0; border: 0; outline: 0; padding: 0; background: transparent; color: var(--ink); font: inherit; font-size: 16px; }
+.commentForm input::placeholder, .search input::placeholder { color: var(--muted); }
+.commentForm label button { font-size: 15px; font-weight: 600; color: var(--blue) !important; }
+
+.shareSheet { height: 66%; }
+.search { flex: none; height: 36px; margin: 0 16px 8px; display: flex; align-items: center; gap: 7px; padding: 0 10px; border: 1.5px solid var(--line); border-radius: 10px; color: var(--muted); }
+.search svg { flex: none; }
+.sharePeople { flex: 1; overflow-y: auto; overscroll-behavior: contain; display: grid; grid-template-columns: repeat(3, 1fr); align-content: start; gap: 18px 8px; padding: 12px 12px 20px; }
+.sharePeople button { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
+.sharePeople button > span { position: relative; }
+.sharePeople .avatar { width: 72px; height: 72px; }
+.sharePeople i { position: absolute; right: -2px; bottom: -2px; line-height: 0; color: var(--blue); background: #fff; border: 2px solid #fff; border-radius: 50%; }
+.sharePeople small { max-width: 100%; font-size: 12px; line-height: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shareActions { flex: none; display: flex; gap: 14px; padding: 12px 16px 14px; border-top: 1px solid var(--line); }
+.shareActions > * { width: 68px; display: flex; flex-direction: column; align-items: center; gap: 7px; color: inherit; text-decoration: none; }
+.shareActions span { width: 52px; height: 52px; display: grid; place-items: center; border: 1.5px solid var(--line); border-radius: 50%; }
+.shareActions small { font-size: 11px; line-height: 14px; white-space: nowrap; }
+.sendButton { flex: none; min-height: 46px; margin: 12px 16px; border-radius: 12px !important; background: var(--blue) !important; color: #fff !important; font-size: 16px; font-weight: 600; }
+.toast { position: absolute; left: 16px; right: calc(64px + env(safe-area-inset-right)); bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 20; padding: 13px; border-radius: 12px; background: #262626; color: #fff; font-size: 14px; text-align: center; pointer-events: none; animation: fadeIn 0.2s ease; }

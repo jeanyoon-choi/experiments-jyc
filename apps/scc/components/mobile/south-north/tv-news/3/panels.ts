@@ -42,11 +42,18 @@ export const PANELS: Panel[] = [
     sources: ["대한민국정부 「대한민국에 놀라운 ‘힘’이 깨어났다」", "《친근한 어버이》, 2024"],
   },
   {
+    id: "leader",
+    video: `${THREE}/leader.mp4`,
+    still: `${THREE}/leader.jpg`,
+    label: "사람들 한가운데에서 웃는 이재명과 김정은이 같은 자리에 서고, 양쪽 노래가 그 이름을 부른다.",
+    sources: ["이재명 공식 유세송 「지금은 이재명」", "《친근한 어버이》, 2024"],
+  },
+  {
     id: "stage",
     video: `${THREE}/stage.mp4`,
     still: `${THREE}/stage.jpg`,
-    label: "아이브 장원영의 무대와 신년경축공연의 독창 가수가 한 무대에 겹쳐 선다.",
-    sources: ["장원영(IVE) 직캠, 2025. 10. 31.", "2025년 신년경축공연"],
+    label: "아이브 장원영의 무대와, 퀸의 I Want to Break Free를 입힌 모란봉악단·군 합창단의 무대가 겹친다.",
+    sources: ["장원영(IVE) 직캠, 2025. 10. 31.", "「'I Want to Break Free' Performed In North Korea」 (다른 공연 화면에 노래를 입힌 영상)"],
   },
   {
     id: "street",

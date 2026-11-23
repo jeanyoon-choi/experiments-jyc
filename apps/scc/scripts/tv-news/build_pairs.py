@@ -2,7 +2,7 @@
 """Cuts each South/North pair into one 1216 x 1080 atlas (South left, North
 right; South's sound on the left channel, North's on the right), 20 s at 30 fps.
 usage: build_pairs.py <folder with the fetched sections> <out folder> [pair names]"""
-import subprocess, sys
+import os, re, subprocess, sys
 src, out = sys.argv[1], sys.argv[2]
 W, H, T = 608, 1080, 20
 
@@ -23,6 +23,32 @@ def crop16x9(center, w=W, h=H, y=0):
     """Vertical slice of a 1920-wide frame; `center` is an expression in 0..1."""
     return f"crop={w}:{h}:'min(1920-{w},max(0,({center})*1920-{w}/2))':{y},scale={W}:{H}:flags=lanczos"
 
+TARGET = -17.0  # LUFS, each side
+
+def sides(path):
+    """Integrated loudness (LUFS) of the left (South) and right (North) channel."""
+    found = []
+    for channel in ("c0", "c1"):
+        log = subprocess.run(["ffmpeg", "-v", "info", "-i", path, "-filter_complex",
+            f"[0:a]pan=mono|c0={channel},ebur128=framelog=quiet", "-f", "null", "-"], capture_output=True, text=True).stderr
+        found.append(float(re.findall(r"I:\s+(-?[\d.]+) LUFS", log)[-1]))
+    return found
+
+def level(path):
+    """loudnorm in one pass only comes near its target; this measures what it left and
+    gives each side the gain that puts both on the target, so neither is the louder one."""
+    south, north = sides(path)
+    gains = [max(-12.0, min(12.0, TARGET - value)) for value in (south, north)]
+    if all(abs(gain) < 0.3 for gain in gains): return
+    fixed = path + ".level.mp4"
+    subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", path, "-filter_complex",
+        "[0:a]channelsplit=channel_layout=stereo[s][n];"
+        f"[s]volume={gains[0]}dB,alimiter=limit=0.8:level=false[s2];"
+        f"[n]volume={gains[1]}dB,alimiter=limit=0.8:level=false[n2];"
+        "[s2][n2]join=inputs=2:channel_layout=stereo[a]",
+        "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", fixed], check=True)
+    os.replace(fixed, path)
+
 PAIRS = {
     # Marching blocks, then the leader on the stand: both cut to him at 11.71 s.
     "parade": dict(
@@ -37,12 +63,25 @@ PAIRS = {
             "[full][title]overlay=enable='between(t,11.2,14.4)'"),
         N=("mN", 1.4, crop16x9(step([(0, .49), (3.64, .71), (7.2, .49), (10.92, .5), (16.64, .53), (18.4, .5)]), w=478, h=848, y=112)),
     ),
-    # One woman singing, whole figure, the camera holding her.
+    # A woman singing in white light. The North is "'I Want to Break Free' Performed In North Korea"
+    # (a re-dub: the picture is a 모란봉악단 and army chorus concert, the sound is Queen's song).
+    # The South is drawn in to her upper half for the North's opening close-up, then shown whole.
     "stage": dict(
-        S=("cS", 2.0, f"scale={W}:{H}:flags=lanczos"),
-        N=("cN", 1.0, crop16x9(lerp([(0, .50), (3, .52), (6.2, .56), (6.6, .42), (11.0, .40), (11.6, .55), (13.5, .58), (16, .57), (17, .54), (20, .53)]), w=560, h=994, y=86)),
+        S=("cS", 2.0, "split[a][b];"
+            f"[a]scale={W}:{H}:flags=lanczos[whole];"
+            f"[b]crop=540:960:292:60,scale={W}:{H}:flags=lanczos[near];"
+            "[whole][near]overlay=enable='lt(t,3.12)'"),
+        N=("qN", 1.44, crop16x9(step([(0, .41), (3.12, .40), (6.84, .5), (10.72, .70), (13.48, .5)]))),
     ),
 }
+
+PAIRS.update({
+    # The leader among his people, his name sung: a campaign song and a hymn.
+    "leader": dict(
+        S=("lS", 3.0, crop16x9(step([(0, .60), (1.34, .5), (4.64, .5), (8.08, .42), (9.65, .66), (13.0, .62), (14.68, .5)]))),
+        N=("lN", 0.48, crop16x9(step([(0, .40), (4.08, .60), (5.92, .5), (7.72, .38), (9.56, .5), (12.28, .30), (15.0, .60), (15.92, .40), (16.84, .5)]), w=478, h=848, y=112)),
+    ),
+})
 
 UP = "scale=1920:1080:flags=lanczos,"  # a 720p source, brought to the same frame first
 
@@ -79,7 +118,13 @@ PAIRS.update({
     ),
 })
 
-ONLY = sys.argv[3:]
+ONLY = [name for name in sys.argv[3:] if name != "--level"]
+if "--level" in sys.argv:  # only level the atlases already in the out folder
+    for name in PAIRS:
+        if ONLY and name not in ONLY: continue
+        before = sides(f"{out}/{name}.mp4"); level(f"{out}/{name}.mp4")
+        print(name, before, "->", sides(f"{out}/{name}.mp4"))
+    sys.exit(0)
 for name, pair in PAIRS.items():
     if ONLY and name not in ONLY: continue
     (sf, ss, sv), (nf, ns, nv) = pair["S"], pair["N"]
@@ -97,4 +142,5 @@ for name, pair in PAIRS.items():
         "-filter_complex", graph, "-map", "[v]", "-map", "[a]", "-t", str(T),
         "-c:v", "libx264", "-preset", "slow", "-r", "30", "-crf", "25", "-pix_fmt", "yuv420p", "-profile:v", "high",
         "-g", "30", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", f"{out}/{name}.mp4"], check=True)
-    print(name, "done")
+    level(f"{out}/{name}.mp4")
+    print(name, "done", sides(f"{out}/{name}.mp4"))

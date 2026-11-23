@@ -6,8 +6,9 @@
 //            pixels, smaller = nearer the camera (the model served at /models/gaze-tracking)
 //   tess     the landmarker's own mesh edges (FACE_LANDMARKS_TESSELATION)
 //   outline  the cut-out's silhouette, 96 points traced outward from its centre, 2.5 px inside the edge
-// The Kim Jong-un cut-out itself was made in the same pass: MediaPipe's selfie multiclass segmenter, hair
-// plus face skin, on the head cropped from the Commons portrait.
+//   centre   that centre
+// The cut-outs themselves were made in the same pass: MediaPipe's selfie multiclass segmenter, hair
+// plus face skin, on the head cropped from each Commons portrait.
 //
 // The mesh is a height field over the picture: the landmarks that face the camera keep their measured
 // depth; the silhouette lies back behind them; hair, ear and neck, which the landmarker does not know,
@@ -17,7 +18,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 const here = import.meta.dirname;
-const FACES = ["zuckerberg", "kim"]; // faces/<name>.json in, public/3d/christmas-tree/<name>.json out
+const FACES = ["zuckerberg", "kim", "trump"]; // faces/<name>.json in, public/3d/christmas-tree/<name>.json out
 
 const FILL_STEP = 30; // px between the points added over hair, ear and neck
 const CLEAR = 15; // px a filler keeps from any landmark or the silhouette
@@ -25,11 +26,14 @@ const RIM_BACK = 0.3; // how far behind the front of the face the silhouette lie
 const RIM_FALL = 0.6; // px the silhouette drops back per px it stands off the nearest landmark
 const FACING = 0.5; // a landmark seen more edge-on than this is left to the membrane
 const INFLATE = 2.0; // px a free point rises over the mean of its neighbours, each pass
+const BACK = 0.48; // how far the back of the head bulges behind the silhouette, of the head's height
+const BACK_STEP = 58; // px between the points of the back
+const RIM_INSET = 14; // px inside the silhouette that the back takes its colour from
 const DEPTH = 0.7; // of the landmarker's own depth: at full depth the walls of the nose, which the photograph never saw, smear
 
 function build(name) {
 const OUT = path.resolve(here, `../../../../public/3d/christmas-tree/${name}.json`);
-const { w, h, pts, tess, outline } = JSON.parse(readFileSync(path.join(here, "faces", `${name}.json`), "utf8"));
+const { w, h, pts, tess, outline, centre } = JSON.parse(readFileSync(path.join(here, "faces", `${name}.json`), "utf8"));
 
 // --- which landmarks face the camera ------------------------------------------------------
 // triangles of the landmarker's mesh: every three points joined pairwise
@@ -224,6 +228,33 @@ for (let pass = 0; pass < 600; pass += 1) {
   }
 }
 
+// --- the back of the head -------------------------------------------------------------------
+// The photograph has no back. The head is closed behind its silhouette by a dome, deepest behind the
+// middle, and coloured with what the photograph shows at its own edge, drawn inward along each ray
+// from the centre: hair over the crown, skin by the ears and under the jaw.
+const first = landmarkCount; // the silhouette's points follow the landmarks
+const reach = (x, y) => edgeDistance(x, y);
+const backs = [];
+for (let row = 0, y = BACK_STEP / 2; y < h; y += BACK_STEP * 0.87, row += 1) {
+  for (let x = (row % 2 ? BACK_STEP : BACK_STEP / 2); x < w; x += BACK_STEP) {
+    if (inside(x, y, outline) && reach(x, y) >= BACK_STEP * 0.45) backs.push([x, y]);
+  }
+}
+const deepest = Math.max(...backs.map(([x, y]) => reach(x, y)));
+const backTriangles = delaunay([...outline, ...backs])
+  .filter(([a, b, c]) => {
+    const at = (i) => (i < outline.length ? outline[i] : backs[i - outline.length]);
+    return inside((at(a)[0] + at(b)[0] + at(c)[0]) / 3, (at(a)[1] + at(b)[1] + at(c)[1]) / 3, outline);
+  })
+  .map((t) => {
+    const at = (i) => (i < outline.length ? outline[i] : backs[i - outline.length]);
+    const [a, b, c] = t;
+    const turn = (at(b)[0] - at(a)[0]) * (at(c)[1] - at(a)[1]) - (at(b)[1] - at(a)[1]) * (at(c)[0] - at(a)[0]);
+    // wound the other way from the front: it is seen from behind
+    const wound = turn > 0 ? [a, b, c] : [a, c, b];
+    return wound.map((i) => (i < outline.length ? first + i : points.length + i - outline.length));
+  });
+
 // --- out: the head 1 tall, centred as the flat cut-out is ----------------------------------
 const round = (value) => Math.round(value * 10000) / 10000;
 const positions = [];
@@ -232,9 +263,19 @@ for (const [x, y, z] of points) {
   positions.push(round((x - w / 2) / h), round(0.5 - y / h), round((z - rim) / h));
   uvs.push(round(x / w), round(1 - y / h));
 }
-writeFileSync(OUT, JSON.stringify({ positions, uvs, indices: triangles.flat() }));
+for (const [x, y] of backs) {
+  const depth = BACK * h * Math.sqrt(1 - (1 - Math.min(1, reach(x, y) / deepest)) ** 2);
+  positions.push(round((x - w / 2) / h), round(0.5 - y / h), round(-depth / h));
+  // the silhouette point on this ray, a little inside the edge
+  const ray = Math.round(((Math.atan2(y - centre[1], x - centre[0]) / (Math.PI * 2) + 1) % 1) * outline.length) % outline.length;
+  const [ex, ey] = outline[ray];
+  const far = Math.hypot(ex - centre[0], ey - centre[1]) || 1;
+  const pull = Math.max(0, far - RIM_INSET) / far;
+  uvs.push(round((centre[0] + (ex - centre[0]) * pull) / w), round(1 - (centre[1] + (ey - centre[1]) * pull) / h));
+}
+writeFileSync(OUT, JSON.stringify({ positions, uvs, indices: [...triangles.flat(), ...backTriangles.flat()] }));
 const depths = points.map((p) => (p[2] - rim) / h);
-console.log(`${name}: landmarks ${landmarkCount} of ${pts.length}, points ${points.length}, triangles ${triangles.length}, depth 0…${Math.max(...depths).toFixed(3)} of the head's height`);
+console.log(`${name}: landmarks ${landmarkCount} of ${pts.length}, points ${points.length + backs.length}, triangles ${triangles.length} front + ${backTriangles.length} back, depth 0…${Math.max(...depths).toFixed(3)} of the head's height`);
 }
 
 for (const name of FACES) build(name);

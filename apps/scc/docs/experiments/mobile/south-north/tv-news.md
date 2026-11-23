@@ -1,6 +1,6 @@
 # south-north / tv-news
 
-[/1](#tested-relation) the anchors, [/2](#2-marks-in-the-corners) with a flag and an information button, [/3](#3-more-pairs-under-the-anchors) with nine more pairs to scroll through.
+[/1](#tested-relation) the anchors, [/2](#2-marks-in-the-corners) with a flag and an information button, [/3](#3-more-pairs-under-the-anchors) with ten more pairs to scroll through.
 
 `/mobile/south-north/tv-news/1` (2026-11-16). Experimental. The main evening news of the South and of the North, as one picture: tipping the mobile's top edge away turns the anchor, her studio and her voice into the North's; tipping it back, into the South's. In between there is one hybrid anchor. First member of [south-north](README.md). The tilt popup is copied from [kakao-talk/1](../left-right/kakao-talk/README.md) and the idea of morphing geometry and colour together from [politician/2](../politician.md); nothing is imported from either.
 
@@ -60,13 +60,14 @@ Not checked: a real mobile (safe-area insets, the marks under the iOS motion pop
 
 ## /3: more pairs under the anchors
 
-`/mobile/south-north/tv-news/3` (2026-11-23). A copy of /2 (nothing imported from it). The question is whether the anchors' relation, two broadcasts of the same kind read on one tilt, holds for other kinds of footage. /2 is the baseline. Changed variable: more South/North pairs under the anchors, one swipe each (three at first, nine by the end of the day). The tilt, the flag and the popup are /2's; /2's information button gave way to a reels rail (below).
+`/mobile/south-north/tv-news/3` (2026-11-23). A copy of /2 (nothing imported from it). The question is whether the anchors' relation, two broadcasts of the same kind read on one tilt, holds for other kinds of footage. /2 is the baseline. Changed variable: more South/North pairs under the anchors, one swipe each (three at first, ten by the end of the day). The tilt, the flag and the popup are /2's; /2's information button gave way to a reels rail (below).
 
 Sources and cut times are in [`public/video/south-north/tv-news/3/sources.txt`](../../../../public/video/south-north/tv-news/3/sources.txt); real footage, at the user's decision (2026-11-23), who chose these three pairs from a list of candidates. Each pair is 20 s at 30 fps in one 1216 × 1080 file, South left and North right, South's sound on the left channel and North's on the right (each side to −17 LUFS), built by `scripts/tv-news/build_pairs.py`. The 16 : 9 sources are cut to a 608 × 1080 vertical slice whose centre follows the subject shot by shot; nothing is stretched.
 
 - **parade** (11.9 MB). 제76주년 국군의 날 기념식 (KBS, 2024) and the 당 창건 80돐 열병식 (2025). Marching blocks on both sides, then both cut to the leader at 11.71 s: 윤석열 clapping in the stand (to 15.9 s), 김정은 saluting (to 17.2 s), then marching again.
 - **anthem** (5.4 MB). 대한민국정부's 「대한민국에 놀라운 '힘'이 깨어났다」 and 《친근한 어버이》. A man alone in the middle of the frame on both sides at 0 s and again at 7.3 s; from 14.5 s the peninsula lit green against the 인공기. The North's picture is letterboxed in its source and is scaled 1.27× to fill; the South's title card (11.2–14.4 s) is shown whole, smaller, on black.
-- **stage** (15.5 MB). 장원영's vertical fancam (2025-10-31) and a soloist of the 2025년 신년경축공연. One woman singing, whole figure, on both sides. The fancam is the only vertical source and is used whole.
+- **stage** (16.6 MB). 장원영's vertical fancam (2025-10-31) and, since that evening at the user's request, "'I Want to Break Free' Performed In North Korea": a re-dub (its uploader marks it "Alternate Reality footage") of a 모란봉악단 and army chorus concert with Queen's song. The fancam is drawn in to her upper half for the North's opening close-up (3.1 s), then shown whole against the chorus. The first cut had a soloist of the 2025년 신년경축공연.
+- **leader** (5.8 MB), added that evening under anthem: the leader among his people while a song says his name. 이재명's official campaign song 「지금은 이재명」 and another 20 s of 《친근한 어버이》. Both faces are in the middle of the frame for the first 4 s. The user asked for an official film idolising 문재인 or 이재명; what the search found that is official are campaign songs on the candidate's own channel, and the hymns proper are supporters' work (e.g. 양희삼TV's 「든든한 돌 되리」), not used.
 
 Six more pairs were added the same day, at the user's request for the other fields of the first list (street, housing, resort, food, tourism, and the missiles of the two parades), chosen for the same composition with an opposite air:
 
@@ -84,7 +85,9 @@ Mechanism (rebuilt as a reels feed the same day, at the user's requests: play at
 - **Sound** (`sound.ts`). One audio context; each of the three elements is split into its two sides as in /1 and only the one playing is let through. Sound is unlocked on a finished touch (`pointerup`) or a key: on the first one, every element is started and the waiting ones stopped again, so that later reels may start with sound without a touch. If a browser still refuses to start a reel with sound, it is started muted and gets its sound back on the next touch.
 - **Stills.** Every part has a JPEG of its first frame. A reel that is not playing shows its still, mixed by the same share, so a reel coming up under the finger is not black and the video joins at the frame the still shows.
 - **Picture.** The reel on screen and two on either side exist, each with its own canvas and WebGL context running /1's renderer (five contexts; a reel further away is unmounted and its context given up). The anchors keep their measured track; the other pairs have no corresponding points, so they use a four-corner track that does not move (`plainTrack`): a mix in linear light of two pictures cut to the same place, not a morph.
-- **Rail.** Like, comment, repost and share with scroll-rot's glyphs, geometry and count formula (`reels/`, copied). Like and repost toggle; comment and share open nothing yet. The flag stays lower left.
+- **Rail and sheets.** Like, comment, repost and share with scroll-rot's glyphs, geometry, count formula and its comments and share sheets (`reels/`, copied): comments can be liked, replied to and posted, the share sheet copies the link, opens the device's share sheet or picks accounts. What is said under each part is this work's own invented text (`reels/pools.ts`). While a sheet is up the reel under it plays again at its end and does not move on. The flag stays lower left.
+- **Tilt.** /1's reading with a wider throw: full tilt is 40° from level, not 24° (the user, 2026-11-23; 60° was tried and taken back the same day); the 4° dead zone and the easing are unchanged, so 22° is three quarters one side. /1 and /2 keep 24°.
+- **Loudness.** Every pair's two sides are measured after the build and brought to −17 LUFS each, so that at level neither side is the louder one (see `sources.txt`).
 
 Useful failures (2026-11-23), both reported by the user as videos stopping or not starting on the scroll:
 - The first cut gave every part its own video element, played every part touching the screen and, on the first touch, started all of them unmuted.
@@ -92,11 +95,11 @@ Useful failures (2026-11-23), both reported by the user as videos stopping or no
 - Found while measuring: sound was unlocked on `pointerdown`. A touch that has only begun is not yet a user gesture, and Chrome pauses a muted autoplaying video that is unmuted without one; the first touch stopped the video. /1 and /2 still unlock on `pointerdown`.
 - An element carrying the `autoplay` attribute starts by itself whenever it is handed a new source; the first element did, and two reels played at once. The attribute is cleared after the first start.
 
-Checked, 2026-11-23, headless Chrome on the Mac with a throwaway profile, 390 × 844 at 2×, touch emulated (the connected browser refused the local certificate that day): after the popup's tap, six swipes in a row each had the next reel playing 60 ms after the finger left (0.04–0.06 s into the video) and no other video running; a reel seeked to its last 0.6 s handed over to the next; two flicks 120 ms apart landed two reels on with only that one playing; like toggled. 413 frames across the six swipes: median 16.7 ms, 95th percentile 16.8 ms, max 16.8 ms. All nine files by frame sheets every 2 s.
+Checked, 2026-11-23, headless Chrome on the Mac with a throwaway profile, 390 × 844 at 2×, touch emulated (the connected browser refused the local certificate that day): after the popup's tap, six swipes in a row each had the next reel playing 60 ms after the finger left (0.04–0.06 s into the video) and no other video running; a reel seeked to its last 0.6 s handed over to the next; two flicks 120 ms apart landed two reels on with only that one playing; like toggled. 413 frames across the six swipes: median 16.7 ms, 95th percentile 16.8 ms, max 16.8 ms. All files by frame sheets every 2 s. That evening, same setup: the leader and new stage reels started 60 ms after the swipe like the others; the comments sheet opened with 12 comments, a posted comment appeared on top, a tap outside closed it; the share sheet listed 28 accounts; the reel went on playing under both.
 
 Not checked: a real mobile. Above all iOS Safari: whether the waiting elements start with sound after the first touch, how many decoders and WebGL contexts it allows, and the frame timing of a real device.
 
-Unresolved for /3: nothing tells a first-time viewer that there is more below; the new pairs only cross-fade; a reel starts from 0 each time it is returned to; the folder is 80 MB; the 현무-5 caption of the KBS broadcast shows in the missile reel's lower left; comment and share have no sheets.
+Unresolved for /3: nothing tells a first-time viewer that there is more below; the new pairs only cross-fade; a reel starts from 0 each time it is returned to; the folder is 80 MB; the 현무-5 caption of the KBS broadcast shows in the missile reel's lower left.
 
 ## Unresolved
 

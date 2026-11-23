@@ -76,8 +76,8 @@ export function plantTree(seed = 1225): Leaf[] {
     }
   };
 
-  // the trunk: a narrow column of small faces
-  skirt(0.045, 0.035, 0.045, TRUNK_TOP, 0.07, 0);
+  // the trunk: a narrow column of small heads, running on up inside the boughs to the top
+  skirt(0.045, 0.035, 0.045, TREE_TOP - 0.04, 0.07, 0);
 
   // the boughs: lower tiers are taller and wider, and their faces larger
   const weights = Array.from({ length: TIERS }, (_, k) => TIERS - k + 2.5);

@@ -1,7 +1,8 @@
 jingle-bells.mp3
-* title: Jingle Bells (2020), Starlifter and Roots in Blue
-* source: https://commons.wikimedia.org/wiki/File:Jingle_Bells_(2020)_-_Starlifter_and_Roots_in_Blue_-_United_States_Air_Force_Band_of_Mid-America.mp3 (from https://www.music.af.mil/Multimedia/Music/Public-Domain-Music/)
-* author: United States Air Force Band of Mid-America; arrangement SSgt Tim Davis and SrA David Duneman after James Pierpont (1857)
-* license: Public domain (work of the United States government)
+* title: Jingle Bells (ISRC USUAN1100187)
+* source: https://commons.wikimedia.org/wiki/File:Jingle_Bells_(ISRC_USUAN1100187).mp3 (from https://incompetech.com/music/royalty-free/)
+* author: Kevin MacLeod, after James Pierpont (1857)
+* license: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0): free to use with this credit
 
-Changes: re-encoded from 192 kb/s to 112 kb/s MP3, metadata removed; 2 min 13 s, 2.5 MB.
+Changes: re-encoded from 328 kb/s to 112 kb/s MP3, metadata removed; 1 min 42 s, 1.7 MB.
+jingle-bells.mp3 is shared under CC BY 3.0.

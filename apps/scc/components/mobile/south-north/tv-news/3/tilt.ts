@@ -6,7 +6,7 @@
 
 /** Degrees of pitch ignored around level, and the pitch that counts as all the way. */
 export const DEAD_ZONE = 4;
-export const FULL_TILT = 24;
+export const FULL_TILT = 40;
 /** Readings averaged into the level angle before the tilt starts to count. */
 export const LEVEL_SAMPLES = 8;
 

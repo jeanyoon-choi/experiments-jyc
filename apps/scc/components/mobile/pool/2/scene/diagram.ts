@@ -17,7 +17,7 @@ const INK = "#fff";
 const GROUND = "#000";
 const TYPE = 'ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace';
 /** Drawn pixels per CSS pixel are capped: hairlines gain nothing past this. */
-const MAX_RATIO = 2.5;
+const MAX_RATIO = 2;
 /** A tie is faint until its balls are closer than this (m between their surfaces). */
 const REACH = 0.5;
 const FAINT = 0.3;

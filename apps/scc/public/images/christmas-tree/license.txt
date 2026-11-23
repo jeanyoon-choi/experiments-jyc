@@ -15,3 +15,21 @@ kim.webp
 
 Changes: cropped to the head (600 x 760 at 225, 40 of the 1028 x 1429 file), reduced to 520 wide, cut out with
 MediaPipe's selfie multiclass segmenter (hair plus face skin) and trimmed to the head's bounds, 463 x 563.
+
+zuckerberg.webp
+* subject: Mark Zuckerberg, F8 keynote, 2019-04-30
+* source: https://commons.wikimedia.org/wiki/File:Mark_Zuckerberg_F8_2019_Keynote_(32830578717)_(cropped).jpg
+* author: Anthony Quintano
+* license: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0)
+
+Changes: cropped to the head (1500 x 1860 at 290, 50 of the 2125 x 2832 file), reduced to 520 wide, cut out with
+MediaPipe's selfie multiclass segmenter (hair plus face skin) and trimmed to the head's bounds, 460 x 580.
+
+trump.webp
+* subject: Donald Trump, official portrait, 2017-10-06
+* source: https://commons.wikimedia.org/wiki/File:Donald_Trump_official_portrait.jpg
+* author: Shealeah Craighead, The White House
+* license: Public domain
+
+Changes: Commons's 960-wide rendering, cropped to the head (520 x 670 at 200, 110), cut out the same way and
+trimmed to the head's bounds, 466 x 561.

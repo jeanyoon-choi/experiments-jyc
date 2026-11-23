@@ -146,6 +146,7 @@ export function createPager(host: HTMLElement, track: HTMLElement, hooks: PagerH
     step(event.deltaY > 0 ? 1 : -1);
   };
   const onKey = (event: KeyboardEvent) => {
+    if (event.target instanceof Element && event.target.closest("input, [role=dialog]")) return; // typed into a sheet, not at the feed
     const by = event.key === "PageDown" || event.key === " " ? 1 : event.key === "PageUp" ? -1 : 0;
     if (!by) return;
     event.preventDefault();

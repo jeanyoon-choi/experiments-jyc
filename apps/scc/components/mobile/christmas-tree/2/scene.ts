@@ -5,8 +5,9 @@ import { TREE_RADIUS, TREE_TOP, plantTree } from "./tree";
 // built by build-model.mjs (credits in public/images/christmas-tree/license.txt). Raise ?v= when a
 // build's output changes.
 export const FACES = [
-  { id: "zuckerberg", label: "저커버그", name: "마크 저커버그", image: "/images/christmas-tree/face.webp", head: "/3d/christmas-tree/zuckerberg.json?v=2" },
-  { id: "kim", label: "김정은", name: "김정은", image: "/images/christmas-tree/kim.webp", head: "/3d/christmas-tree/kim.json?v=2" },
+  { id: "zuckerberg", label: "저커버그", name: "마크 저커버그", image: "/images/christmas-tree/zuckerberg.webp", head: "/3d/christmas-tree/zuckerberg.json?v=3" },
+  { id: "kim", label: "김정은", name: "김정은", image: "/images/christmas-tree/kim.webp", head: "/3d/christmas-tree/kim.json?v=3" },
+  { id: "trump", label: "트럼프", name: "도널드 트럼프", image: "/images/christmas-tree/trump.webp", head: "/3d/christmas-tree/trump.json?v=1" },
 ] as const;
 export type FaceId = (typeof FACES)[number]["id"];
 const MAX_DPR = 2;

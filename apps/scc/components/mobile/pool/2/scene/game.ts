@@ -38,6 +38,9 @@ export function mount(page: HTMLElement, canvas: HTMLCanvasElement, sheet: HTMLC
   const diagram = createDiagram(sheet);
   // A strike still fading on the drawing keeps it being redrawn.
   let fading = false;
+  // Gravity as the drawing's plumb line last showed it, and the time gone by since anything was drawn.
+  const plumb = { x: 0, y: 0, n: 0 };
+  let unpainted = 0;
   // What a ball on the screen feels, in real m/s²: along the screen (x right, y up) and into it.
   // `goal` is the sensor's last word, `felt` the table catching up with it.
   const goal = { x: 0, y: 0, n: EARTH };
@@ -85,8 +88,15 @@ export function mount(page: HTMLElement, canvas: HTMLCanvasElement, sheet: HTMLC
     if (table.stir > SEEN) for (const ball of table.balls) square += ball.vx * ball.vx + ball.vy * ball.vy;
     sound.stir(Math.sqrt(square / table.balls.length) / STIRRED);
     // Balls lying in a heap on a tipped table are worked out every frame and drawn in none. The
-    // drawing also shows the plumb line, which moves with the hand alone.
-    if (table.stir > SEEN || !drawn || mode === "diagram") paint(seconds);
+    // drawing also shows the plumb line, which moves with the hand alone, and a strike fading.
+    const swung = Math.abs(table.gx - plumb.x) + Math.abs(table.gy - plumb.y) + Math.abs(table.gn - plumb.n) > G * 0.01;
+    if (table.stir > SEEN || !drawn || (mode === "diagram" && (fading || swung))) {
+      paint(seconds + unpainted);
+      unpainted = 0;
+      plumb.x = table.gx;
+      plumb.y = table.gy;
+      plumb.n = table.gn;
+    } else unpainted = Math.min(1, unpainted + seconds);
     if ((moving || (mode === "diagram" && fading)) && !document.hidden) frame = requestAnimationFrame(loop);
   };
   const run = () => {

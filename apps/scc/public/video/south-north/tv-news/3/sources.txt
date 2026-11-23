@@ -19,8 +19,11 @@ anthem.mp4
 stage.mp4
   South: 장원영 WONYOUNG IVE 4K 세로 직캠 @251031 SHOW WHAT I AM, The Sin
          https://www.youtube.com/watch?v=fc0AdZS4l1Q  vertical 1080 x 1920 taken; 1:00 to 1:20
-  North: 경애하는 김정은동지를 모시고 진행한 2025년 신년경축공연 (re-upload by 메아리)
-         https://www.youtube.com/watch?v=Sma9Ub_Mq9M  1080p; 36:35 to 36:55
+  North (since the evening of 2026-11-23, at the user's request): 'I Want to Break Free' (Queen) Performed In North Korea,
+         Lars von Retriever (Metal Trump). A re-dub, marked "Alternate Reality footage" by its uploader: the picture is a
+         모란봉악단 and army chorus concert, the sound is Queen's song.
+         https://www.youtube.com/watch?v=jYvcdhCbzJw  1080p; 0:17.44 to 0:37.44
+         (First cut: 2025년 신년경축공연, https://www.youtube.com/watch?v=Sma9Ub_Mq9M, 36:35 to 36:55.)
 
 Added the same day; each also has a .jpg still of its first frame.
 
@@ -57,3 +60,12 @@ dance.mp4
 missile.mp4
   South: the parade.mp4 source (KBS); 1:34:59.5 to 1:35:19.5 (현무-5)
   North: the parade.mp4 source (KOREA NOW); 1:41:24 to 1:41:44 (화성-20형)
+
+leader.mp4
+  South: [잼플리 유세송] 지금은 이재명, 이재명 (the candidate's official channel)
+         https://www.youtube.com/watch?v=c8Ho6YpDds0  1080p; 0:59 to 1:19
+  North: the anthem.mp4 source (《친근한 어버이》); 1:59.48 to 2:19.48
+
+Sound: after the build, each side of every file here is measured (EBU R128 integrated) and given the gain that puts
+both at -17 LUFS (build_pairs.py, `level`). Measured after: both sides within 0.1 LU of each other in every file except
+noodles (South -17.6, North -17.0: the 먹방's peaks meet the limiter).

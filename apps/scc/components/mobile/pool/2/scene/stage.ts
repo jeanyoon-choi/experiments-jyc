@@ -4,11 +4,11 @@ import { BALL_R, RAIL, RAIL_TOP, TABLE_W } from "../model/physics";
 import type { Table } from "../model/physics";
 import { buildTable } from "./table";
 import type { TableMaterials } from "./table";
-import { FACE_ALL_OVER, ballSkin, clothTooth, contactTexture, dollarPrint, loadAtlas } from "./textures";
+import { FACE_ALL_OVER, ballSkin, contactTexture, dollarPrint, loadAtlas } from "./textures";
 
 /** Drawn pixels are capped, so a dense screen does not cost more than a mobile GPU can fill. */
-const MAX_DPR = 3;
-const MAX_PIXELS = 1_900_000;
+const MAX_DPR = 2;
+const MAX_PIXELS = 1_400_000;
 /** Half the angle the long side of the table fills, seen from the camera over its middle. */
 const HALF_VIEW = (21 * Math.PI) / 180;
 const ASSETS = "/3d/pool/";
@@ -64,7 +64,6 @@ export function createStage(canvas: HTMLCanvasElement, onReady: () => void) {
   scene.add(lamp, lamp.target);
 
   const anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
-  const tooth = clothTooth();
   const print = dollarPrint(anisotropy);
   const loader = new THREE.TextureLoader();
   const grain = (file: string, colour: boolean, turned: boolean) => {
@@ -95,8 +94,6 @@ export function createStage(canvas: HTMLCanvasElement, onReady: () => void) {
     cloth: new THREE.MeshStandardMaterial({
       color: 0x0e6b52,
       map: print,
-      bumpMap: tooth,
-      bumpScale: 0.6,
       roughness: 0.97,
       metalness: 0,
       shadowSide: THREE.DoubleSide,
@@ -117,11 +114,16 @@ export function createStage(canvas: HTMLCanvasElement, onReady: () => void) {
     const mesh = new THREE.Mesh(sphere, material);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
-    const dark = new THREE.Mesh(contactGeometry, contactMaterial);
-    dark.renderOrder = 1;
-    scene.add(mesh, dark);
-    return { mesh, material, dark, paint: skin.paint };
+    scene.add(mesh);
+    return { mesh, material, paint: skin.paint };
   });
+  // The sixteen darks under the balls are one draw.
+  const darks = new THREE.InstancedMesh(contactGeometry, contactMaterial, balls.length);
+  darks.renderOrder = 1;
+  // They are spread over the whole table and move every frame: never culled as one small thing.
+  darks.frustumCulled = false;
+  const place = new THREE.Matrix4();
+  scene.add(darks);
   const pictures: { faces: ImageData | null; marks: ImageData | null } = { faces: null, marks: null };
   const arrived = (which: "faces" | "marks") => (atlas: ImageData) => {
     if (disposed) return;
@@ -157,6 +159,9 @@ export function createStage(canvas: HTMLCanvasElement, onReady: () => void) {
     camera.near = distance - 0.5;
     camera.far = distance + 0.5;
     camera.updateProjectionMatrix();
+    // The drawing reads this camera while the table itself is not being rendered, so it is brought
+    // up to date here and not left to the next render.
+    camera.updateMatrixWorld();
     const ratio = Math.min(window.devicePixelRatio || 1, MAX_DPR, Math.sqrt(MAX_PIXELS / (width * height)));
     renderer.setPixelRatio(ratio);
     renderer.setSize(width, height, false);
@@ -178,11 +183,12 @@ export function createStage(canvas: HTMLCanvasElement, onReady: () => void) {
   const render = (table: Table, shadows: boolean) => {
     rebuild(table);
     for (const ball of table.balls) {
-      const { mesh, dark } = balls[ball.id];
+      const { mesh } = balls[ball.id];
       mesh.position.set(ball.x, ball.y, BALL_R);
       mesh.quaternion.set(ball.qx, ball.qy, ball.qz, ball.qw);
-      dark.position.set(ball.x, ball.y, 0.0005);
+      darks.setMatrixAt(ball.id, place.makeTranslation(ball.x, ball.y, 0.0005));
     }
+    darks.instanceMatrix.needsUpdate = true;
     if (shadows) renderer.shadowMap.needsUpdate = true;
     renderer.render(scene, camera);
   };
@@ -194,7 +200,7 @@ export function createStage(canvas: HTMLCanvasElement, onReady: () => void) {
     contact.dispose();
     contactGeometry.dispose();
     contactMaterial.dispose();
-    tooth.dispose();
+    darks.dispose();
     print.dispose();
     for (const ball of balls) {
       ball.material.map?.dispose();

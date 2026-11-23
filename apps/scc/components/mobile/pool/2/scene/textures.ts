@@ -113,30 +113,6 @@ function noise(seed: number) {
   };
 }
 
-/** Worsted cloth has no pattern of its own, only tooth: fibre-scale noise, used as relief. */
-export function clothTooth() {
-  const size = 256;
-  const data = new Uint8Array(size * size * 4);
-  const random = noise(20261116);
-  for (let i = 0; i < size * size; i += 1) {
-    const v = 208 + Math.floor(random() * 48);
-    data[i * 4] = v;
-    data[i * 4 + 1] = v;
-    data[i * 4 + 2] = v;
-    data[i * 4 + 3] = 255;
-  }
-  const texture = new THREE.DataTexture(data, size, size, THREE.RGBAFormat);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  texture.magFilter = THREE.LinearFilter;
-  texture.minFilter = THREE.LinearMipmapLinearFilter;
-  texture.generateMipmaps = true;
-  // One texel is about 1 mm of cloth.
-  texture.repeat.set(1 / 0.26, 1 / 0.26);
-  texture.needsUpdate = true;
-  return texture;
-}
-
 /** How much cloth one tile of the dollar print covers (m), two signs to a tile, set like bricks. */
 const PRINT_TILE = 0.17;
 
