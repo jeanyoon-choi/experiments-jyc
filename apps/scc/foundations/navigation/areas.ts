@@ -88,6 +88,8 @@ export const sccFamilyIndexes: ReadonlySet<string> = new Set([
   "mobile/suneung",
   "mobile/colour",
   "mobile/led-banner",
+  "mobile/daechi/3d",
+  "mobile/daechi/flyer",
   "mobile/pool",
   "mobile/scroll-rot/brain",
   "mobile/scroll-rot/eye",

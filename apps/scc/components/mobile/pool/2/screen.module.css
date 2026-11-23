@@ -1,0 +1,61 @@
+.page {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The table and its drawing lie on each other; only the open one is shown. */
+.table {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.table[data-open="false"] {
+  visibility: hidden;
+}
+
+/* Two tabs at the top, where the balls of a mobile held upright are not. */
+.tabs {
+  position: absolute;
+  z-index: 2;
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
+  display: flex;
+  transform: translateX(-50%);
+  border: 1px solid #fff;
+  background: #000;
+}
+
+.tab {
+  min-width: 84px;
+  height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  color: #fff;
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Apple SD Gothic Neo", "Noto Sans KR", monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab[aria-selected="true"] {
+  background: #fff;
+  color: #000;
+}
+

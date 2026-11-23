@@ -53,6 +53,8 @@ export type EyeHooks = {
   /** the scroll rested on this reel: pages reel-2 … reel+2 must exist before this returns */
   onLive: (reel: number) => void;
   onDoubleTap: () => void;
+  /** a reel whose page shows something else than the eye: nothing is drawn for it */
+  isOther: (reel: number) => boolean;
 };
 
 type Still = { level: number; theta: number; dist: number; stamp: number };
@@ -361,6 +363,7 @@ export function createEye(host: HTMLElement, track: HTMLElement, hooks: EyeHooks
     step(e.deltaY > 0 ? 1 : -1);
   };
   const onKey = (e: KeyboardEvent) => {
+    if (e.target instanceof Element && e.target.closest("input, [role=dialog]")) return; // typed into a sheet, not at the feed
     const by = e.key === "ArrowDown" || e.key === "PageDown" || e.key === " " ? 1 : e.key === "ArrowUp" || e.key === "PageUp" ? -1 : 0;
     if (!by) return;
     e.preventDefault();
@@ -411,7 +414,7 @@ export function createEye(host: HTMLElement, track: HTMLElement, hooks: EyeHooks
       // never a black page: a reel coming into view with no picture at all is shot on the spot
       {
         for (const reel of [near, top > near * h ? near + 1 : near - 1]) {
-          if (reel < 0 || reel === live) continue;
+          if (reel < 0 || reel === live || hooks.isOther(reel)) continue;
           const still = stillOf(reel);
           if (!still || stills.get(still)?.stamp === stamp) continue;
           const level = restLevel(reel);
@@ -425,7 +428,7 @@ export function createEye(host: HTMLElement, track: HTMLElement, hooks: EyeHooks
     }
     // one out-of-date neighbour per frame, nearest first
     for (const reel of [live + 1, live - 1, live + 2, live - 2]) {
-      if (reel < 0) continue;
+      if (reel < 0 || hooks.isOther(reel)) continue;
       const still = stillOf(reel);
       const level = restLevel(reel);
       if (!still || fresh(still, level)) continue;
@@ -433,6 +436,12 @@ export function createEye(host: HTMLElement, track: HTMLElement, hooks: EyeHooks
       keep(still, level);
       settle = WINDOW;
       break;
+    }
+
+    // the eye is not on this page: its canvas rests under whatever is
+    if (hooks.isOther(live)) {
+      settle = WINDOW;
+      return;
     }
 
     if (document.hidden || gap > 250) settle = WINDOW;

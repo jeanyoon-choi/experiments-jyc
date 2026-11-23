@@ -1,8 +1,11 @@
+import { drawTaegeuk } from "./flag";
 import { OUTLINE_POINTS, type Cover, type MouthShape } from "./mouth";
+import { NOSE_HEIGHT, NOSE_WIDTH, type Nose } from "./nose";
 
 // One full-screen pass: the mirrored camera, and inside the opening between
 // the lips, the clip. Only pixels within the mouth's bounding box walk the
-// outline, so the rest of the screen costs one texture read.
+// outline, so the rest of the screen costs one texture read. Inside the
+// nostrils, the 태극: only pixels within the nose's box read their mask.
 const VERTEX = `#version 300 es
 void main() {
   vec2 corner = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2));
@@ -25,6 +28,13 @@ uniform float uClipFocus; // clip row (0 top, 1 bottom) at the mouth centre
 uniform float uOpen;
 uniform float uFeather;
 uniform float uShade;
+uniform sampler2D uNose;    // how much of each cell of the nose's box is nostril
+uniform sampler2D uFlag;
+uniform vec4 uNoseRect;     // the box in the camera frame: offset, size
+uniform vec4 uNostril[2];   // each flag on the canvas: centre, drawn size
+uniform vec2 uNoseAxis;
+uniform float uNoseOn;
+uniform float uNoseProbe;
 out vec4 outColor;
 
 void main() {
@@ -56,6 +66,27 @@ void main() {
       // The lips shade what sits just behind them.
       clip *= mix(0.45, 1.0, smoothstep(0.0, uShade, -distanceToLip));
       color = mix(color, clip, inside);
+    }
+  }
+  if (uNoseOn > 0.0 || uNoseProbe > 0.0) {
+    vec2 cell = (cameraUv - uNoseRect.xy) / uNoseRect.zw;
+    if (all(greaterThan(cell, vec2(0.0))) && all(lessThan(cell, vec2(1.0)))) {
+      float nostril = texture(uNose, cell).r;
+      vec4 one = uNostril[0];
+      vec4 other = uNostril[1];
+      float toOne = one.z > 0.0 ? length((p - one.xy) / one.zw) : 1e6;
+      float toOther = other.z > 0.0 ? length((p - other.xy) / other.zw) : 1e6;
+      float inside = smoothstep(0.3, 0.55, nostril) * uNoseOn * step(min(toOne, toOther), 1e5);
+      if (inside > 0.0) {
+        vec4 own = toOne < toOther ? one : other;
+        vec2 q = p - own.xy;
+        vec2 local = vec2(dot(q, uNoseAxis), dot(q, vec2(-uNoseAxis.y, uNoseAxis.x)));
+        vec3 flag = texture(uFlag, vec2(0.5) + local / own.zw).rgb;
+        // The rim of the nostril shades what sits just inside it.
+        flag *= mix(0.55, 1.0, smoothstep(0.45, 0.85, nostril));
+        color = mix(color, flag, inside);
+      }
+      if (uNoseProbe > 0.0) color = mix(color, vec3(0.0, 1.0, 0.0), 0.15);
     }
   }
   outColor = vec4(color, 1.0);
@@ -104,6 +135,12 @@ export function createMouthRenderer(gl: WebGL2RenderingContext) {
   const vertexArray = gl.createVertexArray();
   const camera = createTexture(gl, 0);
   const clip = createTexture(gl, 1);
+  const noseMask = createTexture(gl, 2);
+  const flag = createTexture(gl, 3);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, drawTaegeuk());
+  gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  const nostrils = new Float32Array(8);
   const uniform = (name: string) => gl.getUniformLocation(program, name);
   const locations = {
     camera: uniform("uCamera"),
@@ -119,6 +156,13 @@ export function createMouthRenderer(gl: WebGL2RenderingContext) {
     open: uniform("uOpen"),
     feather: uniform("uFeather"),
     shade: uniform("uShade"),
+    nose: uniform("uNose"),
+    flag: uniform("uFlag"),
+    noseRect: uniform("uNoseRect"),
+    nostril: uniform("uNostril"),
+    noseAxis: uniform("uNoseAxis"),
+    noseOn: uniform("uNoseOn"),
+    noseProbe: uniform("uNoseProbe"),
   };
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
 
@@ -131,11 +175,19 @@ export function createMouthRenderer(gl: WebGL2RenderingContext) {
   return {
     setCamera: (source: TexImageSource) => upload(0, camera, source),
     setClip: (source: TexImageSource) => upload(1, clip, source),
+    setNose(mask: Uint8Array) {
+      gl.activeTexture(gl.TEXTURE2);
+      gl.bindTexture(gl.TEXTURE_2D, noseMask);
+      gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, NOSE_WIDTH, NOSE_HEIGHT, 0, gl.RED, gl.UNSIGNED_BYTE, mask);
+    },
     /**
      * `open` 0–1 fades the clip in; `clipAspect` is the clip's width over
-     * height and `clipFocus` the clip row held at the mouth centre.
+     * height and `clipFocus` the clip row held at the mouth centre. `nose`
+     * with `noseOn` 0–1 fades the flag into the nostrils; `noseProbe` tints
+     * the box the nostrils are looked for in.
      */
-    draw(cover: Cover, shape: MouthShape, open: number, clipAspect: number, clipFocus: number, pixelRatio: number) {
+    draw(cover: Cover, shape: MouthShape, open: number, clipAspect: number, clipFocus: number, pixelRatio: number, nose?: Nose, noseOn = 0, noseProbe = false) {
       const width = gl.drawingBufferWidth;
       const height = gl.drawingBufferHeight;
       gl.viewport(0, 0, width, height);
@@ -178,11 +230,44 @@ export function createMouthRenderer(gl: WebGL2RenderingContext) {
         gl.uniform1f(locations.feather, feather);
         gl.uniform1f(locations.shade, Math.max(2 * pixelRatio, shape.halfHeight * 0.3));
       }
+      gl.uniform1f(locations.noseOn, nose ? noseOn : 0);
+      gl.uniform1f(locations.noseProbe, nose && noseProbe ? 1 : 0);
+      if (nose && (noseOn > 0 || noseProbe)) {
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, noseMask);
+        gl.activeTexture(gl.TEXTURE3);
+        gl.bindTexture(gl.TEXTURE_2D, flag);
+        gl.uniform1i(locations.nose, 2);
+        gl.uniform1i(locations.flag, 3);
+        gl.uniform4f(locations.noseRect, nose.rect.x, nose.rect.y, nose.rect.width, nose.rect.height);
+        // Each 태극 is a disc around its nostril's box, so the opening shows only
+        // its red and blue, upright along the line between the wings.
+        nose.nostrils.forEach((nostril, index) => {
+          const boxWidth = nostril.halfU * 2 * cover.width;
+          const boxHeight = nostril.halfV * 2 * cover.height;
+          const flagWidth = nostril.halfU > 0 ? Math.max(Math.hypot(boxWidth, boxHeight), 1) * 1.1 : 0;
+          nostrils[index * 4] = cover.offsetX + (1 - nostril.u) * cover.width;
+          nostrils[index * 4 + 1] = cover.offsetY + nostril.v * cover.height;
+          nostrils[index * 4 + 2] = flagWidth;
+          nostrils[index * 4 + 3] = flagWidth;
+        });
+        gl.uniform4fv(locations.nostril, nostrils);
+        let axisX = (nose.wings[0] - nose.wings[2]) * cover.width;
+        let axisY = (nose.wings[3] - nose.wings[1]) * cover.height;
+        if (axisX < 0) {
+          axisX = -axisX;
+          axisY = -axisY;
+        }
+        const length = Math.hypot(axisX, axisY) || 1;
+        gl.uniform2f(locations.noseAxis, axisX / length, axisY / length);
+      }
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     },
     destroy() {
       gl.deleteTexture(camera);
       gl.deleteTexture(clip);
+      gl.deleteTexture(noseMask);
+      gl.deleteTexture(flag);
       gl.deleteVertexArray(vertexArray);
       gl.deleteProgram(program);
     },

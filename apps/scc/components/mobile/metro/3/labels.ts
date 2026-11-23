@@ -129,6 +129,19 @@ export class LabelCache {
     return { canvas: page.canvas, sx, sy, sw, sh, x: x0, y: y0, w: sw / k, h: sh / k, k };
   }
 
+  /** Rasterises every name at device scale `scale` in one go, outside the per-frame budget: the opening frame is whole. */
+  prepare(marks: Mark[], scale: number) {
+    const k = bucketOf(scale);
+    this.use(k);
+    for (const m of marks) {
+      const key = `${m.id}@${k}`;
+      if (this.sprites.has(key)) continue;
+      const sprite = this.paintName(m, k);
+      this.sprites.set(key, sprite);
+      this.best.set(m.id, sprite);
+    }
+  }
+
   /** The station name at device scale `scale`; may return a sprite of another scale while the budget is spent. */
   name(m: Mark, scale: number): Sprite | null {
     const k = bucketOf(scale);

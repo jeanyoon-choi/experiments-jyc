@@ -687,3 +687,58 @@ seoul-12.jpg — File:Seoul Building63.jpg
 seoul-14.jpg — File:Skyline of Yeouido, a prominent finance district in Seoul.jpg
   licence: CC BY 4.0 · author: S h y numis · date: 2024-03-26
   https://commons.wikimedia.org/wiki/File:Skyline_of_Yeouido,_a_prominent_finance_district_in_Seoul.jpg
+t2-nuke-01.jpg — File:고리원자력발전소.JPG
+  licence: CC BY 3.0 · author: 102orion · date: unknown
+  https://commons.wikimedia.org/wiki/File:%EA%B3%A0%EB%A6%AC%EC%9B%90%EC%9E%90%EB%A0%A5%EB%B0%9C%EC%A0%84%EC%86%8C.JPG
+t2-nuke-02.jpg — File:Shin-Kori Nuclear Power Plant.jpg
+  licence: KOGL Type 1 · author: 한국수력원자력 · date: 2018-10-19
+  https://commons.wikimedia.org/wiki/File:Shin-Kori_Nuclear_Power_Plant.jpg
+t2-nuke-03.jpg — File:Wolsong (04790183).jpg
+  licence: Public domain · author: IAEA Imagebank · date: 2009-07-30
+  https://commons.wikimedia.org/wiki/File:Wolsong_(04790183).jpg
+t2-coupang-01.jpg — File:Coupang 1.jpg
+  licence: CC BY-SA 4.0 · author: Bonnielou2013 · date: 2017-08-25
+  https://commons.wikimedia.org/wiki/File:Coupang_1.jpg
+t2-coupang-02.jpg — File:Coupang 2.jpg
+  licence: CC BY-SA 4.0 · author: Bonnielou2013 · date: 2017-08-25
+  https://commons.wikimedia.org/wiki/File:Coupang_2.jpg
+t2-coupang-03.jpg — File:Coupang re-usable grocery delivery bag - 2021.jpg
+  licence: CC BY-SA 4.0 · author: Kl0518 · date: 2021-04-25
+  https://commons.wikimedia.org/wiki/File:Coupang_re-usable_grocery_delivery_bag_-_2021.jpg
+t2-chip-01.jpg — File:SK hynix 16GB DDR5-5600 UDIMM HMCG78AGBUA084N BA.jpg
+  licence: CC BY-SA 4.0 · author: ITEagle Europe - Sebastiaan Broekhoven · date: 2026-06-25
+  https://commons.wikimedia.org/wiki/File:SK_hynix_16GB_DDR5-5600_UDIMM_HMCG78AGBUA084N_BA.jpg
+t2-chip-02.jpg — File:SK Hynix DDR5 Tall MRDIMM.jpg
+  licence: CC BY 4.0 · author: 4300streetcar · date: 2025-05-23
+  https://commons.wikimedia.org/wiki/File:SK_Hynix_DDR5_Tall_MRDIMM.jpg
+t2-chip-03.jpg — File:SK Hynix - H5TC4G83MFR-8390.jpg
+  licence: CC BY-SA 4.0 · author: Raimond Spekking · date: 2020-05-26
+  https://commons.wikimedia.org/wiki/File:SK_Hynix_-_H5TC4G83MFR-8390.jpg
+
+Photographs for the 생활/문화 topics of /mobile/left-right/naver-news/2 (keys c2-…).
+All from Wikimedia Commons, fetched 2026-11-23, resized to 640 px wide and re-encoded as JPEG.
+
+c2-kbs-01.jpg — File:KBS본관건물.jpg
+  licence: CC BY 4.0 · author: Narubaru7 · date: 2025-03-01
+  https://commons.wikimedia.org/wiki/File:KBS%EB%B3%B8%EA%B4%80%EA%B1%B4%EB%AC%BC.jpg
+c2-kbs-02.jpg — File:KBS본관 전경.jpg
+  licence: CC BY 4.0 · author: Narubaru7 · date: 2025-03-01
+  https://commons.wikimedia.org/wiki/File:KBS%EB%B3%B8%EA%B4%80_%EC%A0%84%EA%B2%BD.jpg
+c2-kbs-03.jpg — File:KBS Main Building in 2018.jpg
+  licence: Attribution · author: Garam · date: 2018-03-31
+  https://commons.wikimedia.org/wiki/File:KBS_Main_Building_in_2018.jpg
+c2-jongmyo-01.jpg — File:종묘 정전.jpg
+  licence: CC BY-SA 4.0 · author: Osidaj · date: 2017-07-22
+  https://commons.wikimedia.org/wiki/File:%EC%A2%85%EB%AC%98_%EC%A0%95%EC%A0%84.jpg
+c2-jongmyo-02.jpg — File:서울 세운상가 모습.jpg
+  licence: CC0 · author: Bykim2012 · date: 2026-11-21
+  https://commons.wikimedia.org/wiki/File:%EC%84%9C%EC%9A%B8_%EC%84%B8%EC%9A%B4%EC%83%81%EA%B0%80_%EB%AA%A8%EC%8A%B5.jpg
+c2-jongmyo-03.jpg — File:세운상가.jpg
+  licence: CC BY-SA 4.0 · author: MaRail · date: 2022-07-30
+  https://commons.wikimedia.org/wiki/File:%EC%84%B8%EC%9A%B4%EC%83%81%EA%B0%80.jpg
+c2-equality-01.jpg — File:National Human Rights Commission of Korea.jpg
+  licence: CC0 · author: EllalineSeoul · date: 2024-09-07
+  https://commons.wikimedia.org/wiki/File:National_Human_Rights_Commission_of_Korea.jpg
+c2-equality-02.jpg — File:Seoul Queer Pride Parade 2019, Gwanghwamun Plaza.jpg
+  licence: CC BY-SA 4.0 · author: Gaberoonie · date: 2019-06-01
+  https://commons.wikimedia.org/wiki/File:Seoul_Queer_Pride_Parade_2019,_Gwanghwamun_Plaza.jpg

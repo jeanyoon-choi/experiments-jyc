@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { alrim } from "./fonts";
 import { LabelCache } from "./labels";
 import { size } from "./model";
@@ -37,6 +37,7 @@ type Panner = { kind: "pan"; x: number; y: number };
 export default function MetroThree() {
   const pageRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const page = pageRef.current;
@@ -55,6 +56,9 @@ export default function MetroThree() {
     let moving = false;
     let opened = false;
     let alive = true;
+    // Nothing is drawn until the typeface is in and every name is rasterised.
+    let fonts = false;
+    let whole = false;
     let zoomedAt = -Infinity;
     let lastScale = cam.s;
     let settleTimer = 0;
@@ -92,6 +96,7 @@ export default function MetroThree() {
     };
     const wake = (physics = false) => {
       if (physics) moving = true;
+      if (!whole) return;
       if (!pending) pending = requestAnimationFrame(frame);
     };
 
@@ -100,6 +105,7 @@ export default function MetroThree() {
       const height = page.clientHeight;
       if (!width || !height) return;
       const dpr = Math.min(DPR_CAP, window.devicePixelRatio || 1);
+      if (width === view.width && height === view.height && dpr === view.dpr) return;
       const centre = view.width ? { x: (view.width / 2 - cam.tx) / cam.s, y: (view.height / 2 - cam.ty) / cam.s } : null;
       view.width = width;
       view.height = height;
@@ -118,20 +124,28 @@ export default function MetroThree() {
       }
       clamp();
       labels.clear();
-      wake();
+      if (whole) wake();
+      else open();
+    };
+    // The opening frame, drawn once and complete: all names of the opening scale at once.
+    const open = () => {
+      if (whole || !fonts || !view.width) return;
+      labels.prepare(scene.marks, cam.s * view.dpr);
+      whole = true;
+      frame();
+      setReady(true);
     };
 
     const observer = new ResizeObserver(resize);
     observer.observe(page);
     resize();
-    // Names wait for 서울알림체; until then the frame shows lines and stations only.
-    document.fonts
-      .load(`800 12px ${family}`)
-      .then(() => document.fonts.load(`700 12px ${family}`))
+    // Both weights of 서울알림체 at once; a failed load opens the map in the fallback face.
+    Promise.all([document.fonts.load(`800 12px ${family}`), document.fonts.load(`700 12px ${family}`)])
+      .catch(() => undefined)
       .then(() => {
         if (!alive) return;
-        labels.clear();
-        wake();
+        fonts = true;
+        open();
       });
 
     const local = (e: PointerEvent | WheelEvent) => {
@@ -258,6 +272,17 @@ export default function MetroThree() {
         role="img"
         aria-label="서울 지하철 노선도. 두 손가락으로 확대하고 끌어 옮기며, 역을 잡아 옮기면 이어진 선과 역이 따라 움직입니다"
       />
+      {!ready && (
+        <div className={styles.loading} aria-hidden="true">
+          <svg viewBox="-29.42 -55.16 126.26 116.96">
+            <path
+              transform="scale(1 -1)"
+              fill="#172a88"
+              d="M0 0 1.681 4.631C6.207 17.526 14.851 30.3 33.707 30.3H80.729L76.526 18.82H39.303c-7.67 0-11.755-4.245-15.549-11.795L95.852 7.021c-5.271 27.365-31.093 48.138-62.145 48.138-34.861 0-63.127-26.181-63.127-58.478 0-1.06.033-2.109.094-3.152l96.746.007-1.678-4.628C61.21-23.989 52.555-36.761 33.707-36.761h-47.02l4.186 11.48h37.238c7.668 0 11.753 4.238 15.545 11.79h-72.121c5.195-27.452 31.052-48.31 62.172-48.31 34.862 0 63.129 26.177 63.129 58.482 0 1.116-.039 2.224-.104 3.323z"
+            />
+          </svg>
+        </div>
+      )}
     </main>
   );
 }

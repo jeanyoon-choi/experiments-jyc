@@ -30,3 +30,7 @@ Lint passes; typecheck has no errors under `scroll-rot`. In Chrome on the develo
 - With `getUserMedia` replaced in the page by a canvas stream of the Zuckerberg cut-out (a real face image through the real model): the brain came round to face the viewer; rotating the image 25° clockwise tilted the brain's top to the left, −20° to the right (the mirrored roll); neighbours were shot again after the tilt; paging worked with the head followed. Frame gaps at rest over 3 s: median 16.7 ms, one of 180 over 22 ms; none in a flight.
 
 **Not verified:** a real camera and a live head, so the sign of yaw and nod is by derivation only (roll was observed); the permission prompt on iOS Safari and whether it needs the touch; inference cost and swipe smoothness on a mobile; how the hidden 1 px video behaves on iOS.
+
+## Comments and share (2026-11-23)
+
+The comment and share sheets were added here as in brain/1, copied not imported; see [brain/1](brain-1.md#comments-and-share-2026-11-23). Only brain/1 and eye/1 were opened in the browser for this; brain/2 was typechecked and linted.

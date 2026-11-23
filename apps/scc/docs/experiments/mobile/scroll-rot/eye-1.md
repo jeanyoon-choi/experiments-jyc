@@ -2,7 +2,7 @@
 
 `/mobile/scroll-rot/eye/1` (2026-11-16) is one eyeball in three.js, swiped like reels: every reel down shows the same eye, further gone. It lives at [`/mobile/scroll-rot/eye/[experiment]`](../../../../app/mobile/scroll-rot/eye/[experiment]/page.tsx), code in [`components/mobile/scroll-rot/eye/1`](../../../../components/mobile/scroll-rot/eye/1/).
 
-The baseline is [brain/1](brain-1.md): its swipe (iOS's paging spring), its stills, its resolution governor, its baked noise and its Reels rail are copied here unchanged, not imported. What changed is the organ. There is no face reel.
+The baseline is [brain/1](brain-1.md): its swipe (iOS's paging spring), its stills, its resolution governor, its baked noise and its Reels rail are copied here unchanged, not imported. What changed is the organ. Since 2026-11-23 it has brain/1's face reel too: every tenth swipe (reels 10, 20, 30, …) lands on Zuckerberg's face, and the scene draws nothing for that reel.
 
 - **Globe.** [`globe.ts`](../../../../components/mobile/scroll-rot/eye/1/globe.ts) builds it, no model file: a sphere in the proportions of a 24 mm eye with the cornea raised on its front as a steeper cap (radius 7.8 mm, 11.7 mm across), the normals turning softly across the limbal furrow, and the whole very slightly uneven.
 - **Matter.** A first version drew everything by formula (noise-streak iris, iso-line vessels, black mould patches); the user called it AI slop, not hyper-real, and it was redone the same day from real matter.
@@ -15,3 +15,7 @@ The baseline is [brain/1](brain-1.md): its swipe (iOS's paging spring), its stil
   - stains spreading from seeds (two on the first reel off the cornea, then about five every three reels, radius `0.006 + 0.008·t^0.7` capped at 0.04 on a globe of 0.1): yellowed at the edge, then the red of blood let into the tissue, then dark, then wet black-green, sunken, running ahead along the vessels. Under a stain the cornea clouds at once.
 
 Checks: lint passes; typecheck passes for this folder; no shader or console errors. Captured in Brave at reels 0, 4, 10 and 18. Read against the aim (hyper-real, not slop): the fresh eye now reads as a real eye, on the strength of the photographed iris and the mirrored room. Still short: the white is too clean and its vessels too few and hair-thin; at reel 4 the stains read as separate wounds, and by reels 10–18 the eye is a red-and-black mottled ball with the iris nearly gone. Frame time was not measured, and nothing was exercised on a mobile.
+
+## Comments and share (2026-11-23)
+
+The comment and share sheets were added here as in brain/1, copied not imported; see [brain/1](brain-1.md#comments-and-share-2026-11-23). The comments are the eye's own ([`reels/pools.ts`](../../../../components/mobile/scroll-rot/eye/1/reels/pools.ts)); the face reels have their own pool. The face reel here was typechecked and linted only, not opened in the browser.

@@ -1,0 +1,104 @@
+@property --tint {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+.stage {
+  --readout-height: calc(30px + env(safe-area-inset-bottom));
+  transition: --tint 140ms linear;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* Under the app, one line: which way the mobile leans and how far gone. */
+.readout {
+  position: absolute;
+  z-index: 8;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--readout-height);
+  margin: 0;
+  padding: 0 12px env(safe-area-inset-bottom);
+  box-sizing: border-box;
+  background: #fff;
+  color: #8c8c8c;
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  font-size: 12px;
+  line-height: 30px;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Motion access: the whole screen is the button, under KakaoTalk's own
+   kind of popup, so the first touch anywhere starts the tilt. */
+.ask {
+  position: absolute;
+  z-index: 10;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: rgb(0 0 0 / 0.4);
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  letter-spacing: -0.015em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  animation: dim 0.24s ease-out both;
+}
+
+.askCard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: min(280px, calc(100% - 64px));
+  padding: 26px 16px 16px;
+  box-sizing: border-box;
+  border-radius: 18px;
+  background: #fff;
+  animation: rise 0.3s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.askText {
+  color: #191919;
+  font-size: 15px;
+  line-height: 1.4;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.askButton {
+  display: grid;
+  place-items: center;
+  height: 44px;
+  border-radius: 10px;
+  background: #fee500;
+  color: #191919;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+@keyframes dim {
+  from { background: rgb(0 0 0 / 0); }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ask,
+  .askCard {
+    animation: none;
+  }
+}

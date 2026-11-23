@@ -6,11 +6,12 @@ import { flushSync } from "react-dom";
 import { createBrain } from "./scene";
 import { Icon } from "./reels/glyph";
 import { compactCount, reelOf } from "./reels/feed";
+import { CommentsSheet, ShareSheet, type Posted } from "./reels/panels";
 import s from "./reels/reels.module.css";
 
-// From the twentieth swipe on, every tenth (20, 30, 40, …) lands on Mark Zuckerberg's face where the brain would be.
+// Every tenth swipe (10, 20, 30, …) lands on Mark Zuckerberg's face where the brain would be.
 // Photo: The White House / Andrea Hanks, public domain (see public/images/scroll-rot/license.txt).
-const FACE_FROM = 20;
+const FACE_FROM = 10;
 const FACE_EVERY = 10;
 const FACE_URL = "/images/scroll-rot/face.webp";
 const isFace = (reel: number) => reel >= FACE_FROM && reel % FACE_EVERY === 0;
@@ -22,6 +23,12 @@ export default function BrainOne() {
   const [liked, setLiked] = useState<number[]>([]);
   const [reposted, setReposted] = useState<number[]>([]);
   const [burst, setBurst] = useState(0);
+  // the sheets over the rail: comments and share, for the reel they were opened on
+  const [sheet, setSheet] = useState<{ kind: "comments" | "share"; reel: number } | null>(null);
+  const [posted, setPosted] = useState<Record<number, Posted[]>>({});
+  const [likedComments, setLikedComments] = useState<string[]>([]);
+  const [shared, setShared] = useState<Record<number, number>>({});
+  const [notice, setNotice] = useState("");
   const current = useRef(0);
 
   useEffect(() => {
@@ -41,7 +48,13 @@ export default function BrainOne() {
     return () => scene.dispose();
   }, []);
 
-  const toggle = (n: number, set: typeof setLiked) => set((list) => (list.includes(n) ? list.filter((x) => x !== n) : [...list, n]));
+  useEffect(() => {
+    if (!notice) return;
+    const timer = window.setTimeout(() => setNotice(""), 1800);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
+
+  const toggle = <T,>(n: T, set: (update: (list: T[]) => T[]) => void) => set((list) => (list.includes(n) ? list.filter((x) => x !== n) : [...list, n]));
 
   return (
     <main className={s.page}>
@@ -61,17 +74,17 @@ export default function BrainOne() {
                   <Icon name="heart" size={28} filled={isLiked} />
                   <small>{compactCount(reel.likes + Number(isLiked))}</small>
                 </button>
-                <button aria-label="View reel comments">
+                <button aria-label="View reel comments" onClick={() => setSheet({ kind: "comments", reel: n })}>
                   <Icon name="message" size={28} />
-                  <small>{compactCount(reel.comments)}</small>
+                  <small>{compactCount(reel.comments + (posted[n]?.length ?? 0))}</small>
                 </button>
                 <button aria-label={isReposted ? "Undo repost" : "Repost"} aria-pressed={isReposted} onClick={() => toggle(n, setReposted)}>
                   <Icon name="repost" size={28} filled={isReposted} />
                   <small>{compactCount(reel.reposts + Number(isReposted))}</small>
                 </button>
-                <button aria-label="Share reel">
+                <button aria-label="Share reel" onClick={() => setSheet({ kind: "share", reel: n })}>
                   <Icon name="send" size={28} />
-                  <small>{compactCount(reel.shares)}</small>
+                  <small>{compactCount(reel.shares + (shared[n] ?? 0))}</small>
                 </button>
               </div>
             </section>
@@ -80,6 +93,29 @@ export default function BrainOne() {
         </div>
       </div>
       {burst > 0 && <span key={burst} className={s.burst}><Icon name="heart" filled size={96} /></span>}
+      {sheet?.kind === "comments" && (
+        <CommentsSheet
+          reel={sheet.reel}
+          other={isFace(sheet.reel)}
+          posted={posted[sheet.reel] ?? []}
+          liked={likedComments}
+          onLike={(id) => toggle(id, setLikedComments)}
+          onPost={(body) => setPosted((all) => ({ ...all, [sheet.reel]: [{ id: `${sheet.reel}-me-${all[sheet.reel]?.length ?? 0}`, body }, ...(all[sheet.reel] ?? [])] }))}
+          onClose={() => setSheet(null)}
+        />
+      )}
+      {sheet?.kind === "share" && (
+        <ShareSheet
+          onShared={(text) => {
+            setShared((all) => ({ ...all, [sheet.reel]: (all[sheet.reel] ?? 0) + 1 }));
+            if (text) setNotice(text);
+            setSheet(null);
+          }}
+          onFailed={setNotice}
+          onClose={() => setSheet(null)}
+        />
+      )}
+      {notice && <div className={s.toast} role="status">{notice}</div>}
     </main>
   );
 }

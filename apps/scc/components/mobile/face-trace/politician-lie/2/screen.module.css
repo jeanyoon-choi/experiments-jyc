@@ -70,3 +70,91 @@
   outline: 2px solid #fff;
   outline-offset: 4px;
 }
+
+.intro {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  justify-items: center;
+  padding: max(32px, env(safe-area-inset-top)) 24px max(32px, env(safe-area-inset-bottom));
+  /* A capture of the piece itself: a mouth speaking with a president inside it. */
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)),
+    #000 url("/images/face-trace/politician-lie/intro.webp") center / cover no-repeat;
+  text-align: center;
+}
+
+.introBody {
+  align-self: center;
+}
+
+.intro h1 {
+  margin: 0 0 40px;
+  font-size: clamp(28px, 8.5vw, 56px);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+}
+
+.intro {
+  cursor: pointer;
+}
+
+.intro button {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto;
+  padding: 0;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  animation: beckon 1.6s ease-in-out infinite;
+}
+
+.intro button svg {
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: nudge 1.6s ease-in-out infinite;
+}
+
+@keyframes beckon {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.45); }
+  60% { box-shadow: 0 0 0 16px rgba(255, 255, 255, 0); }
+}
+
+@keyframes nudge {
+  0%, 100% { transform: translateX(-3px); }
+  50% { transform: translateX(3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro button,
+  .intro button svg {
+    animation: none;
+  }
+}
+
+.intro button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+}
+
+.credit {
+  margin: 0;
+  color: inherit;
+  text-decoration: none;
+  font-size: 13px;
+  line-height: 1.5;
+}

@@ -395,6 +395,7 @@ export function createBrain(host: HTMLElement, track: HTMLElement, hooks: BrainH
     step(e.deltaY > 0 ? 1 : -1);
   };
   const onKey = (e: KeyboardEvent) => {
+    if (e.target instanceof Element && e.target.closest("input, [role=dialog]")) return; // typed into a sheet, not at the feed
     const by = e.key === "ArrowDown" || e.key === "PageDown" || e.key === " " ? 1 : e.key === "ArrowUp" || e.key === "PageUp" ? -1 : 0;
     if (!by) return;
     e.preventDefault();

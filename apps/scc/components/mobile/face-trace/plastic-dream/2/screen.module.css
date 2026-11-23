@@ -1,0 +1,410 @@
+.stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  background: #fff;
+  color: #000;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Nothing on the board can be selected, called out or highlighted by a hold. */
+.stage,
+.stage * {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The board is always the full width of the screen. It is set in em: one em
+   is 1/39 of that width, held down only where the screen is too short to
+   leave the face a third of its height. */
+.board {
+  --width: min(100vw, 64dvh);
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100dvh;
+  font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  font-size: calc(var(--width) / 39);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.where {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4em 0.8em;
+  /* Seoul Metro Line 3. */
+  background: #ef7c1c;
+  color: #fff;
+  font-size: 1.4em;
+}
+
+.where span {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.where i {
+  display: grid;
+  place-items: center;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 50%;
+  background: #fff;
+  color: #ef7c1c;
+  font-style: normal;
+  letter-spacing: 0;
+}
+
+.clinic {
+  margin: 0;
+  padding: 0.22em 0.3em 0.1em;
+  font-size: 4.3em;
+  font-weight: 900;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.clinic em {
+  color: #e60012;
+  font-style: normal;
+}
+
+.slogan {
+  margin: 0 1em;
+  padding: 0.2em 0;
+  background: #ffe600;
+  font-size: 2.5em;
+  text-align: center;
+}
+
+.offer {
+  margin: 0;
+  padding: 0.45em 0 0.5em;
+  color: #e60012;
+  font-size: 1.7em;
+  text-align: center;
+}
+
+.offer b {
+  font-size: 1.5em;
+}
+
+.theatre {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+}
+
+.preview,
+.photo {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.preview {
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.photo {
+  touch-action: none;
+}
+
+.hidden {
+  visibility: hidden;
+}
+
+.before {
+  margin: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: min(26%, 10.14em);
+  border: 0.3em solid #fff;
+  border-left: 0;
+  border-top: 0;
+  pointer-events: none;
+}
+
+.before canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.before figcaption,
+.after {
+  margin: 0;
+  position: absolute;
+  padding: 0.25em 0.5em;
+  font-size: 1.3em;
+  letter-spacing: 0;
+  pointer-events: none;
+}
+
+.before figcaption {
+  left: 0;
+  bottom: 0;
+  background: #000;
+  color: #fff;
+}
+
+.after {
+  right: 0;
+  top: 0;
+  background: #e60012;
+  color: #fff;
+}
+
+/* A third tag on the photo, in the corner the other two leave free. */
+.retake {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: 0;
+  padding: 0.25em 0.5em;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  font-size: 1.3em;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+/* The tag stays small; the area that takes the tap is a finger wide. */
+.retake::before {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: max(100%, 48px);
+  height: max(100%, 48px);
+}
+
+.retake:focus-visible {
+  outline: 2px solid #e60012;
+  outline-offset: -4px;
+}
+
+.hand {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: none;
+  pointer-events: none;
+}
+
+/* The viewBox origin, the working tip, sits on the pressed point. */
+.instrument {
+  position: absolute;
+  left: -1.2em;
+  top: -14.4em;
+  width: 18em;
+  height: 15.6em;
+  overflow: visible;
+  filter: drop-shadow(0 0.3em 0.3em rgb(0 0 0 / 0.45));
+}
+
+.cut {
+  animation: cut 0.22s ease-in-out infinite alternate;
+}
+
+.snipUp,
+.snipDown {
+  transform-origin: 66px 120px;
+  animation: snip 0.28s ease-in-out infinite alternate;
+}
+
+.snipDown {
+  animation-name: snipBack;
+}
+
+.plunge {
+  animation: plunge 0.9s linear infinite;
+}
+
+@keyframes cut {
+  to { transform: translateX(9px); }
+}
+
+@keyframes snip {
+  from { transform: rotate(-9deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes snipBack {
+  from { transform: rotate(9deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes plunge {
+  from { transform: translateX(22px); }
+  to { transform: translateX(-12px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cut,
+  .snipUp,
+  .snipDown,
+  .plunge {
+    animation: none;
+  }
+}
+
+.prompt,
+.status {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 2em;
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: 1.6em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.prompt p {
+  margin: 0 0 1em;
+  white-space: normal;
+}
+
+.prompt button {
+  min-height: 48px;
+  padding: 0.6em 1.4em;
+  border: 0;
+  border-radius: 0;
+  background: #e60012;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.prompt button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+}
+
+.now {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.6em;
+  height: 2.1em;
+  padding: 0.45em 0.6em 0;
+  background: #000;
+  color: #fff;
+  font-size: 1.5em;
+  white-space: nowrap;
+}
+
+.now strong {
+  font-size: 1.25em;
+  font-weight: 900;
+}
+
+.live {
+  background: #e60012;
+}
+
+.live strong {
+  color: #ffe600;
+}
+
+.rows {
+  box-sizing: border-box;
+  width: min(100%, 39em / 1.2);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, auto);
+  column-gap: 1.4em;
+  padding: 0.7em 1em 0.5em;
+  list-style: none;
+  font-size: 1.2em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.rows li {
+  display: grid;
+  grid-template-columns: 1fr 3em 6.4em;
+  padding: 0.24em 0;
+  color: #b0b0b0;
+  font-variant-numeric: tabular-nums;
+}
+
+.rows li span:nth-child(n + 2) {
+  text-align: right;
+}
+
+.rows .done {
+  color: #000;
+}
+
+.total {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: min(100% - 2em, 39em / 1.6 - 2em);
+  margin: 0 auto;
+  padding-top: 0.5em;
+  border-top: 0.25em solid #000;
+  font-size: 1.6em;
+}
+
+.total small {
+  display: block;
+  margin-top: 0.35em;
+  font-size: 0.7em;
+  font-weight: 700;
+}
+
+.total strong {
+  color: #e60012;
+  font-size: 2.6em;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.05em;
+}
+
+.total strong small {
+  display: inline;
+  margin-left: 0.1em;
+  font-size: 0.45em;
+}
+
+.fine {
+  margin: 0;
+  padding: 0.6em 0 max(0.9em, env(safe-area-inset-bottom));
+  color: #000;
+  font-size: 0.95em;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-align: center;
+}

@@ -1,0 +1,59 @@
+Footage for /mobile/south-north/tv-news/3, fetched 2026-11-23. Rights stay with the
+broadcasters and uploaders; used at the user's decision in this experiment only.
+Each file is 1216 x 1080, 20 s, 30 fps: South in the left half and on the left audio
+channel, North in the right half and on the right channel. Built with
+apps/scc/scripts/tv-news/build_pairs.py. The anchors are /1's files.
+
+parade.mp4
+  South: [풀영상] 제76주년 국군의 날 기념식, 2024-10-01, KBS News
+         https://www.youtube.com/watch?v=okdQJp84nNI  1080p; 1:13:57.13 to 1:14:17.13
+  North: [Full Ver.] North Korea unveils Hwasong-20 ICBM at largest-ever military parade, KOREA NOW
+         https://www.youtube.com/watch?v=I3QxWCyjG34  1080p; 1:01:23.57 to 1:01:43.57
+
+anthem.mp4
+  South: 대한민국에 놀라운 '힘'이 깨어났다! #대한민국정상화, 대한민국정부
+         https://www.youtube.com/watch?v=JEMDwEmIV4Y  1080p; 1:26.5 to 1:46.5
+  North: 새로 나온 노래《친근한 어버이》 (re-upload by 메아리)
+         https://www.youtube.com/watch?v=B98JH6HtAjg  1080p, letterboxed; 3:19.4 to 3:39.4
+
+stage.mp4
+  South: 장원영 WONYOUNG IVE 4K 세로 직캠 @251031 SHOW WHAT I AM, The Sin
+         https://www.youtube.com/watch?v=fc0AdZS4l1Q  vertical 1080 x 1920 taken; 1:00 to 1:20
+  North: 경애하는 김정은동지를 모시고 진행한 2025년 신년경축공연 (re-upload by 메아리)
+         https://www.youtube.com/watch?v=Sma9Ub_Mq9M  1080p; 36:35 to 36:55
+
+Added the same day; each also has a .jpg still of its first frame.
+
+street.mp4
+  South: Seoul Walking Tour 4K | Autumn in Gangnam from COEX to Gangnam Station, Seoul Walk
+         https://www.youtube.com/watch?v=XGnlhHbaTU8  1080p60 taken; 16:26 to 16:46
+  North: RIMHUNG STREET. PYONGYANG, NORTH KOREA, Dull Night Walk
+         https://www.youtube.com/watch?v=uIgMpItM_5s  1080p60 taken; 1:19 to 1:39
+
+towers.mp4
+  South: ONE&ONLY MASTERPIECE 래미안, CHANNEL RAEMIAN
+         https://www.youtube.com/watch?v=5sITcEutII4  1080p; 0:10 to 0:30
+  North: 화성지구 4단계 1만세대 살림집 준공식 성대히 진행 (re-upload by KANCC TV)
+         https://www.youtube.com/watch?v=guV-Ts8FrPk  720p, scaled 1.5x; 29:38.6 to 29:58.6
+
+beach.mp4
+  South: 부산해운대4k드론영상, PHS Films
+         https://www.youtube.com/watch?v=cRrFuQWEydM  1080p taken; 0:02.5 to 0:22.5
+  North: 원산갈마해안관광지구 (re-upload by 메아리)
+         https://www.youtube.com/watch?v=Q3PPfTxuFdU  1080p; 1:01.84 to 1:21.84
+
+noodles.mp4
+  South: 살얼음 동동 매콤 물냉면 먹방, 문복희 Eat with Boki
+         https://www.youtube.com/watch?v=3CpysyJ_L-4  1080p; 1:38.36 to 1:58.36
+  North: 《평양랭면풍습》 인류의 대표적인 비물질문화유산으로 등록, 2022-12-11 22시 보도 (re-upload by 메아리)
+         https://www.youtube.com/watch?v=TMQlkrrs7KU  1080p; 1:16.24 to 1:36.24
+
+dance.mp4
+  South: Feel the Rhythm of KOREA: SEOUL, VISITKOREA
+         https://www.youtube.com/watch?v=3P1CnWI62Ik  1080p; 0:37.3 to 0:57.3
+  North: KTG DPRK Tourism Promotional Video, KTG North Korea Travel (a foreign agency's film)
+         https://www.youtube.com/watch?v=GF2SpsHTzZ0  1080p; 1:38.2 to 1:58.2
+
+missile.mp4
+  South: the parade.mp4 source (KBS); 1:34:59.5 to 1:35:19.5 (현무-5)
+  North: the parade.mp4 source (KOREA NOW); 1:41:24 to 1:41:44 (화성-20형)

@@ -20,3 +20,18 @@
   display: block;
   touch-action: none;
 }
+
+/* Until the map is whole: 서울교통공사's mark on white, over the unpainted canvas. */
+.loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #fff;
+}
+
+.loading svg {
+  width: 16%;
+  max-width: 72px;
+  height: auto;
+}

@@ -1,0 +1,183 @@
+.stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* The 608 × 1080 frame always fills the height: a mobile crops its sides, a
+   wide window shows it whole between black. */
+.canvas {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  display: block;
+  height: 100%;
+  aspect-ratio: 608 / 1080;
+  transform: translateX(-50%);
+}
+
+/* The decoder behind the canvas: never seen, but it has to stay in the page
+   and rendered for the browser to keep decoding it. */
+.source {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 2px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The visible part of the picture: the canvas where a mobile crops its sides,
+   the whole frame in a wide window. The two marks sit in its lower corners
+   and take their size from it. */
+.frame {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: 608 / 1080;
+  transform: translateX(-50%);
+  container-type: size;
+  pointer-events: none;
+}
+
+/* --share is the North's share of the picture, written every frame. The box
+   keeps the 태극기's 3 : 2; the 인공기 comes up over it. */
+.flag {
+  --mark: clamp(24px, 7.5cqw, 40px);
+  position: absolute;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  left: calc(16px + env(safe-area-inset-left));
+  width: calc(var(--mark) * 1.5);
+  height: var(--mark);
+  /* The 태극기 is white: the shadow keeps its edge on a white jacket. */
+  box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.28), 0 1px 5px rgb(0 0 0 / 0.32);
+}
+
+.flag svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.flag .north {
+  opacity: var(--share, 0.5);
+}
+
+.info {
+  --mark: clamp(24px, 7.5cqw, 40px);
+  position: absolute;
+  right: calc(16px + env(safe-area-inset-right));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  display: grid;
+  place-items: center;
+  width: var(--mark);
+  height: var(--mark);
+  box-sizing: border-box;
+  padding: 0;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  background: transparent;
+  /* The ring and the i are white on nothing: the shadow keeps them on a white jacket. */
+  filter: drop-shadow(0 0 1.5px rgb(0 0 0 / 0.55));
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The touch target reaches past the disc. */
+.info::before {
+  position: absolute;
+  inset: -10px;
+  content: "";
+}
+
+.info svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: #fff;
+}
+
+.infoLine,
+.infoNote {
+  display: block;
+}
+
+.infoNote {
+  margin-top: 12px;
+}
+
+/* Motion access and sound both need a touch: the whole screen takes it. */
+.ask {
+  position: absolute;
+  z-index: 10;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: rgb(0 0 0 / 0.4);
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  letter-spacing: -0.015em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  animation: dim 0.24s ease-out both;
+}
+
+.askCard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: min(280px, calc(100% - 64px));
+  padding: 26px 16px 16px;
+  box-sizing: border-box;
+  border-radius: 18px;
+  background: #fff;
+  animation: rise 0.3s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.askText {
+  color: #000;
+  font-size: 15px;
+  line-height: 1.4;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.askButton {
+  display: grid;
+  place-items: center;
+  height: 44px;
+  border-radius: 10px;
+  background: #000;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+@keyframes dim {
+  from { background: rgb(0 0 0 / 0); }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ask,
+  .askCard {
+    animation: none;
+  }
+}

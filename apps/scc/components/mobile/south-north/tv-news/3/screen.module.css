@@ -1,0 +1,224 @@
+.stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* The pager: the track slides under the finger and on the spring (pager.ts).
+   Only the parts near the screen exist. */
+.scroller {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.track {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+.reel {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* The visible part of one picture: the screen where a mobile crops the
+   picture's sides, the whole 608 × 1080 frame in a wide window. */
+.column {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: 608 / 1080;
+  overflow: hidden;
+  transform: translateX(-50%);
+}
+
+/* The action rail of a reel, low on the right. Geometry and glyphs are those
+   of scroll-rot/eye/2's rail (copied, nothing imported); here it lies on
+   footage, so it carries a soft dark halo to hold on a white jacket. */
+.side {
+  position: absolute;
+  right: calc(10px + env(safe-area-inset-right));
+  bottom: calc(48px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 38px;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  filter: drop-shadow(0 0 1.5px rgb(0 0 0 / 0.55));
+  -webkit-font-smoothing: antialiased;
+}
+
+.side > button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.side small {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 14px;
+}
+
+.liked svg {
+  color: #ff3040;
+  animation: likePop 0.45s ease-out;
+}
+
+@keyframes likePop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.25); }
+  70% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+/* The 608 × 1080 frame always fills the height: a mobile crops its sides, a
+   wide window shows it whole between black. */
+.canvas {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  display: block;
+  height: 100%;
+  aspect-ratio: 608 / 1080;
+  transform: translateX(-50%);
+}
+
+/* The decoder behind the canvas: never seen, but it has to stay in the page
+   and rendered for the browser to keep decoding it. */
+.source {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 2px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The visible part of the picture, over the pager: the flag sits in its lower
+   left corner and takes its size from it. */
+.frame {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: 608 / 1080;
+  transform: translateX(-50%);
+  container-type: size;
+  pointer-events: none;
+}
+
+/* --share is the North's share of the picture, written every frame. The box
+   keeps the 태극기's 3 : 2; the 인공기 comes up over it. */
+.flag {
+  --mark: clamp(24px, 7.5cqw, 40px);
+  position: absolute;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  left: calc(16px + env(safe-area-inset-left));
+  width: calc(var(--mark) * 1.5);
+  height: var(--mark);
+  /* The 태극기 is white: the shadow keeps its edge on a white jacket. */
+  box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.28), 0 1px 5px rgb(0 0 0 / 0.32);
+}
+
+.flag svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.flag .north {
+  opacity: var(--share, 0.5);
+}
+
+/* Motion access and sound both need a touch: the whole screen takes it. */
+.ask {
+  position: absolute;
+  z-index: 10;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: rgb(0 0 0 / 0.4);
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  letter-spacing: -0.015em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  animation: dim 0.24s ease-out both;
+}
+
+.askCard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: min(280px, calc(100% - 64px));
+  padding: 26px 16px 16px;
+  box-sizing: border-box;
+  border-radius: 18px;
+  background: #fff;
+  animation: rise 0.3s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.askText {
+  color: #000;
+  font-size: 15px;
+  line-height: 1.4;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.askButton {
+  display: grid;
+  place-items: center;
+  height: 44px;
+  border-radius: 10px;
+  background: #000;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+@keyframes dim {
+  from { background: rgb(0 0 0 / 0); }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ask,
+  .askCard {
+    animation: none;
+  }
+}

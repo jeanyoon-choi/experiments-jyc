@@ -1,0 +1,568 @@
+.stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  background: #fff;
+  color: #000;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Nothing on the board can be selected, called out or highlighted by a hold. */
+.stage,
+.stage * {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The board is always the full width of the screen. It is set in em: one em
+   is 1/39 of that width, held down only where the screen is too short to
+   leave the face a third of its height. */
+.board {
+  --width: min(100vw, 64dvh);
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100dvh;
+  font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  font-size: calc(var(--width) / 39);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.where {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* The strip runs up under the status bar, so the notch sits in its yellow. */
+  padding: calc(0.4em + env(safe-area-inset-top) / 1.4) 0.8em 0.4em;
+  /* 수인분당선 is the yellow line; black type, as yellow carries no white. */
+  background: #ffb300;
+  color: #000;
+  font-size: 1.4em;
+}
+
+.where span {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.where i {
+  display: grid;
+  place-items: center;
+  height: 1.5em;
+  padding: 0 0.5em;
+  border-radius: 0.75em;
+  background: #fff;
+  color: #000;
+  font-size: 0.8em;
+  font-style: normal;
+  letter-spacing: 0;
+}
+
+.academy {
+  margin: 0;
+  padding: 0.22em 0.3em 0.1em;
+  font-size: 4.3em;
+  font-weight: 900;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.academy em {
+  color: #e60012;
+  font-style: normal;
+}
+
+.slogan {
+  margin: 0 1em;
+  padding: 0.2em 0;
+  background: #ffe600;
+  font-size: 2.5em;
+  text-align: center;
+}
+
+.offer {
+  margin: 0;
+  padding: 0.45em 0 0.5em;
+  color: #e60012;
+  font-size: 1.7em;
+  text-align: center;
+}
+
+.offer b {
+  font-size: 1.5em;
+}
+
+/* The banner of the meme: white cloth, red corners, hung under the head. */
+.banner {
+  margin: 0;
+  padding: 0.5em 0 0.55em;
+  border-block: 0.22em solid #e60012;
+  background:
+    linear-gradient(135deg, #e60012 1.1em, transparent 1.1em),
+    linear-gradient(225deg, #e60012 1.1em, transparent 1.1em),
+    linear-gradient(45deg, #e60012 1.1em, transparent 1.1em),
+    linear-gradient(315deg, #e60012 1.1em, #fff 1.1em);
+  min-height: 2.1em;
+  font-size: 1.9em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.banner small {
+  display: block;
+  padding-bottom: 0.3em;
+  font-size: 0.55em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.theatre {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  container-type: size;
+  background: #000;
+  color: #fff;
+}
+
+/* The report is a sheet of paper on the black of the theatre, as large as the
+   theatre lets it be. */
+.paper {
+  --sheet: min(100cqw - 1.6em, (100cqh - 1.6em) / 0.66);
+  position: absolute;
+  left: 50%;
+  bottom: 0.8em;
+  width: var(--sheet);
+  height: max(var(--sheet) * 0.66, min(100cqh - 1.6em, var(--sheet) * 1.08));
+  transform: translateX(-50%);
+  touch-action: none;
+  cursor: pointer;
+}
+
+/* One em of the sheet is 1/43 of its width, at any size it is printed. */
+/* Holding a figure is the whole act: no selection, loupe or callout on it. */
+.paper,
+.paper * {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sheet {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 1.5em 1.5em 1.2em;
+  background: #fff;
+  color: #000;
+  font-size: calc(var(--sheet) / 43);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.title {
+  margin: 0 0 0.9em;
+  font-size: 2.3em;
+  font-weight: 900;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.person,
+.table {
+  display: grid;
+  gap: 0.1em;
+  padding: 0.1em;
+  background: #000;
+}
+
+.person {
+  grid-template-columns: 1fr 0.9fr 1fr 0.5fr 1.9fr;
+  margin-bottom: 0.7em;
+}
+
+.table {
+  flex: 1;
+  min-height: 0;
+  grid-template-columns: 5.4em repeat(7, 1fr);
+  grid-template-rows: 1fr 1fr 1fr 1fr 1.5fr;
+}
+
+.person span,
+.table span {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 2.1em;
+  background: #fff;
+  font-size: 1.15em;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.table span {
+  font-size: 1.5em;
+  min-height: 0;
+}
+
+.sheet .label {
+  font-size: 1.1em;
+  font-weight: 500;
+}
+
+.sheet .subject {
+  font-size: 0.86em;
+  font-weight: 500;
+  letter-spacing: -0.08em;
+}
+
+/* The longest heading breaks after its slash, as it does on the form. */
+.table .label {
+  line-height: 1.1;
+  white-space: normal;
+  word-break: keep-all;
+}
+
+.table .grade {
+  font-size: 2.6em;
+  font-weight: 900;
+}
+
+/* A figure the method has changed is the flyer's red. */
+.sheet .raised {
+  color: #e60012;
+}
+
+/* What is under the finger is run over in the flyer's yellow. */
+.person.held span,
+.table .held {
+  background: #ffe600;
+}
+
+.issuer {
+  margin: 0.9em 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2em;
+  font-size: 1.2em;
+  font-weight: 500;
+}
+
+.issuer strong {
+  font-size: 1.5em;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+/* The square seal, its legend set four characters to a column. */
+.issuer i {
+  width: 3.6em;
+  margin-left: -0.9em;
+  padding: 0.15em;
+  border: 0.16em solid #e60012;
+  color: #e60012;
+  font-size: 0.62em;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: 0;
+  word-break: break-all;
+}
+
+/* An area with nothing to print there is struck corner to corner, as on the form. */
+.table .none {
+  background: linear-gradient(to top right, #fff calc(50% - 0.04em), #000 calc(50% - 0.04em), #000 calc(50% + 0.04em), #fff calc(50% + 0.04em));
+}
+
+.table .none.held {
+  background: linear-gradient(to top right, #ffe600 calc(50% - 0.04em), #000 calc(50% - 0.04em), #000 calc(50% + 0.04em), #ffe600 calc(50% + 0.04em));
+}
+
+.hand {
+  --sheet: min(100cqw - 1.6em, (100cqh - 1.6em) / 0.66);
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  display: none;
+  pointer-events: none;
+}
+
+/* The viewBox origin sits on the pressed point; the device floats up and to
+   the right of it, clear of the finger, a quarter of the sheet across. */
+.instrument {
+  position: absolute;
+  left: calc(var(--sheet) * -0.02);
+  top: calc(var(--sheet) * -0.24);
+  width: calc(var(--sheet) * 0.26);
+  height: calc(var(--sheet) * 0.26);
+  overflow: visible;
+  filter: drop-shadow(0 0.3em 0.3em rgb(0 0 0 / 0.45));
+}
+
+.blink {
+  animation: blink 0.5s steps(2, jump-none) infinite;
+}
+
+.scan {
+  animation: scan 0.7s linear infinite;
+}
+
+@keyframes blink {
+  to { opacity: 0.15; }
+}
+
+@keyframes scan {
+  from { transform: translateY(-9px); }
+  to { transform: translateY(9px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blink,
+  .scan {
+    animation: none;
+  }
+}
+
+.now {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.6em;
+  height: 2.1em;
+  padding: 0.45em 0.6em 0;
+  background: #000;
+  color: #fff;
+  font-size: 1.5em;
+  white-space: nowrap;
+}
+
+.now strong {
+  font-size: 1.25em;
+  font-weight: 900;
+}
+
+.live {
+  background: #e60012;
+}
+
+.live strong {
+  color: #ffe600;
+}
+
+.rows {
+  box-sizing: border-box;
+  margin: 0 auto;
+  width: min(100%, 39em / 1.5);
+  padding: 0.7em 1em 0.5em;
+  list-style: none;
+  font-size: 1.5em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.rows li {
+  display: grid;
+  grid-template-columns: 1fr 3em 6.4em;
+  padding: 0.24em 0;
+  color: #b0b0b0;
+  font-variant-numeric: tabular-nums;
+}
+
+.rows li span:nth-child(n + 2) {
+  text-align: right;
+}
+
+.rows .done {
+  color: #000;
+}
+
+.total {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: min(100% - 2em, 39em / 1.6 - 2em);
+  margin: 0 auto;
+  padding-top: 0.5em;
+  border-top: 0.25em solid #000;
+  font-size: 1.6em;
+}
+
+.total small {
+  display: block;
+  margin-top: 0.35em;
+  font-size: 0.7em;
+  font-weight: 700;
+}
+
+.total strong {
+  color: #e60012;
+  font-size: 2.6em;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.05em;
+}
+
+.total strong small {
+  display: inline;
+  margin-left: 0.1em;
+  font-size: 0.45em;
+}
+
+.fine {
+  margin: 0;
+  padding: 0.6em 0 max(0.9em, env(safe-area-inset-bottom));
+  color: #000;
+  font-size: 0.95em;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+/* The consulting pop-up, in the grammar of the ones academy sites open with:
+   a count, the host, the title, one bold line, one button, and a dark bar to
+   dismiss it for the day or for now. */
+.veil {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 0.55);
+}
+
+.board {
+  position: relative;
+}
+
+.popup {
+  position: relative;
+  width: min(27em, 100% - 4em);
+  background: #fff;
+  color: #000;
+  text-align: center;
+}
+
+.popup p,
+.popup h2 {
+  margin: 0;
+}
+
+.count {
+  position: absolute;
+  right: 0.8em;
+  top: 0.8em;
+  padding: 0.3em 0.7em;
+  border-radius: 1em;
+  background: #000;
+  color: #fff;
+  font-size: 1.1em;
+  letter-spacing: 0;
+}
+
+.host {
+  padding-top: 2.6em;
+  font-size: 1.4em;
+  font-weight: 700;
+}
+
+/* The academy's own euphemism, over the title. */
+.pitch {
+  padding: 0.7em 1.2em 0;
+  color: #e60012;
+  font-size: 1.55em;
+  line-height: 1.25;
+  word-break: keep-all;
+}
+
+.tier {
+  padding-bottom: 0.6em;
+  font-size: 1.3em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.tier span {
+  color: #e60012;
+}
+
+.popup h2 {
+  padding: 0.35em 0 0.45em;
+  font-size: 3.4em;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.topic {
+  margin: 0 1.2em;
+  padding: 0.25em 0;
+  background: #ffe600;
+  font-size: 2em;
+}
+
+.fact {
+  padding: 0.9em 1.4em 1.1em;
+  font-size: 1.35em;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+}
+
+.popup button {
+  border: 0;
+  border-radius: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.popup .book {
+  min-height: 48px;
+  margin-bottom: 1.4em;
+  padding: 0.6em 1.2em;
+  background: #e60012;
+  color: #fff;
+  font-size: 1.45em;
+  white-space: nowrap;
+}
+
+.dismiss {
+  display: flex;
+  justify-content: space-between;
+  background: #000;
+}
+
+.popup .dismiss button {
+  min-height: 44px;
+  padding: 0 1.1em;
+  background: none;
+  color: #fff;
+  font-size: 1.25em;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.popup button:focus-visible {
+  outline: 2px solid #ffe600;
+  outline-offset: -4px;
+}

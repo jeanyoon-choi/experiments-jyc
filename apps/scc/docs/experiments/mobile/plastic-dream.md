@@ -11,7 +11,33 @@ A portrait board, 56% of the viewport height wide at most, set entirely in em (1
 - Instruments ([`tools.tsx`](../../../components/mobile/face-trace/plastic-dream/1/tools.tsx)): while a part is held, a scalpel, scissors or syringe sits with its tip on the pressed point and works (cutting stroke, snipping, plunger). Up to three fingers each carry one. Scissors for 앞트임, 뒤트임 and 콧볼축소; syringe for 입술필러, 이마지방이식 and 물광주사; scalpel for the rest.
 - Bill: a strip naming what is under the knife now with its unit price and count; fourteen catalogue rows with count and cost; the total in red.
 
-## Prices
+## /2 — /mobile/face-trace/plastic-dream/2
+
+2026-11-23. A copy of /1 ([`2/`](../../../components/mobile/face-trace/plastic-dream/2/index.tsx)); everything above and below holds for it except:
+
+- The strip reads `3 신사역` · `2번 출구 도보 1분`. "성형거리" was dropped by request as invented copy. Exit 2 replaces exit 5 because it is the exit with the most clinics in the [same 2018 count](https://www.medicaltimes.com/Main/view.html?ID=1120895): 25 within about 360 m of exit 2, against 11 within 250 m of exit 5, 11 within 350 m of exit 6 and 7 within 60 m of exit 3. The count is from 2018 and was not recounted; the station still has exits 1 to 8.
+- The sheet cannot be zoomed or scrolled: `touch-action: none` and `overscroll-behavior: none` on the stage, the document's overflow and overscroll locked while mounted, Safari `gesturestart`/`gesturechange`, `touchmove`, `dblclick` and ctrl-wheel cancelled, and a viewport of `maximum-scale=1, user-scalable=no` for this experiment only (`generateViewport` in the route). /1 is unchanged.
+- A hold is never iOS Safari's long press: `touchstart` is cancelled everywhere but on buttons (pointer events still arrive), `selectstart` is cancelled, and every element on the board has selection, callout and tap highlight off, so the magnifier and selection handles do not appear. Not yet checked on an iOS device.
+- Sound ([`sound.ts`](../../../components/mobile/face-trace/plastic-dream/2/sound.ts), [`script.ts`](../../../components/mobile/face-trace/plastic-dream/2/script.ts)): recorded voices praise her each time a whole operation is added to the bill, with a line about the part just operated on when there is one (언니, 왜 이렇게 예뻐졌어? · 코 했지? 라인 진짜 예쁘게 나왔다), sometimes followed by a laugh. One line at a time, at most one waiting, none repeated until its stage has been through all of them. The praise never turns; it runs down the way HAL 9000's "Daisy Bell" does, in five stages by operations billed (0, 4, 10, 20, 35): as it is said to her face, too much, nothing but the superlative, the same words again, the bare words (예쁨. 예쁨. 예쁨.), 47 lines in all; from the tenth operation the recordings also play slower and lower, toward 0.6 (`rateOf`). The lines were written in that register from the user's two examples, not collected from a source (two searches found no usable corpus). Playback is plain Web Audio from `/public/audio/plastic-dream/<id>.mp3`; only ids listed in `RECORDED` sound. **Nothing is recorded yet (2026-11-23), so /2 is silent**: voices and laughs are still to be made. No text is shown. Two earlier sounds were rejected by the user and removed: a patient-monitor pulse with a card-terminal beep (wrong sound altogether), then a continuous Tone.js riser.
+- 다시 찍기: a white tag in the bottom-right corner of the photo, set like the BEFORE and AFTER tags, with a 48 px tap area. It drops the operated photo and the bill and reopens the camera.
+- The board is always the full width of the screen: the strips, the theatre and the bill run edge to edge. Type is still 1/39 of the width, held to 1/39 of 64% of the height on a short or wide screen so the face keeps about a third of the height; there the rows, the total and the BEFORE inset keep their 39 em measure, centred. /1 is a centred column of at most 56% of the height.
+- Operations ease: each place's speed follows `RATE` with a 0.3 s time constant (`EASE`), so a press swells in and a release settles for about a second instead of starting and stopping at once. The skin eases in the same way and stops with the finger. `RATE` is 2 units per second, down from 2.5, so one billed operation is 2 s of pressing.
+- Prices are the low end of what clinics around 신사역, 압구정역 and 압구정로데오역 advertise: discounted event prices, VAT included, as listed on 강남언니's 청담/압구정/신사 district pages on 2026-11-23. They were read through page summaries, not on each clinic's own page; a listing price is a starting price and the lowest row found was not always taken where its title did not name the procedure. The head teaser is 쌍꺼풀 39만 · 코 54만 · 윤곽 165만~ and the fine print says VAT 포함.
+
+| Row | Won | Listing |
+| --- | --- | --- |
+| 쌍꺼풀 | 390,000 | 루호성형외과 (신사역), 자연유착 쌍꺼풀, from 770,000 ([쌍꺼풀수술](https://unni.app/events?district=N1102&q=%EC%8C%8D%EA%BA%BC%ED%92%80%EC%88%98%EC%88%A0)) |
+| 앞트임 · 뒤트임 | 290,000 each | 티에스성형외과 (신사역), 앞트임·뒤트임, from 319,000 ([앞트임](https://www.gangnamunni.com/search?q=%EC%95%9E%ED%8A%B8%EC%9E%84)) |
+| 콧대 | 540,000 | 바나나성형외과 (신사역), 코성형, from 1,070,000 ([코성형](https://unni.app/events?q=%EC%BD%94%EC%84%B1%ED%98%95)) |
+| 코끝 · 콧볼축소 | 550,000 each | 마이라인성형외과 (신사역), 코끝성형·콧볼축소 ([콧볼축소술](https://unni.app/events?q=%EC%BD%A7%EB%B3%BC%EC%B6%95%EC%86%8C%EC%88%A0)) |
+| 입술필러 | 79,000 | 비올라셀성형외과 (신사역), 입술필러 국산 ([입술필러](https://unni.app/events?district=N1102&q=%EC%9E%85%EC%88%A0%ED%95%84%EB%9F%AC)) |
+| 입꼬리 | 979,000 | 코랄성형외과 (신사역), 입꼬리성형 ([입꼬리수술](https://unni.app/events?district=N1102&q=%EC%9E%85%EA%BC%AC%EB%A6%AC%EC%88%98%EC%88%A0)) |
+| 인중축소 | 990,000 | 글로비성형외과 (압구정역), 인중축소, from 1,970,000 ([인중축소](https://unni.app/events?district=N1102&q=%EC%9D%B8%EC%A4%91%EC%B6%95%EC%86%8C)) |
+| 광대축소 · 사각턱 · 턱끝 | 1,650,000 each | 아이디병원 (신사역), 안면윤곽 1종 (one part of choice), 내추럴 사각턱축소 and 턱끝 성형, each 1,650,000 ([사각턱수술](https://unni.app/events?district=N1102&q=%EC%82%AC%EA%B0%81%ED%84%B1%EC%88%98%EC%88%A0), [턱끝수술](https://unni.app/events?district=N1102&q=%ED%84%B1%EB%81%9D%EC%88%98%EC%88%A0)) |
+| 이마지방이식 | 660,000 | 무드온성형외과 (신사역), 이마지방이식, from 1,150,000 ([이마지방이식](https://unni.app/events?district=N1102&q=%EC%9D%B4%EB%A7%88%EC%A7%80%EB%B0%A9%EC%9D%B4%EC%8B%9D)) |
+| 물광주사 | 70,000 | 루비성형외과 (신사역), 물광주사 2.5 cc, from 110,000 ([물광](https://www.gangnamunni.com/events?q=%EB%AC%BC%EA%B4%91)) |
+
+## Prices (/1)
 
 [`catalog.ts`](../../../components/mobile/face-trace/plastic-dream/1/catalog.ts). One operation is 4 units of amount, 1.6 s of pressing; cost is unit price × operations and runs continuously. Left and right are billed together as one operation. Unit prices are list prices (before event discounts) read on 2026-11-16:
 

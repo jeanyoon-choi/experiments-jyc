@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 import { createMouthMemory, createMouthShape, createView, measureMouth, openingRatio, zoomFrame, type Cover } from "./mouth";
 import { LIES, REEL, REEL_END, REEL_SOUND, lieAt } from "./lies";
+import { NOSE_HEIGHT, NOSE_WIDTH, createNose, fadeNose, measureNose } from "./nose";
 import { createMouthRenderer, type MouthRenderer } from "./renderer";
 import { createClipSound, type ClipSound } from "./sound";
 import styles from "./screen.module.css";
@@ -21,6 +22,8 @@ const CLOSED_HOLD = 180;
 // a mouth opened this wide.
 const LOUD = 0.4;
 const FACE_HOLD = 400;
+// The flag fades into the nostrils, and out when they are lost, over this long.
+const NOSE_FADE = 200;
 
 export default function PoliticianLieTwo() {
   const cameraRef = useRef<HTMLVideoElement>(null);
@@ -40,11 +43,17 @@ export default function PoliticianLieTwo() {
   const probeRef = useRef<HTMLPreElement>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [message, setMessage] = useState("");
+  // The intro stands before everything else; a tap anywhere on it turns the camera on.
+  const [entered, setEntered] = useState(false);
   // ?sound adds a readout of the sound's state, for a device with no console.
   const [probe, setProbe] = useState(false);
+  // ?nose tints the box the nostrils are looked for in.
+  const noseProbeRef = useRef(false);
   useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    noseProbeRef.current = query.has("nose");
     // eslint-disable-next-line react-hooks/set-state-in-effect -- the address is only known in the browser
-    setProbe(new URLSearchParams(window.location.search).has("sound"));
+    setProbe(query.has("sound"));
   }, []);
 
   const stop = useCallback((update = true) => {
@@ -168,6 +177,14 @@ export default function PoliticianLieTwo() {
       inferenceCanvas.height = 480;
       const inferenceContext = inferenceCanvas.getContext("2d", { willReadFrequently: true });
       if (!inferenceContext) throw new Error("얼굴 추적 화면을 준비할 수 없습니다.");
+      const noseCanvas = document.createElement("canvas");
+      noseCanvas.width = NOSE_WIDTH;
+      noseCanvas.height = NOSE_HEIGHT;
+      const noseContext = noseCanvas.getContext("2d", { willReadFrequently: true });
+      if (!noseContext) throw new Error("얼굴 추적 화면을 준비할 수 없습니다.");
+      const nose = createNose();
+      let noseOn = 0;
+      let lastDraw = 0;
       const shape = createMouthShape();
       const memory = createMouthMemory();
       const view = createView();
@@ -213,6 +230,12 @@ export default function PoliticianLieTwo() {
             inferenceCost += (performance.now() - now - inferenceCost) * 0.1;
             // The view follows the mouth; the outline is measured in that same view.
             cover = zoomFrame(view, points, width, height, camera.videoWidth, camera.videoHeight, elapsed);
+            // The nostrils are looked for in the very picture the landmarks came from.
+            if (points && measureNose(points, inferenceCanvas, inferenceCanvas.width, inferenceCanvas.height, noseContext, nose)) {
+              renderer.setNose(nose.mask);
+            } else {
+              fadeNose(nose);
+            }
             if (points && measureMouth(points, cover, memory, shape)) {
               ratio = openingRatio(points, camera.videoWidth / camera.videoHeight);
               lastFace = now;
@@ -285,7 +308,10 @@ export default function PoliticianLieTwo() {
           const fade = Math.max(0, Math.min(1, (ratio - FADE_FROM) / (FADE_TO - FADE_FROM)));
           const open = lastClipTime < 0 ? 0 : fade * fade * (3 - 2 * fade);
           const clipAspect = clip.videoWidth > 0 ? clip.videoWidth / clip.videoHeight : 4 / 3;
-          renderer.draw(cover, shape, open, clipAspect, LIES[lieAt(lastClipTime)].focus, pixelRatio);
+          const step = lastDraw > 0 ? Math.min(1, (now - lastDraw) / NOSE_FADE) : 0;
+          lastDraw = now;
+          noseOn = Math.max(0, Math.min(1, noseOn + (nose.visible ? step : -step)));
+          renderer.draw(cover, shape, open, clipAspect, LIES[lieAt(lastClipTime)].focus, pixelRatio, nose, noseOn, noseProbeRef.current);
         }
         frameRef.current = requestAnimationFrame(tick);
       };
@@ -324,8 +350,22 @@ export default function PoliticianLieTwo() {
       <video ref={cameraRef} className={styles.source} playsInline muted aria-hidden="true" />
       <video ref={clipRef} className={styles.source} src={REEL} playsInline muted loop preload="auto" aria-hidden="true" />
       <audio ref={ownRef} className={styles.source} src={REEL_SOUND} preload="none" aria-hidden="true" />
-      <canvas ref={canvasRef} className={styles.image} aria-label="거울처럼 비친, 크게 확대된 입. 입을 벌리면 입술 사이로 정치인과 유명인의 거짓말 영상이 하나씩 보이고 들립니다" role="img" />
-      {(phase === "idle" || phase === "error") && (
+      <canvas ref={canvasRef} className={styles.image} aria-label="거울처럼 비친, 크게 확대된 입. 입을 벌리면 입술 사이로 정치인과 유명인의 거짓말 영상이 하나씩 보이고 들리며, 콧구멍 안에는 태극기가 보입니다" role="img" />
+      {!entered && (
+        // A tap anywhere on the intro enters; the arrow is the same tap for a keyboard.
+        <div className={styles.intro} onClick={() => { setEntered(true); void start(); }}>
+          <div className={styles.introBody}>
+            <h1>입만 열면 거짓말</h1>
+            <button type="button" aria-label="들어가기">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 12h15M13 5.5l6.5 6.5-6.5 6.5" />
+              </svg>
+            </button>
+          </div>
+          <a className={styles.credit} href="https://jeanyoon.ch/oi" target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()}>jeanyoon.ch/oi</a>
+        </div>
+      )}
+      {entered && (phase === "idle" || phase === "error") && (
         <div className={styles.prompt}>
           {message && <p role="alert">{message}</p>}
           <button type="button" onClick={() => { void start(); }}>카메라 켜기</button>

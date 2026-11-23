@@ -1,0 +1,281 @@
+.shell {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  overscroll-behavior: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  color: #231f20;
+}
+
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.page[hidden] {
+  display: none;
+}
+
+.page {
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+  --safe-left: env(safe-area-inset-left);
+  --safe-right: env(safe-area-inset-right);
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #fcfcfc;
+  overscroll-behavior: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+  display: block;
+  touch-action: none;
+}
+
+/* Bottom right of the map: + / −, level with the tabs (the overview, when shown, sits under them). */
+.controls {
+  position: absolute;
+  right: 12px;
+  /* On the tab capsule's line (48px tall, 12px off the bottom). */
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.zoom {
+  display: flex;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.16),
+    0 4px 14px rgb(0 0 0 / 0.14);
+}
+
+.zoom button {
+  width: 42px;
+  height: 48px;
+  border: 0;
+  background: none;
+  font: 400 24px/1 -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #231f20;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.minimap {
+  display: block;
+  width: 88px;
+  height: 88px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.2);
+}
+
+/* Until the map is whole: 서울교통공사's mark on white, over the unpainted canvas. */
+.loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #fff;
+}
+
+.loading svg {
+  width: 16%;
+  max-width: 72px;
+  height: auto;
+}
+
+/* The tabs: one raised white capsule floating bottom left over the map or list, the open tab filled black. On the map, + and − share its line at the right. */
+.tabs {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  justify-content: flex-start;
+  padding: 0 12px calc(12px + env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+
+.tablist {
+  pointer-events: auto;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.16),
+    0 4px 14px rgb(0 0 0 / 0.14);
+}
+
+.tab {
+  height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: #231f20;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab[aria-selected="true"] {
+  background: #000;
+  color: #fff;
+}
+
+/* 소요시간: the major stations to count rides to, one scrolling line over the top of the map. */
+.picker {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: calc(12px + env(safe-area-inset-top)) 12px 16px;
+  scrollbar-width: none;
+}
+
+.picker::-webkit-scrollbar {
+  display: none;
+}
+
+.pick {
+  flex: none;
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.16),
+    0 3px 10px rgb(0 0 0 / 0.12);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: #231f20;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pick[aria-selected="true"] {
+  background: #000;
+  color: #fff;
+}
+
+.times {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: calc(env(safe-area-inset-top) + 20px) 20px calc(84px + env(safe-area-inset-bottom));
+  background: #fff;
+}
+
+.anchors {
+  display: flex;
+  gap: 18px;
+  margin: 0 0 12px;
+}
+
+.anchor {
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 22px;
+  font-weight: 700;
+  color: #a3a3a3;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.anchor[aria-selected="true"] {
+  color: #231f20;
+}
+
+.rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* 강남, 시청, 여의도, apart from the stations below them. */
+.centres {
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #231f20;
+}
+
+.centres .row {
+  font-size: 19px;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 0;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.station {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-weight: 600;
+}
+
+/* The line's badge as on the map: its colour, its number or short name in white. */
+.line {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+.line:first-of-type {
+  margin-left: 4px;
+}
+
+/* 증감: a longer ride in red, a shorter one in blue, as on a Korean price board. */
+.change {
+  font-weight: 600;
+}
+
+.change[data-way="up"] {
+  color: #e02d2d;
+}
+
+.change[data-way="down"] {
+  color: #1c64e0;
+}
+
+.minutes {
+  min-width: 3.2em;
+  text-align: right;
+  font-weight: 600;
+}

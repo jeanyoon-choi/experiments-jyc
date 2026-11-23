@@ -149,3 +149,36 @@ Not yet checked:
 - The iOS motion popup and the date pill of the 2026-11-16 revision.
 - No test on a mobile or with the real gyroscope.
 - No check of the iOS permission sheet.
+
+## /2 (2026-11-23)
+
+Experimental. `/mobile/left-right/kakao-talk/2` is a copy of /1 (`components/mobile/left-right/kakao-talk/2`, nothing imported from `1`), made by request: tilting further should make the talk more extreme. In /1 the tier came from heat, which measures how long the mobile is held, plus a per-room warm-up, so full tilt stayed 온건 for about 4.5 s and the angle set only the speed. /1 is unchanged and remains the baseline. Everything not listed here (interface, pace, tint, popup, sound, rooms) is as in /1.
+
+- **Angles widened 2.5 times** (same day, by request: the tiers came too soon). `2/index.tsx` reads the roll with an 8° dead zone and 78° as full tilt (4° and 32° in /1), so from level 강경 starts at about 25°, 극단 at 41° and the fourth tier at 58°. The degrees given below are the first version's. The three message rates were raised 2.5 times with it (list 30/s, open room 4/s, gathering 30/s at full tilt), so the same angle is about as busy as before.
+- **The angle sets the tier** (`2/director/director.ts`). `reach = |lean| · 4.2 + hold`, and the tier is its whole part, up to 3.
+  - From a level start: 온건 below a lean of about 0.24 (11°), 강경 from there, 극단 from about 0.48 (17°), the fourth tier from about 0.71 (24°).
+  - `hold` is what a long lean adds: it rises at 0.1/s · |lean| up to |lean| itself and falls at 0.5/s when the mobile eases back. Holding an angle lifts the talk by at most one step, after about 8 s (0.2 → 강경, 0.4 → 극단, 0.6 → fourth tier). A lean under 0.19 stays 온건 however long it is held.
+  - Up is immediate. A step down waits until the reach is 0.12 under the tier's floor, so a hand on a boundary does not flip the room; on a step down, queued thread beats are dropped.
+  - Heat and the warm-up are gone. Only a room's very first political line is one tier lower than the angle asks.
+- **A fourth tier, 극좌 / 극우** (`2/director/script.ts`, `types.ts`). New `SAY` banks per register (casual 25/23, polite 18/17, elder 16/17, open 9/9 lines, left/right), 14 `PILE` lines and 4 threads per side. The three lower tiers' lines are untouched.
+  - Content: the other half of the country as the enemy (내란 잔당·수구·매국 / 종북·주사파·반국가세력), courts, media and the election commission as one cartel with a hidden hand, purity tests on one's own moderates (중도·협치·절윤), and forwarding orders (서명, 탄원, 구독, 후원, 총집결, ★전달★).
+  - Unlike the lower tiers these lines are composed, not mined line by line: they recombine vocabulary from the [left](research-left.md) and [right](research-right.md) notes, name only events in [timeline](research-timeline.md) Part A, and keep the [content boundary](#content-boundary). The only figures are from Part A (67곳, 8대0, 부정 50%).
+  - Scene caps (`2/director/scenes.ts`) are as in /1, except that rooms that reached 극단 (family, friends, army, hobby, faith, open) now reach the fourth tier. Company groups stay 온건; 입주민, 학부모 and work 1:1 rooms stop at 강경.
+  - At this tier someone who objects or asks for quiet leaves (or is kicked) half the time they speak, against 28% at 극단; one in ten claims also pushes out someone who said nothing; agreement is scheduled in twos.
+- **Readout** (`2/index.tsx`). The tier shown is the one the angle gives: "◀ 진보 · 강경 · 12°", and at the fourth tier "◀ 극좌 · 30°" / "극우 · 30° ▶".
+
+Checked (headless, seeded, director only; same numbers left and right unless noted):
+
+| Lean held 5 s | Tier at 1 s / 5 s | Messages | Fourth-tier lines (left / right) |
+| --- | --- | --- | --- |
+| 0.15 | 온건 / 온건 | 10 | 0 |
+| 0.4 | 강경 / 강경 | 34 | 0 |
+| 0.6 | 극단 / 극단 | 60 | 0 |
+| 1.0 | fourth / fourth | 114 | 54 / 47 |
+
+- Message counts equal /1's rates: the tier does not change the pace.
+- Full tilt for 20 s: 474 messages, 302 (left) and 275 (right) of them fourth-tier, 63 distinct lines each; 22 (left) and 5 (right) departures or kicks; no fourth-tier line in a capped room.
+- Dropping from 1.0 after 5 s: to 0.5, 극단 within 0.3 s; to 0.2, 강경 within 0.2 s (it stays 강경 there, since 0.2 held is the boundary); to 0.15, 온건 within 0.7 s. No fourth-tier line was posted later than 1 s after the drop.
+- `pnpm typecheck` and `pnpm lint` on `2/`.
+
+Not checked: the browser (readout text, a room at the fourth tier on screen), a mobile with a real gyroscope, and whether the boundaries feel right in the hand; the constants at the top of `director.ts` are the ones to tune.
