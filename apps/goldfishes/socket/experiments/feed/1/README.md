@@ -3,7 +3,7 @@
 - Date: 2026-10-27
 - Relay: `socket/experiments/feed/1/` (`protocol.mjs`, `index.mjs`, `protocol.test.mjs`)
 - Browser: `socket/experiments/feed/1/`; the phone slots are `slots.mjs` (+ `slots.test.mjs`)
-- Speakers: [`/screen/bubble/7`](../../../../components/screen/bubble/docs/7.md#연결-main-screen-of-socket-feed1) (screen) → [`/pc/mobiles/1`](../../../../components/mobiles/docs/1.md), [`/pc/mobiles/2`](../../../../components/mobiles/docs/2.md) (pc)
+- Speakers: [`/screen/bubble/7`](../../../../components/screen/bubble/docs/7.md#연결-main-screen-of-socket-feed1) (screen) → [`/pc/2d-mobiles/1`](../../../../components/pc/2d-mobiles/docs/1.md), [`/pc/2d-mobiles/2`](../../../../components/pc/2d-mobiles/docs/2.md) (pc)
 
 The main screen keeps a fixed set of phone slots, each following one goldfish, and sends what changed. The relay forwards it to every pc at once (NOTES 1023: one goldfish, one mobile).
 
@@ -50,15 +50,15 @@ Every timing lives in the browser (`slots.mjs` `TUNING`, `link/feed.ts`, the pc'
 
 - A keyword is an id (`[a-z0-9][a-z0-9._-]*`, ≤ 64). The relay checks its form only.
 - The screen owns the vocabulary (bubble/7: `link/feed.ts` `VOCABULARY`) and sends it with every snapshot.
-- A pc looks up content by id. For an id it has nothing for, it falls back to the label (pc/mobiles/1: `content/events.ts` `genericEvent`). Screens and pcs can therefore change their keyword lists independently.
+- A pc looks up content by id. For an id it has nothing for, it falls back to the label (pc/2d-mobiles/1: `content/events.ts` `genericEvent`). Screens and pcs can therefore change their keyword lists independently.
 
 ## Versions and isolation
 
 - Each screen and pc version picks the protocol by import path: `@/socket/experiments/feed/1/client` and `@/socket/experiments/feed/1/protocol.mjs`. Any screen and pc on the same protocol version work together.
 - A breaking change makes `feed/2`: copy both folders whole, change `version`, and register the new folder beside the old one in `socket/experiments/index.mjs`. Nothing is shared between protocol versions. The relay-side slots above were replaced in place on the day they were made, before anything else spoke feed/1.
-- `socket/experiments/feed/<n>/` is the one sanctioned cross-experiment import in Goldfishes, as `desktop/native-windows/shared` is for desktop. Experiments still never import from each other.
+- `socket/experiments/feed/<n>/` is the one sanctioned cross-experiment import in Goldfishes, as `pc/native-windows/shared` is for desktop. Experiments still never import from each other.
 - Event names come from `protocol.mjs` on both sides, so they are never copied by hand.
-- Several screens: a pc follows the first screen whose snapshot reaches it, until that screen goes. [pc/mobiles/2](../../../../components/mobiles/docs/2.md#checks) also moves to another screen once its own has sent nothing for 3 s while the other is pushing: a screen left in a hidden window stays connected and silent, and it held the pcs dark (2026-10-28).
+- Several screens: a pc follows the first screen whose snapshot reaches it, until that screen goes. [pc/2d-mobiles/2](../../../../components/pc/2d-mobiles/docs/2.md#checks) also moves to another screen once its own has sent nothing for 3 s while the other is pushing: a screen left in a hidden window stays connected and silent, and it held the pcs dark (2026-10-28).
 - Failure is isolated:
   - Offline, the screen's slots still step and nothing is sent, so the raft never waits on the relay; on rejoin the whole state goes out as a snapshot.
   - A pc applies pushes on a 16 ms timer, not `requestAnimationFrame`, which stops in a hidden or covered window.

@@ -1,16 +1,7 @@
-import { notFound } from 'next/navigation';
-import GoldfishesNavigation from '@/foundations/navigation';
-import { findGoldfishExperiment, getGoldfishExperimentsForDate } from '@/components/experiments';
+import { redirect } from 'next/navigation';
 
-export default async function DesktopExperiment({ params }: { params: Promise<{ experiment: string[] }> }) {
+// The desktop area became part of /pc (components/pc/archive/native-windows): old links land on the same path there.
+export default async function DesktopExperimentPage({ params }: { params: Promise<{ experiment: string[] }> }) {
   const { experiment: path } = await params;
-  if (path.length === 1) {
-    const experiments = getGoldfishExperimentsForDate(path[0], 'desktop').map(({ key, area, section, date, updated, phrase }) => ({ key, area, section, date, updated, phrase }));
-    if (!experiments.length) notFound();
-    return <GoldfishesNavigation experiments={experiments} scope="desktop" archiveKey={`desktop/${path[0]}`} />;
-  }
-  const experiment = findGoldfishExperiment(['desktop', ...path]);
-  if (!experiment || experiment.area !== 'desktop') notFound();
-  const { default: Component } = await experiment.load();
-  return <Component />;
+  redirect(`/pc/${path.map(encodeURIComponent).join('/')}`);
 }

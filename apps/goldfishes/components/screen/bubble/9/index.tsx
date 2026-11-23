@@ -100,7 +100,8 @@ export default function RankedWebIteration({ setup = OPENING_PRESET }: { setup?:
   const togglePanel = useCallback((id: PanelId) => setPanel((current) => (current === id ? null : id)), []);
 
   return (
-    <main className={styles.page}>
+    // The page behind the canvases is the ground's colour too, so a frame the canvas has not drawn yet (load, resize) is never another colour.
+    <main className={styles.page} style={{ background: `rgb(${visual.background.map((value) => Math.round(value * 255)).join(",")})` }}>
       <canvas
         ref={canvasRef}
         className={styles.canvas}

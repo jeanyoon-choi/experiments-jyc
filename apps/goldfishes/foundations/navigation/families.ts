@@ -1,12 +1,10 @@
 export type GoldfishArea =
   | "screen"
-  | "pc"
-  | "desktop";
+  | "pc";
 
 export const goldfishAreas: readonly { key: GoldfishArea; href: string }[] = [
   { key: "screen", href: "/screen" },
   { key: "pc", href: "/pc" },
-  { key: "desktop", href: "/desktop" },
 ];
 
 export type GoldfishFamily = {
@@ -17,94 +15,16 @@ export type GoldfishFamily = {
   members: readonly string[];
 };
 
-// Lineages for the group view, in the order each line of work began. A
+// Lineages for the group view. A family is a folder of components/<area>/ and is named as that folder is; in each
+// area the work under way comes first, then its archive (components/<area>/archive/), each in the order it began. A
 // registered experiment missing here appears under its area's "unsorted"
 // family until it is assigned.
 export const goldfishFamilies: readonly GoldfishFamily[] = [
-  {
-    key: "screen:baseline",
-    area: "screen",
-    label: "baseline",
-    members: ["screen/default", "screen/2d/1"],
-  },
-  {
-    key: "screen:attraction-targets",
-    area: "screen",
-    label: "attraction targets",
-    members: ["screen/attraction-targets/1", "screen/attraction-targets/2", "screen/attraction-targets/3"],
-  },
-  {
-    key: "screen:pillars",
-    area: "screen",
-    label: "pillars",
-    members: [
-      "screen/pillars/1",
-      "screen/pillars/2",
-      "screen/pillars/3",
-      "screen/pillars/4",
-    ],
-  },
-  {
-    key: "screen:media-grid",
-    area: "screen",
-    label: "media grid",
-    members: ["screen/media-grid/1"],
-  },
-  {
-    key: "screen:keyword-field",
-    area: "screen",
-    label: "keyword field",
-    members: ["screen/keyword-field/1", "screen/keyword-field/2"],
-  },
-  {
-    key: "screen:overlay-3d",
-    area: "screen",
-    label: "3D overlay",
-    members: [
-      "screen/overlay-3d/1",
-      "screen/overlay-3d/2",
-      "screen/overlay-3d/3",
-      "screen/overlay-3d/4",
-      "screen/overlay-3d/5",
-    ],
-  },
-  {
-    key: "screen:overlay-2d",
-    area: "screen",
-    label: "2D overlay",
-    members: [
-      "screen/overlay-2d/1",
-      "screen/overlay-2d/2",
-      "screen/overlay-2d/3",
-      "screen/overlay-2d/4",
-    ],
-  },
-  {
-    key: "screen:attention-print",
-    area: "screen",
-    label: "attention print",
-    members: ["screen/attention-print/1"],
-  },
-  {
-    key: "screen:tech-eyes",
-    area: "screen",
-    label: "tech eyes",
-    members: [
-      "screen/tech-eyes/1",
-      "screen/tech-eyes/2",
-    ],
-  },
   {
     key: "screen:bubble",
     area: "screen",
     label: "bubble",
     members: ["screen/bubble/1", "screen/bubble/2", "screen/bubble/3", "screen/bubble/4", "screen/bubble/5", "screen/bubble/6", "screen/bubble/8", "screen/bubble/9"],
-  },
-  {
-    key: "screen:goldfish-mobile",
-    area: "screen",
-    label: "goldfish mobile (trial)",
-    members: ["screen/goldfish-mobile/1"],
   },
   {
     key: "screen:simulation",
@@ -113,27 +33,106 @@ export const goldfishFamilies: readonly GoldfishFamily[] = [
     members: ["screen/simulation/0"],
   },
   {
-    key: "pc:mobiles",
-    area: "pc",
-    label: "mobiles",
-    members: ["pc/mobiles/1", "pc/mobiles/2"],
+    key: "screen:archive",
+    area: "screen",
+    label: "archive",
+    members: ["screen/archive/default", "screen/archive/2d/1"],
   },
   {
-    key: "pc:news-phones",
-    area: "pc",
-    label: "news phones",
-    members: ["pc/news-phones/1", "pc/news-phones/2"],
+    key: "screen:archive/attraction-targets",
+    area: "screen",
+    label: "archive/attraction-targets",
+    members: ["screen/archive/attraction-targets/1", "screen/archive/attraction-targets/2", "screen/archive/attraction-targets/3"],
   },
   {
-    key: "pc:image-search",
-    area: "pc",
-    label: "image search",
-    members: ["pc/image-search/1"],
+    key: "screen:archive/pillars",
+    area: "screen",
+    label: "archive/pillars",
+    members: [
+      "screen/archive/pillars/1",
+      "screen/archive/pillars/2",
+      "screen/archive/pillars/3",
+      "screen/archive/pillars/4",
+    ],
   },
   {
-    key: "desktop:native-windows",
-    area: "desktop",
-    label: "native windows",
-    members: ["desktop/native-windows/1", "desktop/native-windows/2", "desktop/native-windows/3"],
+    key: "screen:archive/media-grid",
+    area: "screen",
+    label: "archive/media-grid",
+    members: ["screen/archive/media-grid/1"],
+  },
+  {
+    key: "screen:archive/keyword-field",
+    area: "screen",
+    label: "archive/keyword-field",
+    members: ["screen/archive/keyword-field/1", "screen/archive/keyword-field/2"],
+  },
+  {
+    key: "screen:archive/overlay-3d",
+    area: "screen",
+    label: "archive/overlay-3d",
+    members: [
+      "screen/archive/overlay-3d/1",
+      "screen/archive/overlay-3d/2",
+      "screen/archive/overlay-3d/3",
+      "screen/archive/overlay-3d/4",
+      "screen/archive/overlay-3d/5",
+    ],
+  },
+  {
+    key: "screen:archive/overlay-2d",
+    area: "screen",
+    label: "archive/overlay-2d",
+    members: [
+      "screen/archive/overlay-2d/1",
+      "screen/archive/overlay-2d/2",
+      "screen/archive/overlay-2d/3",
+      "screen/archive/overlay-2d/4",
+    ],
+  },
+  {
+    key: "screen:archive/attention-print",
+    area: "screen",
+    label: "archive/attention-print",
+    members: ["screen/archive/attention-print/1"],
+  },
+  {
+    key: "screen:archive/tech-eyes",
+    area: "screen",
+    label: "archive/tech-eyes",
+    members: [
+      "screen/archive/tech-eyes/1",
+      "screen/archive/tech-eyes/2",
+    ],
+  },
+  {
+    key: "pc:2d-mobiles",
+    area: "pc",
+    label: "2d-mobiles",
+    members: ["pc/2d-mobiles/1", "pc/2d-mobiles/2"],
+  },
+  {
+    key: "pc:3d-mobiles",
+    area: "pc",
+    label: "3d-mobiles",
+    members: ["pc/3d-mobiles/1"],
+  },
+  {
+    key: "pc:archive/news-phones",
+    area: "pc",
+    label: "archive/news-phones",
+    members: ["pc/archive/news-phones/1", "pc/archive/news-phones/2"],
+  },
+  {
+    key: "pc:archive/image-search",
+    area: "pc",
+    label: "archive/image-search",
+    members: ["pc/archive/image-search/1"],
+  },
+  {
+    key: "pc:archive/native-windows",
+    area: "pc",
+    label: "archive/native-windows",
+    members: ["pc/archive/native-windows/1", "pc/archive/native-windows/2", "pc/archive/native-windows/3"],
   },
 ];

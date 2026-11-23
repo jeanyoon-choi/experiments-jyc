@@ -2,7 +2,7 @@
 // goldfish that has just reached a bubble is
 // sent to the relay with the bubble's page and keyword — what the page is
 // shown as (its object kind, its 전파 strain's under 전파, or "bubble") — so
-// pc/mobiles/N can show what that goldfish now sees. On by default (first
+// pc/2d-mobiles/N can show what that goldfish now sees. On by default (first
 // opt-in behind `?feed`, which left the phones empty: user, 2026-10-27);
 // `?feed=0` turns it off. Nothing on screen changes either way. The relay never slows the raft: sending is batched and
 // dropped while offline (socket/experiments/feed/1/client/screen-link.ts). The

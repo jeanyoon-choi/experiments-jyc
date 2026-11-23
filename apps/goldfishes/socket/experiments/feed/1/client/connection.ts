@@ -1,7 +1,7 @@
 // Browser side of socket feed/1: one Socket.IO connection that joins the
 // protocol's room in a role, rejoins on every reconnect, and reports its status.
 // Shared by every screen and pc version that speaks feed/1 (the one sanctioned
-// cross-experiment import in Goldfishes, like desktop/native-windows/shared):
+// cross-experiment import in Goldfishes, like pc/native-windows/shared):
 // a version picks the protocol by importing `@/socket/experiments/feed/1/client`.
 
 import { io, type Socket } from "socket.io-client";

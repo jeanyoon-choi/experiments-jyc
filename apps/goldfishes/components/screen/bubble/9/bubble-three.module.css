@@ -18,10 +18,10 @@
 /* 전파: a tap places the chosen newcomer. */
 .canvas[data-placing] { cursor: crosshair; }
 
-.canvas:focus-visible {
-  outline: 1px solid #ffffff80;
-  outline-offset: -2px;
-}
+/* No focus ring on the canvas: it is the whole screen, and a ring 2px inside its edge reads as a white border on a
+   dark ground once any key is pressed (X, N; user, 2026-11-23). */
+.canvas:focus,
+.canvas:focus-visible { outline: none; }
 
 /* road-signs/direction/4's bottom-right option control, with two triggers. */
 .control {

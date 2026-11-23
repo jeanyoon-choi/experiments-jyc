@@ -31,8 +31,9 @@ export function presetFamilies(base: PresetSlices): readonly PresetFamily[] {
     feedback: { influence: base.feedback.influence, ceiling: base.feedback.ceiling },
     // The liquid, and which groups the pages are and how the objects are turned (오브제 → 페이지, 각도): A1 has its own (user, 2026-11-14).
     objects: { style: 0, duration: MORPH_STYLES[0].duration as number, soften: LIQUID_DEFAULTS.soften, wobble: LIQUID_DEFAULTS.wobble, ripple: LIQUID_DEFAULTS.ripple, overshoot: LIQUID_DEFAULTS.overshoot, swell: LIQUID_DEFAULTS.swell, pages: OBJECT_DEFAULTS.pages as number, facing: OBJECT_DEFAULTS.facing as number, size: OBJECT_DEFAULTS.size as number, puff: OBJECT_DEFAULTS.puff as number },
-    // 라프트 → 이웃 반사 and 버블 면적 (the visual panel's), the two values of the look a member holds.
-    visual: { neighbourReflection: base.visual.neighbourReflection as number, area: base.visual.area as number },
+    // 라프트 → 이웃 반사 and 버블 면적 (the visual panel's), and the ground's colour (배경): black in every member (user,
+    // 2026-11-23), so bubble/9 opens on black. The values of the look a member holds.
+    visual: { neighbourReflection: base.visual.neighbourReflection as number, area: base.visual.area as number, background: [0, 0, 0] as readonly [number, number, number] },
   } satisfies PresetPatch;
   // A2 and A3 since 2026-11-18 (user): the bubbles' sizes as far apart as A4's (its 순위 쏠림), a larger raft (버블 면적
   // 1, was 0.8) and the objects turned the way they move, as A1's and A4's are. MOVEMENT itself stays the opening
@@ -92,10 +93,10 @@ export function presetFamilies(base: PresetSlices): readonly PresetFamily[] {
     patch: { rates: { ...LSD_FROM.rates, ...own.rates }, visual: own.visual, objects: { ...LSD_FROM.objects, ...own.objects } },
   });
   const lsds: readonly Preset[] = [
-    // A4's rates and objects in LSD (도파민): its breath, split, pearl, melt and solarisation turned up; 맥시멀's palette, on white. (bubble-9-2026-11-17T07-30-47-471Z.json)
-    lsd("b1", "B1", "무지개", { rates: { burstAt: 100, floor: 0.2106029267357361, growth: 0.9, recovery: 19 }, visual: { coatingMix: 0, lsdBreath: 1.2, lsdCycle: 0.5, lsdDrift: 3, lsdMelt: 0.6, lsdMirror: 0.6, lsdPearl: 1.4, lsdSaturation: 1.9, lsdSolar: 1, lsdSplit: 1.4, lsdTrail: 0.7, material: 10, mixPalette: 0, mixParts: 0.25 }, objects: { facing: 2, puff: 2, size: 1.5, portions: 0 } }),
-    // LSD over a grey coat under a dim blue-grey light, the room bright (환경 사진 2.62), 버블 면적 1.2, the rank more concentrated still. (bubble-9-2026-11-17T07-42-36-139Z.json)
-    lsd("b2", "B2", "푸른 금속", { rates: { burstAt: 100, floor: 0.05, growth: 0.9, recovery: 19 }, visual: { coating: [0.3, 0.3, 0.3], coatingMix: 0, lightColour: [0.34901960784313724, 0.4196078431372549, 0.592156862745098], lightTurn: 0.105, lsdBreath: 1.55, lsdCoat: 1, lsdCycle: 0.5, lsdDrift: 3, lsdMelt: 1.39, lsdMirror: 0.6, lsdPearl: 1.4, lsdSaturation: 1.9, lsdSolar: 1, lsdSpeed: 2.93, lsdSplit: 1.4, lsdTrail: 1.12, material: 10, mixPalette: 0, mixParts: 0.25, photoStrength: 2.62, area: 1.2 }, objects: { facing: 2, puff: 2, size: 1.5, portions: 0 } }),
+    // A4's rates and objects in LSD (도파민): its breath, split, pearl, melt and solarisation turned up; 맥시멀's palette, on black (배경 검정: user, 2026-11-23; it was white). (bubble-9-2026-11-17T07-30-47-471Z.json)
+    lsd("b1", "B1", "무지개", { rates: { burstAt: 100, floor: 0.2106029267357361, growth: 0.9, recovery: 19 }, visual: { background: [0, 0, 0], coatingMix: 0, lsdBreath: 1.2, lsdCycle: 0.5, lsdDrift: 3, lsdMelt: 0.6, lsdMirror: 0.6, lsdPearl: 1.4, lsdSaturation: 1.9, lsdSolar: 1, lsdSplit: 1.4, lsdTrail: 0.7, material: 10, mixPalette: 0, mixParts: 0.25 }, objects: { facing: 2, puff: 2, size: 1.5, portions: 0 } }),
+    // LSD over a grey coat under a dim blue-grey light, the room bright (환경 사진 2.62), 버블 면적 1.2, the rank more concentrated still, on black (user, 2026-11-23). (bubble-9-2026-11-17T07-42-36-139Z.json)
+    lsd("b2", "B2", "푸른 금속", { rates: { burstAt: 100, floor: 0.05, growth: 0.9, recovery: 19 }, visual: { background: [0, 0, 0], coating: [0.3, 0.3, 0.3], coatingMix: 0, lightColour: [0.34901960784313724, 0.4196078431372549, 0.592156862745098], lightTurn: 0.105, lsdBreath: 1.55, lsdCoat: 1, lsdCycle: 0.5, lsdDrift: 3, lsdMelt: 1.39, lsdMirror: 0.6, lsdPearl: 1.4, lsdSaturation: 1.9, lsdSolar: 1, lsdSpeed: 2.93, lsdSplit: 1.4, lsdTrail: 1.12, material: 10, mixPalette: 0, mixParts: 0.25, photoStrength: 2.62, area: 1.2 }, objects: { facing: 2, puff: 2, size: 1.5, portions: 0 } }),
     // B2 under a blue light on a green ground. (bubble-9-2026-11-17T07-48-29-402Z.json)
     lsd("b3", "B3", "초록 바닥", { rates: { burstAt: 100, floor: 0.05, growth: 0.9, recovery: 19 }, visual: { background: [0, 1, 0.34901960784313724], coating: [0.3, 0.3, 0.3], coatingMix: 0, lightColour: [0, 0.2823529411764706, 1], lightTurn: 0.105, lsdBreath: 1.55, lsdCoat: 1, lsdCycle: 0.5, lsdDrift: 3, lsdMelt: 1.39, lsdMirror: 0.6, lsdPearl: 1.4, lsdSaturation: 1.9, lsdSolar: 1, lsdSpeed: 2.93, lsdSplit: 1.4, lsdTrail: 1.12, material: 10, mixPalette: 0, mixParts: 0.25, photoStrength: 2.62, area: 1.2 }, objects: { facing: 2, puff: 2, size: 1.5, portions: 0 } }),
     // B2 under a red light on a pale yellow ground. (bubble-9-2026-11-17T07-53-30-035Z.json)

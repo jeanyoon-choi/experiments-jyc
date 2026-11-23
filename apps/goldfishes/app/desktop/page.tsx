@@ -1,7 +1,6 @@
-import GoldfishesNavigation from '@/foundations/navigation';
-import { goldfishExperiments } from '@/components/experiments';
+import { redirect } from 'next/navigation';
 
+// The desktop area became part of /pc (components/pc/archive/native-windows): old links land there.
 export default function DesktopIndex() {
-  const experiments = goldfishExperiments.filter(item => item.area === 'desktop').map(({ key, area, section, date, updated, phrase }) => ({ key, area, section, date, updated, phrase }));
-  return <GoldfishesNavigation experiments={experiments} scope="desktop" />;
+  redirect('/pc');
 }

@@ -39,12 +39,12 @@ function digest(state: PresetSlices) {
 }
 
 const RECORDED: Record<string, string> = {
-  a1: "c90b836230c49307",
-  a2: "b69e517cb72a8a03",
-  a3: "fc216efd511d7977",
-  a4: "252c99cf25c74715",
-  b1: "d02c102ab2325a5c",
-  b2: "4202461c6b792671",
+  a1: "0ffd9e552101152c",
+  a2: "38f838994da9fdb5",
+  a3: "708afe8aba31edb9",
+  a4: "0cefd254c49165be",
+  b1: "7b4429a458cf8ad4",
+  b2: "e4a53694cfdfdf6f",
   b3: "dc0f3f156270bc88",
   b4: "bd904274ff2982e1",
 };
