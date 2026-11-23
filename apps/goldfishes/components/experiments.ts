@@ -331,6 +331,14 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     load: () => import("./pc/3d-mobiles/1"),
   },
   {
+    key: "pc/3d-mobiles/2",
+    area: "pc",
+    section: "dated",
+    date: "2026-11-23",
+    phrase: "2d-mobiles/2 in three dimensions: a wall of a hundred goldfish each holding a mobile, its glass running that experiment's working app interfaces",
+    load: () => import("./pc/3d-mobiles/2"),
+  },
+  {
     key: "pc/2d-mobiles/1",
     legacyKeys: ["pc/mobiles/1"],
     area: "pc",

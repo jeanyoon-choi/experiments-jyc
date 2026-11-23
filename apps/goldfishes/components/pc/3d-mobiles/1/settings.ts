@@ -13,8 +13,8 @@ export type Settings = {
   pace: number;
 };
 
-// 금붕어 0.8 (user, 2026-11-13: a little smaller).
-export const DEFAULTS: Settings = { wall: 0, size: 10, gap: 0.05, fish: 0.8, pace: 1 };
+// 금붕어 0.8 (user, 2026-11-13: a little smaller). Opens on 벽 (user, 2026-11-23; it was 한 마리).
+export const DEFAULTS: Settings = { wall: 1, size: 10, gap: 0.05, fish: 0.8, pace: 1 };
 
 export type Control = { key: Exclude<keyof Settings, "wall">; label: string; min: number; max: number; step: number; digits: number };
 
