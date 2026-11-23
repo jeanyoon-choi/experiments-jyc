@@ -75,7 +75,8 @@ function viewOf({ count, columns, rows, fitted }: Arrangement, gap: number, aspe
     const fov = 12;
     const half = Math.tan((fov * Math.PI) / 360);
     const back = Math.max(height / 2 / half, width / 2 / (half * aspect)) * 1.07;
-    return { camera: [-back, FLOOR + height / 2, 0], target: [0.6, FLOOR + height / 2, 0], fov, near: 0.5, far: back * 6, light: height * 0.75, reach: [back * 0.15, back * 2.2] };
+    // The depth range kept as tight as looking round allows: far through a long lens it is what tells surfaces apart.
+    return { camera: [-back, FLOOR + height / 2, 0], target: [0.6, FLOOR + height / 2, 0], fov, near: back * 0.1, far: back * 3, light: height * 0.75, reach: [back * 0.15, back * 2.2] };
   }
   // A wall: before it and a little to its side, far enough back to take its whole height.
   const height = rows * WALL_UP;
@@ -89,8 +90,11 @@ const tuningOf = (settings: Settings): Tuning => ({ ...INTERFACE_TUNING, speed: 
 export function startScene(canvas: HTMLCanvasElement, first: Settings) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  const ground = (settings: Settings) => renderer.setClearColor(GROUND_COLOURS[Math.round(settings.ground)] ?? GROUND_COLOURS[0], 1);
-  ground(first);
+  /** The background, and with it the mobiles' metal: silver on black, dark on white. */
+  const ground = (settings: Settings) => {
+    renderer.setClearColor(GROUND_COLOURS[Math.round(settings.ground)] ?? GROUND_COLOURS[0], 1);
+    world?.finish(Math.round(settings.ground) === 1);
+  };
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NeutralToneMapping;
 
@@ -114,7 +118,7 @@ export function startScene(canvas: HTMLCanvasElement, first: Settings) {
   let settings = first;
   let tuning = tuningOf(first);
   let feedTime = 0;
-  let world: { source: ScreenSource; update(time: number, dt: number): void; dispose(): void } | null = null;
+  let world: { source: ScreenSource; finish(silver: boolean): void; update(time: number, dt: number): void; dispose(): void } | null = null;
   // For measuring: `?pr=1` sets the canvas's pixel ratio.
   const pr = Number(new URLSearchParams(window.location.search).get("pr"));
   const pixelRatioOverride = pr > 0 ? pr : null;
@@ -178,6 +182,7 @@ export function startScene(canvas: HTMLCanvasElement, first: Settings) {
     };
     world = {
       source,
+      finish: mobiles.finish,
       update(time, dt) {
         source.update(time);
         school.update(time, dt, pose);
@@ -194,6 +199,7 @@ export function startScene(canvas: HTMLCanvasElement, first: Settings) {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioOverride ?? (count === 1 ? 2 : next.fitted ? 1.25 : 1.5)));
     size();
     look();
+    ground(settings);
   };
 
   function size() {

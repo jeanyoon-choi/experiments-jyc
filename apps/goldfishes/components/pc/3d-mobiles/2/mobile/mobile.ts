@@ -37,8 +37,16 @@ export const SCREEN_SIZE = { width: (W - 0.012) * MOBILE_SCALE, height: (H - 0.0
 
 export type Mobiles = {
   group: THREE.Group;
+  /** The cases' metal: silver, or the dark it was. */
+  finish(silver: boolean): void;
   dispose(): void;
 };
+
+/** The case's metal. Silver (user, 2026-11-23, for a black background): an iPhone's bare aluminium, mirroring the room a little. */
+const FINISHES = {
+  dark: { color: 0x17181a, metalness: 0.85, roughness: 0.32, clearcoat: 0.4 },
+  silver: { color: 0xdfe1e3, metalness: 1, roughness: 0.24, clearcoat: 0 },
+} as const;
 
 /** A mobile at each of `places` (its centre's world matrix: position and facing), `source`'s screens on them. */
 export function createMobiles(environment: THREE.Texture, places: readonly THREE.Matrix4[], source: ScreenSource): Mobiles {
@@ -54,6 +62,16 @@ export function createMobiles(environment: THREE.Texture, places: readonly THREE
     return mesh;
   };
   const all = places.map((_, index) => index);
+  // The front's layers lie a hair apart on one plane (case, black face, screen, cover glass). Seen from far through
+  // a long lens the depth buffer cannot tell them apart, and they flickered through each other (user, 2026-11-23).
+  // So each is drawn after the one under it and pulled toward the eye by its place in the stack.
+  const stacked = <M extends THREE.Material>(material: M, mesh: THREE.Object3D, layer: number) => {
+    material.polygonOffset = true;
+    material.polygonOffsetFactor = -2 * layer;
+    material.polygonOffsetUnits = -4 * layer;
+    mesh.renderOrder = layer;
+    return material;
+  };
 
   // The case, with the lenses' plate on its back.
   const BEVEL = 0.005;
@@ -62,8 +80,13 @@ export function createMobiles(environment: THREE.Texture, places: readonly THREE
   const plate = new THREE.ExtrudeGeometry(slab(0.092, 0.092, 0.024), { depth: 0.004, bevelEnabled: true, bevelThickness: 0.0015, bevelSize: 0.0015, bevelSegments: 3, curveSegments: 12 });
   plate.rotateY(Math.PI);
   plate.translate(-W / 2 + 0.062, H / 2 - 0.062, -T / 2);
-  const caseMaterial = new THREE.MeshPhysicalMaterial({ color: 0x17181a, metalness: 0.85, roughness: 0.32, clearcoat: 0.4, clearcoatRoughness: 0.2, envMap: environment });
+  const caseMaterial = new THREE.MeshPhysicalMaterial({ ...FINISHES.dark, clearcoatRoughness: 0.2, envMap: environment });
   instanced(mergeGeometries([shell, plate])!, caseMaterial, all);
+  // The front under the glass is black to the case's edge whatever the metal (the screen sits inside it).
+  const face = new THREE.ShapeGeometry(slab(W - 0.008, H - 0.008, 0.03), 20);
+  face.translate(0, 0, T / 2 + 0.0002);
+  const faceMaterial = new THREE.MeshPhysicalMaterial({ color: 0x030303, roughness: 0.08, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.03, envMap: environment });
+  stacked(faceMaterial, instanced(face, faceMaterial, all), 1);
   shell.dispose();
   plate.dispose();
   const lenses = ([[-0.02, 0.02], [0.02, 0.02], [-0.02, -0.02]] as const).map(([x, y]) => {
@@ -90,16 +113,25 @@ export function createMobiles(environment: THREE.Texture, places: readonly THREE
   const screenMesh = new THREE.InstancedMesh(screens, source.material, places.length);
   places.forEach((place, at) => screenMesh.setMatrixAt(at, place));
   screenMesh.frustumCulled = false;
+  stacked(source.material, screenMesh, 2);
   group.add(screenMesh);
   disposables.push(screens, screenMesh);
   // The cover glass: only what it mirrors, added over the picture.
   const glass = screenShape.clone();
   glass.translate(0, 0, T / 2 + 0.0008);
-  instanced(glass, new THREE.MeshPhysicalMaterial({ color: 0x000000, roughness: 0.04, metalness: 0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, envMap: environment, envMapIntensity: 0.1 }), all);
+  const glassMaterial = new THREE.MeshPhysicalMaterial({ color: 0x000000, roughness: 0.04, metalness: 0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, envMap: environment, envMapIntensity: 0.1 });
+  stacked(glassMaterial, instanced(glass, glassMaterial, all), 3);
   screenShape.dispose();
 
   return {
     group,
+    finish(silver) {
+      const { color, metalness, roughness, clearcoat } = silver ? FINISHES.silver : FINISHES.dark;
+      caseMaterial.color.setHex(color);
+      caseMaterial.metalness = metalness;
+      caseMaterial.roughness = roughness;
+      caseMaterial.clearcoat = clearcoat;
+    },
     dispose() {
       for (const item of disposables) item.dispose();
     },
