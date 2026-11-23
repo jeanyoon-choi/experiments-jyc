@@ -4,7 +4,7 @@ import { BALL_R, RAIL, RAIL_TOP, TABLE_W } from "../model/physics";
 import type { Table } from "../model/physics";
 import { buildTable } from "./table";
 import type { TableMaterials } from "./table";
-import { ballSkin, clothTooth, contactTexture, dollarPrint, loadAtlas } from "./textures";
+import { FACE_ALL_OVER, ballSkin, clothTooth, contactTexture, dollarPrint, loadAtlas } from "./textures";
 
 /** Drawn pixels are capped, so a dense screen does not cost more than a mobile GPU can fill. */
 const MAX_DPR = 3;
@@ -130,7 +130,7 @@ export function createStage(canvas: HTMLCanvasElement, onReady: () => void) {
     onReady();
   };
   loadAtlas(`${ASSETS}faces-768.jpg`, arrived("faces"));
-  loadAtlas(`${ASSETS}logos-768.png`, arrived("marks"));
+  if (!FACE_ALL_OVER) loadAtlas(`${ASSETS}logos-768.png`, arrived("marks"));
 
   let built: ReturnType<typeof buildTable> | null = null;
   let builtLength = 0;

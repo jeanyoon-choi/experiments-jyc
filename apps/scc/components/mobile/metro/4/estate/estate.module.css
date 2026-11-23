@@ -1,20 +1,49 @@
-/* 공시가격 / 기사: stays at the top of the scroll and jumps between the two parts. */
+/* 부동산: the two tabs fixed at the very top, nothing above or behind them; the one scroll underneath. */
 .estate {
-  padding-top: 0;
-}
-
-.parts {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  margin: 0 -20px 4px;
-  padding: calc(env(safe-area-inset-top) + 12px) 20px 6px;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
   background: #fff;
 }
 
+.parts {
+  flex: none;
+  display: flex;
+  gap: 18px;
+  padding: calc(env(safe-area-inset-top) + 14px) 20px 10px;
+  background: #fff;
+}
+
+.part {
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 28px;
+  color: #a3a3a3;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.part[aria-selected="true"] {
+  color: #231f20;
+}
+
+.scroll {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px 20px calc(84px + env(safe-area-inset-bottom));
+}
+
+/* The reports begin: ruled off from the prices above. */
 .below {
-  margin-top: 28px;
-  padding-top: 8px;
+  margin-top: 24px;
+  padding-top: 12px;
   border-top: 1px solid #231f20;
 }
 

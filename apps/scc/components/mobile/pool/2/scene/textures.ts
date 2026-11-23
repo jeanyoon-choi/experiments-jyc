@@ -6,6 +6,12 @@ const SHEET_H = 256;
 /** Faces and marks each come as a 4 × 4 atlas of cells this size, in ball order (0 the cue ball). */
 const FACE = 256;
 
+/**
+ * What the far half of a ball shows: the chief executive's face again, so the ball is face all
+ * over (a trial of 2026-11-23), or `false` for the company's mark, as in pool/1.
+ */
+export const FACE_ALL_OVER = true;
+
 // Each ball is two halves and nothing else: the chief executive's face on one, the company's
 // mark on the other (the cue ball's other half is bare). Either picture is wrapped over its half
 // of the sphere by angle from its middle, so it keeps its proportions round to the side. This
@@ -60,7 +66,7 @@ export function ballSkin(id: number, anisotropy: number) {
     const ox = (id % 4) * FACE;
     const oy = Math.floor(id / 4) * FACE;
     for (let i = 0; i < map.cell.length; i += 1) {
-      const atlas = map.back[i] ? marks : faces;
+      const atlas = map.back[i] && !FACE_ALL_OVER ? marks : faces;
       const to = i * 4;
       sheet.data[to + 3] = 255;
       if (!atlas) {
