@@ -7,7 +7,7 @@ export const REFERENCES: Reference[] = [
   {
     id: "agent-models",
     title: both("에이전트 모델 도감", "A specimen book of agent models"),
-    href: "/screen/simulation/reference/agent-models.html",
+    href: "/screen/simulation/reference/agent-models",
     file: "public/screen/simulation/reference/agent-models.html",
     date: "2026-11-24",
     about: ["gb-screen"],

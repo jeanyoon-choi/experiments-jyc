@@ -323,6 +323,22 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     load: () => import("./screen/simulation/0"),
   },
   {
+    key: "screen/simulation/1",
+    area: "screen",
+    section: "dated",
+    date: "2026-11-24",
+    phrase: "simulation/0's two myopic agents under bubble/9's body: what crosses between bubbles — fish moving on, a sign copied — is the flow, and a finger drawn across the raft is a new keyword",
+    load: () => import("./screen/simulation/1"),
+  },
+  {
+    key: "screen/simulation/reference/agent-models",
+    area: "screen",
+    section: "dated",
+    date: "2026-11-24",
+    phrase: "Reference, not a model to follow: a specimen book of 24 agent-based models, each with its diagram, equations, a simulation to run and its paper",
+    load: () => import("./screen/simulation/reference/agent-models"),
+  },
+  {
     key: "pc/3d-mobiles/1",
     area: "pc",
     section: "dated",
@@ -355,6 +371,14 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     date: "2026-10-28",
     phrase: "From zero after mobiles/1: every phone moves every moment on one GPU compositor, each strike an interrupt you see, the goldfish its thumb",
     load: () => import("./pc/2d-mobiles/2"),
+  },
+  {
+    key: "pc/2d-mobiles/3",
+    area: "pc",
+    section: "dated",
+    date: "2026-11-24",
+    phrase: "2d-mobiles/2 with no device around the glass: only the mobiles' screens in a grid, its gaps, margins, columns, corners and cut all options",
+    load: () => import("./pc/2d-mobiles/3"),
   },
   {
     key: "pc/archive/news-phones/1",

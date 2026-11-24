@@ -30,7 +30,7 @@ export const goldfishFamilies: readonly GoldfishFamily[] = [
     key: "screen:simulation",
     area: "screen",
     label: "simulation",
-    members: ["screen/simulation/0"],
+    members: ["screen/simulation/0", "screen/simulation/1", "screen/simulation/reference/agent-models"],
   },
   {
     key: "screen:archive",
@@ -109,7 +109,7 @@ export const goldfishFamilies: readonly GoldfishFamily[] = [
     key: "pc:2d-mobiles",
     area: "pc",
     label: "2d-mobiles",
-    members: ["pc/2d-mobiles/1", "pc/2d-mobiles/2"],
+    members: ["pc/2d-mobiles/1", "pc/2d-mobiles/2", "pc/2d-mobiles/3"],
   },
   {
     key: "pc:3d-mobiles",

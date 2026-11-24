@@ -1,5 +1,6 @@
 # 에이전트 모델 도감 (reference)
 
+- Route: `/screen/simulation/reference/agent-models` (registered, so the navigation lists it; `components/screen/simulation/reference/agent-models/` sends it on to the page)
 - Page: `/screen/simulation/reference/agent-models.html`
 - File: `public/screen/simulation/reference/agent-models.html` (one self-contained page; it is in `public/` because it is served as it is, not built)
 - Added: 2026-11-24, from a page another agent made for the artist

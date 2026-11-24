@@ -24,6 +24,7 @@ Goldfish are people; bubbles are platforms and their algorithms; a bubble carrie
 
 - **`bubble/` is the visual ground.** Materials, objects, the liquid morph, the goldfish and their deaths. Its logic is PageRank on purpose: a cheap engine that is already lively, there so the visuals could be worked on. Work in `bubble/` stays visual; do not "fix" its logic.
 - **`simulation/` is the logic**, begun 2026-11-18: the agents' rules on their own first, then on bubble's body. [simulation/0](../components/screen/simulation/docs/0.md) has the engine, what was measured and the next steps.
+- **What `simulation/` is for (artist, 2026-11-24):** bubble/9's feeling — a trend spreading, the raft circulating and evolving — from an agent-based model in place of PageRank. M9 is a reference with problems of its own, not a thing to install under the body. [simulation/1](../components/screen/simulation/docs/1.md) did install it and was rejected; read its "What went wrong" and its table of what bubble/9's feeling is made of before proposing a model, and put the model to the artist in plain words before building it.
 - **Later, in this order:** agents that differ (each fish and bubble with its own numerical disposition, changing as it interacts), then a slow semantic layer driven by AI agents. No runtime LLM calls yet: there is no budget for them and the system is not settled.
 
 ## What was tried: the model, M1–M9.1 (2026-11-14/16)
