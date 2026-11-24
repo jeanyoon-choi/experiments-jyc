@@ -309,18 +309,47 @@ function membraneOf(data: Float32Array) {
   return membrane;
 }
 
-/** ∇²u = −1 where `inside`, 0 elsewhere, over [−EXTENT, EXTENT]² on a `size`² grid, by over-relaxed Gauss–Seidel. */
+/**
+ * ∇²u = −1 where `inside`, 0 elsewhere, over [−EXTENT, EXTENT]² on a `size`² grid, by over-relaxed Gauss–Seidel:
+ * size × 3 sweeps, each cell in turn u ← u + relax × ((left + right + up + down + step²) / 4 − u), row by row.
+ *
+ * Most of a bake's time is here, and a sweep in that order is one long chain (each cell waits for the one to its
+ * left). So four rows are swept abreast, each one column behind the row above it, over the rows and columns that
+ * hold any cell: a cell still reads its left and upper neighbours as this sweep left them and its right and lower
+ * ones as the sweep before did, so every value is, bit for bit, the row-by-row sweep's (fields.test.ts holds the
+ * two against each other), in about half the time.
+ */
 export function solveMembrane(inside: Uint8Array, size: number) {
   const step = (FIELD_EXTENT * 2) / size;
   const u = new Float64Array(size * size);
   const relax = 2 / (1 + Math.sin(Math.PI / size));
+  const source = step * step;
+  let top = size;
+  let bottom = 0;
+  let left = size;
+  let right = 0;
+  for (let y = 1; y < size - 1; y += 1) {
+    for (let x = 1; x < size - 1; x += 1) {
+      if (!inside[y * size + x]) continue;
+      if (y < top) top = y;
+      if (y > bottom) bottom = y;
+      if (x < left) left = x;
+      if (x > right) right = x;
+    }
+  }
   for (let sweep = 0; sweep < size * 3; sweep += 1) {
-    for (let y = 1; y < size - 1; y += 1) {
-      for (let x = 1; x < size - 1; x += 1) {
-        const at = y * size + x;
-        if (!inside[at]) continue;
-        const next = (u[at - 1]! + u[at + 1]! + u[at - size]! + u[at + size]! + step * step) / 4;
-        u[at] = u[at]! + relax * (next - u[at]!);
+    for (let y = top; y <= bottom; y += 4) {
+      const rows = Math.min(4, bottom - y + 1);
+      const row = y * size;
+      for (let column = left; column < right + rows; column += 1) {
+        for (let lag = 0; lag < rows; lag += 1) {
+          const x = column - lag;
+          if (x < left || x > right) continue;
+          const at = row + lag * size + x;
+          if (!inside[at]) continue;
+          const was = u[at]!;
+          u[at] = was + relax * ((u[at - 1]! + u[at + 1]! + u[at - size]! + u[at + size]! + source) / 4 - was);
+        }
       }
     }
   }

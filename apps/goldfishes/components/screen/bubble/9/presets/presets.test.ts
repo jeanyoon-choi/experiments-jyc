@@ -22,10 +22,14 @@ const BASE = {
 const FAMILIES = presetFamilies(BASE);
 const [MOVEMENT, LSD] = FAMILIES.map((family) => family.items) as [readonly Preset[], readonly Preset[]];
 const ALL = [...MOVEMENT, ...LSD];
+/** A's members that write the movement alone, and those that are one of them in other colours (`resets`). */
+const PLAIN = MOVEMENT.filter((preset) => !preset.resets);
+const MIXES = MOVEMENT.filter((preset) => preset.resets);
+const [GOLDFISH, CLOCK, NIGHT, LARGE, PASTEL] = MOVEMENT as [Preset, Preset, Preset, Preset, Preset];
 
 const apply = (state: PresetState, preset: Preset) => applyPreset(state, preset, BASE);
 const match = (state: PresetState) => matchPreset(state, FAMILIES, BASE);
-/** bubble/9 as it opens: A2 over the base. */
+/** bubble/9 as it opens: A1 over the base. */
 const opening = () => apply({ ...BASE, owing: null }, MOVEMENT[OPENING_PRESET]!);
 const slices = ({ rates, fish, feedback, objects, visual }: PresetSlices) => ({ rates, fish, feedback, objects, visual });
 
@@ -38,21 +42,23 @@ function digest(state: PresetSlices) {
   return createHash("sha256").update(JSON.stringify(sorted({ ...slices(state), objects }))).digest("hex").slice(0, 16);
 }
 
+// A1–A5 were a2, a3, c2, a4, c1 until 2026-11-24 (renamed; the values are those recorded then).
 const RECORDED: Record<string, string> = {
-  a1: "0ffd9e552101152c",
-  a2: "38f838994da9fdb5",
-  a3: "708afe8aba31edb9",
+  a1: "38f838994da9fdb5",
+  a2: "708afe8aba31edb9",
+  a3: "2df203d15c2ba83f",
   a4: "0cefd254c49165be",
+  a5: "abe71accc63739de",
   b1: "7b4429a458cf8ad4",
   b2: "e4a53694cfdfdf6f",
   b3: "dc0f3f156270bc88",
   b4: "bd904274ff2982e1",
 };
 
-test("the list is A1 … A4, B1 … B4, opening on A2", () => {
-  assert.deepEqual(ALL.map((preset) => preset.label), ["A1", "A2", "A3", "A4", "B1", "B2", "B3", "B4"]);
-  assert.deepEqual(ALL.map((preset) => preset.name), ["시계 굳음", "금붕어", "시계 출렁", "크게 쏠림", "무지개", "푸른 금속", "초록 바닥", "노랑 바닥"]);
-  assert.equal(match(opening()), MOVEMENT[1]);
+test("the list is A1 … A5, B1 … B4, opening on A1", () => {
+  assert.deepEqual(ALL.map((preset) => preset.label), ["A1", "A2", "A3", "A4", "A5", "B1", "B2", "B3", "B4"]);
+  assert.deepEqual(ALL.map((preset) => preset.name), ["금붕어", "시계 출렁", "밤 도시", "크게 쏠림", "파스텔", "무지개", "푸른 금속", "초록 바닥", "노랑 바닥"]);
+  assert.equal(match(opening()), GOLDFISH);
   assert.equal(opening().visual.area, 1);
   assert.equal(opening().objects.facing, 2);
 });
@@ -65,7 +71,7 @@ test("every preset, chosen from the opening, is the one the values then are, wit
   }
 });
 
-test("the base is the opening before A2: an LSD preset starts from 버블 면적 0.8, not A2's 1", () => {
+test("the base is the opening before A2: an LSD preset starts from 버블 면적 0.8, not A1's 1", () => {
   const state = apply(opening(), LSD[0]!);
   assert.equal(state.visual.area, 0.8);
   assert.equal(state.visual.material, 10);
@@ -80,7 +86,7 @@ test("A after B restores the base look and the portions: as if A had been chosen
       assert.deepEqual(slices(state), slices(apply(opening(), a)), `${b.label} → ${a.label}`);
       assert.deepEqual(state.visual, { ...BASE.visual, ...a.patch.visual });
       assert.equal(state.objects.portions, OBJECT_DEFAULTS.portions);
-      assert.equal(state.owing, null);
+      assert.equal(state.owing, a.resets ? a : null);
       assert.equal(match(state), a);
     }
   }
@@ -92,12 +98,12 @@ test("B after B carries nothing over", () => {
   }
 });
 
-test("A after A writes its own keys only: a look chosen in between stays", () => {
+test("a plain A after a plain A writes its own keys only: a look chosen in between stays", () => {
   const moved = { ...opening(), visual: { ...opening().visual, roughness: 0.33, material: 3 } };
-  const state = apply(moved, MOVEMENT[3]!);
+  const state = apply(moved, LARGE);
   assert.equal(state.visual.roughness, 0.33);
   assert.equal(state.visual.material, 3);
-  assert.equal(match(state), MOVEMENT[3]);
+  assert.equal(match(state), LARGE);
 });
 
 test("leaving B is known by its having been chosen, not by its values", () => {
@@ -105,20 +111,20 @@ test("leaving B is known by its having been chosen, not by its values", () => {
   const inB = apply(opening(), LSD[1]!);
   const moved = { ...inB, visual: { ...inB.visual, roughness: 0.33 } };
   assert.equal(match(moved), null);
-  assert.deepEqual(apply(moved, MOVEMENT[0]!).visual, { ...BASE.visual, ...MOVEMENT[0]!.patch.visual });
+  assert.deepEqual(apply(moved, GOLDFISH).visual, { ...BASE.visual, ...GOLDFISH.patch.visual });
   const replaced = { ...inB, visual: BASE.visual };
   assert.equal(replaced.owing, LSD[1]);
-  assert.equal(apply(replaced, MOVEMENT[0]!).objects.portions, OBJECT_DEFAULTS.portions);
+  assert.equal(apply(replaced, GOLDFISH).objects.portions, OBJECT_DEFAULTS.portions);
   // And once A has been chosen, nothing is owed any more.
-  const inA = apply(inB, MOVEMENT[0]!);
+  const inA = apply(inB, GOLDFISH);
   const coloured = { ...inA, visual: { ...inA.visual, material: 10 }, objects: { ...inA.objects, portions: 0 } };
-  const next = apply(coloured, MOVEMENT[1]!);
+  const next = apply(coloured, CLOCK);
   assert.equal(next.visual.material, 10);
   assert.equal(next.objects.portions, 0);
 });
 
 test("B is told first: B1 holds A4's rates and objects too", () => {
-  const state = apply(apply(opening(), MOVEMENT[3]!), LSD[0]!);
+  const state = apply(apply(opening(), LARGE), LSD[0]!);
   assert.equal(match(state), LSD[0]);
   assert.equal(match({ ...state, fish: { ...state.fish, speed: 1 } }), LSD[0]);
 });
@@ -126,9 +132,43 @@ test("B is told first: B1 holds A4's rates and objects too", () => {
 test("a value moved is no preset; a slice not written is the same object", () => {
   const state = opening();
   assert.equal(match({ ...state, fish: { ...state.fish, speed: 1 } }), null);
-  assert.equal(match({ ...state, rates: { ...state.rates, volatility: 0.5 } }), MOVEMENT[1]);
+  assert.equal(match({ ...state, rates: { ...state.rates, volatility: 0.5 } }), GOLDFISH);
   const lsd = apply(state, LSD[2]!);
   assert.equal(lsd.fish, state.fish);
   assert.equal(lsd.feedback, state.feedback);
   assert.notEqual(lsd.visual, state.visual);
+});
+
+test("A3 and A5 are their export whole: the member before them, under a look from the base", () => {
+  const [night, pastel] = [NIGHT, PASTEL].map((preset) => apply(opening(), preset)) as [PresetState, PresetState];
+  // A3: A2's movement (the clock that never quite sets).
+  assert.deepEqual({ ...night.rates }, { ...apply(opening(), CLOCK).rates });
+  assert.equal(night.objects.style, 1);
+  assert.deepEqual(night.visual, { ...BASE.visual, background: [0, 0, 0], mixSaturation: 0.32, mixLightness: 0.72, photo: 3, area: 1 });
+  // A5: A4's movement; the base's 버블 면적, and none of the others' black ground.
+  assert.deepEqual({ ...pastel.rates }, { ...apply(opening(), LARGE).rates });
+  assert.equal(pastel.objects.size, 1.5);
+  assert.deepEqual(pastel.visual, { ...BASE.visual, background: [1, 1, 1], mixHue: 19, mixSaturation: 0.86, mixLightness: 0.89, photo: 0, photoStrength: 1, neighbourReflection: 1 });
+  for (const state of [night, pastel]) assert.equal(state.objects.portions, OBJECT_DEFAULTS.portions);
+});
+
+test("A3 and A5 carry nothing over, from any preset, and the member after them gets the look back", () => {
+  assert.deepEqual(MIXES, [NIGHT, PASTEL]);
+  for (const mix of MIXES) {
+    for (const before of ALL) assert.deepEqual(slices(apply(apply(opening(), before), mix)), slices(apply(opening(), mix)), `${before.label} → ${mix.label}`);
+    for (const a of PLAIN) {
+      const state = apply(apply(opening(), mix), a);
+      assert.deepEqual(slices(state), slices(apply(opening(), a)), `${mix.label} → ${a.label}`);
+      assert.equal(state.owing, null);
+      assert.equal(match(state), a);
+    }
+  }
+});
+
+test("stepping through the whole list and round again, every stop is told as itself", () => {
+  let state = opening();
+  for (const preset of [...ALL, ...ALL]) {
+    state = apply(state, preset);
+    assert.equal(match(state), preset, preset.label);
+  }
 });

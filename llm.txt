@@ -1,5 +1,6 @@
 # Agent documentation
 - Active policy: AGENTS.md
 - Task/app map: docs/README.md
+- Goldfishes, read first: its system map — `node apps/goldfishes/foundations/system/model/print.ts` (docs: apps/goldfishes/docs/system.md)
 - Documentation writing: docs/harness/documentation.md
 Load only the references needed for the current task.

@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>에이전트 모델 도감 — Goldfishes simulation 참고</title>
+<!-- A reference for apps/goldfishes/components/screen/simulation, not a specification: docs/models.md there. -->
+<script>try{var t=localStorage.getItem('goldfishes-system-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=IBM+Plex+Sans+KR:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+/* VOICE quiet, archival, precise. IDEA a specimen book of agent models, each plate = text + live bench.
+   COLOUR white / black ink, six muted series tones, one red for selection. TYPE Archivo + Plex Sans KR, Plex Mono for numbers.
+   LAYOUT sticky index on the left, plates in one column; bench stacks under text on mobiles */
+:root{
+  --bg:#ffffff;--fg:#111111;--muted:#7d7d7d;--line:#dadada;--grid:#efefef;--panel:#ffffff;--sel:#e4002b;
+  --c1:#1f4fa8;--c2:#a8541f;--c3:#2b7a4b;--c4:#7a3fa0;--c5:#8a7a12;--c6:#3b3b3b;
+  --display:'Archivo','IBM Plex Sans KR',system-ui,sans-serif;--text:'IBM Plex Sans KR','Archivo',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#000000;--fg:#ececec;--muted:#8a8a8a;--line:#2e2e2e;--grid:#1b1b1b;--panel:#000000;--sel:#ff3355;--c1:#7aa2ff;--c2:#ffab70;--c3:#6fd09a;--c4:#c497ff;--c5:#e3d26a;--c6:#cfcfcf;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#000000;--fg:#ececec;--muted:#8a8a8a;--line:#2e2e2e;--grid:#1b1b1b;--panel:#000000;--sel:#ff3355;--c1:#7aa2ff;--c2:#ffab70;--c3:#6fd09a;--c4:#c497ff;--c5:#e3d26a;--c6:#cfcfcf;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.65 var(--text);overflow-x:clip}
+img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
+a{color:var(--fg);text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+a:hover{text-decoration-color:var(--sel)}
+.top{border-bottom:2px solid var(--fg);padding-block:22px 18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top h1{font:800 clamp(26px,4vw,40px)/1.1 var(--display);margin:0 0 8px;letter-spacing:-.01em}
+.top p{margin:0;max-width:72ch;color:var(--fg)}
+.top .meta{color:var(--muted);font-size:13px;margin-top:8px}
+.wrap{display:grid;grid-template-columns:230px minmax(0,1fr);gap:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+nav{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;max-height:100vh;overflow-y:auto;padding:18px 18px 40px 0;border-right:1px solid var(--line);font-size:13.5px}
+nav h4{font:600 11px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:18px 0 6px}
+nav a{display:block;text-decoration:none;padding:3px 0 3px 10px;border-left:2px solid transparent;color:var(--fg)}
+nav a.on{border-left-color:var(--sel);font-weight:600}
+nav a span{font-family:var(--mono);font-size:11px;color:var(--muted);margin-right:6px}
+main{min-width:0;padding-left:28px}
+.grp{font:800 13px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:46px 0 0;padding-top:14px;border-top:2px solid var(--fg)}
+.grp b{color:var(--fg)}
+section.m{padding-block:26px 30px;border-bottom:1px solid var(--line);scroll-margin-top:12px}
+section.m h2{font:800 clamp(21px,2.6vw,27px)/1.15 var(--display);margin:0 0 2px;text-wrap:balance}
+section.m h2 .no{font:400 14px var(--mono);color:var(--muted);margin-right:10px;vertical-align:3px}
+section.m .en{color:var(--muted);font-size:13px;margin-bottom:14px}
+.plate{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:28px;align-items:start}
+.txt{min-width:0}
+.txt p{margin:0 0 12px;max-width:66ch}
+.txt h3{font:600 12px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:20px 0 8px}
+.txt ul{margin:0;padding-left:18px}
+.txt li{margin:3px 0}
+.fx{overflow-x:auto;padding:4px 0;margin:4px 0 10px;font-size:15px}
+.fx mjx-container{margin:6px 0!important}
+.diag{width:100%;max-width:440px;display:block;margin:4px 0 6px}
+.diag text{font:12.5px var(--text);fill:var(--fg)}
+.diag .lab{font-size:11px;fill:var(--muted)}
+.refs{font-size:13.5px}
+.refs li{margin:5px 0}
+.bench{min-width:0;position:sticky;top:12px}
+.cv{display:block;width:100%;background:var(--panel);border:1px solid var(--line);touch-action:none}
+.cv.view{aspect-ratio:1/1;max-height:430px}
+.cv.wide{aspect-ratio:16/10}
+.cv.plot{aspect-ratio:16/7;margin-top:8px}
+.ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px 18px;margin-top:12px;font-size:13px}
+.ctl label{display:flex;flex-direction:column;gap:2px}
+.ctl label span{display:flex;justify-content:space-between;gap:8px;color:var(--fg)}
+.ctl output{font-family:var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.ctl input[type=range]{width:100%;accent-color:var(--fg)}
+.ctl select{font:13px var(--text);padding:4px 6px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+.btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.btns button{font:600 12.5px var(--display);padding:7px 12px;border:1px solid var(--fg);background:var(--bg);color:var(--fg);cursor:pointer;min-height:34px}
+.btns button.pri{background:var(--fg);color:var(--bg)}
+.btns button:focus-visible,.ctl input:focus-visible,.ctl select:focus-visible,nav a:focus-visible{outline:2px solid var(--sel);outline-offset:2px}
+.stat{font:12px var(--mono);color:var(--muted);margin-top:6px;min-height:1.4em;font-variant-numeric:tabular-nums}
+.hint{font-size:12.5px;color:var(--muted);margin-top:4px}
+table.gl{border-collapse:collapse;width:100%;font-size:13.5px;min-width:560px}
+table.gl th,table.gl td{border-bottom:1px solid var(--line);padding:7px 10px 7px 0;text-align:left;vertical-align:top}
+table.gl th{font:600 11px var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tw{overflow-x:auto}
+footer{color:var(--muted);font-size:13px;padding:30px 0 60px}
+@media (max-width:1100px){.plate{grid-template-columns:1fr}.bench{position:static}}
+@media (max-width:820px){.wrap{grid-template-columns:1fr}nav{position:static;max-height:none;border-right:0;border-bottom:1px solid var(--line);padding:10px 0;columns:2;column-gap:16px}nav h4{break-after:avoid}main{padding-left:0}}
+@media (max-width:460px){nav{columns:1}}
+</style>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']]},svg:{fontCache:'global'},startup:{typeset:false}};</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+</head>
+<body>
+<header class="top">
+<h1>에이전트 모델 도감</h1>
+<p>개체 하나하나가 단순한 규칙을 따를 때 집단에서 무엇이 나오는지 보여주는 대표 모델들이에요. 모델마다 한 줄 설명, 구조 도식, 식, 직접 돌려볼 수 있는 시뮬레이션, 원논문 링크를 붙였어요. 슬라이더를 움직이면 바로 반영되고, ↺가 붙은 항목은 다시 시작해야 반영돼요.</p>
+<div class="meta">시뮬레이션은 화면에 보이는 것만 돌아가요. 모든 코드는 이 페이지 안에서 직접 계산해요.</div>
+<div class="meta">Goldfishes simulation의 참고 자료예요. 작품이 따라 할 모델이 아니라 견주어 볼 표본이에요. <a href="/system">system</a> · <a href="/screen/simulation/0">simulation/0</a></div>
+</header>
+<div class="wrap">
+<nav id="nav" aria-label="모델 목록"></nav>
+<main id="main"></main>
+</div>
+<script>
+// ---------- framework ----------
+const R=Math.random, clamp=(x,a,b)=>x<a?a:x>b?b:x;
+let COL={};
+function hex2rgb(h){h=h.trim();if(h[0]!=='#')return[128,128,128];if(h.length===4)h='#'+h[1]+h[1]+h[2]+h[2]+h[3]+h[3];const n=parseInt(h.slice(1),16);return[n>>16&255,n>>8&255,n&255]}
+function readColors(){const cs=getComputedStyle(document.documentElement);['bg','fg','muted','line','grid','panel','sel','c1','c2','c3','c4','c5','c6'].forEach(k=>{COL[k]=cs.getPropertyValue('--'+k).trim();COL[k+'_rgb']=hex2rgb(COL[k])})}
+readColors();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readColors);
+new MutationObserver(readColors).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+const SER=()=>[COL.c1,COL.c2,COL.c3,COL.c4,COL.c5,COL.c6];
+function gauss(){let u=0,v=0;while(!u)u=R();while(!v)v=R();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function hueRGB(h,s=.55,l=.5){h=((h%360)+360)%360/60;const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs(h%2-1)),m=l-c/2;let r,g,b;[r,g,b]=h<1?[c,x,0]:h<2?[x,c,0]:h<3?[0,c,x]:h<4?[0,x,c]:h<5?[x,0,c]:[c,0,x];return[(r+m)*255|0,(g+m)*255|0,(b+m)*255|0]}
+function fit(cv){const r=cv.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);const w=Math.max(10,Math.round(r.width*d)),h=Math.max(10,Math.round(r.height*d));if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}const ctx=cv.getContext('2d');ctx.setTransform(d,0,0,d,0,0);return{ctx,w:r.width,h:r.height}}
+function clear(c){c.ctx.fillStyle=COL.panel;c.ctx.fillRect(0,0,c.w,c.h)}
+// draw L x L grid of indices via palette function -> rgb array
+const _off=document.createElement('canvas');
+function drawGrid(c,L,Lh,fn){Lh=Lh||L;_off.width=L;_off.height=Lh;const o=_off.getContext('2d'),im=o.createImageData(L,Lh),d=im.data;for(let i=0;i<L*Lh;i++){const p=fn(i);d[i*4]=p[0];d[i*4+1]=p[1];d[i*4+2]=p[2];d[i*4+3]=255}o.putImageData(im,0,0);const s=Math.min(c.w/L,c.h/Lh);c.ctx.imageSmoothingEnabled=false;c.ctx.drawImage(_off,(c.w-L*s)/2,(c.h-Lh*s)/2,L*s,Lh*s);return{s,ox:(c.w-L*s)/2,oy:(c.h-Lh*s)/2}}
+// line plot
+function plot(c,series,o={}){const ctx=c.ctx,W=c.w,H=c.h,pl=40,pr=10,pt=10,pb=22;clear(c);
+  let n=0;series.forEach(s=>n=Math.max(n,s.d.length));
+  let ymin=o.ymin,ymax=o.ymax;if(ymin==null||ymax==null){let a=Infinity,b=-Infinity;series.forEach(s=>s.d.forEach(v=>{if(isFinite(v)){a=Math.min(a,v);b=Math.max(b,v)}}));if(!isFinite(a)){a=0;b=1}if(ymin==null)ymin=Math.min(a,0);if(ymax==null)ymax=b>ymin?b*1.05:ymin+1}
+  const X=i=>pl+(W-pl-pr)*(n<=1?0:i/((o.n||n)-1)),Y=v=>pt+(H-pt-pb)*(1-(v-ymin)/(ymax-ymin||1));
+  ctx.strokeStyle=COL.line;ctx.lineWidth=1;ctx.fillStyle=COL.muted;ctx.font='10px IBM Plex Mono, monospace';ctx.textAlign='right';ctx.textBaseline='middle';
+  for(let k=0;k<=4;k++){const v=ymin+(ymax-ymin)*k/4,y=Y(v);ctx.beginPath();ctx.moveTo(pl,y);ctx.lineTo(W-pr,y);ctx.stroke();ctx.fillText(fmt(v),pl-4,y)}
+  if(o.hline!=null){ctx.setLineDash([4,4]);ctx.strokeStyle=COL.muted;ctx.beginPath();ctx.moveTo(pl,Y(o.hline));ctx.lineTo(W-pr,Y(o.hline));ctx.stroke();ctx.setLineDash([])}
+  series.forEach(s=>{ctx.strokeStyle=s.c;ctx.lineWidth=s.w||1.6;ctx.beginPath();let st=false;s.d.forEach((v,i)=>{if(!isFinite(v)){st=false;return}const x=X(i),y=Y(clamp(v,ymin,ymax));st?ctx.lineTo(x,y):ctx.moveTo(x,y);st=true});ctx.stroke()});
+  ctx.textAlign='left';ctx.textBaseline='top';ctx.font='11px IBM Plex Sans KR, sans-serif';let lx=pl+6;series.forEach(s=>{if(!s.l)return;ctx.fillStyle=s.c;ctx.fillRect(lx,pt+5,10,3);ctx.fillStyle=COL.fg;ctx.fillText(s.l,lx+14,pt);lx+=ctx.measureText(s.l).width+30});
+  ctx.fillStyle=COL.muted;ctx.font='10px IBM Plex Sans KR, sans-serif';ctx.textAlign='right';ctx.textBaseline='bottom';ctx.fillText(o.xl||'시간 →',W-pr,H-3)}
+function fmt(v){const a=Math.abs(v);return a>=1000?(v/1000).toFixed(1)+'k':a>=10?v.toFixed(0):a>=1?v.toFixed(1):a===0?'0':v.toFixed(2)}
+// log-log scatter
+function loglog(c,pts,o={}){const ctx=c.ctx,W=c.w,H=c.h,pl=40,pr=10,pt=10,pb=22;clear(c);if(!pts.length)return;
+  let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;pts.forEach(([x,y])=>{if(x>0&&y>0){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)}});
+  if(!isFinite(x0))return;const lx0=Math.floor(Math.log10(x0)),lx1=Math.max(lx0+1,Math.ceil(Math.log10(x1))),ly0=Math.floor(Math.log10(y0)),ly1=Math.max(ly0+1,Math.ceil(Math.log10(y1)));
+  const X=x=>pl+(W-pl-pr)*(Math.log10(x)-lx0)/(lx1-lx0),Y=y=>pt+(H-pt-pb)*(1-(Math.log10(y)-ly0)/(ly1-ly0));
+  ctx.strokeStyle=COL.line;ctx.fillStyle=COL.muted;ctx.font='10px IBM Plex Mono, monospace';
+  for(let k=ly0;k<=ly1;k++){const y=Y(10**k);ctx.beginPath();ctx.moveTo(pl,y);ctx.lineTo(W-pr,y);ctx.stroke();ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText('1e'+k,pl-4,y)}
+  for(let k=lx0;k<=lx1;k++){const x=X(10**k);ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText('1e'+k,x,H-3)}
+  if(o.slope!=null){const xa=10**lx0,ya=o.anchor||y1;ctx.setLineDash([4,4]);ctx.strokeStyle=COL.muted;ctx.beginPath();ctx.moveTo(X(xa),Y(ya));const xb=10**lx1;ctx.lineTo(X(xb),Y(ya*(xb/xa)**o.slope));ctx.stroke();ctx.setLineDash([])}
+  ctx.fillStyle=o.c||COL.c1;pts.forEach(([x,y])=>{if(x>0&&y>0){ctx.beginPath();ctx.arc(X(x),Y(y),2.2,0,7);ctx.fill()}});
+  ctx.fillStyle=COL.fg;ctx.font='11px IBM Plex Sans KR, sans-serif';ctx.textAlign='left';ctx.textBaseline='top';if(o.title)ctx.fillText(o.title,pl+6,pt)}
+function logHist(vals){const b={};vals.forEach(v=>{if(v<=0)return;const k=Math.floor(Math.log(v)/Math.log(1.6));b[k]=(b[k]||0)+1});const tot=vals.length,out=[];for(const k in b){const lo=1.6**k,hi=1.6**(+k+1);out.push([Math.sqrt(lo*hi),b[k]/tot/(hi-lo)])}return out}
+function push(a,v,max=600){a.push(v);if(a.length>max)a.shift()}
+// generic SVG diagram: nodes {id,x,y,t,w}, edges [a,b,label,type('+','-','~')]
+function diag(spec){const W=440,H=spec.h||150;let s=`<svg class="diag" viewBox="0 0 ${W} ${H}" role="img" aria-label="${spec.aria||'구조 도식'}"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="var(--fg)"/></marker><marker id="ab" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M5,0L5,10" stroke="var(--sel)" stroke-width="3"/></marker></defs>`;
+  const N={};spec.n.forEach(n=>N[n.id]=n);
+  spec.e.forEach(([a,b,l,t,bend])=>{const A=N[a],B=N[b];const bw=(n)=>(n.w||Math.max(64,n.t.length*12+18))/2;
+    let x1=A.x,y1=A.y,x2=B.x,y2=B.y;const dx=x2-x1,dy=y2-y1,d=Math.hypot(dx,dy)||1;
+    const cut=(n,ux,uy)=>{const hw=bw(n),hh=15;const tx=Math.abs(ux)>1e-6?hw/Math.abs(ux):1e9,ty=Math.abs(uy)>1e-6?hh/Math.abs(uy):1e9;return Math.min(tx,ty)+3};
+    const ux=dx/d,uy=dy/d;const c1=cut(A,ux,uy),c2=cut(B,ux,uy);x1+=ux*c1;y1+=uy*c1;x2-=ux*c2;y2-=uy*c2;
+    const bb=bend||0,mx=(x1+x2)/2-uy*bb,my=(y1+y2)/2+ux*bb;const col=t==='-'?'var(--sel)':'var(--fg)';
+    s+=`<path d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" fill="none" stroke="${col}" stroke-width="1.3" ${t==='~'?'stroke-dasharray="4 3"':''} marker-end="url(#${t==='-'?'ab':'ah'})"/>`;
+    const lo=bb===0?9:bb*0.5+Math.sign(bb)*10;if(l)s+=`<text class="lab" x="${(x1+x2)/2-uy*lo}" y="${(y1+y2)/2+ux*lo+4}" text-anchor="middle">${l}</text>`});
+  spec.n.forEach(n=>{const w=n.w||Math.max(64,n.t.length*12+18);s+=`<rect x="${n.x-w/2}" y="${n.y-15}" width="${w}" height="30" fill="var(--bg)" stroke="var(--fg)" stroke-width="${n.k?2:1}"/><text x="${n.x}" y="${n.y+4.5}" text-anchor="middle">${n.t}</text>`});
+  return s+'</svg>'}
+// ---------- registry ----------
+const MODELS=[];const SIMS=[];
+function model(d){MODELS.push(d)}
+class Sim{constructor(d,root){this.d=d;this.root=root;this.play=!matchMedia('(prefers-reduced-motion: reduce)').matches;this.vis=false;this.P={};
+  const b=root.querySelector('.bench');this.cv={};(d.canvases||[['view','view'],['plot','plot']]).forEach(([k,cls])=>{const c=document.createElement('canvas');c.className='cv '+cls;c.setAttribute('aria-label',d.title+' 시뮬레이션');b.appendChild(c);this.cv[k]=c});
+  const st=document.createElement('div');st.className='stat';b.appendChild(st);this.stat=st;
+  const btn=document.createElement('div');btn.className='btns';b.appendChild(btn);
+  const pb=document.createElement('button');pb.className='pri';pb.textContent=this.play?'일시정지':'재생';pb.onclick=()=>{this.play=!this.play;pb.textContent=this.play?'일시정지':'재생'};btn.appendChild(pb);this.pb=pb;
+  const rb=document.createElement('button');rb.textContent='↺ 다시 시작';rb.onclick=()=>this.reset();btn.appendChild(rb);
+  const sb=document.createElement('button');sb.textContent='한 단계';sb.onclick=()=>{this.d.step(this.S,this.P,this);this.draw()};btn.appendChild(sb);
+  (d.buttons||[]).forEach(([t,f])=>{const x=document.createElement('button');x.textContent=t;x.onclick=()=>{f(this.S,this.P,this);this.draw()};btn.appendChild(x)});
+  const ctl=document.createElement('div');ctl.className='ctl';b.appendChild(ctl);
+  (d.controls||[]).forEach(c=>{const id=d.id+'-'+c.k;const lab=document.createElement('label');
+    if(c.opts){lab.innerHTML=`<span>${c.l}${c.r?' ↺':''}</span>`;const s=document.createElement('select');s.id=id;c.opts.forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;s.appendChild(o)});s.value=c.v;this.P[c.k]=c.v;s.onchange=()=>{this.P[c.k]=s.value;if(c.r)this.reset()};lab.appendChild(s)}
+    else{lab.innerHTML=`<span>${c.l}${c.r?' ↺':''}<output></output></span>`;const s=document.createElement('input');s.type='range';s.id=id;s.min=c.min;s.max=c.max;s.step=c.s;s.value=c.v;const out=lab.querySelector('output');
+      const val=()=>c.log?10**(+s.value):+s.value;const show=()=>{const v=val();out.textContent=c.f?c.f(v):(Math.abs(v)<.01&&v!==0?v.toExponential(1):+v.toFixed(3))};
+      this.P[c.k]=val();show();s.oninput=()=>{this.P[c.k]=val();show();if(c.r)this.reset()};lab.appendChild(s)}
+    ctl.appendChild(lab)});
+  if(d.hint){const h=document.createElement('div');h.className='hint';h.textContent=d.hint;b.appendChild(h)}
+  if(d.click)Object.values(this.cv)[0].addEventListener('pointerdown',ev=>{const r=ev.target.getBoundingClientRect();d.click(this.S,this.P,(ev.clientX-r.left)/r.width,(ev.clientY-r.top)/r.height,this,ev.target);this.draw()});
+  this.reset()}
+  reset(){this.S=this.d.setup(this.P,this);this.draw()}
+  draw(){const c={};for(const k in this.cv)c[k]=fit(this.cv[k]);this.d.draw(this.S,this.P,c,this)}
+  tick(){if(this.play){const n=this.d.spf?this.d.spf(this.P):1;for(let i=0;i<n;i++)this.d.step(this.S,this.P,this)}this.draw()}
+}
+function setStat(sim,t){sim.stat.textContent=t}
+// ================= A. 개체군 동역학 =================
+model({id:'wolf-sheep',grp:'A',no:'A1',title:'포식-피식',en:'Predator–prey · Lotka–Volterra · Wolf Sheep Predation',
+one:`<p>먹는 쪽이 늘면 먹히는 쪽이 줄고, 먹을 게 줄면 먹는 쪽도 줄고, 그러면 먹히는 쪽이 다시 회복하는 순환이에요. Lotka와 Volterra가 미분방정식으로 처음 썼고, 오른쪽은 같은 구조를 개체 기반으로 돌린 NetLogo의 늑대·양·풀 모델이에요. 양은 풀을 먹고, 늑대는 양을 먹고, 둘 다 움직일 때마다 에너지를 쓰고, 에너지가 있으면 확률적으로 번식해요.</p>
+<p>평균장으로 쓰면 아래 식이 되고, 피식자에 수용한계와 포식 포화를 넣으면 Rosenzweig–MacArthur 식이 돼요. 수용한계 K를 키우면 조용한 평형점이 갑자기 흔들리는 순환으로 바뀌는 Hopf 분기가 있어요(부영양화의 역설). 개체 수가 적은 개체 기반 버전에서는 순환 도중 우연히 한쪽이 멸종하기도 해요.</p>`,
+fx:['\\frac{dx}{dt}=\\alpha x-\\beta xy,\\qquad \\frac{dy}{dt}=\\delta xy-\\gamma y','\\frac{dx}{dt}=rx\\Big(1-\\frac{x}{K}\\Big)-\\frac{axy}{1+ahx},\\qquad \\frac{dy}{dt}=e\\frac{axy}{1+ahx}-my'],
+diag:{h:140,n:[{id:'g',t:'풀',x:60,y:70},{id:'s',t:'양 x',x:220,y:70,k:1},{id:'w',t:'늑대 y',x:380,y:70,k:1}],e:[['g','s','먹힘 → 에너지','+',-18],['s','g','뜯어먹음','-',-18],['s','w','먹힘 → 에너지','+',-18],['w','s','잡아먹음','-',-18]]},
+try:['늑대 번식률을 올리면 진폭이 커지다가 양이 바닥나서 늑대도 함께 사라지는 경우가 나와요.','풀 재생 시간을 줄이면(먹이가 풍부) 순환이 더 크게 흔들려요. 부영양화의 역설을 개체로 본 것이에요.','양 번식률을 낮추고 늑대 이득을 높이면 평형 근처에서 오래 버텨요.'],
+refs:[['Volterra 1926, Fluctuations in the abundance of a species considered mathematically','https://doi.org/10.1038/118558a0'],['Rosenzweig & MacArthur 1963, Graphical representation and stability conditions of predator-prey interactions','https://doi.org/10.1086/282272'],['Rosenzweig 1971, Paradox of enrichment','https://doi.org/10.1126/science.171.3969.385'],['NetLogo Wolf Sheep Predation','https://ccl.northwestern.edu/netlogo/models/WolfSheepPredation'],['Wikipedia: Lotka–Volterra equations','https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations']],
+controls:[{k:'sr',l:'양 번식 확률',min:.01,max:.1,s:.005,v:.04},{k:'wr',l:'늑대 번식 확률',min:.01,max:.12,s:.005,v:.05},{k:'sg',l:'양이 풀에서 얻는 에너지',min:1,max:10,s:1,v:4},{k:'wg',l:'늑대가 양에서 얻는 에너지',min:5,max:40,s:1,v:20},{k:'gt',l:'풀 재생 시간',min:5,max:80,s:1,v:30},{k:'sp',l:'속도',min:1,max:5,s:1,v:1}],
+spf:P=>P.sp,
+setup(P){const L=60,g=new Int16Array(L*L);for(let i=0;i<L*L;i++)g[i]=R()<.5?0:(R()*P.gt|0);const a=n=>Array.from({length:n},()=>({x:R()*L|0,y:R()*L|0,e:R()*10,d:0}));return{L,g,sh:a(150),wo:a(40),hs:[],hw:[],hg:[],t:0}},
+step(S,P){const L=S.L,g=S.g;for(let i=0;i<L*L;i++)if(g[i]>0)g[i]--;
+ const mv=a=>{a.x=(a.x+(R()*3|0)-1+L)%L;a.y=(a.y+(R()*3|0)-1+L)%L};const ns=[];
+ for(const s of S.sh){mv(s);s.e-=1;const c=s.y*L+s.x;if(g[c]===0){s.e+=P.sg;g[c]=P.gt}if(s.e<0)continue;ns.push(s);if(R()<P.sr&&S.sh.length<4000){s.e/=2;ns.push({x:s.x,y:s.y,e:s.e,d:0})}}
+ S.sh=ns;const head=new Int32Array(L*L).fill(-1),nx=new Int32Array(ns.length);ns.forEach((s,i)=>{const c=s.y*L+s.x;nx[i]=head[c];head[c]=i});
+ const nw=[];for(const w of S.wo){mv(w);w.e-=1;const c=w.y*L+w.x;let k=head[c];while(k>=0&&ns[k].d)k=nx[k];if(k>=0){ns[k].d=1;w.e+=P.wg}if(w.e<0)continue;nw.push(w);if(R()<P.wr&&S.wo.length<2000){w.e/=2;nw.push({x:w.x,y:w.y,e:w.e,d:0})}}
+ S.wo=nw;S.sh=ns.filter(s=>!s.d);let gr=0;for(let i=0;i<L*L;i++)if(g[i]===0)gr++;S.t++;push(S.hs,S.sh.length);push(S.hw,S.wo.length);push(S.hg,gr/4)},
+draw(S,P,c,sim){const L=S.L,gr=COL.c3_rgb,bg=COL.panel_rgb,mix=(a,b,t)=>[a[0]*t+b[0]*(1-t),a[1]*t+b[1]*(1-t),a[2]*t+b[2]*(1-t)];const gg=mix(gr,bg,.35);
+ const m=drawGrid(c.view,L,L,i=>S.g[i]===0?gg:bg);const ctx=c.view.ctx;ctx.fillStyle=COL.c1;S.sh.forEach(s=>{ctx.fillRect(m.ox+(s.x+.2)*m.s,m.oy+(s.y+.2)*m.s,m.s*.6,m.s*.6)});ctx.fillStyle=COL.sel;S.wo.forEach(w=>{ctx.beginPath();ctx.arc(m.ox+(w.x+.5)*m.s,m.oy+(w.y+.5)*m.s,m.s*.55,0,7);ctx.fill()});
+ plot(c.plot,[{d:S.hs,c:COL.c1,l:'양'},{d:S.hw,c:COL.sel,l:'늑대'},{d:S.hg,c:COL.c3,l:'풀 칸 ÷ 4'}]);setStat(sim,`t=${S.t}  양 ${S.sh.length}  늑대 ${S.wo.length}`)}});
+
+model({id:'competition',grp:'A',no:'A2',title:'경쟁 Lotka–Volterra',en:'Competitive Lotka–Volterra',
+one:`<p>같은 자원을 두고 두 종이 경쟁할 때예요. 종 j가 종 i에게 주는 압박을 경쟁 계수 α<sub>ij</sub>로 써요. 종 간 경쟁이 종 내 경쟁보다 약하면(α&lt;1) 어디서 시작해도 같은 공존점으로 가고, 강하면(α&gt;1) 출발점에 따라 한 종만 남아요. 두 번째 경우는 어느 쪽이 이길지가 초기 조건에 달린 쌍안정이에요.</p><p>왼쪽 그림은 상평면이에요. 점선 두 줄이 각 종의 성장이 멈추는 선(널클라인)이고, 화살표는 그 자리에서 시스템이 움직이는 방향이에요. 평면을 누르면 거기서 새로 출발해요. 종이 셋 이상이고 α가 비대칭이면 순환이나 카오스도 나와요(May–Leonard).</p>`,
+fx:['\\frac{dN_i}{dt}=r_iN_i\\Big(1-\\frac{\\sum_j\\alpha_{ij}N_j}{K_i}\\Big)'],
+diag:{h:120,n:[{id:'a',t:'종 1',x:110,y:60,k:1},{id:'b',t:'종 2',x:330,y:60,k:1}],e:[['a','b','α₂₁','-',-22],['b','a','α₁₂','-',-22]]},
+try:['α₁₂와 α₂₁을 둘 다 1.5로 두고 대각선 양쪽을 눌러보세요. 출발점에 따라 승자가 갈려요.','하나만 1보다 크게 하면 출발점과 상관없이 한 종이 이겨요.'],
+refs:[['Gause 1934, The Struggle for Existence','https://en.wikipedia.org/wiki/Competitive_exclusion_principle'],['May & Leonard 1975, Nonlinear aspects of competition between three species','https://doi.org/10.1137/0129022'],['Wikipedia: Competitive Lotka–Volterra equations','https://en.wikipedia.org/wiki/Competitive_Lotka%E2%80%93Volterra_equations']],
+controls:[{k:'a12',l:'α₁₂ (종 2 → 종 1 압박)',min:0,max:2,s:.05,v:.5},{k:'a21',l:'α₂₁ (종 1 → 종 2 압박)',min:0,max:2,s:.05,v:.5},{k:'r2',l:'종 2 성장률 r₂ / r₁',min:.3,max:2,s:.05,v:1}],
+hint:'상평면을 누르면 그 점에서 새 궤적이 시작돼요.',
+setup(P){return{x:[.15,.9],tr:[[.15,.9]],h1:[],h2:[],t:0}},
+step(S,P){const f=([a,b])=>[a*(1-a-P.a12*b),P.r2*b*(1-b-P.a21*a)];const h=.05,x=S.x;const k1=f(x),k2=f([x[0]+h/2*k1[0],x[1]+h/2*k1[1]]),k3=f([x[0]+h/2*k2[0],x[1]+h/2*k2[1]]),k4=f([x[0]+h*k3[0],x[1]+h*k3[1]]);S.x=[x[0]+h/6*(k1[0]+2*k2[0]+2*k3[0]+k4[0]),x[1]+h/6*(k1[1]+2*k2[1]+2*k3[1]+k4[1])];push(S.tr,S.x.slice(),900);push(S.h1,S.x[0]);push(S.h2,S.x[1]);S.t++},
+click(S,P,u,v){const M=1.3,pad=.08;const x=(u-pad)/(1-2*pad)*M,y=(1-v-pad)/(1-2*pad)*M;S.x=[clamp(x,0,M),clamp(y,0,M)];S.tr=[S.x.slice()]},
+draw(S,P,c,sim){const v=c.view,ctx=v.ctx,M=1.3,pad=.08;clear(v);const X=a=>v.w*(pad+(1-2*pad)*a/M),Y=b=>v.h*(1-pad-(1-2*pad)*b/M);
+ ctx.strokeStyle=COL.line;ctx.beginPath();ctx.moveTo(X(0),Y(0));ctx.lineTo(X(M),Y(0));ctx.moveTo(X(0),Y(0));ctx.lineTo(X(0),Y(M));ctx.stroke();
+ const f=(a,b)=>[a*(1-a-P.a12*b),P.r2*b*(1-b-P.a21*a)];ctx.strokeStyle=COL.muted;ctx.lineWidth=1;for(let i=1;i<12;i++)for(let j=1;j<12;j++){const a=i/12*M,b=j/12*M,[da,db]=f(a,b),l=Math.hypot(da,db)||1,s=.035*M;const x1=X(a),y1=Y(b),x2=X(a+da/l*s),y2=Y(b+db/l*s);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.beginPath();ctx.arc(x2,y2,1.3,0,7);ctx.fillStyle=COL.muted;ctx.fill()}
+ ctx.setLineDash([5,4]);ctx.lineWidth=1.5;ctx.strokeStyle=COL.c1;ctx.beginPath();ctx.moveTo(X(1),Y(0));ctx.lineTo(X(0),Y(P.a12>0?1/P.a12:M*9));ctx.stroke();ctx.strokeStyle=COL.c2;ctx.beginPath();ctx.moveTo(X(0),Y(1));ctx.lineTo(X(P.a21>0?1/P.a21:M*9),Y(0));ctx.stroke();ctx.setLineDash([]);
+ ctx.strokeStyle=COL.fg;ctx.lineWidth=2;ctx.beginPath();S.tr.forEach((p,i)=>i?ctx.lineTo(X(p[0]),Y(p[1])):ctx.moveTo(X(p[0]),Y(p[1])));ctx.stroke();ctx.fillStyle=COL.sel;ctx.beginPath();ctx.arc(X(S.x[0]),Y(S.x[1]),5,0,7);ctx.fill();
+ ctx.fillStyle=COL.fg;ctx.font='11px IBM Plex Sans KR, sans-serif';ctx.fillText('종 1 N₁ →',X(M)-60,Y(0)-6);ctx.save();ctx.translate(X(0)+14,Y(M)+50);ctx.fillText('↑ 종 2 N₂',-10,-40);ctx.restore();
+ ctx.fillStyle=COL.c1;ctx.fillText('N₁ 성장 0',X(.02),Y(Math.min(M,P.a12>0?1/P.a12:M))+14);ctx.fillStyle=COL.c2;ctx.fillText('N₂ 성장 0',X(Math.min(M*.8,P.a21>0?1/P.a21*.9:M*.8)),Y(.05));
+ plot(c.plot,[{d:S.h1,c:COL.c1,l:'N₁'},{d:S.h2,c:COL.c2,l:'N₂'}],{ymin:0,ymax:1.2});setStat(sim,`N₁=${S.x[0].toFixed(3)}  N₂=${S.x[1].toFixed(3)}`)}});
+
+model({id:'rps',grp:'A',no:'A3',title:'진화게임과 순환 지배 (가위바위보)',en:'Replicator dynamics · spatial rock–paper–scissors (Reichenbach, Mobilia, Frey 2007)',
+one:`<p>진화게임이론에서는 평균보다 잘 버는 전략이 늘고 못 버는 전략이 줄어요. 각 개체가 "나보다 잘 버는 이웃을 따라한다"는 로컬 규칙을 쓰면 평균이 복제자 방정식이 돼요. 가위바위보처럼 물고 물리는 구조면 어떤 전략도 영원히 이기지 못하고 돌아요.</p><p>오른쪽은 이걸 격자 위에 올린 모델이에요. 칸마다 세 종 중 하나가 있거나 비어 있어요. 무작위로 고른 이웃 쌍에서 세 가지 중 하나가 일어나요. 이기는 쪽이 지는 쪽을 없애고(선택), 빈칸에 이웃이 번식하고(번식), 둘이 자리를 바꿔요(이동). 이동이 적으면 나선파가 생겨 세 종이 공존하고, 이동성이 어떤 임계값을 넘으면 나선이 화면보다 커져서 결국 한 종만 남아요.</p>`,
+fx:['\\dot{x}_i=x_i\\big[(Ax)_i-x^{\\top}Ax\\big]','A+B\\xrightarrow{\\sigma}A+\\varnothing,\\quad A+\\varnothing\\xrightarrow{\\mu}A+A,\\quad A+B\\xrightarrow{\\varepsilon}B+A'],
+diag:{h:150,n:[{id:'r',t:'바위',x:220,y:28,k:1},{id:'p',t:'보',x:360,y:120,k:1},{id:'s',t:'가위',x:80,y:120,k:1}],e:[['r','s','이김','-',0],['s','p','이김','-',0],['p','r','이김','-',0]]},
+try:['이동성 ε을 1~3 정도로 두면 나선이 생기면서 셋이 공존해요.','ε을 10 이상으로 올리면 나선이 커지다가 한 종이 판을 다 먹어요. 같은 규칙인데 움직임 하나로 결과가 바뀌어요.'],
+refs:[['Taylor & Jonker 1978, Evolutionarily stable strategies and game dynamics','https://doi.org/10.1016/0025-5564(78)90077-9'],['Reichenbach, Mobilia, Frey 2007, Mobility promotes and jeopardizes biodiversity in rock–paper–scissors games','https://doi.org/10.1038/nature06095'],['Szabó & Fáth 2007, Evolutionary games on graphs','https://doi.org/10.1016/j.physrep.2007.04.004'],['Wikipedia: Replicator equation','https://en.wikipedia.org/wiki/Replicator_equation']],
+controls:[{k:'eps',l:'이동성 ε (σ = μ = 1)',min:0,max:25,s:.5,v:2},{k:'sp',l:'속도 (sweep/프레임)',min:1,max:6,s:1,v:2}],
+spf:P=>P.sp,
+setup(P){const L=120,g=new Uint8Array(L*L);for(let i=0;i<L*L;i++)g[i]=R()*4|0;return{L,g,h:[[],[],[]],t:0}},
+step(S,P){const L=S.L,g=S.g,N=L*L,tot=2+P.eps;for(let n=0;n<N;n++){const i=R()*N|0,x=i%L,y=i/L|0,d=R()*4|0;const j=d===0?y*L+(x+1)%L:d===1?y*L+(x-1+L)%L:d===2?((y+1)%L)*L+x:((y-1+L)%L)*L+x;const r=R()*tot,a=g[i],b=g[j];
+ if(r<1){if(a<3&&b===(a+1)%3)g[j]=3}else if(r<2){if(a<3&&b===3)g[j]=a}else{g[i]=b;g[j]=a}}
+ const c=[0,0,0];for(let i=0;i<N;i++)if(g[i]<3)c[g[i]]++;for(let k=0;k<3;k++)push(S.h[k],c[k]/N);S.t++},
+draw(S,P,c,sim){const pal=[COL.c1_rgb,COL.c2_rgb,COL.c3_rgb,COL.panel_rgb];drawGrid(c.view,S.L,S.L,i=>pal[S.g[i]]);plot(c.plot,[{d:S.h[0],c:COL.c1,l:'바위'},{d:S.h[1],c:COL.c2,l:'가위'},{d:S.h[2],c:COL.c3,l:'보'}],{ymin:0,ymax:1});setStat(sim,`sweep ${S.t}`)}});
+// ================= B. 유인과 제도 =================
+model({id:'principal-agent',grp:'B',no:'B1',title:'주인-대리인과 다중 과업',en:'Principal–agent · Holmström–Milgrom multitask · Goodhart',
+one:`<p>주인이 일을 맡기는데 대리인의 실제 행동은 못 보고 결과 숫자만 봐요(정보 비대칭). 그래서 주인은 그 숫자에 보수를 걸고, 대리인은 보수에서 비용을 뺀 자기 몫을 최대화해요. Holmström과 Milgrom의 다중 과업 모델에서는 일이 둘인데 하나(e₁)만 측정돼요. 보수가 측정되는 일에만 걸리면 노력이 그쪽으로 쏠리고, 측정 안 되는 일(e₂)은 버려져요. "지표가 목표가 되면 좋은 지표가 아니게 된다"는 Goodhart의 법칙이 이거예요.</p><p>오른쪽은 대리인 120명이 각자 자기 몫의 기울기를 따라 노력을 조금씩 옮기는 근시안적 버전이에요. 대리인마다 측정 안 되는 일에 대한 내적 동기 v<sub>i</sub>가 달라요. 점 하나가 대리인 한 명이고, 가로축이 측정되는 일, 세로축이 측정 안 되는 일에 쓰는 노력이에요.</p>`,
+fx:['u_i=\\beta e_{1i}+v_i e_{2i}-\\tfrac12(e_{1i}+e_{2i})^2,\\qquad \\dot e_{ki}=\\eta\\,\\frac{\\partial u_i}{\\partial e_{ki}}\\ \\ (e\\ge0)','\\text{주인이 보는 값: }\\ \\bar e_1,\\qquad \\text{주인의 실제 가치: }\\ w\\,\\bar e_1+\\bar e_2'],
+diag:{h:150,n:[{id:'p',t:'주인',x:70,y:40,k:1},{id:'a',t:'대리인',x:250,y:40,k:1},{id:'m',t:'측정되는 일 e₁',x:160,y:118,w:130},{id:'u',t:'측정 안 되는 일 e₂',x:350,y:118,w:150}],e:[['p','a','보수 β·e₁','+',0],['a','m','노력','+',0],['a','u','노력','+',0],['m','p','보이는 숫자','~',30]]},
+try:['β를 0에서 천천히 올려보세요. β가 대리인의 내적 동기를 넘는 순간 그 대리인은 e₂를 버리고 e₁으로 넘어가요.','w(주인이 e₁을 실제로 얼마나 원하는지)를 0.3으로 두면 측정 지표는 오르는데 실제 가치는 떨어지는 구간이 보여요.'],
+refs:[['Holmström 1979, Moral hazard and observability','https://doi.org/10.2307/3003320'],['Holmström & Milgrom 1991, Multitask principal–agent analyses','https://doi.org/10.1093/jleo/7.special_issue.24'],['Ross 1973, The economic theory of agency','https://www.jstor.org/stable/1817064'],['Wikipedia: Principal–agent problem','https://en.wikipedia.org/wiki/Principal%E2%80%93agent_problem'],['Wikipedia: Goodhart’s law','https://en.wikipedia.org/wiki/Goodhart%27s_law']],
+controls:[{k:'b',l:'측정 지표 보수 β',min:0,max:1,s:.01,v:.2},{k:'w',l:'주인이 e₁을 원하는 정도 w',min:0,max:1.5,s:.05,v:.4},{k:'eta',l:'적응 속도 η',min:.01,max:.3,s:.01,v:.06}],
+setup(P){const N=120;return{a:Array.from({length:N},()=>({v:R()*.7,e1:R()*.3,e2:R()*.3})),hm:[],hv:[],t:0}},
+step(S,P){let m=0,v=0;for(const a of S.a){const T=a.e1+a.e2;a.e1=Math.max(0,a.e1+P.eta*(P.b-T));a.e2=Math.max(0,a.e2+P.eta*(a.v-T));m+=a.e1;v+=P.w*a.e1+a.e2}const n=S.a.length;push(S.hm,m/n);push(S.hv,v/n);S.t++},
+draw(S,P,c,sim){const v=c.view,ctx=v.ctx;clear(v);const pad=34,M=.8,X=x=>pad+(v.w-pad-10)*x/M,Y=y=>v.h-pad-(v.h-pad-10)*y/M;
+ ctx.strokeStyle=COL.line;for(let k=0;k<=4;k++){const t=k*.2;ctx.beginPath();ctx.moveTo(X(0),Y(t));ctx.lineTo(X(M),Y(t));ctx.moveTo(X(t),Y(0));ctx.lineTo(X(t),Y(M));ctx.stroke()}
+ ctx.fillStyle=COL.muted;ctx.font='11px IBM Plex Sans KR, sans-serif';ctx.fillText('측정되는 일 e₁ →',X(M)-100,Y(0)+22);ctx.save();ctx.translate(X(0)-22,Y(M)+110);ctx.rotate(-Math.PI/2);ctx.fillText('측정 안 되는 일 e₂ →',0,0);ctx.restore();
+ ctx.setLineDash([4,4]);ctx.strokeStyle=COL.sel;ctx.beginPath();ctx.moveTo(X(P.b),Y(0));ctx.lineTo(X(P.b),Y(M));ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=COL.sel;ctx.fillText('β',X(P.b)+4,Y(M)+12);
+ for(const a of S.a){const t=a.v/.7;ctx.fillStyle=`rgba(${COL.c1_rgb.join(',')},${.35+.65*t})`;ctx.beginPath();ctx.arc(X(a.e1),Y(a.e2),3.4,0,7);ctx.fill()}
+ ctx.fillStyle=COL.muted;ctx.fillText('점 진할수록 내적 동기 v 큼',X(M)-160,Y(M)+12);
+ plot(c.plot,[{d:S.hm,c:COL.c1,l:'측정 지표 (평균 e₁)'},{d:S.hv,c:COL.c2,l:'주인의 실제 가치'}],{ymin:0,ymax:Math.max(.6,...S.hm,...S.hv)*1.05});const sw=S.a.filter(a=>a.e1>a.e2).length;setStat(sim,`e₁으로 넘어간 대리인 ${sw}/${S.a.length}`)}});
+
+model({id:'commons',grp:'B',no:'B2',title:'공유자원과 공유지의 비극',en:'Common-pool resource · Gordon–Schaefer open-access fishery · Gardner–Ostrom–Walker',
+one:`<p>누구나 퍼갈 수 있고 퍼간 만큼 줄어드는 자원을, 각자 자기 몫만 보는 사람들이 퍼가면 남획돼요. Gordon–Schaefer 어장 모델에서 물고기 R은 로지스틱으로 자라고, 들어와 있는 배 E만큼 잡혀요. 배 한 척의 이익은 pqR − c예요.</p><p>오른쪽은 배 80척이 각자 지난번 이익만 보고 근시안적으로 움직이는 버전이에요. 남는 장사면 밖에 있던 배가 들어오고, 밑지면 안에 있던 배가 나가요. 아무도 전체를 보지 않는데, 결과는 이익이 0이 되는 R* = c/(pq)까지 자원을 깎아먹는 개방 접근 평형이고, 반응이 빠르면 그 근처에서 붐-버스트로 출렁여요. Ostrom은 현실 공동체가 경계, 감시, 단계적 제재 같은 규칙으로 이걸 스스로 해결하는 조건을 정리했어요.</p>`,
+fx:['\\frac{dR}{dt}=rR\\Big(1-\\frac{R}{K}\\Big)-qER,\\qquad \\pi=pqR-c','\\text{배 하나:}\\ \\ P(\\text{진입})\\propto\\max(\\pi,0),\\quad P(\\text{이탈})\\propto\\max(-\\pi,0)','\\text{CPR 게임:}\\ \\ \\pi_i=w(e-x_i)+\\frac{x_i}{X}F(X),\\quad X=\\textstyle\\sum_j x_j'],
+diag:{h:150,n:[{id:'r',t:'자원 R (스스로 자람)',x:100,y:75,k:1,w:150},{id:'b',t:'배들 E',x:330,y:75,k:1}],e:[['b','r','어획 qER','-',-26],['r','b','이익 pqR−c','+',-26]]},
+try:['비용 c를 낮추면 평형 자원 R*가 같이 내려가요(점선). 싸게 잡을수록 더 깎아먹어요.','반응 속도를 올리면 배가 우르르 들어왔다 빠지는 붐-버스트가 커져요.','자원 성장률 r을 낮추면 회복이 느려서 붕괴가 더 깊어요.'],
+refs:[['Gordon 1954, The economic theory of a common-property resource: the fishery','https://doi.org/10.1086/257497'],['Hardin 1968, The tragedy of the commons','https://doi.org/10.1126/science.162.3859.1243'],['Ostrom 1990, Governing the Commons','https://en.wikipedia.org/wiki/Governing_the_Commons'],['Wikipedia: Common-pool resource','https://en.wikipedia.org/wiki/Common-pool_resource']],
+controls:[{k:'c',l:'조업 비용 c (p=q=1)',min:.05,max:.8,s:.01,v:.3},{k:'r',l:'자원 성장률 r',min:.05,max:1,s:.01,v:.4},{k:'k',l:'배의 반응 속도',min:.2,max:8,s:.1,v:2},{k:'sp',l:'속도',min:1,max:8,s:1,v:2}],
+spf:P=>P.sp,
+setup(P){return{R:1,b:Array.from({length:80},()=>R()<.05),hR:[],hE:[],t:0,fish:Array.from({length:160},()=>[R(),R()])}},
+step(S,P){const dt=.05,n=S.b.length;let E=S.b.filter(x=>x).length/n;S.R=Math.max(0,S.R+dt*(P.r*S.R*(1-S.R)-1.2*E*S.R));const pi=S.R-P.c;for(let i=0;i<n;i++){if(!S.b[i]&&pi>0&&R()<P.k*pi*dt)S.b[i]=true;else if(S.b[i]&&pi<0&&R()<P.k*(-pi)*dt)S.b[i]=false}E=S.b.filter(x=>x).length/n;S.t++;if(S.t%4===0){push(S.hR,S.R);push(S.hE,E)}},
+draw(S,P,c,sim){const v=c.view,ctx=v.ctx;clear(v);const cx=v.w/2,cy=v.h/2,rad=Math.min(v.w,v.h)*.33;ctx.fillStyle=`rgba(${COL.c1_rgb.join(',')},.12)`;ctx.beginPath();ctx.arc(cx,cy,rad,0,7);ctx.fill();ctx.strokeStyle=COL.c1;ctx.stroke();
+ const nf=Math.round(S.R*S.fish.length);ctx.fillStyle=COL.c1;for(let i=0;i<nf;i++){const[a,b]=S.fish[i];const ang=a*6.283+S.t*.002*(i%2?1:-1),rr=Math.sqrt(b)*rad*.92;ctx.beginPath();ctx.ellipse(cx+Math.cos(ang)*rr,cy+Math.sin(ang)*rr,3.2,1.8,ang+1.57,0,7);ctx.fill()}
+ const n=S.b.length;S.b.forEach((inn,i)=>{const ang=i/n*6.283;const rr=inn?rad*.98:rad*1.28;ctx.fillStyle=inn?COL.sel:COL.muted;ctx.save();ctx.translate(cx+Math.cos(ang)*rr,cy+Math.sin(ang)*rr);ctx.rotate(ang);ctx.fillRect(-4,-2.2,8,4.4);ctx.restore()});
+ ctx.fillStyle=COL.fg;ctx.font='11px IBM Plex Sans KR, sans-serif';ctx.fillText('안쪽 빨강 = 조업 중인 배, 바깥 회색 = 쉬는 배',10,v.h-10);
+ plot(c.plot,[{d:S.hR,c:COL.c1,l:'자원 R'},{d:S.hE,c:COL.sel,l:'조업 비율 E'}],{ymin:0,ymax:1.05,hline:P.c});setStat(sim,`R=${S.R.toFixed(2)}  이익 π=${(S.R-P.c).toFixed(2)}  점선 = R* = c`)}});
+// ================= C. 전파와 확산 =================
+model({id:'sir',grp:'C',no:'C1',title:'전염과 소문',en:'SIR / SIRS (Kermack–McKendrick) · rumour model (Daley–Kendall, Maki–Thompson)',
+one:`<p>감염자가 접촉으로 퍼뜨리고 일정 속도로 회복해요. 평균장 식에서 R₀ = β/γ가 1보다 크면 퍼지고 작으면 사그라드는 문턱이 있어요. 면역이 풀리면(SIRS) 유행이 반복되거나 풍토병처럼 일정 수준에 머물러요.</p><p>소문 모델은 회복의 원인이 시간이 아니라 사회적이에요. 퍼뜨리는 사람(spreader)이 이미 소문을 아는 사람을 만나면 흥미를 잃고 더 안 퍼뜨려요(stifler). 이 모델은 문턱이 없고, 끝났을 때 약 20%는 끝내 모르고 남아요. 오른쪽은 사람 500명이 무작위로 걸어다니다 가까이 오면 접촉하는 개체 기반 버전이에요.</p>`,
+fx:['\\dot S=-\\beta SI,\\quad \\dot I=\\beta SI-\\gamma I,\\quad \\dot R=\\gamma I(-\\omega R),\\qquad R_0=\\beta/\\gamma','\\text{소문: }\\ \\dot x=-\\lambda xy,\\quad \\dot y=\\lambda xy-\\alpha y(y+z),\\quad \\dot z=\\alpha y(y+z)'],
+diag:{h:120,n:[{id:'s',t:'S 모름',x:60,y:60},{id:'i',t:'I 퍼뜨림',x:220,y:60,k:1},{id:'r',t:'R 회복/흥미 잃음',x:375,y:60,w:130}],e:[['s','i','접촉 β','+',0],['i','r','γ 또는 만남 α','+',0],['r','s','면역 풀림 ω','~',-40]]},
+try:['SIR에서 β를 낮춰 R₀를 1 근처로 두면 퍼지다 마는 경우와 크게 번지는 경우가 섞여 나와요.','SIRS로 바꾸고 ω를 올리면 유행이 파도처럼 반복돼요.','소문 모드에서는 빨리 퍼지고 빨리 식는데, 끝까지 모르는 사람이 남아요.'],
+refs:[['Kermack & McKendrick 1927, A contribution to the mathematical theory of epidemics','https://doi.org/10.1098/rspa.1927.0118'],['Daley & Kendall 1964, Epidemics and rumours','https://doi.org/10.1038/2041118a0'],['Pastor-Satorras & Vespignani 2001, Epidemic spreading in scale-free networks','https://doi.org/10.1103/PhysRevLett.86.3200'],['NetLogo Virus on a Network','https://ccl.northwestern.edu/netlogo/models/VirusonaNetwork'],['Wikipedia: Compartmental models in epidemiology','https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology']],
+controls:[{k:'mode',l:'모드',opts:[['sir','SIR'],['sirs','SIRS (면역 풀림)'],['rumor','소문 (Daley–Kendall)']],v:'sir',r:1},{k:'b',l:'접촉 시 전파 확률 β',min:.02,max:.6,s:.01,v:.25},{k:'g',l:'회복 γ / 흥미 잃음 α',min:.002,max:.3,s:.002,v:.02},{k:'w',l:'면역 풀림 ω (SIRS)',min:0,max:.02,s:.0005,v:.004},{k:'sp',l:'속도',min:1,max:6,s:1,v:2}],
+spf:P=>P.sp,
+setup(P){const N=500;const a=Array.from({length:N},(_,i)=>({i,x:R(),y:R(),a:R()*6.28,s:0}));for(let i=0;i<5;i++)a[i].s=1;return{a,h:[[],[],[]],t:0}},
+step(S,P){const a=S.a,N=a.length,G=25,cell=Array.from({length:G*G},()=>[]);for(const p of a){p.a+=(R()-.5)*.6;p.x+=Math.cos(p.a)*.004;p.y+=Math.sin(p.a)*.004;if(p.x<0||p.x>1){p.a=Math.PI-p.a;p.x=clamp(p.x,0,1)}if(p.y<0||p.y>1){p.a=-p.a;p.y=clamp(p.y,0,1)}cell[Math.min(G-1,p.x*G|0)+Math.min(G-1,p.y*G|0)*G].push(p)}
+ const rad=.022,r2=rad*rad,ns=a.map(p=>p.s);
+ a.forEach((p,i)=>{if(p.s!==1)return;const cx=Math.min(G-1,p.x*G|0),cy=Math.min(G-1,p.y*G|0);for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const X=cx+dx,Y=cy+dy;if(X<0||Y<0||X>=G||Y>=G)continue;for(const q of cell[X+Y*G]){if(q===p)continue;const ddx=q.x-p.x,ddy=q.y-p.y;if(ddx*ddx+ddy*ddy>r2)continue;const j=q.i;
+   if(q.s===0&&R()<P.b)ns[j]=1;else if(P.mode==='rumor'&&q.s!==0&&R()<P.g)ns[i]=2}}
+  if(P.mode!=='rumor'&&R()<P.g)ns[i]=2});
+ if(P.mode==='sirs')a.forEach((p,i)=>{if(p.s===2&&R()<P.w)ns[i]=0});
+ a.forEach((p,i)=>p.s=ns[i]);const c=[0,0,0];a.forEach(p=>c[p.s]++);for(let k=0;k<3;k++)push(S.h[k],c[k]/N);S.t++},
+draw(S,P,c,sim){const v=c.view,ctx=v.ctx;clear(v);const col=[COL.muted,COL.sel,COL.c1];S.a.forEach(p=>{ctx.fillStyle=col[p.s];ctx.beginPath();ctx.arc(8+p.x*(v.w-16),8+p.y*(v.h-16),p.s===1?3.6:2.6,0,7);ctx.fill()});
+ const L=P.mode==='rumor'?['모름','퍼뜨림','흥미 잃음']:['S','I','R'];plot(c.plot,[{d:S.h[0],c:COL.muted,l:L[0]},{d:S.h[1],c:COL.sel,l:L[1]},{d:S.h[2],c:COL.c1,l:L[2]}],{ymin:0,ymax:1});const n=S.h[1].length-1;setStat(sim,`t=${S.t}  ${L[1]} ${(S.h[1][n]*100||0).toFixed(0)}%  ${L[0]} ${(S.h[0][n]*100||0).toFixed(0)}%`)},
+buttons:[['감염자 5명 추가',(S)=>{for(let k=0;k<5;k++){const p=S.a[R()*S.a.length|0];p.s=1}}]]});
+
+model({id:'cascade',grp:'C',no:'C2',title:'문턱 모델과 전역 캐스케이드',en:'Threshold models of collective behaviour (Granovetter 1978) · global cascades on random networks (Watts 2002)',
+one:`<p>각자 "주변의 몇 %가 하면 나도 한다"는 문턱 φ를 가져요. 한 번 노출로 바뀌는 전염과 달리 여러 명의 압력이 있어야 해요(complex contagion). Watts는 이걸 무작위 네트워크에 올려서, 평균 연결 수 z가 너무 작으면 서로 안 이어져서, 너무 크면 한 사람의 영향이 희석돼서 전체 캐스케이드가 안 나고, 그 사이 "창"에서만 드물게 거대한 캐스케이드가 터진다는 걸 보였어요. 같은 초기 충격이 어떤 때는 묻히고 어떤 때는 전체로 번지는 걸 설명하는 표준 모델이에요.</p><p>오른쪽 위는 노드 400개 네트워크예요. 노드를 누르면 그 사람이 먼저 시작해요. 아래는 지금까지 시드마다 최종적으로 몇 %가 참여했는지예요.</p>`,
+fx:['s_i(t+1)=1\\quad\\text{if}\\quad \\frac{1}{k_i}\\sum_{j\\in\\mathcal N(i)}s_j(t)\\ \\ge\\ \\phi_i'],
+diag:{h:130,n:[{id:'n',t:'이웃 중 참여 비율',x:110,y:65,w:150},{id:'t',t:'문턱 φᵢ 넘음?',x:280,y:65,w:120,k:1},{id:'a',t:'참여',x:400,y:65}],e:[['n','t','','+',0],['t','a','예','+',0],['a','n','내 이웃에게도','~',-50]]},
+try:['φ=0.18에서 z를 1, 4, 10으로 바꿔가며 시드를 여러 번 눌러보세요. z≈2~5에서만 전체 캐스케이드가 나와요.','z=4에서 φ를 0.25 이상으로 올리면 거의 다 묻혀요.'],
+refs:[['Granovetter 1978, Threshold models of collective behavior','https://doi.org/10.1086/226707'],['Watts 2002, A simple model of global cascades on random networks','https://doi.org/10.1073/pnas.082090499'],['Centola & Macy 2007, Complex contagions and the weakness of long ties','https://doi.org/10.1086/521848'],['Wikipedia: Threshold model','https://en.wikipedia.org/wiki/Threshold_model']],
+controls:[{k:'z',l:'평균 연결 수 z',min:1,max:12,s:.5,v:4,r:1},{k:'phi',l:'문턱 φ',min:.05,max:.5,s:.01,v:.18}],
+hint:'노드를 누르면 그 노드가 첫 참여자가 돼요.',
+buttons:[['무작위 시드',(S,P,sim)=>seedC(S,R()*S.N|0)],['시드 20번 자동',(S,P)=>{for(let k=0;k<20;k++){seedC(S,R()*S.N|0);while(S.run)stepC(S,P)}}]],
+setup(P){const N=400,pos=Array.from({length:N},()=>[R(),R()]),adj=Array.from({length:N},()=>[]);const p=P.z/(N-1);for(let i=0;i<N;i++)for(let j=i+1;j<N;j++)if(R()<p){adj[i].push(j);adj[j].push(i)}
+ for(let it=0;it<60;it++){for(let i=0;i<N;i++){let fx=0,fy=0;for(const j of adj[i]){fx+=(pos[j][0]-pos[i][0])*.02;fy+=(pos[j][1]-pos[i][1])*.02}pos[i][0]=clamp(pos[i][0]+fx+(R()-.5)*.002,.02,.98);pos[i][1]=clamp(pos[i][1]+fy+(R()-.5)*.002,.02,.98)}}
+ return{N,pos,adj,act:new Uint8Array(N),run:false,sizes:[],t:0}},
+step(S,P){if(S.run)stepC(S,P)},
+click(S,P,u,v){let b=-1,bd=1e9;S.pos.forEach((p,i)=>{const d=(p[0]-u)**2+(p[1]-v)**2;if(d<bd){bd=d;b=i}});seedC(S,b)},
+draw(S,P,c,sim){const v=c.view,ctx=v.ctx;clear(v);const X=p=>p[0]*v.w,Y=p=>p[1]*v.h;ctx.strokeStyle=COL.line;ctx.lineWidth=.6;ctx.beginPath();S.adj.forEach((l,i)=>l.forEach(j=>{if(j>i){ctx.moveTo(X(S.pos[i]),Y(S.pos[i]));ctx.lineTo(X(S.pos[j]),Y(S.pos[j]))}}));ctx.stroke();
+ S.pos.forEach((p,i)=>{ctx.fillStyle=S.act[i]?COL.sel:COL.fg;ctx.beginPath();ctx.arc(X(p),Y(p),S.act[i]?3.6:2.4,0,7);ctx.fill()});
+ const p=c.plot,pc=p.ctx;clear(p);const n=S.sizes.length,pl=40,bw=Math.min(14,(p.w-pl-10)/Math.max(n,20));pc.strokeStyle=COL.line;pc.fillStyle=COL.muted;pc.font='10px IBM Plex Mono, monospace';pc.textAlign='right';for(let k=0;k<=4;k++){const y=10+(p.h-32)*(1-k/4);pc.beginPath();pc.moveTo(pl,y);pc.lineTo(p.w-10,y);pc.stroke();pc.fillText((k*25)+'%',pl-4,y+3)}
+ S.sizes.forEach((s,i)=>{pc.fillStyle=s>.5?COL.sel:COL.c1;const h=(p.h-32)*s;pc.fillRect(pl+i*bw+1,10+(p.h-32)-h,bw-2,Math.max(1,h))});pc.textAlign='left';pc.fillStyle=COL.fg;pc.font='11px IBM Plex Sans KR, sans-serif';pc.fillText('시드별 최종 참여율 (빨강 = 절반 넘게 번짐)',pl+6,22);
+ const big=S.sizes.filter(s=>s>.5).length;setStat(sim,`시드 ${n}번 중 전역 캐스케이드 ${big}번  현재 참여 ${(S.act.reduce((a,b)=>a+b,0)/S.N*100).toFixed(0)}%`)}});
+function seedC(S,i){S.act.fill(0);S.act[i]=1;S.run=true}
+function stepC(S,P){const N=S.N,nw=[];for(let i=0;i<N;i++){if(S.act[i]||!S.adj[i].length)continue;let a=0;for(const j of S.adj[i])a+=S.act[j];if(a/S.adj[i].length>=P.phi)nw.push(i)}nw.forEach(i=>S.act[i]=1);if(!nw.length){S.run=false;S.sizes.push(S.act.reduce((a,b)=>a+b,0)/N);if(S.sizes.length>60)S.sizes.shift()}}
+
+model({id:'granovetter',grp:'C',no:'C3',title:'Granovetter의 폭동 모델',en:'Threshold distribution and the cobweb (Granovetter 1978)',
+one:`<p>네트워크 없이 모두가 전체를 보는 버전이에요. 사람마다 문턱이 다르고, 지금 참여율이 x면 다음 참여율은 문턱이 x 이하인 사람의 비율 F(x)예요. 그래서 왼쪽 그림처럼 F(x)와 대각선이 만나는 첫 점에서 멈춰요(거미줄 그림).</p><p>Granovetter의 유명한 예시는 이거예요. 문턱이 0, 1, 2, …, 99명인 100명이면 도미노처럼 전원이 참여하는데, 문턱 1인 사람 한 명만 2로 바뀌어도 한 명만 참여하고 끝나요. 평균 문턱이 같아도 분포의 모양이 결과를 정해요.</p>`,
+fx:['x_{t+1}=F(x_t),\\qquad F(x)=P(\\phi_i\\le x)'],
+diag:{h:110,n:[{id:'x',t:'참여율 xₜ',x:90,y:55,k:1},{id:'f',t:'문턱 분포 F',x:300,y:55,w:120}],e:[['x','f','','+',-20],['f','x','xₜ₊₁ = F(xₜ)','+',-20]]},
+try:['평균 0.25에서 표준편차를 0.1 → 0.15 → 0.2로 바꿔보세요. 어느 지점에서 갑자기 전원 참여로 바뀌어요.','평균을 조금만 올려도 F(x)가 대각선 아래로 내려가는 구간이 생기며 초반에 멈춰요.'],
+refs:[['Granovetter 1978, Threshold models of collective behavior','https://doi.org/10.1086/226707'],['Schelling 1978, Micromotives and Macrobehavior (tipping)','https://en.wikipedia.org/wiki/Micromotives_and_Macrobehavior']],
+controls:[{k:'mu',l:'문턱 평균',min:.05,max:.6,s:.01,v:.25},{k:'sd',l:'문턱 표준편차',min:.02,max:.4,s:.01,v:.12},{k:'x0',l:'처음부터 하는 사람 비율',min:0,max:.1,s:.005,v:.01}],
+canvases:[['view','view'],['plot','plot']],
+setup(P){return{k:0,acc:0}},
+step(S,P){S.acc++;if(S.acc%20===0)S.k=(S.k+1)%40},
+draw(S,P,c,sim){const F=x=>{const z=(x-P.mu)/(P.sd*Math.SQRT2);const t=1/(1+.3275911*Math.abs(z));const e=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-z*z);return clamp(P.x0+(1-P.x0)*.5*(1+(z<0?-e:e)),0,1)};
+ const xs=[P.x0];for(let i=0;i<40;i++)xs.push(F(xs[xs.length-1]));
+ const v=c.view,ctx=v.ctx;clear(v);const pad=32,X=x=>pad+(v.w-pad-10)*x,Y=y=>v.h-pad-(v.h-pad-10)*y;ctx.strokeStyle=COL.line;ctx.strokeRect(X(0),Y(1),X(1)-X(0),Y(0)-Y(1));ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(X(0),Y(0));ctx.lineTo(X(1),Y(1));ctx.stroke();ctx.setLineDash([]);
+ ctx.strokeStyle=COL.c1;ctx.lineWidth=2;ctx.beginPath();for(let i=0;i<=200;i++){const x=i/200;i?ctx.lineTo(X(x),Y(F(x))):ctx.moveTo(X(x),Y(F(x)))}ctx.stroke();
+ ctx.strokeStyle=COL.sel;ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(X(xs[0]),Y(0));const kk=Math.min(S.k+1,40);for(let i=0;i<kk;i++){ctx.lineTo(X(xs[i]),Y(xs[i+1]));ctx.lineTo(X(xs[i+1]),Y(xs[i+1]))}ctx.stroke();
+ ctx.fillStyle=COL.muted;ctx.font='11px IBM Plex Sans KR, sans-serif';ctx.fillText('참여율 xₜ →',X(1)-70,Y(0)+20);ctx.fillText('xₜ₊₁',X(0)-28,Y(1)+10);ctx.fillStyle=COL.c1;ctx.fillText('F(x)',X(.75),Y(F(.75))-6);
+ plot(c.plot,[{d:xs.slice(0,kk+1),c:COL.sel,l:'참여율'}],{ymin:0,ymax:1,n:41,xl:'라운드 →'});setStat(sim,`최종 참여율 ${(xs[40]*100).toFixed(1)}%`)}});
+model({id:'bass',grp:'C',no:'C4',title:'Bass 확산',en:'Bass diffusion model (Bass 1969)',
+one:`<p>새로운 것이 퍼지는 힘을 둘로 나눠요. 바깥에서 오는 자극(광고, 혁신 계수 p)과 이미 한 사람에게서 오는 모방(모방 계수 q)이에요. F(t)는 누적 채택 비율이에요. q가 p보다 크면 S자 곡선과 종 모양 채택 속도가 나오고, p가 크면 처음부터 빠르게 퍼졌다 꺾여요.</p><p>오른쪽은 격자 위 개체 버전이에요. 아직 채택 안 한 사람은 매 단계 p + q·(채택한 이웃 비율) 확률로 채택해요. 모방 범위를 "전체"로 바꾸면 모두가 전체 비율을 보는 원래 Bass 식과 같아지고, "이웃"이면 채택이 덩어리로 번져서 더 느려요.</p>`,
+fx:['\\frac{dF}{dt}=\\big(p+qF(t)\\big)\\big(1-F(t)\\big)'],
+diag:{h:120,n:[{id:'m',t:'광고·외부 p',x:70,y:35,w:110},{id:'a',t:'채택한 사람',x:350,y:60,k:1,w:110},{id:'n',t:'아직 안 한 사람',x:170,y:95,w:130}],e:[['m','n','','+',0],['n','a','채택','+',0],['a','n','모방 q','+',30]]},
+try:['p=0.001, q=0.5로 두면 한동안 조용하다 폭발적으로 퍼지는 S자가 나와요.','모방 범위를 이웃으로 바꾸면 같은 p, q에서 덩어리가 자라듯 퍼져요.'],
+refs:[['Bass 1969, A new product growth for model consumer durables','https://doi.org/10.1287/mnsc.15.5.215'],['Rogers 1962, Diffusion of Innovations','https://en.wikipedia.org/wiki/Diffusion_of_innovations'],['Wikipedia: Bass diffusion model','https://en.wikipedia.org/wiki/Bass_diffusion_model']],
+controls:[{k:'p',l:'혁신 계수 p',min:-4,max:-1,s:.05,v:-2.5,log:1,r:1},{k:'q',l:'모방 계수 q',min:0,max:1,s:.01,v:.4,r:1},{k:'mix',l:'모방 범위',opts:[['local','이웃 8칸'],['global','전체']],v:'local',r:1}],
+setup(P){const L=90;return{L,g:new Uint8Array(L*L),hF:[],hf:[],t:0}},
+step(S,P){const L=S.L,g=S.g,N=L*L,dt=.1;let tot=0;for(let i=0;i<N;i++)tot+=g[i];if(tot>=N){return}const Fg=tot/N,nw=[];
+ for(let i=0;i<N;i++){if(g[i])continue;let fr=Fg;if(P.mix==='local'){const x=i%L,y=i/L|0;let a=0;for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){if(!dx&&!dy)continue;a+=g[((y+dy+L)%L)*L+(x+dx+L)%L]}fr=a/8}if(R()<(P.p+P.q*fr)*dt)nw.push(i)}
+ nw.forEach(i=>g[i]=1);push(S.hF,(tot+nw.length)/N,400);push(S.hf,nw.length/N/dt*5,400);S.t++},
+draw(S,P,c,sim){drawGrid(c.view,S.L,S.L,i=>S.g[i]?COL.c2_rgb:COL.panel_rgb);plot(c.plot,[{d:S.hF,c:COL.c2,l:'누적 F(t)'},{d:S.hf,c:COL.fg,l:'채택 속도 ×5'}],{ymin:0,ymax:1,n:400});setStat(sim,`t=${(S.t*.1).toFixed(1)}  F=${((S.hF[S.hF.length-1]||0)*100).toFixed(1)}%`)}});
+
+model({id:'memes',grp:'C',no:'C5',title:'제한된 주의 속의 밈 경쟁',en:'Competition among memes in a world with limited attention (Weng et al. 2012) · competition-induced criticality (Gleeson et al. 2014)',
+one:`<p>사람마다 화면이 있고, 화면에는 최근 받은 밈이 몇 개까지만 남아요(제한된 주의). 매 단계 한 사람이 확률 μ로 새 밈을 만들거나, 1−μ로 자기 화면에서 하나를 골라 다시 올려요. 올린 밈은 그 사람을 팔로우하는 사람들 화면 맨 위로 들어가고 오래된 것은 밀려나요. 밈 자체에는 품질 차이가 하나도 없는데 인기와 수명이 긴 꼬리 분포로 나와요.</p><p>Gleeson 등은 이 모델을 분기 과정으로 풀어서, μ→0이면 밈끼리의 경쟁이 시스템을 임계점으로 밀어붙여 인기 분포가 P(n) ~ n<sup>−3/2</sup>(점선 기울기)가 된다는 걸 보였어요. 왼쪽 칸 하나가 사람 한 명이고, 색은 그 사람이 마지막으로 올린 밈이에요.</p>`,
+fx:['P(\\text{새 밈})=\\mu,\\qquad P(\\text{화면의 밈 } m \\text{ 재게시})=\\frac{1-\\mu}{|\\text{screen}_i|}','P(n)\\sim n^{-3/2}\\quad(\\mu\\to0)'],
+diag:{h:130,n:[{id:'s',t:'내 화면 (최근 m개)',x:100,y:40,w:150},{id:'p',t:'게시',x:300,y:40,k:1},{id:'f',t:'팔로워 화면',x:300,y:105,w:110},{id:'n',t:'새 밈 μ',x:100,y:105}],e:[['s','p','1−μ 재게시','+',0],['n','p','','+',0],['p','f','맨 위로','+',0],['f','s','(그들의 화면)','~',30]]},
+try:['μ를 0.5에서 0.05로 낮추면 몇 개의 밈이 화면 전체를 덮었다 사라지기를 반복하고, 분포 꼬리가 길어져요.','화면 길이를 1로 줄이면 주의가 극단적으로 짧아져 빠르게 교체돼요.'],
+refs:[['Weng, Flammini, Vespignani, Menczer 2012, Competition among memes in a world with limited attention','https://doi.org/10.1038/srep00335'],['Gleeson, Ward, O’Sullivan, Lee 2014, Competition-induced criticality in a model of meme popularity','https://link.aps.org/doi/10.1103/PhysRevLett.112.048701'],['arXiv 1305.4328 (Gleeson et al.)','https://arxiv.org/abs/1305.4328'],['OSoMe: Meme competition & virality','https://osome.iu.edu/research/blog/meme-competition-and-virality'],['CoMSES: Weng et al. model','https://catalog.comses.net/publications/226']],
+controls:[{k:'mu',l:'새 밈 확률 μ',min:.01,max:.6,s:.01,v:.1},{k:'m',l:'화면 길이 (기억)',min:1,max:20,s:1,v:8},{k:'sp',l:'속도',min:1,max:6,s:1,v:2}],
+spf:P=>P.sp,
+setup(P){const N=400,k=10,fol=Array.from({length:N},()=>[]);for(let i=0;i<N;i++){const s=new Set();while(s.size<k){const j=R()*N|0;if(j!==i)s.add(j)}s.forEach(j=>fol[j].push(i))}return{N,fol,scr:Array.from({length:N},()=>[]),last:new Int32Array(N).fill(-1),cnt:new Map(),nid:0,t:0,alive:[]}},
+step(S,P){const N=S.N;for(let n=0;n<N;n++){const i=R()*N|0;let m;if(R()<P.mu||!S.scr[i].length)m=S.nid++;else m=S.scr[i][R()*S.scr[i].length|0];S.cnt.set(m,(S.cnt.get(m)||0)+1);S.last[i]=m;for(const f of S.fol[i]){const s=S.scr[f];s.unshift(m);if(s.length>P.m)s.length=P.m}}
+ if(S.cnt.size>60000){const keep=new Map();let k=0;for(const [a,b] of S.cnt){if(k++>S.cnt.size-30000)keep.set(a,b)}S.cnt=keep}
+ const al=new Set();for(let i=0;i<N;i++)if(S.last[i]>=0)al.add(S.last[i]);push(S.alive,al.size,300);S.t++},
+draw(S,P,c,sim){const W=20,H=20;drawGrid(c.view,W,H,i=>S.last[i]<0?COL.panel_rgb:hueRGB(S.last[i]*137.508,.6,.52));
+ const vals=[...S.cnt.values()];loglog(c.plot,logHist(vals),{slope:-1.5,title:'밈 인기 분포 P(n) (로그-로그, 점선 = 기울기 −3/2)'});setStat(sim,`밈 ${S.nid}개 생성  지금 화면에 보이는 밈 ${S.alive[S.alive.length-1]||0}개`)}});
+
+model({id:'polya',grp:'C',no:'C6',title:'Pólya 항아리와 부익부',en:'Pólya urn · increasing returns and lock-in (Arthur 1989) · preferential attachment',
+one:`<p>항아리에서 공을 하나 뽑고, 같은 색 공을 하나 더 넣어 돌려놓아요. 많이 뽑힌 색이 더 많이 뽑히는 양의 피드백이에요. 점유율은 어느 값으로든 수렴하는데 그 값이 초반 우연에 달려 있어요. 처음 공이 1:1이면 최종 점유율은 0과 1 사이 균등분포예요. 경로 의존과 잠금(lock-in)의 가장 단순한 모델이고, 네트워크판은 선호적 연결(Barabási–Albert), 인기판은 Simon 모델이에요.</p><p>강화 지수 γ를 넣으면 뽑힐 확률이 a<sup>γ</sup>에 비례해요. γ&gt;1이면 초반에 앞선 쪽이 거의 확실히 독점하고, γ&lt;1이면 반반으로 돌아가요. 사회적 영향이 있으면 같은 노래들의 순위가 세계마다 달라진다는 MusicLab 실험이 실제 증거로 많이 인용돼요.</p>`,
+fx:['P(A\\mid a,b)=\\frac{a^{\\gamma}}{a^{\\gamma}+b^{\\gamma}}'],
+diag:{h:110,n:[{id:'s',t:'A의 점유율',x:110,y:55,k:1,w:110},{id:'d',t:'A가 뽑힘',x:330,y:55,w:100}],e:[['s','d','확률 ↑','+',-20],['d','s','공 추가','+',-20]]},
+try:['γ=1에서 다시 시작을 여러 번 눌러보세요. 매번 다른 값에 잠겨요(아래 분포가 평평).','γ를 1.5로 올리면 거의 모든 항아리가 0 또는 1로 쏠려요. 0.6으로 내리면 0.5 근처로 모여요.','처음 공 수를 늘리면 초반 우연의 힘이 약해져요.'],
+refs:[['Arthur 1989, Competing technologies, increasing returns, and lock-in by historical events','https://doi.org/10.2307/2234208'],['Barabási & Albert 1999, Emergence of scaling in random networks','https://doi.org/10.1126/science.286.5439.509'],['Salganik, Dodds, Watts 2006, Experimental study of inequality and unpredictability in an artificial cultural market','https://doi.org/10.1126/science.1121066'],['Wikipedia: Pólya urn model','https://en.wikipedia.org/wiki/P%C3%B3lya_urn_model']],
+controls:[{k:'g',l:'강화 지수 γ',min:.5,max:2,s:.05,v:1,r:1},{k:'a0',l:'처음 공 수 (각 색)',min:1,max:30,s:1,v:1,r:1}],
+setup(P){const U=200,u=Array.from({length:U},()=>({a:P.a0,b:P.a0,tr:[]}));return{u,t:0}},
+step(S,P){if(S.t>=3000)return;for(let k=0;k<10;k++){for(const x of S.u){const pa=x.a**P.g/(x.a**P.g+x.b**P.g);R()<pa?x.a++:x.b++}S.t++}const lg=Math.log10(S.t+1);for(let i=0;i<14;i++){const x=S.u[i];x.tr.push([lg,x.a/(x.a+x.b)])}},
+draw(S,P,c,sim){const v=c.view,ctx=v.ctx;clear(v);const pad=30,X=l=>pad+(v.w-pad-10)*l/Math.log10(3001),Y=s=>v.h-pad-(v.h-pad-10)*s;ctx.strokeStyle=COL.line;for(let k=0;k<=4;k++){ctx.beginPath();ctx.moveTo(X(0),Y(k/4));ctx.lineTo(X(Math.log10(3001)),Y(k/4));ctx.stroke()}const se=SER();
+ for(let i=0;i<14;i++){const tr=S.u[i].tr;ctx.strokeStyle=se[i%6];ctx.lineWidth=1.3;ctx.beginPath();tr.forEach((p,j)=>j?ctx.lineTo(X(p[0]),Y(p[1])):ctx.moveTo(X(p[0]),Y(p[1])));ctx.stroke()}
+ ctx.fillStyle=COL.muted;ctx.font='10px IBM Plex Mono, monospace';[1,10,100,1000].forEach(n=>ctx.fillText(n,X(Math.log10(n+1))-6,v.h-12));ctx.font='11px IBM Plex Sans KR, sans-serif';ctx.fillText('뽑은 횟수 (로그) →',v.w-120,v.h-24);ctx.fillText('A 점유율',6,14);
+ const p=c.plot,pc=p.ctx;clear(p);const B=20,h=new Array(B).fill(0);S.u.forEach(x=>h[Math.min(B-1,Math.floor(x.a/(x.a+x.b)*B))]++);const mx=Math.max(...h,1),pl=30,bw=(p.w-pl-10)/B;h.forEach((n,i)=>{pc.fillStyle=COL.c4;const hh=(p.h-34)*n/mx;pc.fillRect(pl+i*bw+1,p.h-22-hh,bw-2,hh)});pc.fillStyle=COL.muted;pc.font='10px IBM Plex Mono, monospace';pc.fillText('0',pl,p.h-8);pc.fillText('0.5',pl+(p.w-pl-10)/2-8,p.h-8);pc.fillText('1',p.w-16,p.h-8);pc.fillStyle=COL.fg;pc.font='11px IBM Plex Sans KR, sans-serif';pc.fillText('항아리 200개의 현재 A 점유율 분포',pl+6,14);
+ setStat(sim,`${S.t}번 뽑음`)}});
+// ================= D. 의견과 문화 =================
+const nb4=(i,L)=>{const x=i%L,y=i/L|0;switch(R()*4|0){case 0:return y*L+(x+1)%L;case 1:return y*L+(x-1+L)%L;case 2:return((y+1)%L)*L+x;default:return((y-1+L)%L)*L+x}};
+
+model({id:'voter',grp:'D',no:'D1',title:'투표자 모델',en:'Voter model (Clifford & Sudbury 1973; Holley & Liggett 1975) · noisy voter / Kirman ant model',
+one:`<p>가장 단순한 의견 모델이에요. 매 순간 한 사람을 고르고, 그 사람은 이웃 한 명을 골라 그 의견을 그대로 따라가요. 설득도, 손익 계산도 없어요. 그래도 격자 위에서는 같은 의견끼리 덩어리가 생기고, 덩어리 경계가 천천히 움직이다가 결국 하나의 의견이 전체를 덮어요(합의). 2차원에서는 경계에 표면 장력이 없어서 덩어리 모양이 흐물흐물한 게 특징이에요.</p><p>작은 잡음 ν(확률 ν로 아무 의견이나 고름)를 넣으면 합의가 영원히 유지되지 않아요. ν가 아주 작으면 한 의견이 거의 전체를 차지했다가 다른 의견으로 통째로 넘어가는 전환이 반복되고(Kirman의 개미 모델), ν가 크면 섞인 상태로 머물러요.</p>`,
+fx:['P(s_i\\leftarrow s_j)=\\frac{1-\\nu}{|\\mathcal N_i|},\\; j\\in\\mathcal N_i,\\qquad P(s_i\\leftarrow \\text{무작위})=\\nu','\\langle T_{\\text{합의}}\\rangle\\sim N\\ln N\\;\\;(\\text{2차원 격자})'],
+diag:{h:110,n:[{id:'i',t:'나',x:110,y:55,k:1},{id:'j',t:'무작위 이웃',x:330,y:55,w:110}],e:[['j','i','의견 복사','+',-22],['i','j','(서로 역할 바뀜)','~',-22]]},
+try:['ν=0, 의견 2개로 두면 몇 분 안에 한 색이 이겨요. 다시 시작할 때마다 이기는 색이 달라요.','ν를 0.0005 근처로 두면 한 색이 거의 다 덮었다가 다른 색으로 뒤집히는 일이 반복돼요.','의견 수를 6으로 늘려도 결국 하나만 남아요. 걸리는 시간만 길어요.'],
+refs:[['Clifford & Sudbury 1973, A model for spatial conflict','https://doi.org/10.1093/biomet/60.3.581'],['Holley & Liggett 1975, Ergodic theorems for weakly interacting infinite systems and the voter model','https://doi.org/10.1214/aop/1176996306'],['Kirman 1993, Ants, rationality, and recruitment','https://doi.org/10.2307/2118498'],['Castellano, Fortunato, Loreto 2009, Statistical physics of social dynamics (리뷰)','https://doi.org/10.1103/RevModPhys.81.591']],
+controls:[{k:'K',l:'의견 수',min:2,max:6,s:1,v:3,r:1},{k:'nu',l:'잡음 ν',min:-5,max:-1,s:.1,v:-5,log:1,f:v=>v<1.2e-5?'0':v.toExponential(1)},{k:'sp',l:'속도',min:1,max:10,s:1,v:3}],
+spf:P=>P.sp,
+setup(P){const L=100,g=new Uint8Array(L*L);for(let i=0;i<L*L;i++)g[i]=R()*P.K|0;return{L,g,h:Array.from({length:6},()=>[]),t:0}},
+step(S,P){const L=S.L,N=L*L,g=S.g,nu=P.nu<1.2e-5?0:P.nu;for(let n=0;n<N;n++){const i=R()*N|0;g[i]=R()<nu?R()*P.K|0:g[nb4(i,L)]}
+ const c=new Array(6).fill(0);for(let i=0;i<N;i++)c[g[i]]++;for(let k=0;k<6;k++)push(S.h[k],k<P.K?c[k]/N:NaN,500);S.t++},
+draw(S,P,c,sim){const se=SER().map(hex2rgb);drawGrid(c.view,S.L,S.L,i=>se[S.g[i]]);plot(c.plot,S.h.slice(0,P.K).map((d,k)=>({d,c:SER()[k],l:'의견 '+(k+1)})),{ymin:0,ymax:1,n:500,xl:'시간 (1 = 모두 한 번씩) →'});
+ const last=S.h.slice(0,P.K).map(d=>d[d.length-1]||0);setStat(sim,`t=${S.t}  가장 큰 의견 ${(Math.max(...last)*100).toFixed(0)}%`)}});
+
+model({id:'bc',grp:'D',no:'D2',title:'제한된 신뢰 (Deffuant · Hegselmann–Krause)',en:'Bounded confidence opinion dynamics (Deffuant et al. 2000; Hegselmann & Krause 2002)',
+one:`<p>의견을 0과 1 사이 연속값으로 두고, 나와 의견 차이가 ε보다 작은 사람의 말만 듣는다는 규칙이에요. Deffuant 모델은 두 사람을 무작위로 만나게 해서 차이가 ε보다 작으면 서로 μ만큼 가까워져요. Hegselmann–Krause 모델은 모두가 동시에 자기 ε 안에 있는 사람들의 평균으로 옮겨가요.</p><p>결과는 ε 하나로 거의 정해져요. ε가 크면 하나의 합의, 작아지면 2개, 3개의 의견 덩어리로 쪼개지고, 덩어리 수는 대략 1/(2ε)예요. 덩어리끼리는 서로 ε 밖이라 더는 섞이지 않아요. 위 그림은 가로가 시간, 세로가 의견이고 점 하나가 한 사람이에요.</p>`,
+fx:['\\text{Deffuant: }|x_i-x_j|<\\varepsilon\\Rightarrow x_i\\leftarrow x_i+\\mu(x_j-x_i),\\;x_j\\leftarrow x_j+\\mu(x_i-x_j)','\\text{HK: }x_i(t+1)=\\frac{1}{|I_i|}\\sum_{j\\in I_i}x_j(t),\\quad I_i=\\{j:|x_i-x_j|\\le\\varepsilon\\}'],
+diag:{h:110,n:[{id:'i',t:'나 x_i',x:110,y:55,k:1},{id:'j',t:'상대 x_j',x:330,y:55,k:1}],e:[['i','j','차이 < ε 일 때만','+',-22],['j','i','서로 끌어당김','+',-22]]},
+try:['ε=0.3이면 하나로 모이고, 0.2면 둘, 0.12면 셋 정도로 갈라져요.','HK로 바꾸면 같은 ε에서도 훨씬 빨리, 계단처럼 정리돼요.','μ를 줄이면 모이는 속도만 느려지고 덩어리 수는 거의 같아요.'],
+refs:[['Deffuant, Neau, Amblard, Weisbuch 2000, Mixing beliefs among interacting agents','https://doi.org/10.1142/S0219525900000078'],['Hegselmann & Krause 2002, Opinion dynamics and bounded confidence (JASSS)','https://www.jasss.org/5/3/2.html'],['Lorenz 2007, Continuous opinion dynamics under bounded confidence: a survey','https://doi.org/10.1142/S0129183107011789'],['Flache et al. 2017, Models of social influence: towards the next frontiers (JASSS)','https://www.jasss.org/20/4/2.html']],
+canvases:[['view','wide'],['plot','plot']],
+controls:[{k:'mode',l:'모델',opts:[['d','Deffuant (짝지어 만남)'],['hk','Hegselmann–Krause (동시 평균)']],v:'d',r:1},{k:'eps',l:'신뢰 범위 ε',min:.03,max:.5,s:.005,v:.2,r:1},{k:'mu',l:'끌림 μ (Deffuant)',min:.05,max:.5,s:.01,v:.3}],
+setup(P){const N=250,x=Float32Array.from({length:N},R);return{N,x,hist:[Float32Array.from(x)],t:0}},
+step(S,P){if(S.hist.length>=240)return;S.f=(S.f||0)+1;if(P.mode==='hk'&&S.f%8)return;const N=S.N,x=S.x,e=P.eps;
+ if(P.mode==='d'){for(let n=0;n<N/5;n++){const i=R()*N|0,j=R()*N|0;const d=x[j]-x[i];if(i!==j&&Math.abs(d)<e){x[i]+=P.mu*d;x[j]-=P.mu*d}}}
+ else{const s=Array.from(x).sort((a,b)=>a-b),nx=new Float32Array(N);for(let i=0;i<N;i++){let a=0,b=0,cnt=0;for(let k=0;k<N;k++){if(Math.abs(s[k]-x[i])<=e){a+=s[k];cnt++}}nx[i]=a/cnt}S.x=nx}
+ S.hist.push(Float32Array.from(S.x));S.t++},
+draw(S,P,c,sim){const v=c.view,ctx=v.ctx;clear(v);const pl=30,pb=18,W=v.w-pl-8,H=v.h-pb-8;ctx.strokeStyle=COL.line;ctx.fillStyle=COL.muted;ctx.font='10px IBM Plex Mono, monospace';
+ for(let k=0;k<=4;k++){const y=8+H*(1-k/4);ctx.beginPath();ctx.moveTo(pl,y);ctx.lineTo(pl+W,y);ctx.stroke();ctx.fillText((k/4).toFixed(2),2,y+3)}
+ ctx.fillStyle=COL.c1;const T=240;S.hist.forEach((xs,t)=>{const X=pl+W*t/(T-1);for(let i=0;i<xs.length;i++)ctx.fillRect(X,8+H*(1-xs[i])-.6,1.4,1.2)});
+ ctx.fillStyle=COL.muted;ctx.font='11px IBM Plex Sans KR, sans-serif';ctx.textAlign='right';ctx.fillText('시간 →',pl+W,v.h-4);ctx.textAlign='left';
+ const p=c.plot,pc=p.ctx;clear(p);const B=50,h=new Array(B).fill(0);S.x.forEach(a=>h[Math.min(B-1,Math.floor(a*B))]++);const mx=Math.max(...h,1),bw=(p.w-40)/B;h.forEach((n,i)=>{pc.fillStyle=COL.c1;const hh=(p.h-36)*n/mx;pc.fillRect(30+i*bw,p.h-20-hh,Math.max(1,bw-1),hh)});
+ pc.fillStyle=COL.muted;pc.font='10px IBM Plex Mono, monospace';pc.fillText('0',30,p.h-6);pc.fillText('1',p.w-14,p.h-6);pc.fillStyle=COL.fg;pc.font='11px IBM Plex Sans KR, sans-serif';pc.fillText('지금 의견 분포',36,14);
+ const xs=Array.from(S.x).sort((a,b)=>a-b);let cl=1;for(let i=1;i<xs.length;i++)if(xs[i]-xs[i-1]>.02)cl++;setStat(sim,`t=${S.t}  의견 덩어리 ${cl}개  (1/2ε ≈ ${(1/(2*P.eps)).toFixed(1)})`)}});
+
+model({id:'axelrod',grp:'D',no:'D3',title:'Axelrod 문화 전파',en:'Axelrod model of dissemination of culture (Axelrod 1997)',
+one:`<p>사람마다 문화가 F개의 특성(음악, 말투, 옷…)으로 되어 있고, 특성마다 q가지 값 중 하나를 가져요. 이웃과 만나면 이미 같은 특성 비율만큼의 확률로 대화하고, 대화하면 다른 특성 하나를 상대에게 맞춰요. 비슷할수록 더 비슷해지는 동질성과 사회적 영향을 한 규칙에 넣은 거예요.</p><p>국소적으로는 닮아가는데 전체로는 여러 문화 지역이 남아요. 하나도 겹치지 않는 이웃끼리는 아예 대화하지 않기 때문이에요. 특성 값 종류 q가 어떤 값을 넘으면 하나의 문화로 모이던 상태가 잘게 쪼개진 상태로 갑자기 바뀌는 상전이가 있어요(Castellano 등 2000).</p>`,
+fx:['o_{ij}=\\frac1F\\sum_{f=1}^F\\delta(\\sigma_{if},\\sigma_{jf}),\\qquad P(\\text{대화})=o_{ij}\\;\\;(0<o_{ij}<1)'],
+diag:{h:110,n:[{id:'i',t:'나 (F개 특성)',x:110,y:55,k:1,w:130},{id:'j',t:'이웃',x:340,y:55}],e:[['j','i','겹침 o 확률로 하나 복사','+',-22],['i','j','안 겹치면 대화 없음','~',-22]]},
+try:['F=3, q=5면 하나의 문화로 모여요. q를 20 이상으로 올리면 지역이 쪼개진 채 멈춰요.','F를 늘리면 같은 q에서도 더 잘 모여요(겹칠 기회가 많아서).','"활성 경계"가 0이 되면 더 이상 아무 변화가 없는 얼어붙은 상태예요.'],
+refs:[['Axelrod 1997, The dissemination of culture: a model with local convergence and global polarization','https://doi.org/10.1177/0022002797041002001'],['Castellano, Marsili, Vespignani 2000, Nonequilibrium phase transition in a model for social influence','https://doi.org/10.1103/PhysRevLett.85.3536'],['NetLogo 커뮤니티 모델: Axelrod Cultural Dissemination','https://ccl.northwestern.edu/netlogo/models/community/Axelrod_Cultural_Dissemination']],
+controls:[{k:'F',l:'특성 수 F',min:2,max:8,s:1,v:3,r:1},{k:'q',l:'특성 값 종류 q',min:2,max:40,s:1,v:12,r:1},{k:'sp',l:'속도',min:1,max:10,s:1,v:4}],
+spf:P=>P.sp,
+setup(P){const L=40,F=P.F,c=new Uint8Array(L*L*F);for(let i=0;i<c.length;i++)c[i]=R()*P.q|0;return{L,F,c,hk:[],ha:[],t:0,col:new Array(L*L)}},
+step(S,P){const L=S.L,F=S.F,c=S.c,N=L*L;for(let n=0;n<N;n++){const i=R()*N|0,j=nb4(i,L);let o=0;for(let f=0;f<F;f++)if(c[i*F+f]===c[j*F+f])o++;if(o>0&&o<F&&R()<o/F){let d;do d=R()*F|0;while(c[i*F+d]===c[j*F+d]);c[i*F+d]=c[j*F+d]}}
+ const set=new Set();let act=0;for(let i=0;i<N;i++){let k='';for(let f=0;f<F;f++)k+=c[i*F+f]+',';set.add(k);const j=(i%L+1)%L+(i/L|0)*L;let o=0;for(let f=0;f<F;f++)if(c[i*F+f]===c[j*F+f])o++;if(o>0&&o<F)act++}
+ push(S.hk,set.size,400);push(S.ha,act/N,400);S.t++},
+draw(S,P,c,sim){const F=S.F,cc=S.c;drawGrid(c.view,S.L,S.L,i=>{let h=0,l=0;for(let f=0;f<F;f++){h=(h*31+cc[i*F+f]*97)%360;l+=cc[i*F+f]}return hueRGB(h*7.3,.55,.38+.25*(l/(F*(P.q-1)||1)))});
+ const N=S.L*S.L;plot(c.plot,[{d:S.hk.map(v=>Math.log10(v)/Math.log10(N)),c:COL.c4,l:'문화 수 (로그, 1=모두 다름)'},{d:S.ha,c:COL.fg,l:'활성 경계 비율'}],{ymin:0,ymax:1,n:400});
+ setStat(sim,`t=${S.t}  서로 다른 문화 ${S.hk[S.hk.length-1]||'-'}개`)}});
+
+model({id:'schelling',grp:'D',no:'D4',title:'Schelling 분리',en:'Schelling segregation model (Schelling 1971)',
+one:`<p>두 집단이 격자에 섞여 살아요. 각자 이웃 중 나와 같은 집단 비율이 θ 이상이면 만족하고, 아니면 빈 집으로 이사가요. θ가 0.3 정도로 "셋 중 하나만 같아도 괜찮다"는 너그러운 선호여도, 결과는 거의 완전히 갈라진 동네가 돼요. 개인의 약한 선호와 집단의 강한 패턴이 다르다는 걸 보여준 고전이에요.</p><p>θ를 너무 높이면 오히려 아무도 만족하지 못해서 계속 이사만 다니는 상태가 되고, 빈집이 너무 적으면 움직일 데가 없어서 덜 갈라져요. 모델 결과가 두 변수에 따라 영역별로 달라지는 모습은 아래 H1 상도표에서 직접 그려볼 수 있어요.</p>`,
+fx:['s_i=\\frac{\\#\\{j\\in\\mathcal N_i:\\,g_j=g_i\\}}{\\#\\{j\\in\\mathcal N_i:\\,\\text{비어있지 않음}\\}},\\qquad s_i<\\theta\\Rightarrow\\text{빈 칸으로 이사}'],
+diag:{h:110,n:[{id:'i',t:'나',x:90,y:55,k:1},{id:'n',t:'이웃 구성',x:240,y:55,w:100},{id:'m',t:'이사',x:380,y:55}],e:[['n','i','같은 비율 s','+',-20],['i','m','s < θ','+',0],['m','n','이웃이 바뀜','~',30]]},
+try:['θ=0.3에서도 같은 집단 평균 비율이 0.5에서 0.75 이상으로 올라가요.','θ=0.8 이상이면 끝없이 이사만 해요.','빈집 비율을 0.02로 줄이면 불만인 사람이 남아 있어도 거의 움직이지 못해요.'],
+refs:[['Schelling 1971, Dynamic models of segregation','https://doi.org/10.1080/0022250X.1971.9989794'],['Schelling 1978, Micromotives and Macrobehavior','https://en.wikipedia.org/wiki/Micromotives_and_Macrobehavior'],['NetLogo Segregation model','https://ccl.northwestern.edu/netlogo/models/Segregation'],['Parable of the Polygons (인터랙티브 해설)','https://ncase.me/polygons/']],
+controls:[{k:'th',l:'원하는 같은 비율 θ',min:0,max:1,s:.01,v:.35},{k:'e',l:'빈집 비율',min:.02,max:.4,s:.01,v:.1,r:1},{k:'sp',l:'속도',min:1,max:5,s:1,v:1}],
+spf:P=>P.sp,
+setup(P,_,L=60){const g=new Uint8Array(L*L);for(let i=0;i<L*L;i++)g[i]=R()<P.e?0:(R()<.5?1:2);return{L,g,hs:[],hu:[],t:0}},
+step(S,P){schStep(S,P.th);const m=schMeasure(S,P.th);push(S.hs,m[0],400);push(S.hu,m[1],400);S.t++},
+draw(S,P,c,sim){const a=COL.c1_rgb,b=COL.c2_rgb,e=COL.panel_rgb;drawGrid(c.view,S.L,S.L,i=>S.g[i]===1?a:S.g[i]===2?b:e);plot(c.plot,[{d:S.hs,c:COL.fg,l:'같은 집단 평균 비율'},{d:S.hu,c:COL.sel,l:'불만인 비율'}],{ymin:0,ymax:1,n:400,hline:P.th});
+ setStat(sim,`t=${S.t}  같은 비율 ${(S.hs[S.hs.length-1]||0).toFixed(2)}  불만 ${((S.hu[S.hu.length-1]||0)*100).toFixed(0)}%`)}});
+function schSim(S,i){const L=S.L,g=S.g,x=i%L,y=i/L|0;let s=0,o=0;for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){if(!dx&&!dy)continue;const v=g[((y+dy+L)%L)*L+(x+dx+L)%L];if(v){o++;if(v===g[i])s++}}return o?s/o:1}
+function schStep(S,th){const L=S.L,g=S.g,N=L*L,emp=[],un=[];for(let i=0;i<N;i++){if(!g[i])emp.push(i);else if(schSim(S,i)<th)un.push(i)}
+ for(let k=un.length-1;k>0;k--){const r=R()*(k+1)|0;[un[k],un[r]]=[un[r],un[k]]}
+ for(const i of un){if(!emp.length)break;const r=R()*emp.length|0,j=emp[r];g[j]=g[i];g[i]=0;emp[r]=i}}
+function schMeasure(S,th){const N=S.L*S.L;let a=0,n=0,u=0;for(let i=0;i<N;i++)if(S.g[i]){const s=schSim(S,i);a+=s;n++;if(s<th)u++}return[a/n,u/n]}
+// ================= E. 자기조직 임계와 경쟁 =================
+model({id:'forest',grp:'E',no:'E1',title:'산불 모델',en:'Forest-fire model (Bak, Chen, Tang 1990; Drossel & Schwabl 1992)',
+one:`<p>빈 땅에는 확률 p로 나무가 자라고, 나무는 확률 f로 벼락을 맞아 불이 붙고, 불은 다음 단계에 이웃 나무로 번진 뒤 빈 땅이 돼요. 천천히 쌓이고(나무가 자람) 한꺼번에 풀리는(산불) 구조예요.</p><p>f/p가 아주 작으면 숲이 오래 쌓였다가 큰 불로 한 번에 타서 산불 크기가 멱법칙 분포를 따르고, 누가 조절하지 않아도 이런 임계 상태로 스스로 가요(자기조직 임계, SOC). f를 키우면 작은 불만 자주 나서 숲이 늘 성긴 상태로 유지돼요.</p>`,
+fx:['\\text{빈 땅}\\xrightarrow{\\;p\\;}\\text{나무},\\quad \\text{나무}\\xrightarrow{\\;f\\text{ 또는 불 이웃}\\;}\\text{불},\\quad \\text{불}\\to\\text{빈 땅}','n(s)\\sim s^{-\\tau}\\quad(f/p\\to0)'],
+diag:{h:120,n:[{id:'e',t:'빈 땅',x:70,y:60},{id:'t',t:'나무',x:220,y:60,k:1},{id:'f',t:'불',x:370,y:60}],e:[['e','t','자람 p','+',-20],['t','f','벼락 f · 번짐','+',-20],['f','e','다 탐','+',40]]},
+try:['p=0.01, f=0.00001이면 숲이 꽉 찼다가 큰 불로 한 번에 비는 일이 반복돼요.','f를 0.001까지 올리면 자잘한 불이 계속 나서 숲 밀도가 낮게 유지돼요.','점선은 대략적인 SOC 밀도(약 0.4)예요.'],
+refs:[['Bak, Chen, Tang 1990, A forest-fire model and some thoughts on turbulence','https://doi.org/10.1016/0375-9601(90)90451-S'],['Drossel & Schwabl 1992, Self-organized critical forest-fire model','https://doi.org/10.1103/PhysRevLett.69.1629'],['NetLogo Fire model','https://ccl.northwestern.edu/netlogo/models/Fire'],['Wikipedia: Forest-fire model','https://en.wikipedia.org/wiki/Forest-fire_model']],
+controls:[{k:'p',l:'나무 자람 p',min:-3,max:-1,s:.05,v:-2,log:1},{k:'f',l:'벼락 f',min:-6,max:-2.5,s:.05,v:-5,log:1}],
+setup(P){const L=160,g=new Uint8Array(L*L);for(let i=0;i<L*L;i++)g[i]=R()<.4?1:0;return{L,g,n:new Uint8Array(L*L),hd:[],hb:[],t:0}},
+step(S,P){const L=S.L,g=S.g,n=S.n,N=L*L;let tr=0,bu=0;for(let i=0;i<N;i++){const v=g[i];if(v===2)n[i]=0;else if(v===0)n[i]=R()<P.p?1:0;else{const x=i%L,y=i/L|0;const burn=(x>0&&g[i-1]===2)||(x<L-1&&g[i+1]===2)||(y>0&&g[i-L]===2)||(y<L-1&&g[i+L]===2)||R()<P.f;n[i]=burn?2:1}}
+ S.g=n;S.n=g;for(let i=0;i<N;i++){if(S.g[i]===1)tr++;else if(S.g[i]===2)bu++}push(S.hd,tr/N,500);push(S.hb,bu/N*20,500);S.t++},
+draw(S,P,c,sim){const t=COL.c3_rgb,f=COL.sel_rgb,e=COL.panel_rgb;drawGrid(c.view,S.L,S.L,i=>S.g[i]===1?t:S.g[i]===2?f:e);plot(c.plot,[{d:S.hd,c:COL.c3,l:'나무 밀도'},{d:S.hb,c:COL.sel,l:'불 ×20'}],{ymin:0,ymax:1,n:500,hline:.4});setStat(sim,`t=${S.t}  f/p=${(P.f/P.p).toExponential(1)}`)}});
+
+model({id:'sandpile',grp:'E',no:'E2',title:'모래더미 (BTW)',en:'Abelian sandpile · self-organized criticality (Bak, Tang, Wiesenfeld 1987)',
+one:`<p>격자 칸마다 모래알이 쌓여요. 한 칸이 4알이 되면 무너져서 상하좌우에 한 알씩 나눠주고, 그 바람에 이웃이 4알이 되면 또 무너져요(사태). 가장자리로 나간 알은 사라져요. 한 알씩 계속 떨어뜨리기만 하면, 아무 조절 없이 더미가 스스로 임계 상태에 도달해서 사태 크기가 멱법칙 분포를 따라요. 대부분은 한두 칸이지만 가끔 판 전체가 무너져요.</p><p>규칙이 완전히 결정적이고 단순한데도 "작은 입력이 아무 일도 안 일으키다가 어느 순간 전체를 흔드는" 동역학이 나와서 SOC의 대표 예가 됐어요. 왼쪽 판을 클릭하면 그 자리에 모래를 떨어뜨려요.</p>`,
+fx:['z_i\\ge4\\;\\Rightarrow\\;z_i\\leftarrow z_i-4,\\quad z_j\\leftarrow z_j+1\\;\\;(j\\in\\mathcal N_i)','P(s)\\sim s^{-\\tau},\\;\\;\\tau\\approx1.1\\text{–}1.3\\;(2\\text{차원})'],
+diag:{h:110,n:[{id:'d',t:'한 알 떨어짐',x:80,y:55,w:110},{id:'z',t:'칸 높이 z',x:240,y:55,k:1},{id:'t',t:'무너짐',x:380,y:55}],e:[['d','z','','+',0],['z','t','z ≥ 4','+',-20],['t','z','이웃 +1','+',-20]]},
+try:['처음에는 사태가 거의 없다가 평균 높이가 2.1 근처에 오면 크기가 들쭉날쭉해져요.','클릭으로 한 칸에 계속 떨어뜨리면 마름모 모양 무늬가 생겨요.','오른쪽 분포가 로그-로그에서 직선에 가까워지는지 보세요.'],
+refs:[['Bak, Tang, Wiesenfeld 1987, Self-organized criticality: an explanation of 1/f noise','https://doi.org/10.1103/PhysRevLett.59.381'],['Dhar 1990, Self-organized critical state of sandpile automaton models','https://doi.org/10.1103/PhysRevLett.64.1613'],['Bak 1996, How Nature Works','https://en.wikipedia.org/wiki/How_Nature_Works'],['Wikipedia: Abelian sandpile model','https://en.wikipedia.org/wiki/Abelian_sandpile_model']],
+controls:[{k:'sp',l:'초당 떨어뜨리는 양',min:1,max:60,s:1,v:12}],
+hint:'판을 클릭하면 그 자리에 모래 20알을 떨어뜨려요.',
+spf:P=>P.sp,
+setup(P){const L=60;return{L,z:new Uint8Array(L*L),sizes:[],hz:[],last:0,flash:new Float32Array(L*L),drops:0}},
+step(S,P){spDrop(S,R()*S.L*S.L|0)},
+click(S,P,u,v,sim){const r=drawGridRect(sim.cv.view,S.L);const x=Math.floor((u*r.W-r.ox)/r.s),y=Math.floor((v*r.H-r.oy)/r.s);if(x>=0&&y>=0&&x<S.L&&y<S.L)for(let k=0;k<20;k++)spDrop(S,y*S.L+x)},
+draw(S,P,c,sim){const L=S.L,pal=[COL.panel_rgb,COL.c5_rgb,COL.c2_rgb,COL.c4_rgb],f=COL.sel_rgb;for(let i=0;i<L*L;i++)S.flash[i]*=.85;drawGrid(c.view,L,L,i=>S.flash[i]>.2?f:pal[S.z[i]]);
+ loglog(c.plot,logHist(S.sizes),{slope:-1.2,title:'사태 크기 분포 P(s) (점선 = 기울기 −1.2)'});let m=0;for(let i=0;i<L*L;i++)m+=S.z[i];setStat(sim,`${S.drops}알  평균 높이 ${(m/L/L).toFixed(2)}  방금 사태 ${S.last}칸`)}});
+function drawGridRect(cv,L){const r=cv.getBoundingClientRect(),s=Math.min(r.width/L,r.height/L);return{W:r.width,H:r.height,s,ox:(r.width-L*s)/2,oy:(r.height-L*s)/2}}
+function spDrop(S,i){const L=S.L,z=S.z;z[i]++;S.drops++;let size=0;const st=[i];while(st.length){const k=st.pop();if(z[k]<4)continue;z[k]-=4;size++;S.flash[k]=1;const x=k%L,y=k/L|0;if(x>0){z[k-1]++;if(z[k-1]>=4)st.push(k-1)}if(x<L-1){z[k+1]++;if(z[k+1]>=4)st.push(k+1)}if(y>0){z[k-L]++;if(z[k-L]>=4)st.push(k-L)}if(y<L-1){z[k+L]++;if(z[k+L]>=4)st.push(k+L)}if(z[k]>=4)st.push(k)}
+ S.last=size;if(size>0){S.sizes.push(size);if(S.sizes.length>20000)S.sizes.splice(0,5000)}}
+
+model({id:'minority',grp:'E',no:'E3',title:'소수자 게임',en:'Minority game (Challet & Zhang 1997) · El Farol bar problem (Arthur 1994)',
+one:`<p>홀수 명이 매번 A(+1)와 B(−1) 중 하나를 고르고, 적은 쪽을 고른 사람이 이겨요. 모두가 같은 정보(최근 M번의 승자 기록)를 보고, 각자 무작위로 받은 전략 S개 중 지금까지 가상 점수가 가장 높은 걸 써요. 모두가 남들과 다르게 하려고 같은 정보로 머리를 쓰는 상황이에요.</p><p>핵심 변수는 α = 2<sup>M</sup>/N이에요. α가 작으면 다들 같은 전략으로 몰려 떼로 움직여서, 쏠림의 크기 σ²/N이 동전 던지기(=1)보다 훨씬 커요. α가 0.34 근처에서 σ²/N이 가장 작아져서 집단이 가장 효율적이고, 그보다 크면 다시 무작위에 가까워져요. 이 전이점이 상전이예요. 아래 버튼으로 M을 바꿔가며 곡선을 그려볼 수 있어요.</p>`,
+fx:['A(t)=\\sum_{i=1}^N a_i(t),\\quad a_i=a^{\\,s_i^*}_{\\mu(t)},\\quad s_i^*=\\arg\\max_s U_{i,s}','U_{i,s}(t+1)=U_{i,s}(t)-a^{s}_{\\mu(t)}\\,\\mathrm{sgn}A(t),\\qquad \\alpha=\\frac{2^M}{N}'],
+diag:{h:130,n:[{id:'h',t:'공통 기록 μ (M번)',x:100,y:35,w:150},{id:'s',t:'내 최고 전략',x:330,y:35,k:1,w:110},{id:'a',t:'모두의 합 A',x:330,y:105,w:110},{id:'u',t:'전략 점수',x:100,y:105,w:100}],e:[['h','s','조회','+',0],['s','a','±1','+',0],['a','u','소수 쪽 +1','+',0],['u','s','','~',0],['a','h','승자 기록','~',30]]},
+try:['M=2(α 작음)이면 A가 크게 출렁여요. M=6 근처에서 가장 잔잔해요.','"σ²/N 곡선 그리기"를 누르면 M=1..12에 대해 곡선이 나와요. 최저점이 α≈0.34 근처예요.','전략 수 S를 늘리면 최저점이 오른쪽으로 옮겨가요.'],
+refs:[['Challet & Zhang 1997, Emergence of cooperation and organization in an evolutionary game','https://doi.org/10.1016/S0378-4371(97)00419-6'],['Arthur 1994, Inductive reasoning and bounded rationality (El Farol)','https://www.jstor.org/stable/2117868'],['Savit, Manuca, Riolo 1999, Adaptive competition, market efficiency, and phase transitions','https://doi.org/10.1103/PhysRevLett.82.2203'],['Challet, Marsili, Zhang 2005, Minority Games (책)','https://global.oup.com/academic/product/minority-games-9780198566410'],['NetLogo El Farol model','https://ccl.northwestern.edu/netlogo/models/ElFarol']],
+canvases:[['view','wide'],['plot','plot']],
+controls:[{k:'M',l:'기억 길이 M',min:1,max:12,s:1,v:3,r:1},{k:'S',l:'전략 수 S',min:2,max:6,s:1,v:2,r:1},{k:'sp',l:'속도',min:1,max:20,s:1,v:4}],
+buttons:[['σ²/N 곡선 그리기',(S,P)=>{S.curve=[];for(let M=1;M<=12;M++){const g=mgNew(301,M,P.S);for(let t=0;t<300;t++)mgStep(g);let a=0;const T=1500;for(let t=0;t<T;t++){const A=mgStep(g);a+=A*A}S.curve.push([2**M/301,a/T/301])}}]],
+spf:P=>P.sp,
+setup(P){const g=mgNew(301,P.M,P.S);return{g,hA:[],sq:0,n:0,curve:S0curve}},
+step(S,P){const A=mgStep(S.g);push(S.hA,A,500);if(S.n>100){S.sq+=A*A}S.n++},
+draw(S,P,c,sim){const v=c.view,ctx=v.ctx;clear(v);const pl=44,pb=22,W=v.w-pl-10,H=v.h-pb-10,lx0=-3,lx1=2,ly0=-1,ly1=2;const X=a=>pl+W*(Math.log10(a)-lx0)/(lx1-lx0),Y=s=>10+H*(1-(Math.log10(s)-ly0)/(ly1-ly0));
+ ctx.strokeStyle=COL.line;ctx.fillStyle=COL.muted;ctx.font='10px IBM Plex Mono, monospace';for(let k=ly0;k<=ly1;k++){ctx.beginPath();ctx.moveTo(pl,Y(10**k));ctx.lineTo(pl+W,Y(10**k));ctx.stroke();ctx.textAlign='right';ctx.fillText(10**k+'',pl-4,Y(10**k)+3)}for(let k=lx0;k<=lx1;k++){ctx.textAlign='center';ctx.fillText('1e'+k,X(10**k),v.h-6)}
+ ctx.setLineDash([4,4]);ctx.strokeStyle=COL.muted;ctx.beginPath();ctx.moveTo(pl,Y(1));ctx.lineTo(pl+W,Y(1));ctx.stroke();ctx.beginPath();ctx.moveTo(X(.34),10);ctx.lineTo(X(.34),10+H);ctx.stroke();ctx.setLineDash([]);
+ if(S.curve&&S.curve.length){ctx.strokeStyle=COL.c1;ctx.fillStyle=COL.c1;ctx.lineWidth=1.5;ctx.beginPath();S.curve.forEach(([a,s],i)=>{const y=Y(clamp(s,.1,100));i?ctx.lineTo(X(a),y):ctx.moveTo(X(a),y)});ctx.stroke();S.curve.forEach(([a,s])=>{ctx.beginPath();ctx.arc(X(a),Y(clamp(s,.1,100)),3,0,7);ctx.fill()})}
+ if(S.n>200){const a=2**P.M/301,s=S.sq/(S.n-100)/301;ctx.fillStyle=COL.sel;ctx.beginPath();ctx.arc(X(a),Y(clamp(s,.1,100)),5,0,7);ctx.fill()}
+ ctx.fillStyle=COL.fg;ctx.font='11px IBM Plex Sans KR, sans-serif';ctx.textAlign='left';ctx.fillText('σ²/N  (빨간 점 = 지금 실행, 점선 1 = 동전 던지기, 세로 점선 α=0.34)',pl+6,22);ctx.textAlign='right';ctx.fillText('α = 2^M / N →',pl+W,v.h-18);ctx.textAlign='left';
+ plot(c.plot,[{d:S.hA,c:COL.fg,w:1.1,l:'A(t) = 고른 사람 수 차이'}],{ymin:-120,ymax:120,n:500,hline:0});setStat(sim,`라운드 ${S.n}  α=${(2**P.M/301).toFixed(3)}  σ²/N=${S.n>200?(S.sq/(S.n-100)/301).toFixed(2):'…'}`)}});
+let S0curve=null;
+function mgNew(N,M,Sn){const Pm=2**M,st=new Int8Array(N*Sn*Pm);for(let i=0;i<st.length;i++)st[i]=R()<.5?1:-1;return{N,M,Sn,Pm,st,U:new Float32Array(N*Sn),mu:R()*Pm|0}}
+function mgStep(g){const{N,Sn,Pm,st,U}=g,mu=g.mu;let A=0;const act=new Int8Array(N);for(let i=0;i<N;i++){let b=0,bu=-1e9;for(let s=0;s<Sn;s++){const u=U[i*Sn+s]+R()*1e-3;if(u>bu){bu=u;b=s}}act[i]=st[(i*Sn+b)*Pm+mu];A+=act[i]}
+ const sg=A>0?1:-1;for(let i=0;i<N;i++)for(let s=0;s<Sn;s++)U[i*Sn+s]-=st[(i*Sn+s)*Pm+mu]*sg;g.mu=((mu<<1)|(A<0?1:0))&(Pm-1);return A}
+
+model({id:'accel',grp:'E',no:'E4',title:'가속하는 집단 주의',en:'Accelerating dynamics of collective attention (Lorenz-Spreen et al. 2019) · scaling and pace of life (Bettencourt et al. 2007)',
+one:`<p>Lorenz-Spreen 등은 트위터 해시태그, 구글 검색, 영화 흥행, 위키백과, 논문 인용 등을 보고, 한 주제가 관심을 받는 기간이 해가 갈수록 짧아진다는 걸 측정했어요. 정점 높이는 비슷한데 오르내림이 더 가팔라져요. 설명 모델은 주제마다 양 L<sub>i</sub>를 두고 세 가지 힘을 넣어요. 남들이 다루니 나도 다루는 모방(성장률 r<sub>p</sub>), 최근에 많이 본 주제일수록 지루해지는 소모(소비율 r<sub>c</sub>, 기억은 α로 지워짐), 다른 주제들과 한정된 관심을 나누는 경쟁(c)이에요.</p><p>논문은 생산과 소비 속도 r<sub>p</sub> = r<sub>c</sub> = r을 올리기만 해도 각 주제가 더 빨리 뜨고 더 빨리 지루해져서 수명이 짧아지고, 정점 높이는 거의 그대로라는 걸 보였어요. 오른쪽은 논문의 축약식(Y<sub>i</sub>가 지루함 기억)을 그대로 쓰고, 화면에서 보기 쉽게 새 주제가 비율 λ로 계속 들어오게만 바꾼 버전이에요(논문은 주제 300개를 고정해 두고 돌려요). r을 올리거나 "r 점점 증가"를 켜면 아래 그래프에서 수명이 줄어드는 게 보여요.</p>`,
+fx:['\\frac{dL_i}{dt}=r_pL_i\\Big(1-\\frac{r_c}{K}\\int_{-\\infty}^{t}e^{-\\alpha(t-t\')}L_i(t\')\\,dt\'-c\\sum_{j\\ne i}L_j\\Big)','\\text{축약: }\\frac{dL_i}{dt}=rL_i\\big(1-rY_i-c\\textstyle\\sum_{j\\ne i}L_j\\big),\\qquad \\frac{dY_i}{dt}=L_i-\\alpha Y_i','\\frac{dN}{dt}=aN^{\\beta},\;\\beta>1\;\\Rightarrow\;\\text{유한 시간에 발산 (Bettencourt–West, 도시 규모와 혁신 속도)}'],
+diag:{h:130,n:[{id:'l',t:'주제 양 L_i',x:110,y:40,k:1,w:110},{id:'y',t:'지루함 Y_i',x:330,y:40,w:110},{id:'o',t:'다른 주제들 ΣL_j',x:220,y:105,w:140}],e:[['l','l2','','+',0],['l','y','쌓임','+',-18],['y','l','소모 r_c','-',-18],['o','l','경쟁 c','-',0]].filter(e=>e[1]!=='l2')},
+try:['r=4에서 12로 올리면 봉우리가 뾰족해지고 수명이 1.5에서 0.5 정도로 줄어요. 정점 높이는 비슷해요.','"r 점점 증가"를 켜두면 아래 점들이 오른쪽으로 갈수록 내려가요.','경쟁 c를 0으로 두면 주제들이 서로 방해하지 않아 여러 개가 동시에 떠 있어요.'],
+refs:[['Lorenz-Spreen, Mønsted, Hövel, Lehmann 2019, Accelerating dynamics of collective attention','https://doi.org/10.1038/s41467-019-09311-w'],['같은 논문 전문 (PMC)','https://pmc.ncbi.nlm.nih.gov/articles/PMC6465266'],['Bettencourt, Lobo, Helbing, Kühnert, West 2007, Growth, innovation, scaling, and the pace of life in cities','https://doi.org/10.1073/pnas.0610172104'],['Wu & Huberman 2007, Novelty and collective attention','https://doi.org/10.1073/pnas.0704916104'],['Candia et al. 2019, The universal decay of collective memory and attention','https://doi.org/10.1038/s41562-018-0474-5']],
+canvases:[['view','wide'],['plot','plot']],
+controls:[{k:'r',l:'소통 속도 r (= r_p = r_c)',min:4,max:12,s:.1,v:5},{k:'c',l:'경쟁 c',min:0,max:2,s:.05,v:1},{k:'lam',l:'새 주제 비율 λ',min:.2,max:1.5,s:.05,v:.5},{k:'ramp',l:'r 점점 증가',opts:[['0','끔'],['1','켬 (4 → 12)']],v:'0',r:1}],
+spf:()=>5,
+setup(P){return{T:[],t:0,life:[],r:P.r,hist:600,k:0}},
+step(S,P){const dt=.01,al=.05;S.r=P.ramp==='1'?4+8*Math.min(1,S.t*dt/150):P.r;const r=S.r;if(R()<P.lam*dt)S.T.push({L:.01,Y:0,pk:0,on:-1,born:S.t,h:(S.k++)*137.5,tr:[]});
+ let sum=0;for(const x of S.T)sum+=x.L;
+ for(const x of S.T){x.L=Math.max(0,x.L+r*x.L*(1-r*x.Y-P.c*(sum-x.L))*dt);x.Y+=(x.L-al*x.Y)*dt;if(x.L>x.pk)x.pk=x.L;if(x.on===-1&&x.pk>.05&&x.L>x.pk/2)x.on=S.t;if(x.on>=0&&x.L<x.pk/2){S.life.push([S.t,(S.t-x.on)*dt,x.pk]);x.on=-2}
+  if(S.t%2===0){x.tr.push(x.L);if(x.tr.length>S.hist)x.tr.shift()}}
+ if(S.t%2===0)S.T=S.T.filter(x=>x.L>1e-4||x.tr.some(v=>v>1e-3));if(S.life.length>300)S.life.shift();S.t++},
+draw(S,P,c,sim){const v=c.view,ctx=v.ctx;clear(v);const pl=10,W=v.w-20,H=v.h-30,mx=.6;
+ S.T.forEach(x=>{const n=x.tr.length;if(n<2)return;const off=S.hist-n;const rgb=hueRGB(x.h,.6,.5);ctx.fillStyle=`rgba(${rgb},.3)`;ctx.strokeStyle=`rgb(${rgb})`;ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(pl+W*off/S.hist,10+H);x.tr.forEach((q,i)=>ctx.lineTo(pl+W*(off+i)/S.hist,10+H-H*Math.min(q,mx)/mx));ctx.lineTo(pl+W*(off+n-1)/S.hist,10+H);ctx.closePath();ctx.fill();ctx.stroke()});
+ ctx.fillStyle=COL.fg;ctx.font='11px IBM Plex Sans KR, sans-serif';ctx.fillText('주제별 양 L_i(t)',pl+4,20);ctx.fillStyle=COL.muted;ctx.textAlign='right';ctx.fillText('시간 →',pl+W,v.h-6);ctx.textAlign='left';
+ const p=c.plot,pc=p.ctx;clear(p);const L=S.life;const ym=2.5;pc.strokeStyle=COL.line;[0,1,2].forEach(k=>{const y=p.h-22-(p.h-40)*k/ym;pc.beginPath();pc.moveTo(40,y);pc.lineTo(p.w-10,y);pc.stroke()});
+ pc.fillStyle=COL.muted;pc.font='10px IBM Plex Mono, monospace';pc.textAlign='right';[0,1,2].forEach(k=>pc.fillText(k,36,p.h-22-(p.h-40)*k/ym+3));pc.textAlign='left';
+ if(L.length){const t0=L[0][0],t1=Math.max(t0+1,S.t);pc.fillStyle=COL.c1;L.forEach(([b,l])=>{pc.beginPath();pc.arc(40+(p.w-50)*(b-t0)/(t1-t0),p.h-22-(p.h-40)*Math.min(l,ym)/ym,2.4,0,7);pc.fill()})}
+ pc.fillStyle=COL.fg;pc.font='11px IBM Plex Sans KR, sans-serif';pc.fillText('주제 수명 (정점 절반 이상 유지 시간), 가로 = 끝난 시각',44,14);
+ const rec=L.slice(-15),ml=rec.length?rec.reduce((a,q)=>a+q[1],0)/rec.length:0,mp=rec.length?rec.reduce((a,q)=>a+q[2],0)/rec.length:0;setStat(sim,`r=${S.r.toFixed(1)}  떠 있는 주제 ${S.T.length}개  최근 수명 ${ml.toFixed(2)}  정점 ${mp.toFixed(2)}`)}});
+// ================= F. 학습하는 에이전트 =================
+model({id:'qlearn',grp:'F',no:'F1',title:'다중 에이전트 강화학습 (El Farol)',en:'Multi-agent Q-learning in a congestion game · El Farol bar problem (Arthur 1994)',
+one:`<p>지금까지 모델들은 규칙이 고정돼 있었어요. 여기서는 개체가 경험으로 규칙을 배워요. 100명이 매일 술집에 갈지 말지 정해요. 손님이 정원(60%)보다 적으면 간 사람이 +1, 많으면 −1, 안 간 사람은 0을 받아요. 각자 두 행동의 가치 Q를 갖고, 받은 보상 쪽으로 Q를 α만큼 고쳐요. 행동은 소프트맥스로 고르는데 온도 T가 높을수록 무작위로 탐색해요.</p><p>모두가 같은 방식으로 배우니까 각자의 환경(다른 사람들)도 계속 바뀌어요(비정상성). α가 크고 T가 낮으면 다 같이 몰렸다 다 같이 빠지는 진동이 생기고, T를 올리면 평균은 정원 근처에 붙지만 잡음이 커요. 같은 구조로 가격을 정하는 학습 알고리즘들이 서로 짜지 않았는데도 높은 가격을 유지하게 된다는 연구(Calvano 등 2020)도 있어요.</p>`,
+fx:['Q_i(a)\\leftarrow Q_i(a)+\\alpha\\big(r_i-Q_i(a)\\big)','P_i(a)=\\frac{e^{Q_i(a)/T}}{\\sum_{b}e^{Q_i(b)/T}},\\qquad r_i=\\begin{cases}+1 & a=\\text{감},\\;n<c\\\\-1 & a=\\text{감},\\;n\\ge c\\\\0 & a=\\text{안 감}\\end{cases}'],
+diag:{h:130,n:[{id:'q',t:'내 Q 값',x:80,y:40,k:1},{id:'a',t:'행동 (소프트맥스 T)',x:280,y:40,w:150},{id:'n',t:'오늘 손님 수 n',x:280,y:105,w:130},{id:'r',t:'보상 r',x:80,y:105}],e:[['q','a','','+',0],['a','n','모두의 선택','+',0],['n','r','n < c ?','+',0],['r','q','α만큼 갱신','+',0]]},
+try:['α=0.5, T=0.05면 손님 수가 크게 진동해요.','T를 0.5로 올리면 진동이 없어지고 정원 근처에서 흔들려요.','α를 0.02로 낮추면 천천히 배우면서 정원에 가까이 붙어요. 왼쪽 칸 색이 각자 가는 확률이고, 사람마다 갈라지는(늘 가는 사람/안 가는 사람) 모습도 보여요.'],
+refs:[['Watkins & Dayan 1992, Q-learning','https://doi.org/10.1007/BF00992698'],['Arthur 1994, Inductive reasoning and bounded rationality','https://www.jstor.org/stable/2117868'],['Buşoniu, Babuška, De Schutter 2008, A comprehensive survey of multiagent reinforcement learning','https://doi.org/10.1109/TSMCC.2007.913919'],['Calvano, Calzolari, Denicolò, Pastorello 2020, Artificial intelligence, algorithmic pricing, and collusion','https://doi.org/10.1257/aer.20190623'],['Sutton & Barto, Reinforcement Learning: An Introduction (무료 PDF)','http://incompleteideas.net/book/the-book-2nd.html']],
+controls:[{k:'al',l:'학습률 α',min:.01,max:1,s:.01,v:.3},{k:'T',l:'온도 T',min:.01,max:1,s:.01,v:.08},{k:'c',l:'정원 c',min:.2,max:.8,s:.01,v:.6},{k:'sp',l:'속도',min:1,max:10,s:1,v:2}],
+spf:P=>P.sp,
+setup(){const N=100;return{N,Q:Float32Array.from({length:N*2},()=>R()*.2-.1),go:new Uint8Array(N),pg:new Float32Array(N),h:[],t:0}},
+step(S,P){const N=S.N;let n=0;for(let i=0;i<N;i++){const a=Math.exp(S.Q[i*2]/P.T),b=Math.exp(S.Q[i*2+1]/P.T),p=isFinite(a/(a+b))?a/(a+b):(S.Q[i*2]>S.Q[i*2+1]?1:0);S.pg[i]=p;S.go[i]=R()<p?1:0;n+=S.go[i]}
+ const r=n<P.c*N?1:-1;for(let i=0;i<N;i++){if(S.go[i])S.Q[i*2]+=P.al*(r-S.Q[i*2]);else S.Q[i*2+1]+=P.al*(0-S.Q[i*2+1])}push(S.h,n/N,400);S.t++},
+draw(S,P,c,sim){const a=COL.c1_rgb,b=COL.panel_rgb;drawGrid(c.view,10,10,i=>{const p=S.pg[i];return[b[0]+(a[0]-b[0])*p|0,b[1]+(a[1]-b[1])*p|0,b[2]+(a[2]-b[2])*p|0]});
+ const v=c.view,r=Math.min(v.w,v.h)/10,ox=(v.w-r*10)/2,oy=(v.h-r*10)/2;v.ctx.fillStyle=COL.sel;for(let i=0;i<S.N;i++)if(S.go[i]){v.ctx.beginPath();v.ctx.arc(ox+(i%10+.5)*r,oy+((i/10|0)+.5)*r,r*.12,0,7);v.ctx.fill()}
+ plot(c.plot,[{d:S.h,c:COL.fg,l:'온 손님 비율'}],{ymin:0,ymax:1,n:400,hline:P.c});const rec=S.h.slice(-100),m=rec.reduce((x,y)=>x+y,0)/(rec.length||1),sd=Math.sqrt(rec.reduce((x,y)=>x+(y-m)**2,0)/(rec.length||1));setStat(sim,`날 ${S.t}  최근 평균 ${(m*100).toFixed(0)}%  표준편차 ${(sd*100).toFixed(1)}%p  (칸 색 = 갈 확률, 빨간 점 = 오늘 감)`)}});
+
+// ================= G. LLM 에이전트 =================
+model({id:'llm',grp:'G',no:'G1',title:'LLM 에이전트 시뮬레이션',en:'Generative agents · LLM-based social simulation',nosim:true,
+one:`<p>개체의 규칙을 식으로 쓰는 대신 언어 모델에게 맡기는 방식이에요. 각 에이전트는 성격과 배경을 적은 글(페르소나), 겪은 일을 쌓는 기억, 기억에서 지금 상황에 맞는 걸 꺼내는 검색, 가끔 기억을 요약해 생각을 만드는 반성, 그리고 무엇을 할지 정하는 계획 단계를 가져요. 환경은 SNS 피드나 마을 지도처럼 에이전트들이 서로의 행동을 보는 공간이에요.</p><p>장점은 말과 글처럼 식으로 쓰기 어려운 행동을 그대로 다룰 수 있다는 거예요. 단점도 분명해요. 실행마다 결과가 달라지고 비용이 크며, 모델이 학습한 고정관념이 섞이고, 어떤 결과가 규칙에서 나온 건지 모델의 습관에서 나온 건지 가르기 어려워요. 그래서 고전 ABM처럼 단순한 기준 모델과 비교하고, 같은 설정을 여러 번 돌려 분포로 보는 게 권장돼요(Gao 등 2023 리뷰, Larooij & Törnberg 2025 비판).</p>`,
+fx:['a_i(t)=\\mathrm{LLM}\\big(\\text{persona}_i,\\;\\mathrm{retrieve}(M_i,\\,o_i(t)),\\;o_i(t)\\big),\\qquad M_i\\leftarrow M_i\\cup\\{o_i(t),a_i(t)\\}','\\text{retrieve 점수}=\\alpha_1\\,\\text{최근성}+\\alpha_2\\,\\text{중요도}+\\alpha_3\\,\\text{관련성}\\quad(\\text{Park et al. 2023})'],
+diag:{h:150,n:[{id:'o',t:'관찰 (피드·주변)',x:80,y:35,w:130},{id:'m',t:'기억 흐름',x:240,y:35,w:100},{id:'r',t:'반성·요약',x:390,y:35,w:90},{id:'p',t:'계획·결정 (LLM)',x:240,y:115,k:1,w:140},{id:'a',t:'행동 (글·이동)',x:80,y:115,w:120}],e:[['o','m','저장','+',0],['m','r','','+',-14],['r','m','','~',-14],['m','p','검색','+',0],['p','a','','+',0],['a','o','다른 에이전트가 봄','~',0]]},
+after:`<h3>대표 작업</h3><div class="tw"><table class="gl"><thead><tr><th>작업</th><th>무엇을 했나</th><th>링크</th></tr></thead><tbody>
+<tr><td>Park et al. 2023, Generative Agents</td><td>25명의 에이전트가 사는 마을. 기억·반성·계획 구조를 처음 체계화. 파티 소문이 퍼지는 등 정보 확산이 나옴.</td><td><a href="https://arxiv.org/abs/2304.03442" target="_blank" rel="noopener">arXiv 2304.03442</a></td></tr>
+<tr><td>Törnberg et al. 2023</td><td>LLM 에이전트로 SNS를 만들고 피드 정렬 알고리즘(인기순, 반대편 노출 등)에 따른 대화 양상을 비교.</td><td><a href="https://arxiv.org/abs/2310.05984" target="_blank" rel="noopener">arXiv 2310.05984</a></td></tr>
+<tr><td>Yang et al. 2024, OASIS</td><td>최대 100만 에이전트 규모의 X/Reddit 모사 플랫폼. 추천 시스템, 정보 확산, 군집 행동 재현.</td><td><a href="https://arxiv.org/abs/2411.11581" target="_blank" rel="noopener">arXiv 2411.11581</a> · <a href="https://github.com/camel-ai/oasis" target="_blank" rel="noopener">GitHub</a></td></tr>
+<tr><td>Rossetti et al. 2024, Y Social</td><td>LLM 에이전트용 SNS 디지털 트윈. 게시·좋아요·팔로우와 추천 알고리즘을 바꿔가며 실험.</td><td><a href="https://arxiv.org/abs/2408.00818" target="_blank" rel="noopener">arXiv 2408.00818</a></td></tr>
+<tr><td>Gao et al. 2023, 리뷰</td><td>LLM 기반 ABM 전반 정리: 사회·물리·경제 영역, 평가 방법, 한계.</td><td><a href="https://arxiv.org/abs/2312.11970" target="_blank" rel="noopener">arXiv 2312.11970</a></td></tr>
+<tr><td>Tsvetkova et al. 2024</td><td>사람과 봇·알고리즘이 섞인 집단에서 나오는 새로운 집단 행동을 다룬 리뷰(인간-기계 사회).</td><td><a href="https://arxiv.org/abs/2402.14410" target="_blank" rel="noopener">arXiv 2402.14410</a></td></tr>
+<tr><td>Rahwan et al. 2019, Machine behaviour</td><td>기계를 행동 연구 대상으로 보자는 제안. 개별 기계, 기계 집단, 사람-기계 혼합 수준을 구분.</td><td><a href="https://doi.org/10.1038/s41586-019-1138-y" target="_blank" rel="noopener">Nature</a></td></tr>
+</tbody></table></div>`,
+try:[],refs:[['Larooij & Törnberg 2025, Do large language models solve the problems of agent-based modeling? (비판적 리뷰)','https://arxiv.org/abs/2504.03274'],['Mesa-LLM / Concordia 등 프레임워크 예: Google DeepMind Concordia','https://github.com/google-deepmind/concordia']]});
+
+// ================= H. 방법과 도구 =================
+model({id:'phase',grp:'H',no:'H1',title:'상도표 그리기',en:'Parameter sweep and phase diagram',
+one:`<p>모델 하나를 몇 번 돌려보는 것만으로는 그 모델을 이해했다고 하기 어려워요. 두 변수를 격자로 훑으면서 각 칸마다 시뮬레이션을 돌리고, 결과 지표 하나를 색으로 칠하면 상도표가 돼요. 색이 갑자기 바뀌는 경계가 상전이(분기)이고, 그 근처가 보통 가장 흥미로운 동역학이 있는 곳이에요.</p><p>오른쪽은 D4 Schelling 모델을 θ(가로) × 빈집 비율(세로) 10×10칸으로 훑어요. 칸마다 30×30 격자를 40번 돌리고 같은 집단 평균 비율을 칠해요. 재생을 누르면 한 칸씩 채워져요. 실제 연구에서는 칸마다 여러 번 반복해서 평균과 분산을 같이 봐요. 결과가 우연히 한 번 나온 게 아닌지 확인하려는 거예요.</p>`,
+fx:['\\Phi(\\theta,\\rho)=\\mathbb E\\big[\\,\\bar s\\;\\big|\\;\\theta,\\rho\\,\\big],\\qquad \\bar s=\\frac1N\\sum_i s_i\\;(\\text{같은 집단 비율})'],
+diag:{h:110,n:[{id:'g',t:'변수 격자 (θ, ρ)',x:90,y:55,w:140},{id:'r',t:'칸마다 실행',x:250,y:55,w:100},{id:'m',t:'지표 → 색',x:390,y:55,k:1,w:100}],e:[['g','r','','+',0],['r','m','반복 평균','+',0]]},
+try:['다 채워지면 θ가 0.2~0.7 사이에서 진하게 갈라지고, 0.75를 넘으면 오히려 옅어지는(이사만 하는) 경계가 보여요.','빈집이 적은 아래쪽은 같은 θ에서도 덜 갈라져요.'],
+refs:[['Grimm et al. 2005, Pattern-oriented modeling of agent-based complex systems','https://doi.org/10.1126/science.1116681'],['Thiele, Kurth, Grimm 2014, Facilitating parameter estimation and sensitivity analysis of agent-based models (JASSS)','https://www.jasss.org/17/3/11.html'],['NetLogo BehaviorSpace 설명서','https://ccl.northwestern.edu/netlogo/docs/behaviorspace.html']],
+canvases:[['view','view'],['plot','plot']],
+controls:[],
+setup(){return{G:10,v:new Float32Array(100).fill(NaN),k:0,last:[]}},
+step(S){if(S.k>=100)return;const i=S.k%10,j=S.k/10|0,th=.05+.9*i/9,e=.02+.38*j/9,L=30,g=new Uint8Array(L*L);for(let q=0;q<L*L;q++)g[q]=R()<e?0:(R()<.5?1:2);const T={L,g};const tr=[];for(let t=0;t<40;t++){schStep(T,th);tr.push(schMeasure(T,th)[0])}S.v[S.k]=tr[tr.length-1];S.last=tr;S.k++},
+draw(S,P,c,sim){const v=c.view,ctx=v.ctx;clear(v);const pl=58,pb=34,W=Math.min(v.w-pl-10,v.h-pb-10),cw=W/10,a=COL.c4_rgb,b=COL.panel_rgb;
+ for(let k=0;k<100;k++){const i=k%10,j=k/10|0,x=pl+i*cw,y=10+(9-j)*cw;if(isNaN(S.v[k])){ctx.strokeStyle=COL.line;ctx.strokeRect(x+.5,y+.5,cw-1,cw-1);continue}const t=clamp((S.v[k]-.5)/.45,0,1);ctx.fillStyle=`rgb(${b.map((q,m)=>q+(a[m]-q)*t|0)})`;ctx.fillRect(x,y,cw,cw)}
+ if(S.k<100){const i=S.k%10,j=S.k/10|0;ctx.strokeStyle=COL.sel;ctx.lineWidth=2;ctx.strokeRect(pl+i*cw+1,10+(9-j)*cw+1,cw-2,cw-2);ctx.lineWidth=1}
+ ctx.fillStyle=COL.muted;ctx.font='10px IBM Plex Mono, monospace';ctx.textAlign='center';[0,4.5,9].forEach(i=>ctx.fillText((.05+.9*i/9).toFixed(2),pl+(i+.5)*cw,10+W+12));ctx.textAlign='right';[0,4.5,9].forEach(j=>ctx.fillText((.02+.38*j/9).toFixed(2),pl-4,10+(9-j+.5)*cw+3));
+ ctx.fillStyle=COL.fg;ctx.font='11px IBM Plex Sans KR, sans-serif';ctx.textAlign='center';ctx.fillText('θ (원하는 같은 비율) →',pl+W/2,10+W+27);ctx.save();ctx.translate(14,10+W/2);ctx.rotate(-Math.PI/2);ctx.fillText('빈집 비율 →',0,0);ctx.restore();ctx.textAlign='left';
+ plot(c.plot,[{d:S.last,c:COL.c4,l:'방금 칸의 같은 비율 변화'}],{ymin:.4,ymax:1,n:40,xl:'반복 →'});setStat(sim,`${S.k}/100칸  (진할수록 많이 갈라짐, 0.5 = 섞임, 0.95 이상 = 완전 분리)`)}});
+
+model({id:'ews',grp:'H',no:'H2',title:'임계 전이의 조기 경보 신호',en:'Early-warning signals for critical transitions · critical slowing down (Scheffer et al. 2009)',
+one:`<p>시스템이 갑자기 다른 상태로 넘어가는 접힘 분기 직전에는, 작은 흔들림에서 회복하는 속도가 점점 느려져요(임계 감속). 그래서 넘어가기 전에 이미 측정값의 분산이 커지고, 바로 전 값과 지금 값이 점점 비슷해져서 1차 자기상관(AR1)이 1에 가까워져요. 모델을 몰라도 시계열만으로 "곧 무언가 바뀐다"를 알아보는 방법이에요.</p><p>오른쪽은 가장 단순한 예예요. 아래 골짜기에 있던 x가 r이 천천히 커지면서 골짜기가 사라지는 순간 위 상태로 튀어요. 아래 그래프에서 분산과 AR1이 튀기 전에 미리 올라가는지 보세요. 잡음이 크면 골짜기가 사라지기 전에 일찍 넘어가 버리기도 해요.</p>`,
+fx:['dx=\\big(r(t)+x-x^3\\big)dt+\\sigma\\,dW,\\qquad r(t)=r_0+\\varepsilon t','\\text{AR1}=\\mathrm{corr}(x_t,x_{t-1}),\\quad \\text{접힘점 } r_c=\\tfrac{2}{3\\sqrt3}\\approx0.385'],
+diag:{h:110,n:[{id:'r',t:'천천히 바뀌는 r',x:90,y:55,w:130},{id:'s',t:'골짜기 얕아짐',x:250,y:55,w:120},{id:'w',t:'분산↑ AR1↑',x:390,y:55,k:1,w:100}],e:[['r','s','','+',0],['s','w','회복 느려짐','+',0]]},
+try:['기본값으로 끝까지 돌리면 r≈0.38(점선)에서 튀고, 그 전에 분산과 AR1이 올라가요.','잡음 σ를 0.4로 올리면 점선보다 훨씬 일찍 튀어요. 신호를 볼 시간이 짧아져요.','r 변화 속도를 높이면 감속을 따라가지 못해서 신호가 약해져요.'],
+refs:[['Scheffer et al. 2009, Early-warning signals for critical transitions','https://doi.org/10.1038/nature08227'],['Dakos et al. 2012, Methods for detecting early warnings of critical transitions in time series','https://doi.org/10.1371/journal.pone.0041010'],['Scheffer et al. 2012, Anticipating critical transitions','https://doi.org/10.1126/science.1225244'],['early warning signals toolbox (ewstools, Python)','https://github.com/ThomasMBury/ewstools']],
+canvases:[['view','wide'],['plot','plot']],
+controls:[{k:'sig',l:'잡음 σ',min:.02,max:.5,s:.01,v:.12},{k:'eps',l:'r 변화 속도',min:.2,max:3,s:.05,v:1,r:1}],
+spf:()=>6,
+setup(){const x=-1.3;return{x,r:-1,hx:[],hr:[],hv:[],ha:[],t:0,flip:null}},
+step(S,P){if(S.r>1)return;const dt=.01,sub=5;for(let k=0;k<sub;k++){S.x+=(S.r+S.x-S.x**3)*dt+P.sig*Math.sqrt(dt)*gauss()}S.r+=P.eps*.0004;S.hx.push(S.x);S.hr.push(S.r);if(S.flip==null&&S.x>.3)S.flip=S.t;
+ const w=150,n=S.hx.length;if(n>w){const seg=S.hx.slice(n-w);const m=seg.reduce((a,b)=>a+b,0)/w;const d=seg.map(v=>v-m);let v=0,c=0;for(let i=0;i<w;i++){v+=d[i]*d[i];if(i)c+=d[i]*d[i-1]}S.hv.push(v/w);S.ha.push(v?c/v:NaN)}else{S.hv.push(NaN);S.ha.push(NaN)}S.t++},
+draw(S,P,c,sim){const n=Math.ceil(2/(P.eps*.0004));const fl=S.flip;const cut=(a)=>fl==null?a:a.map((v,i)=>i>=fl?NaN:v);
+ plot(c.view,[{d:S.hx,c:COL.fg,w:1.2,l:'x(t)'},{d:S.hr,c:COL.c2,l:'r(t)'}],{ymin:-1.8,ymax:1.8,n,hline:.385});
+ const vs=cut(S.hv),as=cut(S.ha);let vm=1e-9;vs.forEach(v=>{if(isFinite(v)&&v>vm)vm=v});plot(c.plot,[{d:vs.map(v=>v/vm),c:COL.c1,l:'이동 분산 (최대=1)'},{d:as,c:COL.sel,l:'AR1'}],{ymin:0,ymax:1,n});
+ setStat(sim,`r=${S.r.toFixed(3)}  x=${S.x.toFixed(2)}${fl!=null?'  · 넘어감 (r='+S.hr[fl].toFixed(3)+')':''}  (위 점선 = 접힘점 r 0.385)`)}});
+
+model({id:'odd',grp:'H',no:'H3',title:'모델을 기록하고 검증하는 틀',en:'ODD protocol · pattern-oriented modelling · ABM toolkits',nosim:true,
+one:`<p>ABM은 식 몇 줄로 요약되지 않아서, 남이 같은 모델을 다시 만들 수 있게 적는 형식이 따로 있어요. 가장 널리 쓰는 게 ODD(Overview, Design concepts, Details)예요. 목적, 개체와 상태 변수, 진행 순서, 설계 개념(창발, 적응, 목표, 학습, 예측, 감지, 상호작용, 확률성, 집단, 관찰), 초기화, 입력, 하위 모델 순서로 적어요.</p><p>검증은 패턴 지향 모델링(POM)이 표준이에요. 한 가지 지표만 맞추면 서로 다른 규칙들이 다 맞을 수 있으니, 서로 다른 수준의 패턴 여러 개(분포 모양, 시간 패턴, 공간 패턴)를 동시에 재현하는 규칙만 남기는 방식이에요. 아래 표는 도구들이에요.</p>`,
+fx:[],diag:null,
+after:`<div class="tw"><table class="gl"><thead><tr><th>항목</th><th>내용</th><th>링크</th></tr></thead><tbody>
+<tr><td>ODD 프로토콜</td><td>Grimm 등 2006 제안, 2010·2020 개정. 7개 항목으로 모델 기술.</td><td><a href="https://doi.org/10.1016/j.ecolmodel.2006.04.023" target="_blank" rel="noopener">2006</a> · <a href="https://www.jasss.org/23/2/7.html" target="_blank" rel="noopener">2020 (JASSS)</a></td></tr>
+<tr><td>패턴 지향 모델링</td><td>여러 수준의 관찰 패턴을 동시에 맞추는 규칙만 채택.</td><td><a href="https://doi.org/10.1126/science.1116681" target="_blank" rel="noopener">Grimm et al. 2005</a></td></tr>
+<tr><td>NetLogo</td><td>교육·연구용 ABM 환경. 모델 라이브러리가 방대함(이 페이지 모델 대부분이 있음).</td><td><a href="https://ccl.northwestern.edu/netlogo/models/" target="_blank" rel="noopener">Models Library</a></td></tr>
+<tr><td>Mesa</td><td>Python ABM 프레임워크. 브라우저 시각화, 배치 실행.</td><td><a href="https://github.com/projectmesa/mesa" target="_blank" rel="noopener">GitHub</a></td></tr>
+<tr><td>Agents.jl</td><td>Julia ABM 프레임워크. 빠르고 매개변수 탐색 도구가 좋음.</td><td><a href="https://juliadynamics.github.io/Agents.jl/stable/" target="_blank" rel="noopener">문서</a></td></tr>
+<tr><td>GAMA · Repast</td><td>공간·GIS 기반 대규모 모델(GAMA), Java/C++ 대규모 분산 실행(Repast).</td><td><a href="https://gama-platform.org" target="_blank" rel="noopener">GAMA</a> · <a href="https://repast.github.io" target="_blank" rel="noopener">Repast</a></td></tr>
+<tr><td>CoMSES Net</td><td>ABM 코드 공개 저장소. 논문 모델 원본 코드를 찾을 때.</td><td><a href="https://www.comses.net/codebases/" target="_blank" rel="noopener">Codebases</a></td></tr>
+</tbody></table></div>`,
+try:[],refs:[['Railsback & Grimm, Agent-Based and Individual-Based Modeling: A Practical Introduction','https://press.princeton.edu/books/paperback/9780691190839/agent-based-and-individual-based-modeling'],['Wilensky & Rand 2015, An Introduction to Agent-Based Modeling','https://mitpress.mit.edu/9780262731898/an-introduction-to-agent-based-modeling/']]});
+
+// ================= glossary + boot =================
+const GROUPS={A:'개체군 동역학',B:'유인과 제도',C:'전파와 확산',D:'의견과 문화',E:'자기조직 임계와 경쟁',F:'학습하는 에이전트',G:'LLM 에이전트',H:'방법과 도구'};
+const GLOSS=[
+['에이전트 기반 모델 (ABM)','개체마다 상태와 규칙을 주고 그 상호작용을 직접 돌려서 집단 현상을 보는 방법.','A1, D4'],
+['평균장 근사','모든 개체가 집단 평균만 본다고 가정해 미분방정식으로 줄이는 것. 공간과 우연을 잃음.','A1, C4'],
+['창발','개체 규칙에 없는 패턴이 집단 수준에서 나타나는 것.','D4, E2'],
+['양의 / 음의 피드백','결과가 원인을 더 키우는(부익부) / 줄이는(포화, 소비) 고리.','C6, E4'],
+['평형점과 안정성','변화가 멈추는 점, 그리고 살짝 밀었을 때 돌아오는지 여부.','A2'],
+['분기','변수를 천천히 바꿀 때 평형의 수나 성질이 갑자기 바뀌는 지점. Hopf(순환 시작), 접힘(상태 점프) 등.','A1, H2'],
+['상전이 / 임계점','집단 상태가 변수 하나를 지나며 질적으로 바뀌는 것과 그 경계.','D3, E3'],
+['자기조직 임계 (SOC)','조절 없이 스스로 임계 상태로 가서 사건 크기가 멱법칙을 따르는 현상.','E1, E2'],
+['멱법칙 / 긴 꼬리','P(x) ~ x^−τ. 대부분은 작지만 아주 큰 사건이 무시할 수 없는 확률로 나옴.','C5, E2'],
+['기본 재생산수 R₀','한 개체가 평균 몇 명에게 퍼뜨리는지. 1을 넘으면 확산.','C1'],
+['문턱 / 연쇄','이웃 중 일정 비율이 하면 나도 함. 작은 씨앗이 전체로 번지는지가 네트워크 구조에 달림.','C2, C3'],
+['제한된 주의','볼 수 있는 양이 정해져 있어 항목끼리 주의를 두고 경쟁하는 조건.','C5, E4'],
+['경로 의존 / 잠금','초반 우연이 최종 결과를 정하고 되돌리기 어려워지는 것.','C6'],
+['공유지의 비극','각자 합리적으로 쓰면 공동 자원이 고갈되는 구조. Ostrom은 제도로 피하는 조건을 정리.','B2'],
+['주인-대리인 / Goodhart','측정해서 보상하면 측정되는 것만 늘고 원래 목표는 희생됨.','B1'],
+['복제자 동역학','평균보다 잘하는 전략의 비율이 늘어나는 진화 게임 동역학.','A3'],
+['동질성 / 사회적 영향','비슷한 사람끼리 만나는 경향 / 만나면 비슷해지는 경향.','D2, D3'],
+['합의 / 분극 / 파편화','의견이 하나로, 둘로, 여럿으로 갈라지는 결과.','D1, D2'],
+['비정상성','함께 배우는 다른 개체 때문에 내 환경 자체가 계속 바뀌는 문제.','F1'],
+['탐색과 활용','아는 최선을 쓸지, 모르는 걸 시도할지의 균형. 온도 T나 ε로 조절.','F1'],
+['임계 감속','분기 직전에 회복이 느려져 분산과 자기상관이 커지는 현상.','H2'],
+['매개변수 탐색 / 민감도 분석','변수를 격자로 훑어 결과가 어디서 어떻게 바뀌는지 보는 것.','H1'],
+['패턴 지향 모델링','여러 수준의 관찰 패턴을 동시에 재현하는 규칙만 남기는 검증법.','H3'],
+['ODD','ABM 기술 표준 형식(개요, 설계 개념, 세부).','H3']];
+
+function boot(){const nav=document.getElementById('nav'),main=document.getElementById('main');let g0='';const links={};
+ MODELS.forEach(d=>{if(d.grp!==g0){g0=d.grp;const h=document.createElement('h4');h.textContent=d.grp+'. '+GROUPS[d.grp];nav.appendChild(h);const gh=document.createElement('div');gh.className='grp';gh.innerHTML=`<b>${d.grp}</b> · ${GROUPS[d.grp]}`;main.appendChild(gh)}
+  const a=document.createElement('a');a.href='#'+d.id;a.innerHTML=`<span>${d.no}</span>${d.title}`;nav.appendChild(a);links[d.id]=a;
+  const s=document.createElement('section');s.className='m';s.id=d.id;
+  const fx=(d.fx||[]).map(t=>`<div class="fx">\\[${t}\\]</div>`).join('');
+  const tr=(d.try||[]).length?`<h3>해볼 것</h3><ul>${d.try.map(t=>`<li>${t}</li>`).join('')}</ul>`:'';
+  const rf=(d.refs||[]).length?`<h3>원논문과 관련 링크</h3><ul class="refs">${d.refs.map(([t,u])=>`<li><a href="${u}" target="_blank" rel="noopener">${t}</a></li>`).join('')}</ul>`:'';
+  const dg=d.diag?`<h3>구조</h3>${diag(d.diag)}`:'';
+  if(d.nosim){s.innerHTML=`<h2><span class="no">${d.no}</span>${d.title}</h2><div class="en">${d.en}</div><div class="plate"><div class="txt">${d.one}${fx?'<h3>식</h3>'+fx:''}</div><div class="txt">${dg}${rf}</div></div><div class="txt">${d.after||''}</div>`;main.appendChild(s);return}
+  s.innerHTML=`<h2><span class="no">${d.no}</span>${d.title}</h2><div class="en">${d.en}</div><div class="plate"><div class="txt">${d.one}${dg}<h3>식</h3>${fx}${tr}${rf}</div><div class="bench"></div></div>`;main.appendChild(s);
+  const sim=new Sim(d,s);sim.sec=s;SIMS.push(sim)});
+ const gs=document.createElement('div');gs.className='grp';gs.innerHTML='<b>용어</b> · 자주 나오는 말';main.appendChild(gs);
+ const gl=document.createElement('section');gl.className='m';gl.id='gloss';gl.innerHTML=`<div class="tw"><table class="gl"><thead><tr><th>용어</th><th>뜻</th><th>나오는 곳</th></tr></thead><tbody>${GLOSS.map(([a,b,c])=>`<tr><td>${a}</td><td>${b}</td><td>${c.split(', ').map(x=>{const m=MODELS.find(d=>d.no===x);return m?`<a href="#${m.id}">${x}</a>`:x}).join(', ')}</td></tr>`).join('')}</tbody></table></div>`;main.appendChild(gl);
+ const h=document.createElement('h4');h.textContent='용어';nav.appendChild(h);const ga=document.createElement('a');ga.href='#gloss';ga.innerHTML='<span>·</span>용어 정리';nav.appendChild(ga);
+ const ft=document.createElement('footer');ft.innerHTML='모든 시뮬레이션은 설명용으로 작게 줄인 버전이에요. 크기와 시간 단위는 원논문과 다르고, 정량 비교는 원논문의 설정을 따라야 해요.';main.appendChild(ft);
+ const io=new IntersectionObserver(es=>es.forEach(e=>{const sm=SIMS.find(x=>x.sec===e.target);if(sm){sm.vis=e.isIntersecting;if(e.isIntersecting)sm.draw()}}),{rootMargin:'100px'});SIMS.forEach(x=>io.observe(x.sec));
+ const io2=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){Object.values(links).forEach(a=>a.classList.remove('on'));const a=links[e.target.id];if(a)a.classList.add('on')}}),{rootMargin:'-40% 0px -55% 0px'});document.querySelectorAll('section.m').forEach(x=>io2.observe(x));
+ let last=0;function loop(ts){if(ts-last>15){last=ts;for(const s of SIMS)if(s.vis){try{s.tick()}catch(err){console.error(s.d.id,err)}}}requestAnimationFrame(loop)}requestAnimationFrame(loop);
+ let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>SIMS.forEach(s=>s.vis&&s.draw()),120)});
+ const tm=()=>{if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise([main]).catch(e=>console.warn(e));else setTimeout(tm,200)};tm()}
+boot();
+</script>
+
+</body></html>

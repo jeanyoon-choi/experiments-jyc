@@ -45,12 +45,14 @@
 
 ## Read only what the task requires
 
+Goldfishes first: before any Goldfishes task beyond a fix inside one route, read its system map (`node apps/goldfishes/foundations/system/model/print.ts`, or `/system`). It is the origin the artist and every agent share.
+
 Start with target code and the app's `docs/README.md`; follow relevant links, not the entire archive. [Documentation map](docs/README.md) locates families.
 
 | Task | Required reference |
 | --- | --- |
 | Create/substantially change an SCC, Goldfishes, six-sigma, or xyt-cube experiment | [Tinkering](docs/foundations/tinkering.md) |
-| Goldfishes: the work's meaning, its system or logic, a new family | [Direction](apps/goldfishes/docs/direction.md), then the artist's latest notes it points to |
+| Goldfishes: the work's meaning, its system or logic, a new family | [Direction](apps/goldfishes/docs/direction.md), [the system map](apps/goldfishes/docs/system.md) (update its model when a part's status changes), then the artist's latest notes direction points to |
 | New/materially redesigned UI | [Design](docs/foundations/design-guidelines.md) |
 | Routes, registries, component organization | [Structure](docs/harness/experiments.md) |
 | New rendering techniques/current references | [Rendering research](docs/harness/visual-rendering-research.md) |

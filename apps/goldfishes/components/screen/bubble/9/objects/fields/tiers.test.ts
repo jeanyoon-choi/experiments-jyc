@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { chainsOf, tiersFrom, tiersOf, type TierData } from "./tier-data.ts";
 import { ADDRESS_TIER, bytesOf, chainOf, MEMORY_BUDGET, paintChainOf, poolsFor, Residency, tierBytes, tierFor, toHalf } from "./tiers.ts";
 
 /** bubble/8's fields: 55 layers of 512² RGBA16F and 128² R16F with mips, 16 photographs 256² RGBA8 with mips. */
@@ -75,4 +76,34 @@ test("residency: the largest objects' kinds take the pools, the holders a little
   residency.plan(radius, 0.5, 4);
   assert.equal(residency.desired[5], 2);
   assert.equal(residency.desired[3], 1);
+});
+
+test("a kept bake's tiers are a bake's over again: the same bytes each time, the chains left whole", () => {
+  // A small field's worth of values in the full sizes (field-worker.ts keeps `chainsOf` and cuts with `tiersFrom`).
+  const random = (() => {
+    let state = 20_261_124;
+    return () => (state = (state * 48_271) % 2_147_483_647) / 2_147_483_647;
+  })();
+  const field = { data: Float32Array.from({ length: 512 * 512 * 4 }, () => random() * 2 - 1), membrane: Float32Array.from({ length: 128 * 128 }, () => random()) };
+  const albedo = Uint8ClampedArray.from({ length: 256 * 256 * 4 }, () => Math.floor(random() * 256));
+  const bytes = (tiers: TierData[]) => tiers.map((tier) => [tier.tier, Array.from(new Uint8Array(tier.field.buffer.slice(0, 4096))), tier.field.length, tier.membrane.length, tier.paint?.length, sum(tier.field), sum(tier.membrane), sum(tier.paint!)]);
+  const sum = (values: ArrayLike<number>) => {
+    let hash = 2_166_136_261;
+    for (let at = 0; at < values.length; at += 1) hash = Math.imul(hash ^ values[at]!, 16_777_619) >>> 0;
+    return hash;
+  };
+  const baked = bytes(tiersOf(field, albedo, [0, 1, 2, 3]));
+  const chains = chainsOf(field, albedo);
+  const before = [sum(chains.field), sum(chains.membrane), sum(chains.paint!)];
+  // Asked for as a kind is: tier 0 first, then the tier it grew into, then all again; each answer's buffers are handed over (here: wiped).
+  for (const asked of [[0], [3], [2, 3], [0, 1, 2, 3], [0, 1, 2, 3]] as const) {
+    const cut = tiersFrom(chains, asked);
+    assert.deepEqual(bytes(cut), asked.map((tier) => baked[tier]));
+    for (const tier of cut) {
+      tier.field.fill(0);
+      tier.membrane.fill(0);
+      tier.paint!.fill(0);
+    }
+  }
+  assert.deepEqual([sum(chains.field), sum(chains.membrane), sum(chains.paint!)], before);
 });

@@ -15,7 +15,7 @@ export const PRESET_FAMILIES = presetFamilies(BASE);
 export const applyPreset = <State extends PresetState>(state: State, preset: Preset): State => applyOver(state, preset, BASE);
 export const matchPreset = (state: PresetSlices): Preset | null => matchOver(state, PRESET_FAMILIES, BASE);
 
-/** The opening's slices under a member of the first family (/screen/bubble/9b opens on A3 through ../clock.tsx). */
+/** The opening's slices under a member of the first family (/screen/bubble/9b opens on A2 through ../clock.tsx). */
 export function openingUnder(index: number): PresetState {
   const preset = PRESET_FAMILIES[0]!.items[index] ?? PRESET_FAMILIES[0]!.items[OPENING_PRESET]!;
   return applyPreset({ ...BASE, owing: null }, preset);

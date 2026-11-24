@@ -309,7 +309,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     area: "screen",
     section: "dated",
     date: "2026-11-05",
-    updated: "2026-11-23",
+    updated: "2026-11-24",
     phrase: "bubble/8 with its bugs fixed, as the ground for a new vocabulary of signs",
     load: () => import("./screen/bubble/9"),
   },

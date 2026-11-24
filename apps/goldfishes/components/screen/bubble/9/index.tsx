@@ -47,7 +47,7 @@ function pointIn(event: PointerEvent<HTMLCanvasElement>) {
   return { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
 }
 
-/** `setup`: the member of the first preset family (presets/families.ts) to open on; /screen/bubble/9b opens on A3 through ./clock.tsx. */
+/** `setup`: the member of the first preset family (presets/families.ts) to open on; /screen/bubble/9b opens on A2 through ./clock.tsx. */
 export default function RankedWebIteration({ setup = OPENING_PRESET }: { setup?: number } = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fishCanvasRef = useRef<HTMLCanvasElement>(null);

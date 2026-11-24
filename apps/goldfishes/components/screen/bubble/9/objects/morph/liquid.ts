@@ -24,7 +24,7 @@ export type Liquid = {
 
 /**
  * Three ways the raft's objects move on and set, kept side by side while the user decides (2026-11-06;
- * presets/families.ts: A2 opens on the first, A3 on the second, A1 on the third; components/screen/bubble/docs/9.md):
+ * presets/families.ts: A1 opens on the first, A2 on the second; no preset holds the third since 2026-11-24; components/screen/bubble/docs/9.md):
  *   금붕어 — a page moves on once the goldfish have watched it (simulation/attention.ts turns) and sets solid between;
  *   시계 — every page moves on on its own beat every `change` s, never quite sets (a melt floor `residue` the outline
  *          sways on) and rings down as it sets (`ring`);

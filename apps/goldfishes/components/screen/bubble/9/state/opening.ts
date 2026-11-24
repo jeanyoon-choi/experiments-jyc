@@ -14,7 +14,7 @@ import { FEEDBACK_DEFAULTS, type Feedback, type Rates, type Visual } from "./sch
  * opens with it; 기본값 3 in the goldfish panel brings every panel back to it.
  */
 // The opening is bubble/8 as the user tuned it (user, 2026-11-06; components/screen/bubble/docs/9.md "Opening"): only the values
-// that differ from bubble/9's are set here, each with what it was. bubble/9 itself opens on preset A2 over these
+// that differ from bubble/9's are set here, each with what it was. bubble/9 itself opens on preset A1 over these
 // (presets/families.ts), which the presets' base is not: 버블 면적 0.8 and 각도 0 here.
 export const OPENING = {
   rates: {

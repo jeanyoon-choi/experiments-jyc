@@ -13,7 +13,7 @@ type Props = {
 };
 
 export const PresetSwitch = memo(function PresetSwitch({ families, preset, onPreset }: Props) {
-  // The presets as one run (A1 … B4), to step through; from the last one chosen once a value has been moved.
+  // The presets as one run (A1 … A5, B1 … B4), to step through; from the last one chosen once a value has been moved.
   const [listed, setListed] = useState(false);
   const run = families.flatMap((family) => family.items);
   const now = preset ? run.indexOf(preset) : -1;

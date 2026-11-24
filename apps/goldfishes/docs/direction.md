@@ -2,13 +2,17 @@
 
 Read this before any task that touches what the work means or how its system behaves (a new experiment, the logic, the signs, the audience's part). A fix inside one route does not need it. It holds where things stand; the artist's notes hold the thinking and keep changing.
 
+## The map
+
+[`/system`](./system.md) is the whole work on one sheet: the devices, what passes between them, what is built, what is still asked, and how the structure changed since June. Its model, `foundations/system/model/`, is the origin every agent and the artist share. Read it before a task that touches the system, and update it in the same change when a part's status changes.
+
 ## Read the notes first
 
 The artist writes in Google Docs; the notes are transcribed into the portfolio repository, which any agent on this machine can read:
 
 - `/Users/jeongyoonchoi/Desktop/project/portfolio-v4/content/texts/entries/notes-YYYY-MM-DD-*.json`, field `original`. Read the latest dated ones first (`ls` the folder; do not rely on the list below staying current). In each, only the block under `핵심 정리` is the artist's own text; what follows `아래 내용: AI 번역, 부정확` is an AI's reading of handwriting and is unreliable. `[AI 추가 레퍼런스]` marks text an AI added.
 - `…/content/texts/GLOSSARY.md` for the artist's terms.
-- Entry points as of 2026-11-18: `notes-2026-11-15-heterogenous-simulation`, `-11-11-filter-bubble`, `-11-06-goldfishes`, `-10-20-goldfishes`.
+- Entry points as of 2026-11-24: `notes-2026-11-23-how-to-create-a-bubble`, `-11-18-algorithm-pop-art` (the device diagram), `-11-15-heterogenous-simulation`, `-11-11-filter-bubble`, `-11-06-goldfishes`, `-10-20-goldfishes`.
 
 Do not copy the notes here. If a note and this file disagree, the note is right and this file is stale: fix it.
 

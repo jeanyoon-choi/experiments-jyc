@@ -10,6 +10,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { CURRENT } from "../system/model/index.ts";
 import { goldfishAreas, goldfishFamilies, type GoldfishArea } from "./families";
 import styles from "./navigation.module.css";
 
@@ -554,6 +555,9 @@ function NavigationScreen({
               {area.key}
             </Link>
           ))}
+          <Link href="/system" className={linkTone}>
+            system
+          </Link>
         </nav>
       </header>
 
@@ -565,6 +569,31 @@ function NavigationScreen({
           <span>Path</span>
           <span />
         </div>
+
+        {/* Pinned above every experiment on the root index: the map they all belong to. */}
+        {!archiveKey && !scope ? (
+          <Link
+            href="/system"
+            className="group mb-4 grid min-h-11 grid-cols-[6rem_minmax(0,1fr)_4.75rem_1rem] items-center gap-3 border border-(--gf-fg) px-3 text-[12px] hover:bg-(--gf-fg) hover:text-(--gf-bg) focus-visible:bg-(--gf-fg) focus-visible:text-(--gf-bg) focus-visible:outline-none md:grid-cols-[minmax(7rem,0.65fr)_minmax(15rem,2fr)_5.5rem_minmax(12rem,1fr)_1rem] md:gap-4"
+          >
+            <span className="truncate font-medium">system</span>
+            <span className="truncate text-(--gf-fg)/58 group-hover:text-(--gf-bg)/65 group-focus-visible:text-(--gf-bg)/65">
+              The whole work on one sheet: the devices, what passes between them, what is built, what is still asked
+            </span>
+            <time
+              dateTime={CURRENT.date}
+              className="font-mono text-[10px] text-(--gf-fg)/45 group-hover:text-(--gf-bg)/55 group-focus-visible:text-(--gf-bg)/55"
+            >
+              {CURRENT.id}
+            </time>
+            <span className="hidden truncate font-mono text-[10px] text-(--gf-fg)/32 group-hover:text-(--gf-bg)/45 group-focus-visible:text-(--gf-bg)/45 md:block">
+              /system
+            </span>
+            <span aria-hidden="true" className="text-right">
+              →
+            </span>
+          </Link>
+        ) : null}
 
         {view === "date"
           ? dateGroups.map((group) => (

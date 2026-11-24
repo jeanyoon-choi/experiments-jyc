@@ -1,5 +1,7 @@
 # Goldfishes archive
 
+**Start with the system map.** Before anything else, an agent new to this app reads the map of the whole work: run `node apps/goldfishes/foundations/system/model/print.ts` (add `ko` for Korean) or open `/system`. It says what the devices are, what passes between them, what is built and what is still asked. How it is kept: [system](./system.md).
+
 What the work is, where it stands and where the artist's notes are: [direction](./direction.md). Read it before a task about the work's meaning or its system; a fix inside one route does not need it.
 
 ## Layout
@@ -14,9 +16,10 @@ One folder is one unit: a family holds its versions and its own notes, and is mo
 | `components/pc/archive/<family>/…` | The earlier pc trials (`news-phones`, `image-search`) and the native macOS windows (`native-windows`, formerly the `desktop` area), each with its `docs/`. |
 | `components/experiments.ts` | The registry: every routable experiment, its route key, area, ISO dates and loader. Authoritative. |
 | `socket/experiments/<protocol>/<n>/` | A socket protocol version, whole: the relay (`index.mjs`, `protocol.mjs`), its browser side (`client/`) and its contract (`README.md`). |
+| `foundations/system/` | The system map at `/system`: its model (`model/`) and its page. [Notes](./system.md). |
 | `foundations/navigation/` | The index pages; `families.ts` lists each family's members for the group view (`?view=group`; a key missing there shows as "unsorted"). |
 | `app/` | Thin routes only: they look a key up in the registry and render it. |
-| `docs/` | Only what belongs to no single family: this index, [direction](./direction.md), [onboarding](./agent-onboarding.md), [history](./research-and-rendering-history.md). |
+| `docs/` | Only what belongs to no single family: this index, [direction](./direction.md), [the system map](./system.md), [onboarding](./agent-onboarding.md), [history](./research-and-rendering-history.md). |
 
 Rules:
 - Experiments never import from each other, and nothing in `components/` is shared between families. The one shared import is a socket protocol's `client/` (`@/socket/experiments/feed/1/client`), picked by version in the import path; `native-windows/shared/` is shared inside its own family only.
@@ -32,7 +35,7 @@ Families (the registry `components/experiments.ts` holds every route's date, phr
 
 | Family | Versions | What it is |
 | --- | --- | --- |
-| `screen/simulation` | 0 (2026-11-18) | **The logic.** Two myopic agents, apart from any visual. [0](../components/screen/simulation/docs/0.md) |
+| `screen/simulation` | 0 (2026-11-18) | **The logic.** Two myopic agents, apart from any visual. [0](../components/screen/simulation/docs/0.md); reference: [에이전트 모델 도감](../components/screen/simulation/docs/models.md), to look at, not to follow |
 | `screen/bubble` | 1–9 (2026-10-20 → 11-05) | **The visual ground.** A raft of bubbles as objects in one material, liquid morphs, up to 1,000 goldfish with lifecycles; PageRank underneath. Current: [9](../components/screen/bubble/docs/9.md). 9b is unlisted. |
 | `pc/2d-mobiles` | 1–2 (2026-10-27/28) | One mobile per goldfish over [socket feed/1](../socket/experiments/feed/1/README.md). 1 failed ([record](../components/pc/2d-mobiles/docs/1.md#failure-record-and-handoff-2026-10-28)); [2](../components/pc/2d-mobiles/docs/2.md) was rebuilt from zero. It was `mobiles` (`/pc/mobiles/N`) until 2026-11-23. |
 | `pc/3d-mobiles` | 1–2 (2026-11-13 → 11-23) | The goldfish holding a mobile, in 3D. [1](../components/pc/3d-mobiles/docs/1.md): a feed of clips. [2](../components/pc/3d-mobiles/docs/2.md): `pc/2d-mobiles/2`'s working interfaces on the glass. It was `_experiments/goldfish-mobile` at `/screen/goldfish-mobile/1` until 2026-11-23: it is not a screen output. |

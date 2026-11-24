@@ -10,7 +10,7 @@ Status: procedure, used for the 2026-11-18 restructuring ([9.md](./9.md#structur
 2. For each scene: set it up through the interface, then `step(a)`, wait for `idle()`, `step(b)`, wait, `step(c)`, wait — never step while waiting, or the number of frames depends on the machine — then `step(1)` and, in the same task, `canvas.toDataURL("image/png")`.
 3. Compare with the same sequence run on the code before: every pixel, not a hash alone (a count and the largest difference say what kind of change it is).
 
-The sequence used, in one session, in this order (a scene's result depends on those before it): A2 `[120, 60, 20]`; A1, A3, A4 `[180, 60, 20]`; B1, B2 `[120, 40, 10]`; B3, B4 `[60, 20, 10]`; then from A4 each 재질 in turn — 젤 · 세럼, 석고, 유리, 메시 복원, 인쇄물, LSD, 쿤스, 맥시멀 믹스 — `[60, 30, 10]`; 전파 `[60, 20, 10]`; 랩 `[30, 10, 5]`; 군집 again `[60, 20, 10]`.
+(Preset labels here are those of 2026-11-18: A1 시계 굳음 is gone, and A2 · A3 are A1 · A2 since 2026-11-24.) The sequence used, in one session, in this order (a scene's result depends on those before it): A2 `[120, 60, 20]`; A1, A3, A4 `[180, 60, 20]`; B1, B2 `[120, 40, 10]`; B3, B4 `[60, 20, 10]`; then from A4 each 재질 in turn — 젤 · 세럼, 석고, 유리, 메시 복원, 인쇄물, LSD, 쿤스, 맥시멀 믹스 — `[60, 30, 10]`; 전파 `[60, 20, 10]`; 랩 `[30, 10, 5]`; 군집 again `[60, 20, 10]`.
 
 ```js
 const R = window.bubbleReplay, canvas = document.querySelector("canvas");

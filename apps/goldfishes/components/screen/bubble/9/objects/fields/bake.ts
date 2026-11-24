@@ -17,7 +17,13 @@ export { tiersOf, type TierData } from "./tier-data.ts";
 export type PaintKind = "face" | null;
 
 /** A baked kind: its field and, if it has one, its paint (ALBEDO_SIZE² RGBA, sRGB, over the field's frame). */
-export type Baked = { field: Field; albedo: Uint8ClampedArray | null; paint: PaintKind };
+export type Baked = {
+  field: Field;
+  albedo: Uint8ClampedArray | null;
+  paint: PaintKind;
+  /** A face whose portrait could not be had, baked from a blank one: a later bake may fare better (field-worker.ts keeps none of these). */
+  blank?: true;
+};
 
 const BLANK: Portrait = { width: 2, height: 2, luminance: new Float32Array(4).fill(0.5) };
 
@@ -41,6 +47,7 @@ export async function bakeKind(kind: FieldKind): Promise<Baked> {
   if (entry?.make) return bakeCatalogue(kind);
   if (entry?.source !== "face") return { field: fieldOf(kind), albedo: null, paint: null };
   const face = FACES[kind as FaceKind];
-  const portrait = await loadPortrait(face).catch(() => BLANK);
-  return { field: fieldOfHead(portrait, face.box), albedo: headAlbedo(portrait, face.box, ALBEDO_SIZE, FIELD_EXTENT), paint: "face" };
+  const loaded = await loadPortrait(face).catch(() => null);
+  const portrait = loaded ?? BLANK;
+  return { field: fieldOfHead(portrait, face.box), albedo: headAlbedo(portrait, face.box, ALBEDO_SIZE, FIELD_EXTENT), paint: "face", ...(loaded ? {} : { blank: true as const }) };
 }
