@@ -11,7 +11,7 @@ export const GROUP_TEXELS = 5;
 export const GROUP_DEPTH = 5;
 /** Each phone owns this many consecutive groups; the first is its root (the whole device). */
 export const GROUPS_PER_PHONE = 64;
-export const MAX_PHONES = 96;
+export const MAX_PHONES = 100;
 /** A strip tile (the goldfish's tail beat) plays its frames at this many a second. */
 export const STRIP_FPS = 11;
 

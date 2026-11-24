@@ -117,7 +117,7 @@ test("personas are stable per seat, and the field is mixed", () => {
 
 test("the query tunes, clamped and checked", () => {
   const tuning = tuningFromQuery("?phones=500&speed=1.5&death=nope&wave=x");
-  assert.equal(tuning.phones, 64);
+  assert.equal(tuning.phones, 100);
   assert.equal(tuning.speed, 1.5);
   assert.equal(tuning.death, TUNING_DEFAULTS.death);
   assert.equal(tuning.wave, TUNING_DEFAULTS.wave);

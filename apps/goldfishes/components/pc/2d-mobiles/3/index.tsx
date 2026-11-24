@@ -20,7 +20,7 @@ import { APP_IDS } from "./apps/registry";
 import type { AppId, Persona } from "./apps/types";
 import { Controls } from "./controls";
 import { ModeControl, type ModeState } from "./controls/mode";
-import { tuningFromQuery, tuningToQuery, TUNING_DEFAULTS, type Tuning } from "./model/tuning";
+import { PHONES_MAX, tuningFromQuery, tuningToQuery, TUNING_DEFAULTS, type Tuning } from "./model/tuning";
 import { renderObjects } from "./objects/render";
 import type { Lang } from "./paint/types";
 import { Engine, type FieldMode } from "./phone/engine";
@@ -39,7 +39,7 @@ function modeFromQuery(): ModeState {
   const app = params.get("app");
   return {
     mode: MODES.includes(mode as FieldMode) ? (mode as FieldMode) : onAPhone() ? "hand" : "field",
-    seat: Math.max(0, Math.min(63, Math.round(Number(params.get("seat")) || 0))),
+    seat: Math.max(0, Math.min(PHONES_MAX - 1, Math.round(Number(params.get("seat")) || 0))),
     keyword: params.get("keyword") ?? "",
     app: APP_IDS.includes(app as AppId) ? (app as AppId) : "",
   };

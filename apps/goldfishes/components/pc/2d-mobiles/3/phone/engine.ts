@@ -10,7 +10,7 @@ import { ripple, Surge, type Seat } from "../model/field";
 import { cell, fitGrid } from "../model/layout";
 import { personaFor } from "../model/persona";
 import { mix } from "../model/random";
-import type { Tuning } from "../model/tuning";
+import { FEED_SLOTS, PHONES_MAX, type Tuning } from "../model/tuning";
 import { Compositor } from "../gl/renderer";
 import { Tiles } from "../paint/tiles";
 import { subscribe, type FeedSource } from "./feed";
@@ -19,16 +19,19 @@ import type { AppId, Persona } from "../apps/types";
 import { renderFishStrips } from "../objects/goldfish";
 import { Scene } from "./scene";
 
-/** Seat → slot: the screen's slots scattered over the grid (as pc/2d-mobiles/1). */
+/**
+ * Seat → slot: the screen's slots scattered over the grid (as pc/2d-mobiles/1).
+ * The screen has FEED_SLOTS of them; a seat past that shares the slot of seat − FEED_SLOTS.
+ */
 function scatteredSlots(count: number) {
-  const order = Array.from({ length: 64 }, (_, index) => index);
+  const order = Array.from({ length: FEED_SLOTS }, (_, index) => index);
   let state = 0x9e3779b9;
   for (let index = order.length - 1; index > 0; index -= 1) {
     state = (Math.imul(state ^ (state >>> 15), 0x2c1b3c6d) + 0x6d2b79f5) >>> 0;
     const other = state % (index + 1);
     [order[index], order[other]] = [order[other]!, order[index]!];
   }
-  return order.slice(0, count);
+  return Array.from({ length: count }, (_, seat) => order[seat % FEED_SLOTS]!);
 }
 
 /**
@@ -71,7 +74,9 @@ export class Engine {
   private scene!: Scene;
   private phones: Phone[] = [];
   private seats: Seat[] = [];
-  private slotToPhone = new Map<number, number>();
+  private slotToPhones = new Map<number, number[]>();
+  /** Strikes waiting for a slot's second mobile, which answers a moment after the first. */
+  private readonly pendingStrikes: { t: number; phone: number; item: FeedItem }[] = [];
   private vocabulary: FeedKeyword[] = KEYWORDS;
   private labels = new Map(KEYWORDS.map((keyword) => [keyword.id, keyword.label]));
   private readonly t0 = performance.now();
@@ -130,6 +135,8 @@ export class Engine {
     // hand: the glass is the page, as large as it fits; focus: one mobile, a margin around.
     const scale = mode === "hand" ? Math.min(width / shown.w, height / shown.h) : mode === "focus" ? Math.min((width * 0.9) / shown.w, (height * 0.92) / shown.h) : grid.width / shown.w;
     this.compositor.crop = [tuning.cropTop, tuning.cropBottom];
+    // A covering grid runs over the edges; the margins stay clear of it.
+    this.compositor.inset = mode === "field" ? [(width * tuning.marginX * this.dpr) / 100, (height * tuning.marginY * this.dpr) / 100] : [0, 0];
     this.compositor.resize(width * this.dpr, height * this.dpr);
     const key = `${phones}|${Math.round(scale * this.dpr * 40)}`;
     if (key !== this.builtFor) {
@@ -181,14 +188,16 @@ export class Engine {
     const now = this.now;
     if (this.options.mode !== "field") {
       // One phone: the seat's owner, fed by the seat's slot.
-      const seat = Math.max(0, Math.min(63, Math.round(this.options.seat)));
-      this.slotToPhone = new Map([[scatteredSlots(64)[seat]!, 0]]);
+      const seat = Math.max(0, Math.min(PHONES_MAX - 1, Math.round(this.options.seat)));
+      this.slotToPhones = new Map([[scatteredSlots(PHONES_MAX)[seat]!, [0]]]);
       const persona = { ...personaFor(seat), ...this.options.persona };
       this.phones = [new Phone(this.scene, this.tiles, 0, persona, env, now, { drive: this.options.mode, app: this.options.app })];
       return;
     }
     const slots = scatteredSlots(count);
-    this.slotToPhone = new Map(slots.map((slot, index) => [slot, index]));
+    this.slotToPhones = new Map();
+    slots.forEach((slot, index) => this.slotToPhones.set(slot, [...(this.slotToPhones.get(slot) ?? []), index]));
+    this.pendingStrikes.length = 0;
     this.phones = Array.from({ length: count }, (_, index) => new Phone(this.scene, this.tiles, index, personaFor(index), env, now + index * 0.012));
   }
 
@@ -217,9 +226,11 @@ export class Engine {
     const now = this.now;
     const tuning = this.tuning();
     for (const item of items) {
-      const index = this.slotToPhone.get(item.slot);
+      const [index, ...sharing] = this.slotToPhones.get(item.slot) ?? [];
       if (index === undefined) continue;
       this.phones[index]?.strike(item, now);
+      // A mobile sharing the slot takes the same strike 0.2–0.8 s later, so the two are never in step.
+      for (const other of sharing) this.pendingStrikes.push({ t: now + 0.2 + (mix(item.seed ^ other) % 600) / 1000, phone: other, item });
       this.strikesThisFrame += 1;
       this.strikeTimes.push(now);
       this.recentKeywords.push({ t: now, keyword: item.keyword });
@@ -276,6 +287,13 @@ export class Engine {
     const t0 = performance.now();
     this.tiles.pump(4);
     const t1 = performance.now();
+    for (let index = 0; index < this.pendingStrikes.length; ) {
+      const strike = this.pendingStrikes[index]!;
+      if (strike.t <= now) {
+        this.phones[strike.phone]?.strike(strike.item, now);
+        this.pendingStrikes.splice(index, 1);
+      } else index += 1;
+    }
     for (let index = 0; index < this.pendingEchoes.length; ) {
       const echo = this.pendingEchoes[index]!;
       if (echo.t <= now) {

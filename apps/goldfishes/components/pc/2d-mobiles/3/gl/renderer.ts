@@ -33,6 +33,8 @@ export class Compositor {
   private phones = new Float32Array(MAX_PHONES * 4);
   /** pt cut off the top and the bottom of every glass. */
   crop: [number, number] = [0, 0];
+  /** Device px kept clear on the left/right and the top/bottom of the canvas (the margins a covering grid must not run into). */
+  inset: [number, number] = [0, 0];
   width = 1;
   height = 1;
   lost = false;
@@ -145,8 +147,14 @@ export class Compositor {
     const gl = this.gl;
     gl.viewport(0, 0, this.width, this.height);
     gl.clearColor(background[0], background[1], background[2], 1);
+    gl.disable(gl.SCISSOR_TEST);
     gl.clear(gl.COLOR_BUFFER_BIT);
     if (count === 0) return;
+    const [insetX, insetY] = this.inset;
+    if (insetX > 0 || insetY > 0) {
+      gl.enable(gl.SCISSOR_TEST);
+      gl.scissor(Math.round(insetX), Math.round(insetY), Math.max(0, this.width - Math.round(insetX) * 2), Math.max(0, this.height - Math.round(insetY) * 2));
+    }
 
     if (this.groupsDirtyTo >= this.groupsDirtyFrom) {
       gl.bindTexture(gl.TEXTURE_2D, this.groupTexture);

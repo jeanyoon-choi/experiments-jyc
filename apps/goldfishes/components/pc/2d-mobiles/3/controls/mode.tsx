@@ -8,6 +8,7 @@ import { APP_NAMES } from "../apps/icons";
 import { APP_IDS } from "../apps/registry";
 import type { AppId } from "../apps/types";
 import { KEYWORDS } from "../content/keywords";
+import { PHONES_MAX } from "../model/tuning";
 import type { FieldMode } from "../phone/engine";
 import styles from "./mode.module.css";
 
@@ -21,7 +22,7 @@ const MODES: readonly { id: FieldMode; label: string }[] = [
 
 export function ModeControl({ state, onChange }: { state: ModeState; onChange: (next: ModeState) => void }) {
   const one = state.mode !== "field";
-  const step = (by: number) => onChange({ ...state, seat: (state.seat + by + 64) % 64 });
+  const step = (by: number) => onChange({ ...state, seat: (state.seat + by + PHONES_MAX) % PHONES_MAX });
   return (
     <div className={styles.modes}>
       {one && (

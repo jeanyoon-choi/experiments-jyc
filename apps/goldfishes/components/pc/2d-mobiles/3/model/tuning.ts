@@ -36,6 +36,8 @@ export type Tuning = {
   wave: number;
   /** Field-wide synchrony when the strike rate surges: 1 on, 0 off. */
   sync: number;
+  /** 1: the grid covers the viewport and runs over its edges, nothing left empty; 0: the whole grid fits inside, as pc/2d-mobiles/2. */
+  cover: number;
   /** Columns of the grid; 0: as many as give the largest mobiles. */
   columns: number;
   /** Between mobiles, sideways and downwards: % of a mobile's width. */
@@ -74,17 +76,23 @@ export const TUNING_DEFAULTS: Tuning = {
   wave: 0.5,
   sync: 1,
   // The arrangement (배치): change these to change what the route opens with.
+  cover: 1,
   columns: 0,
   gapX: 2,
   gapY: 2,
-  marginX: 1.5,
-  marginY: 2.5,
+  marginX: 0,
+  marginY: 0,
   radius: 0,
   cropTop: 54,
   cropBottom: 0,
   header: 0,
   dpr: 2,
 };
+
+/** The most mobiles a field holds (gl/shaders.ts MAX_PHONES). */
+export const PHONES_MAX = 100;
+/** The screen's slots (socket feed/1): past this many mobiles, two share a slot. */
+export const FEED_SLOTS = 64;
 
 export type Range = { key: Exclude<keyof Tuning, "death">; label: string; min: number; max: number; step: number; format?: (value: number) => string };
 
@@ -111,13 +119,14 @@ export const FISH_RANGES: readonly Range[] = [
 ];
 
 export const FIELD_RANGES: readonly Range[] = [
-  { key: "phones", label: "폰 수", min: 1, max: 64, step: 1, format: (v) => String(v) },
+  { key: "phones", label: "폰 수", min: 1, max: PHONES_MAX, step: 1, format: (v) => String(v) },
   { key: "wave", label: "이웃으로 번짐", min: 0, max: 1, step: 0.05, format: (v) => `${Math.round(v * 100)}%` },
   { key: "sync", label: "동시 알림", min: 0, max: 1, step: 1, format: (v) => (v ? "켬" : "끔") },
   { key: "dpr", label: "해상도 (DPR, 새로고침)", min: 1, max: 2, step: 0.25, format: (v) => v.toFixed(2) },
 ];
 
 export const LAYOUT_RANGES: readonly Range[] = [
+  { key: "cover", label: "화면 채우기 (넘치는 곳은 잘림)", min: 0, max: 1, step: 1, format: (v) => (v ? "채움" : "맞춤") },
   { key: "columns", label: "열 수 (0: 자동)", min: 0, max: 32, step: 1, format: (v) => (v ? String(v) : "자동") },
   { key: "gapX", label: "가로 간격 (모바일 폭의 %)", min: 0, max: 40, step: 0.5, format: (v) => `${v.toFixed(1)}%` },
   { key: "gapY", label: "세로 간격 (모바일 폭의 %)", min: 0, max: 40, step: 0.5, format: (v) => `${v.toFixed(1)}%` },
@@ -147,6 +156,6 @@ export function tuningFromQuery(search: string, base: Tuning = TUNING_DEFAULTS):
     if (key === "death") next.death = (DEATHS as readonly string[]).includes(value) ? (value as Death) : next.death;
     else if (Number.isFinite(Number(value))) next[key] = Number(value);
   }
-  next.phones = Math.min(64, Math.max(1, Math.round(next.phones)));
+  next.phones = Math.min(PHONES_MAX, Math.max(1, Math.round(next.phones)));
   return next;
 }
