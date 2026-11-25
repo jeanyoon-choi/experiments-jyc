@@ -19,6 +19,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { APP_IDS } from "./apps/registry";
 import type { AppId, Persona } from "./apps/types";
 import { Controls } from "./controls";
+import { useHiddenUi } from "./controls/hidden-ui";
 import { ModeControl, type ModeState } from "./controls/mode";
 import { PHONES_MAX, tuningFromQuery, tuningToQuery, TUNING_DEFAULTS, type Tuning } from "./model/tuning";
 import { renderObjects } from "./objects/render";
@@ -64,6 +65,8 @@ export default function PcMobilesThree() {
   const [mode, setMode] = useState<ModeState | null>(() => (typeof window === "undefined" ? null : modeFromQuery()));
   const [phone] = useState(() => typeof window !== "undefined" && onAPhone());
   const tuningRef = useRef(tuning);
+  // X hides the menus and the mode switch, and brings them back (as screen/bubble/9).
+  const uiHidden = useHiddenUi();
 
   useEffect(() => {
     tuningRef.current = tuning;
@@ -144,8 +147,10 @@ export default function PcMobilesThree() {
     <main className={styles.field} data-mode={hydrated ? mode?.mode : undefined}>
       <canvas ref={canvas} className={styles.canvas} />
       {/* On a phone the page is the phone: no authoring chrome. */}
-      {hydrated && mode && !phone && <ModeControl state={mode} onChange={setMode} />}
-      {hydrated && !phone && <Controls tuning={tuning} setTuning={setTuning} />}
+      <div hidden={uiHidden}>
+        {hydrated && mode && !phone && <ModeControl state={mode} onChange={setMode} />}
+        {hydrated && !phone && <Controls tuning={tuning} setTuning={setTuning} />}
+      </div>
     </main>
   );
 }

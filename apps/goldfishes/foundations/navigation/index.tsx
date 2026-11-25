@@ -287,6 +287,8 @@ function ExperimentRow({
     <Link
       href={`/${experiment.key}`}
       prefetch={false}
+      target="_blank"
+      rel="noreferrer"
       data-goldfish-experiment
       className="group grid min-h-11 grid-cols-[6rem_minmax(0,1fr)_4.75rem_1rem] items-center gap-3 px-3 text-[12px] hover:bg-(--gf-fg) hover:text-(--gf-bg) focus-visible:bg-(--gf-fg) focus-visible:text-(--gf-bg) focus-visible:outline-none md:grid-cols-[minmax(7rem,0.65fr)_minmax(15rem,2fr)_5.5rem_minmax(12rem,1fr)_1rem] md:gap-4"
     >
@@ -555,7 +557,7 @@ function NavigationScreen({
               {area.key}
             </Link>
           ))}
-          <Link href="/system" className={linkTone}>
+          <Link href="/system" target="_blank" rel="noreferrer" className={linkTone}>
             system
           </Link>
         </nav>
@@ -574,6 +576,8 @@ function NavigationScreen({
         {!archiveKey && !scope ? (
           <Link
             href="/system"
+            target="_blank"
+            rel="noreferrer"
             className="group mb-4 grid min-h-11 grid-cols-[6rem_minmax(0,1fr)_4.75rem_1rem] items-center gap-3 border border-(--gf-fg) px-3 text-[12px] hover:bg-(--gf-fg) hover:text-(--gf-bg) focus-visible:bg-(--gf-fg) focus-visible:text-(--gf-bg) focus-visible:outline-none md:grid-cols-[minmax(7rem,0.65fr)_minmax(15rem,2fr)_5.5rem_minmax(12rem,1fr)_1rem] md:gap-4"
           >
             <span className="truncate font-medium">system</span>

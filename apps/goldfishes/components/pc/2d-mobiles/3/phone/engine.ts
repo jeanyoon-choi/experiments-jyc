@@ -19,6 +19,11 @@ import type { AppId, Persona } from "../apps/types";
 import { renderFishStrips } from "../objects/goldfish";
 import { Scene } from "./scene";
 
+const ATLAS_SIZE = 2048;
+const ATLAS_LAYERS = 20;
+/** Atlas room kept for each mobile, in whole glasses (its views, banners and what waits to be freed). Measured, docs/3.md. */
+const GLASSES_A_MOBILE = 6;
+
 /**
  * Seat → slot: the screen's slots scattered over the grid (as pc/2d-mobiles/1).
  * The screen has FEED_SLOTS of them; a seat past that shares the slot of seat − FEED_SLOTS.
@@ -103,8 +108,8 @@ export class Engine {
     private readonly options: EngineOptions = { mode: "field", seat: 0 },
   ) {
     const dpr = Math.min(window.devicePixelRatio || 1, tuning().dpr);
-    // Atlas: 2048² layers; enough for the visible screens of every phone, twice over.
-    this.compositor = new Compositor(canvas, 2048, 12, () => window.location.reload());
+    // Atlas: 2048² layers (20 here, 12 in /2: a hundred mobiles, painted finer than shown).
+    this.compositor = new Compositor(canvas, ATLAS_SIZE, ATLAS_LAYERS, () => window.location.reload());
     this.dpr = dpr;
     this.unsubscribe = subscribe(source, KEYWORDS, {
       items: (items) => this.receive(items),
@@ -138,7 +143,7 @@ export class Engine {
     // A covering grid runs over the edges; the margins stay clear of it.
     this.compositor.inset = mode === "field" ? [(width * tuning.marginX * this.dpr) / 100, (height * tuning.marginY * this.dpr) / 100] : [0, 0];
     this.compositor.resize(width * this.dpr, height * this.dpr);
-    const key = `${phones}|${Math.round(scale * this.dpr * 40)}`;
+    const key = `${phones}|${Math.round(scale * this.dpr * 40)}|${tuning.sharp}`;
     if (key !== this.builtFor) {
       this.builtFor = key;
       this.build(phones, scale * this.dpr);
@@ -173,10 +178,13 @@ export class Engine {
     this.tiles?.dispose();
     const workers = Math.max(2, Math.min(4, (navigator.hardwareConcurrency || 4) - 2));
     // Tiles painted at the size they are shown (never above 2 px per pt).
-    this.tiles = new Tiles(this.compositor, Math.min(2, Math.max(0.3, pxPerPt)), workers);
+    // Tiles painted finer than they are shown (`sharp`), never above 3 px per pt, and never so fine that the
+    // atlas cannot hold what the field shows: a glass left waiting for room is a black screen.
+    const room = Math.sqrt((ATLAS_LAYERS * ATLAS_SIZE * ATLAS_SIZE) / (390 * 844 * GLASSES_A_MOBILE * count));
+    this.tiles = new Tiles(this.compositor, Math.max(0.3, Math.min(3, pxPerPt * this.tuning().sharp, room)), workers);
     this.scene = new Scene(this.compositor, this.tiles, count);
     // bubble/7's goldfish, its tail beat in frames, at the size a thumb is shown (≤ 160 px a frame: 12 fit a layer).
-    const fishPx = Math.min(160, this.tiles.columnWidth, Math.max(48, Math.round(72 * pxPerPt * 1.3)));
+    const fishPx = Math.min(160, this.tiles.columnWidth, Math.max(48, Math.round(72 * pxPerPt * 1.3 * Math.max(1, this.tuning().thumbSize))));
     for (const strip of renderFishStrips(fishPx)) this.tiles.provide(fishSpec(strip.palette), strip.pixels, strip.size, strip.size * strip.frames);
     const env = {
       tuning: this.tuning,

@@ -53,12 +53,14 @@ export type Tuning = {
   cropBottom: number;
   /** The device's own top (status bar, island or punch hole): 1 shown, 0 not. */
   header: number;
-  /** Device pixels per CSS pixel, at most (GPU budget: approved up to 2, 2026-10-28). */
+  /** Device pixels per CSS pixel, at most. 3: the display's own on every current screen (user, 2026-11-25: the mobiles' picture set up properly; /2 stops at 2). */
   dpr: number;
+  /** Tile px painted per px shown: above 1 a screen stays sharp while it scrolls and glides between pixels. */
+  sharp: number;
 };
 
 export const TUNING_DEFAULTS: Tuning = {
-  phones: 64,
+  phones: 100,
   speed: 1,
   hop: 3.6,
   viaBanner: 0.45,
@@ -68,8 +70,9 @@ export const TUNING_DEFAULTS: Tuning = {
   open: 0.5,
   ads: 1.6,
   thumb: 1,
-  thumbSize: 1,
-  death: "sleep",
+  thumbSize: 2,
+  // No mobile ever goes dark here (user, 2026-11-25); 꺼짐 and 한도 무시 stay as options.
+  death: "off",
   overdose: 32,
   stillness: 14,
   rest: 2.5,
@@ -86,7 +89,8 @@ export const TUNING_DEFAULTS: Tuning = {
   cropTop: 54,
   cropBottom: 0,
   header: 0,
-  dpr: 2,
+  dpr: 3,
+  sharp: 1.25,
 };
 
 /** The most mobiles a field holds (gl/shaders.ts MAX_PHONES). */
@@ -97,7 +101,7 @@ export const FEED_SLOTS = 64;
 export type Range = { key: Exclude<keyof Tuning, "death">; label: string; min: number; max: number; step: number; format?: (value: number) => string };
 
 export const RHYTHM_RANGES: readonly Range[] = [
-  { key: "speed", label: "빠르기", min: 0.4, max: 2.5, step: 0.05, format: (v) => `${v.toFixed(2)}×` },
+  { key: "speed", label: "빠르기", min: 0.4, max: 6, step: 0.05, format: (v) => `${v.toFixed(2)}×` },
   { key: "hop", label: "앱 바뀌는 간격", min: 1, max: 12, step: 0.2, format: (v) => `${v.toFixed(1)}초` },
   { key: "open", label: "알림을 바로 여는 비율", min: 0, max: 1, step: 0.05, format: (v) => `${Math.round(v * 100)}%` },
   { key: "ads", label: "전면 광고·결제 (분당)", min: 0, max: 8, step: 0.2, format: (v) => v.toFixed(1) },
@@ -112,7 +116,7 @@ export const HOP_RANGES: readonly Range[] = [
 
 export const FISH_RANGES: readonly Range[] = [
   { key: "thumb", label: "금붕어 엄지", min: 0, max: 1, step: 1, format: (v) => (v ? "켬" : "끔") },
-  { key: "thumbSize", label: "금붕어 크기", min: 0.5, max: 2, step: 0.05, format: (v) => `${v.toFixed(2)}×` },
+  { key: "thumbSize", label: "금붕어 크기", min: 0.5, max: 3, step: 0.05, format: (v) => `${v.toFixed(2)}×` },
   { key: "overdose", label: "과자극 (10초 안 알림 수)", min: 4, max: 60, step: 1, format: (v) => String(v) },
   { key: "stillness", label: "정주 (새 키워드 없이 초)", min: 4, max: 60, step: 1, format: (v) => `${v}초` },
   { key: "rest", label: "꺼져 있는 시간", min: 0.5, max: 15, step: 0.5, format: (v) => `${v}초` },
@@ -122,7 +126,8 @@ export const FIELD_RANGES: readonly Range[] = [
   { key: "phones", label: "폰 수", min: 1, max: PHONES_MAX, step: 1, format: (v) => String(v) },
   { key: "wave", label: "이웃으로 번짐", min: 0, max: 1, step: 0.05, format: (v) => `${Math.round(v * 100)}%` },
   { key: "sync", label: "동시 알림", min: 0, max: 1, step: 1, format: (v) => (v ? "켬" : "끔") },
-  { key: "dpr", label: "해상도 (DPR, 새로고침)", min: 1, max: 2, step: 0.25, format: (v) => v.toFixed(2) },
+  { key: "dpr", label: "해상도 (DPR 상한, 새로고침)", min: 1, max: 3, step: 0.25, format: (v) => v.toFixed(2) },
+  { key: "sharp", label: "선명도 (타일 배율)", min: 1, max: 2, step: 0.25, format: (v) => `${v.toFixed(2)}×` },
 ];
 
 export const LAYOUT_RANGES: readonly Range[] = [

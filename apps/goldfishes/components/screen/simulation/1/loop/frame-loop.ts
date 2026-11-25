@@ -35,7 +35,17 @@ import { Track } from "./track";
 
 /** Frames are paced to at most 60 Hz on whole vsyncs, so 120 Hz screens draw every other one. */
 const FRAME_INTERVAL = 1_000 / 60 - 3;
-const MAX_PIXEL_RATIO = 2;
+/** Device pixels a CSS px at most; `?ratio=1` in the address sets it for a look at what a coarser canvas costs. */
+const ASKED_RATIO = typeof window === "undefined" ? NaN : Number(new URLSearchParams(window.location.search).get("ratio") ?? NaN);
+const MAX_PIXEL_RATIO = ASKED_RATIO > 0 ? Math.min(2, ASKED_RATIO) : 2;
+/** The canvas is never coarser than this many device pixels a CSS px (or the display's own, if that is less). */
+const MIN_PIXEL_RATIO = 0.6;
+/** A frame slower than this (ms, smoothed) for this long (s) is a machine that cannot keep up. */
+const SLOW_FRAME = 28;
+const SLOW_SECONDS = 4;
+/** Nothing is judged for this long (ms) after the page opens, or after a step down: the objects are being baked then, and that is slow on any machine. */
+const PACE_OPENING = 30_000;
+const PACE_AFTER_STEP = 12_000;
 
 /** What the panels set, as the loop reads it. */
 export type LoopSettings = {
@@ -135,6 +145,11 @@ class RaftLoop implements FrameLoop {
   private burstsSeen = 0;
   private movesSeen = 0;
   private readonly track = new Track();
+  /** The canvas's share of the display's pixel ratio, and what `pace` keeps to decide it. */
+  private sharpness = 1;
+  private frameTime = 1_000 / 60;
+  private slowFor = 0;
+  private paceWait = PACE_OPENING;
   private readonly trackKinds = new Int16Array(4096);
   /** The agent model: each bubble's turns as last seen (a turn is a change of object), and the fish's settings with its reach. */
   private readonly turnsSeen = new Uint32Array(4096);
@@ -200,10 +215,32 @@ class RaftLoop implements FrameLoop {
     return word;
   }
 
+  /**
+   * A machine that cannot keep up draws fewer pixels (simulation/docs/1.md, Performance): the frame's cost is the
+   * renderer's, by the pixel. Frames slower than SLOW_FRAME for SLOW_SECONDS take the canvas down a step, never
+   * below MIN_PIXEL_RATIO device pixels a CSS px; it does not come back up until the page is opened again (a display
+   * at its refresh rate does not say how much is to spare, and each change of size is a hitch).
+   */
+  private pace(interval: number) {
+    // A hidden tab, a hitch, the opening (the bake workers) and the seconds after a change say nothing.
+    if (MEASURE || REPLAY || interval > 250 || document.hidden) return;
+    this.paceWait -= interval;
+    if (this.paceWait > 0) return;
+    this.frameTime += (interval - this.frameTime) * 0.05;
+    this.slowFor = this.frameTime > SLOW_FRAME ? this.slowFor + interval : 0;
+    if (this.slowFor < SLOW_SECONDS * 1_000 || this.sharpness <= 0.3) return;
+    this.sharpness *= 0.7;
+    this.slowFor = 0;
+    this.frameTime = 1_000 / 60;
+    this.paceWait = PACE_AFTER_STEP;
+    this.sizeCanvas();
+  }
+
   private sizeCanvas() {
     const bounds = this.canvas.getBoundingClientRect();
     const next = { width: bounds.width, height: bounds.height };
-    const ratio = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
+    const ratio = Math.max(Math.min(MIN_PIXEL_RATIO, window.devicePixelRatio || 1), Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO) * this.sharpness);
+    (window as unknown as { goldfishRenderRatio?: number }).goldfishRenderRatio = ratio;
     this.renderer.resize(next.width, next.height, ratio);
     this.school.resize(next.width, next.height);
     this.raft.resize(next);
@@ -222,6 +259,7 @@ class RaftLoop implements FrameLoop {
     if (!REPLAY) this.animationFrame = requestAnimationFrame(this.tick);
     if (now - this.previous < FRAME_INTERVAL) return;
     const delta = Math.min((now - this.previous) / 1_000, 1 / 15);
+    this.pace(now - this.previous);
     this.previous = now;
     const { raft, renderer, emitter, watching, spread, school, measure } = this;
     const frameStart = measure.start();
