@@ -12,6 +12,7 @@ import { PageRankWorld } from "../model/pagerank.ts";
 import type { World } from "../model/world.ts";
 import { addCandidate, DEFAULT_DAMPING, DEFAULT_DIVERSITY, DEFAULT_PAGES, MAX_GROUPS, MAX_PAGES, type RankedWeb, type WebParameters } from "../web/model.ts";
 import { PAGE_INTS } from "../model/agents.ts";
+import type { Supply } from "../rules/supply.ts";
 import { DEFAULT_GROUPS, DEFAULT_SEED } from "./defaults.ts";
 import { followRanks, pullingLinks, radiusFor } from "./display.ts";
 import { linkAt, pageAt } from "./picking.ts";
@@ -56,15 +57,22 @@ export class Raft {
    * switch so that one can be measured apart (study/run.ts). All on: the agent model.
    *   contacts   — a bubble sends only to bubbles it touches; no link is found at a distance (rows 1, 2)
    *   visible    — appeal and tiring go by the size shown now, not the rank the whole web would settle to (row 3)
-   *   noSpread   — no share of every bubble's size is spread over all the bubbles each beat (row 4)
-   *   nearSpread — with noSpread: that share goes, evenly, to the bubbles it touches (not in the proposal: measured
-   *                as a way to keep the small bubbles from drying up; off)
+   *   supply     — where the share a bubble does not send on each beat goes (row 4; rules/supply.ts)
    *   noDrift    — quality does not wander by itself; only the goldfish's watching raises it (row 5)
    *   noArrivals — no bubble comes by itself; only a stroke lays one (row 6)
    */
-  readonly local = { contacts: true, visible: true, noSpread: true, noDrift: true, noArrivals: true, nearSpread: false };
+  readonly local: { contacts: boolean; visible: boolean; supply: Supply; noDrift: boolean; noArrivals: boolean } = { contacts: true, visible: true, supply: "touching", noDrift: true, noArrivals: true };
+  /** The goldfish at each bubble and their sum (rules/scale.ts Held), for `supply` watched. */
+  watched: ArrayLike<number> | undefined = undefined;
+  looking = 0;
+  /** The raft in fish's worths when its size is the school's (rules/scale.ts); 0: its size is fixed (bubble/9). */
+  body = 0;
+  /** Which answer to the raft's size the raft was last started under (rules/apply.ts). */
+  sized = false;
   /** The web's parameters under the agents, filled each step from the panel's and `local`. */
   private readonly quiet: WebParameters = { growth: 0, volatility: 0, floor: 3, adaptation: 0.6, discovery: 0, dynamics: 1, burstAt: 50, recovery: 10, visible: 1 };
+  /** true: a bubble that takes a neighbour's object takes that neighbour's appeal with it (the object is what is liked). */
+  appealCrosses = true;
   /** A stroke's bubble comes in this many times a bubble's fair share large, so the stroke is seen where it is drawn. */
   strokeSize = 5;
   /** And with this much appeal (log quality), as 전파's newcomers had 1.5: its neighbours send to it and it holds. */
@@ -211,7 +219,8 @@ export class Raft {
       this.bodies[page] = body;
       this.points[page * 2] = body.x;
       this.points[page * 2 + 1] = body.y;
-      this.radii[page] = radiusFor(web.rank[page]!, field);
+      // A raft whose size is the school's starts at one fish's worth, not at bubble/9's and shrinking (it crushed the fish coming in).
+      this.radii[page] = this.body > 0 ? radiusFor(web.rank[page]! / Math.max(1, this.school), field) : radiusFor(web.rank[page]!, field);
     }
   }
 
@@ -228,6 +237,13 @@ export class Raft {
       agents.step(seconds, parameters.rule);
       // Their own sizes: bubbles come only from a stroke (lay), a step brings none.
       if (!this.transport) return;
+      // The appeal crosses with the object: the bubble that took it on is liked as the one it came from is now.
+      if (this.appealCrosses) {
+        const quality = this.pagerank.web.quality;
+        const size = this.pagerank.web.size;
+        const arrivals = agents.arrivals;
+        for (let at = 0; at < arrivals.length; at += 2) if (arrivals[at]! < size && arrivals[at + 1]! < size) quality[arrivals[at + 1]!] = quality[arrivals[at]!]!;
+      }
       // bubble/9's transport with its decisions made local, each by its own switch (`local`).
       const local = this.local;
       const quiet = this.quiet;
@@ -240,10 +256,12 @@ export class Raft {
       quiet.volatility = local.noDrift ? 0 : web.volatility;
       quiet.growth = local.noArrivals ? 0 : web.growth;
       quiet.visible = local.visible ? 1 : 0;
-      this.pagerank.web.local = local.noSpread;
-      this.pagerank.web.nearSpread = local.nearSpread;
+      this.pagerank.web.supply = local.supply;
+      this.pagerank.web.watched = this.watched;
+      this.pagerank.web.looking = this.looking;
       web = quiet;
     }
+    if (!this.rules) this.pagerank.web.supply = undefined;
     for (const event of this.pagerank.step(seconds, web)) {
       if (event.kind !== "page") continue;
       const anchor = this.bodies[event.targets[0] ?? 0];
@@ -446,7 +464,8 @@ export class Raft {
     if (this.transport) {
       const page = this.pagerank.add(0, this.strokeQuality);
       if (page === null) count = -1;
-      else this.pagerank.seed(page, Math.min(0.2, this.strokeSize / this.pagerank.state.size));
+      // Its size: one fish's worth of the raft when the raft's size is the school's, else `strokeSize` fair shares.
+      else this.pagerank.seed(page, this.body > 0 ? 1 / (this.body + 1) : Math.min(0.2, this.strokeSize / this.pagerank.state.size));
     }
     const bubble = count < 0 ? null : agents.lay(keyword, count ? heat / count : undefined);
     if (bubble !== null) {

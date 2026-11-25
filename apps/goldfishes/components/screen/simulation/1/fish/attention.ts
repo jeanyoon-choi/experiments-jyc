@@ -17,6 +17,7 @@
 //          was watched, which the route drains into that page's quality.
 // Draws from the random stream are in a pinned order (school-hash.test.ts).
 
+import { apparent, holds } from "../rules/attach.ts";
 import { drain, unit, type RandomStream } from "./math.ts";
 import { MAX_PAGES, PAGE_INTS, type AgentsInput, type Fish, type FishParameters, type FlatLinks, type SchoolWeb } from "./model.ts";
 
@@ -84,6 +85,8 @@ export class Attention {
   private readonly spilt = new Uint8Array(MAX_PAGES);
   private spilling = false;
   private agentsOn = false;
+  /** A fish that holds to nothing waits for its attention to lapse before it looks again (rules/attach.ts `worth`). */
+  private patient = false;
   /** Scratch for choose(): the bubbles in view. */
   private view = new Int32Array(64);
   private worth = new Float64Array(64);
@@ -112,7 +115,8 @@ export class Attention {
   }
 
   /** A step begins: old memories go, pages that are gone and the dying are attended by nobody, the crowds are counted. */
-  begin(time: number, school: readonly Fish[], pageCount: number, agents: AgentsInput | null = null) {
+  begin(time: number, school: readonly Fish[], pageCount: number, agents: AgentsInput | null = null, patient = false) {
+    this.patient = patient;
     if (time - this.lastCleanup > 2) {
       this.lastCleanup = time;
       for (const [key, entry] of this.familiarity) if (time - entry.time > 60) this.familiarity.delete(key);
@@ -151,7 +155,7 @@ export class Attention {
   /** True when the fish should reconsider: it attends nothing, its span is up, or it has stalled. */
   lapsed(fish: Fish, time: number) {
     // The agents' fish that let go of its bubble swims on a moment before it looks again.
-    if (fish.target < 0) return !this.agentsOn || time >= fish.reconsiderAt;
+    if (fish.target < 0) return !(this.agentsOn || this.patient) || time >= fish.reconsiderAt;
     return time >= fish.reconsiderAt || fish.stuck > 2.5 || (this.spilling && this.spilt[fish.target] === 1);
   }
 
@@ -418,6 +422,8 @@ export class Attention {
     const discs = faces.discs;
     const mean = 1 / Math.max(1, pageCount);
     const near = input.near ?? 0;
+    const worth = parameters.worth ?? 0;
+    const body = worth > 0 ? (parameters.body ?? 0) : 0;
     const { scores, order } = this;
     // Pages that score, in index order: a buried page (no hold point anywhere round it) cannot be chosen.
     let candidates = 0;
@@ -435,7 +441,7 @@ export class Attention {
         scores[page] = 0;
         continue;
       }
-      const salience = Math.sqrt(Math.max(shown[page]!, 0) / mean);
+      const salience = apparent(shown[page]!, mean, body);
       const novelty = 1 + parameters.novelty * 4 * Math.exp(-(time - this.born[page]!) / 4);
       const loyalty = page === previous ? 1.2 : 1;
       const affinity = 0.8 + 0.4 * unit(id, page + 5);
@@ -458,6 +464,8 @@ export class Attention {
         }
       }
       if (page < 0) return -1;
+      // Nothing pulls more than swimming on: the fish holds to nothing (rules/attach.ts).
+      if (!holds(best, worth)) return -1;
       const at = faces.discOf(page);
       const found = faces.exposedAngle(page, Math.atan2(fish.y - discs[at + 1]!, fish.x - discs[at]!), hold, clearance);
       if (found !== null) {

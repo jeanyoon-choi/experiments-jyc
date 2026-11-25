@@ -10,6 +10,7 @@
 // it in. The share each link carries during a beat, d x(j) w_ji / W_j, is
 // what the portion of mass travelling from pool to pool shows.
 
+import { sentShare } from "../rules/supply.ts";
 import { outWeight, type RankedWeb } from "./model.ts";
 
 /** Writes every page's total outgoing weight W into `out` (at least web.size long). */
@@ -25,14 +26,15 @@ export function outWeights(web: RankedWeb, out: Float64Array) {
 export function iterate(web: RankedWeb, x: ArrayLike<number>, out: Float64Array, weights?: ArrayLike<number>) {
   const n = web.size;
   if (n === 0) return;
-  // Local (simulation/1): weight moves only along the links. Nothing is spread over all the pages, and a page with
-  // nowhere to send keeps what it has.
-  const local = web.local === true;
-  // `nearSpread`: the share bubble/9 spreads over every page goes instead, evenly, to the pages this one links to.
-  const near = local && web.nearSpread === true;
-  const d = local && !near ? 1 : web.damping;
+  // Where the share a page does not send along its links goes (rules/supply.ts). Under every answer but bubble/9's
+  // a page with nowhere to send keeps what it has.
+  const supply = web.supply ?? "everywhere";
+  const local = supply !== "everywhere";
+  const near = supply === "touching";
+  const d = sentShare(web);
   let total = 0;
   let dangling = 0;
+  let sent = 0;
   for (let page = 0; page < n; page += 1) {
     total += x[page]!;
     out[page] = 0;
@@ -44,6 +46,7 @@ export function iterate(web: RankedWeb, x: ArrayLike<number>, out: Float64Array,
       else dangling += x[page]!;
       continue;
     }
+    sent += x[page]!;
     const scale = (d * x[page]!) / weight;
     const links = web.out[page]!;
     const even = near ? ((1 - d) * x[page]!) / links.length : 0;
@@ -51,11 +54,17 @@ export function iterate(web: RankedWeb, x: ArrayLike<number>, out: Float64Array,
   }
   const spread = local ? 0 : (d * dangling + (1 - d) * total) / n;
   for (let page = 0; page < n; page += 1) out[page] = out[page]! + spread;
+  // `watched`: what the pages gave up goes to those the goldfish are at, by how many are at each.
+  if (supply === "watched" && d < 1) {
+    const watched = web.watched!;
+    const each = ((1 - d) * sent) / web.looking!;
+    for (let page = 0; page < n; page += 1) out[page] = out[page]! + each * watched[page]!;
+  }
 }
 
 /** The rank a link carries during a beat that starts from `x`: d · x(from) · w / W (`total` is W). */
 export function transit(web: RankedWeb, x: ArrayLike<number>, from: number, weight: number, total = outWeight(web, from)) {
-  return total > 1e-12 ? ((web.local === true && web.nearSpread !== true ? 1 : web.damping) * x[from]! * weight) / total : 0;
+  return total > 1e-12 ? (sentShare(web) * x[from]! * weight) / total : 0;
 }
 
 /** L1 distance between two distributions over the first `count` pages. */

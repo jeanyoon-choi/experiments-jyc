@@ -29,8 +29,9 @@ export const OPENING = {
     recovery: DEFAULT_PARAMETERS.recovery,
   } satisfies Rates,
   damping: DEFAULT_DAMPING,
-  // 800 pages (user, 2026-10-25; 기본값 3 had 1,000).
-  pages: 800,
+  // One bubble (artist, 2026-11-25; 200 earlier the same day, for a computer that could not play bubble/9's 800):
+  // the rest come from the audience's strokes.
+  pages: 1,
   groups: 1,
   // bubble/8: bubble/7's opening (크롬: its white ground, studio, light and view) on 맥시멀 믹스; 버블 면적 0.8 (user,
   // 2026-11-07; bubble/8 0.6, was 0.55). 팔레트 2 (코팅색) with 색 섞음, so every sphere and object takes its own

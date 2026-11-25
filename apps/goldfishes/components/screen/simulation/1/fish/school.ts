@@ -26,6 +26,7 @@
 import { Attention, type AttentionInput } from "./attention.ts";
 import { fallVelocity, kill, createLife, LIFE_OFF, stepLife, vigour, type LifeParameters, type Rgb } from "./lifecycle.ts";
 import { angleDifference, closestBetween, RandomStream, unit } from "./math.ts";
+import { meander } from "../rules/attach.ts";
 import { clampCount, EDGE_GAP, FISH_DEFAULTS, MAX_FISH, MOUTH, SIDE, TAIL, type AgentsInput, type Fish, type FishParameters, type FlatLinks, type LifeContext, type SchoolWeb } from "./model.ts";
 import { Obstacles } from "./obstacles.ts";
 
@@ -253,7 +254,8 @@ export class GoldfishSchool {
     attending.clearance = clearance;
     attending.agents = agents;
     attending.near = (parameters.near ?? 0) * Math.min(this.width, this.height);
-    attention.begin(this.time, this.fish, pageCount, agents);
+    const free = (parameters.worth ?? 0) > 0;
+    attention.begin(this.time, this.fish, pageCount, agents, free);
 
     this.heads.fill(-1);
     for (let i = 0; i < this.fish.length; i += 1) {
@@ -393,12 +395,18 @@ export class GoldfishSchool {
         // No reachable page: cruise.
         ax += Math.cos(heading) * (CRUISE * speed - speedNow) * 0.8;
         ay += Math.sin(heading) * (CRUISE * speed - speedNow) * 0.8;
+        // Held by nothing (rules/attach.ts): it wanders.
+        if (free) {
+          const turn = meander(this.time, unit(id, 41), unit(id, 42), unit(id, 43), unit(id, 44)) * 0.6 * speedNow;
+          ax -= Math.sin(heading) * turn;
+          ay += Math.cos(heading) * turn;
+        }
       }
 
       fish.facing += angleDifference(desiredFacing, fish.facing) * Math.min(1, dt * 9);
       fish.touching = watching;
-      // Spent: it lets go of its page.
-      if (stepLife(fish.life, dt, watching && life ? this.watched : null, lifeParameters, fish.vx, fish.vy)) {
+      // Spent: it lets go of its page. A fish swimming free is not worn down (rules/attach.ts).
+      if (!(free && fish.target < 0) && stepLife(fish.life, dt, watching && life ? this.watched : null, lifeParameters, fish.vx, fish.vy)) {
         this.deaths.spent += 1;
         attention.release(fish);
       }

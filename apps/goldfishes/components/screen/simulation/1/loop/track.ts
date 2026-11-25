@@ -28,6 +28,11 @@ export type TrackRecord = {
   bursts: number;
   moves: number;
   fish: number;
+  /** Of them, how many are held by a bubble (the rest swim free); and the dead so far, by cause. */
+  held: number;
+  spent: number;
+  crushed: number;
+  shut: number;
   /** Dynamic: neighbours a bubble gained or lost per second (how much the raft rearranges). */
   rearrange: number;
   /** Frame time over the second, ms: its median and its worst. */
@@ -52,7 +57,7 @@ export class Track {
   moves = 0;
 
   /** One frame: `delta` seconds, `portions` drawn, `kinds` each bubble's layer (null: not objects), `fish` alive. */
-  step(delta: number, time: number, raft: Raft, model: Model, kinds: ArrayLike<number> | null, portions: number, fish: number) {
+  step(delta: number, time: number, raft: Raft, model: Model, kinds: ArrayLike<number> | null, portions: number, fish: number, held = 0, deaths: { spent: number; crushed: number; shut: number } | null = null) {
     this.frames.push(delta * 1_000);
     this.portions += portions;
     this.samples += 1;
@@ -123,6 +128,10 @@ export class Track {
       bursts: round(this.bursts / seconds),
       moves: round(this.moves / seconds),
       fish,
+      held: round(held),
+      spent: deaths?.spent ?? 0,
+      crushed: deaths?.crushed ?? 0,
+      shut: deaths?.shut ?? 0,
       rearrange: round(changed / Math.max(1, size) / seconds),
       frame: round(frames[Math.floor(frames.length / 2)] ?? 0),
       frameWorst: round(frames[frames.length - 1] ?? 0),

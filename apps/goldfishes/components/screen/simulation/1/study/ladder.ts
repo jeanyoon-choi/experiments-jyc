@@ -51,7 +51,7 @@ type Second = Record<"top" | "widest" | "topTenth" | "specks" | "tenReplaced" | 
 export function run(step: Step, seconds: number, strokes: readonly number[] = [], seed = 1) {
   const agentsOn = step.name !== LADDER[0]!.name;
   const raft = new Raft({ pages: 800, groups: 1, damping: 0.85, rules: agentsOn, transport: true });
-  Object.assign(raft.local, { contacts: step.contacts, visible: step.visible, noSpread: step.noSpread, noDrift: step.noDrift, noArrivals: step.noArrivals, nearSpread: step.nearSpread === true });
+  Object.assign(raft.local, { contacts: step.contacts, visible: step.visible, supply: step.nearSpread === true ? "touching" : step.noSpread ? "none" : "everywhere", noDrift: step.noDrift, noArrivals: step.noArrivals });
   raft.seed = seed === 1 ? raft.seed : seed * 2_654_435_761;
   raft.resize(FIELD);
   raft.rebuild(800);

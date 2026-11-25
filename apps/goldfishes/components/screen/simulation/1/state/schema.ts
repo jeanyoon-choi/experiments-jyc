@@ -6,6 +6,7 @@ import type { FishPaletteId, FishParameters } from "../fish/goldfish";
 import type { LifeParameters } from "../fish/lifecycle";
 import type { ObjectParameters } from "../objects/kinds/parameters";
 import type { LabSettings } from "../objects/morph/lab";
+import { OPENING_CHOICES, type Choices } from "../rules/versions";
 import type { SpreadParameters } from "../spread/contagion";
 import type { SoundParameters } from "../sound/sound";
 import type { ViewId } from "../raft/views";
@@ -32,29 +33,15 @@ export type Model = {
   id: "PR" | RuleId;
   zeroSum: number;
   open: number;
-  // The agent model's own options (시스템 panel; simulation/docs/agent-model-proposal.md, rows 1–8). Each at 0 is
-  // bubble/9's way, so any combination between bubble/9 and the agent model can be put together and looked at.
-  /** 1: a bubble sends only to bubbles it touches (rows 1, 2). */
-  contacts: number;
-  /** 1: appeal and tiring go by the size shown now (row 3). */
-  visible: number;
-  /** The share bubble/9 spreads over every bubble: 0 over all (bubble/9), 1 to the bubbles it touches, 2 not at all (row 4). */
-  spread: number;
-  /** 1: quality does not wander by itself (row 5). */
-  noDrift: number;
-  /** 1: bubbles come only from a stroke (row 6). */
-  noArrivals: number;
-  /** How far a goldfish looks about, as a share of the field's shorter side; 0: the whole screen (row 7). */
+  /** How far a goldfish looks about, as a share of the field's shorter side; 0: the whole screen (bubble/9). No control: rules/attach.ts does this job. */
   near: number;
-  /** 1: a watched bubble takes the object of the neighbour that sends it the most; 0: some other object (row 8). */
-  adopt: number;
-  /** A stroke's bubble: how many times a fair share large it comes in, and with how much appeal. */
+  /** With the goldfish's answer `worth` (rules/attach.ts): the pull a bubble must have to hold a fish; 1 is a bubble of one fish's worth, known, empty, at its edge. */
+  worth: number;
+  /** A stroke's bubble: how many times a fair share large it comes in (while the raft's size is fixed), and with how much appeal. */
   strokeSize: number;
   strokeQuality: number;
-};
-export const MODEL_OPENING: Model = { id: "에이전트", zeroSum: 1, open: 0, contacts: 1, visible: 1, spread: 2, noDrift: 1, noArrivals: 1, near: 0, adopt: 1, strokeSize: 5, strokeQuality: 2.5 };
-/** Every option of the agent model at bubble/9's way: with the 에이전트 rule it is bubble/9 run through the new code. */
-export const MODEL_AS_BUBBLE_NINE: Pick<Model, "contacts" | "visible" | "spread" | "noDrift" | "noArrivals" | "near" | "adopt"> = { contacts: 0, visible: 0, spread: 0, noDrift: 0, noArrivals: 0, near: 0, adopt: 0 };
+} & Choices; // The agent model's answers (rules/versions.ts): per question the answer in use, 0 bubble/9's.
+export const MODEL_OPENING: Model = { id: "에이전트", zeroSum: 1, open: 0, near: 0, worth: 0.5, strokeSize: 5, strokeQuality: 2.5, ...OPENING_CHOICES };
 
 /** Portions carrying less than this share of the mean flow are not drawn (they would read as specks). */
 export const LEAST_PORTION = 0.5;

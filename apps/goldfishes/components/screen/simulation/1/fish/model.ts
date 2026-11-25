@@ -53,6 +53,12 @@ export type FishParameters = {
    * shorter side. 0: the whole screen (bubble/9).
    */
   near: number;
+  /**
+   * simulation/1 (rules/attach.ts): a fish takes a bubble only when its pull is more than this; 0: it always takes
+   * the one that pulls most (bubble/9). `body`: the raft in fish's worths, by which a bubble's size is then measured.
+   */
+  worth: number;
+  body: number;
 };
 
 export const FISH_DEFAULTS: FishParameters = {
@@ -65,6 +71,8 @@ export const FISH_DEFAULTS: FishParameters = {
   schooling: 1,
   patrol: 1,
   near: 0,
+  worth: 0,
+  body: 0,
 };
 
 /**

@@ -48,7 +48,8 @@ Found on the way (measured, in the document): the state the screen rests in is d
 
 ## Principles (the artist's, from those corrections)
 
-- Occam's razor. One objective per agent. No device bolted on to get a wanted scene; a scene (a cluster, a takeover) must come out as a result.
+- Occam's razor: the simplest rule is the best one, and a rule must not grow complicated. One objective per agent. No device bolted on to get a wanted scene; a scene (a cluster, a takeover) must come out as a result.
+- No patch rules (땜빵; artist, 2026-11-25). A rule that exists only to repair one case ("when there are few bubbles…", a cap, a special size for a newcomer) is a patch. Find the one general rule that also gives that case, and take out what it makes unnecessary; if there is none, say so instead of adding the patch. This holds for every agent simulation here.
 - Myopic means it: an agent sees only what touches it. No sight at a distance, no global value, no reading another agent's mind.
 - New things come only from the audience. With no input the screen rests; an input changes the flow.
 - A complex system has no fixed cause and effect. Do not report "this input gives that result"; show how differently the same input is answered. 다이내믹-다이내믹 is the aim; one state going on for ever, uproar included, is static.

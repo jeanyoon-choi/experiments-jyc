@@ -209,6 +209,8 @@ export class AgentWorld implements World<AgentParameters> {
    */
   ownSizes = true;
   private current: AgentState;
+  /** The objects taken on in the last step, as (from, to) pairs: the raft lets the appeal cross with them. */
+  readonly arrivals: number[] = [];
   private readonly contact = new Float64Array(MAX_AGENTS);
   private readonly waiting = new Uint8Array(MAX_AGENTS);
   private readonly weight = new Float64Array(MAX_AGENTS);
@@ -359,6 +361,7 @@ export class AgentWorld implements World<AgentParameters> {
     }
 
     // Signs that have crossed are taken on.
+    this.arrivals.length = 0;
     for (let index = this.couriers.length - 1; index >= 0; index -= 1) {
       const courier = this.couriers[index]!;
       if (time < courier.arrive) continue;
@@ -367,6 +370,7 @@ export class AgentWorld implements World<AgentParameters> {
       if (courier.to < size && this.sign[courier.to] !== courier.sign) {
         this.put(courier.to, courier.sign);
         this.counts.signChanges += 1;
+        if (courier.from < size) this.arrivals.push(courier.from, courier.to);
       }
     }
 

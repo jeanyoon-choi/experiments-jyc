@@ -34,6 +34,8 @@
 // fast, it shuffled the largest pages every second; small and slow, the web
 // barely moved and lost bubble/5's organic, evolving feel; user: "거의 실패").
 
+import type { Supply } from "../rules/supply.ts";
+
 export { concentration, leader } from "./metrics.ts";
 
 export const MAX_PAGES = 1_000;
@@ -139,10 +141,11 @@ export type RankedWeb = {
   readonly profiles: readonly GroupProfile[];
   /** Pages per group. */
   readonly groupSize: Uint16Array;
-  /** simulation/1: weight moves only along the links (iteration.ts): no share is spread over every page. */
-  local?: boolean;
-  /** With `local`: the share bubble/9 spreads over every page is given evenly to the pages this one links to. */
-  nearSpread?: boolean;
+  /** simulation/1 (rules/supply.ts): where the share a page does not send along its links goes; absent: over every page (bubble/9). */
+  supply?: Supply;
+  /** For `watched`: the goldfish at each page, and their sum. */
+  watched?: ArrayLike<number>;
+  looking?: number;
 };
 
 export type WebParameters = {

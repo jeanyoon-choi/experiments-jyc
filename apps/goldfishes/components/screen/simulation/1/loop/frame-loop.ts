@@ -32,6 +32,8 @@ import { LoopSchool } from "./school";
 import { Spread } from "./spread";
 import { Summary } from "./summary";
 import { Track } from "./track";
+import { applyRules } from "../rules/apply";
+import { Held } from "../rules/scale";
 
 /** Frames are paced to at most 60 Hz on whole vsyncs, so 120 Hz screens draw every other one. */
 const FRAME_INTERVAL = 1_000 / 60 - 3;
@@ -145,6 +147,9 @@ class RaftLoop implements FrameLoop {
   private burstsSeen = 0;
   private movesSeen = 0;
   private readonly track = new Track();
+  /** The goldfish at each bubble, and the raft's size when it is theirs (rules/scale.ts). */
+  private readonly held = new Held();
+  private readonly emission = { area: 1, portions: 0.5, flow: 1 };
   /** The canvas's share of the display's pixel ratio, and what `pace` keeps to decide it. */
   private sharpness = 1;
   private frameTime = 1_000 / 60;
@@ -275,20 +280,14 @@ class RaftLoop implements FrameLoop {
     raft.school = settings.fishCount;
     raft.setMode(settings.rules, settings.transport);
     const system = settings.system;
-    const places = raft.local;
-    places.contacts = system.contacts >= 0.5;
-    places.visible = system.visible >= 0.5;
-    places.noSpread = system.spread >= 0.5;
-    places.nearSpread = system.spread >= 0.5 && system.spread < 1.5;
-    places.noDrift = system.noDrift >= 0.5;
-    places.noArrivals = system.noArrivals >= 0.5;
-    raft.strokeSize = system.strokeSize;
-    raft.strokeQuality = system.strokeQuality;
+    const held = this.held;
+    applyRules(raft, system, held);
     if (raft.repopulate !== null) {
       // A new page count starts the web, and the display, over from uniform.
       raft.rebuild(raft.repopulate);
       emitter.restart();
       this.lastBubble.clear();
+      held.reset();
     }
     const world: BodyWorld = raft.world;
     const agents = raft.rules ? raft.agents : null;
@@ -303,7 +302,13 @@ class RaftLoop implements FrameLoop {
     mark(0);
     stepDisplay(world, step);
     mark(1);
-    raft.arrange(world.shown, delta, step, still, settings.visual.area);
+    // The agent model: the raft is as large as the goldfish it holds (rules/scale.ts), or bubble/9's.
+    const local = agents !== null && raft.transport;
+    const emission = this.emission;
+    emission.area = settings.visual.area * (local ? held.shareFor(system.scale, settings.fishCount) : 1);
+    emission.portions = settings.visual.portions;
+    emission.flow = settings.visual.flow;
+    raft.arrange(world.shown, delta, step, still, emission.area);
     mark(2);
     let signs: typeof this.signs | null = null;
     if (agents) {
@@ -312,7 +317,7 @@ class RaftLoop implements FrameLoop {
       signs.couriers = agents.couriers;
       signs.time = agents.time;
     }
-    const pageStart = emitter.emit(world, raft, renderer.bubbles, settings.visual, this.motionTime, Math.max(delta, 1e-3), signs);
+    const pageStart = emitter.emit(world, raft, renderer.bubbles, emission, this.motionTime, Math.max(delta, 1e-3), signs);
     const pageCount = emitter.count - pageStart;
     const objects = spread.objectsFor(settings);
     // The agents: every bubble is its keyword's object.
@@ -329,14 +334,16 @@ class RaftLoop implements FrameLoop {
     this.schoolSize.life = settings.life;
     const fish = school.ready(world.state, this.schoolSize);
     let alive = 0;
-    // The agent model (bubble/9's transport made local): the goldfish are bubble/9's, looking only at what is near.
-    const local = agents !== null && raft.transport;
+    // The agent model (bubble/9's transport made local): the goldfish are bubble/9's, held only by what is worth it.
     let schooling: { fish: FishParameters; life: LifeParameters } = settings;
     if (local) {
-      if (this.nearFrom !== settings.fish || this.nearFish?.near !== system.near) {
+      if (this.nearFrom !== settings.fish || !this.nearFish) {
         this.nearFrom = settings.fish;
-        this.nearFish = { ...settings.fish, near: system.near };
+        this.nearFish = { ...settings.fish };
       }
+      this.nearFish.near = system.near;
+      this.nearFish.worth = system.attach >= 0.5 ? system.worth : 0;
+      this.nearFish.body = held.units;
       this.schoolSettings.fish = this.nearFish!;
       this.schoolSettings.life = settings.life;
       schooling = this.schoolSettings;
@@ -395,7 +402,7 @@ class RaftLoop implements FrameLoop {
         if (last.size > 4_000) last.clear();
         if (fish.left > this.leftSeen) agents.left(fish.left - this.leftSeen);
         this.leftSeen = fish.left;
-      } else for (const one of fish.fish) if (!one.life.dying) alive += 1;
+      } else alive = held.observe(fish.fish, settings.fishCount, pageCount, local ? system.scale : 0, delta);
       // bubble/9's transport: the school's watching raises a page's appeal.
       if (raft.transport) watching.feedBack(pageCount, raft.pagerank, settings.feedback, fish.fish.length);
       school.draw(fish, this.motionTime, step, settings);
@@ -419,7 +426,7 @@ class RaftLoop implements FrameLoop {
       this.burstsSeen = agents.counts.bursts;
       this.movesSeen = agents.counts.moves;
     }
-    this.track.step(delta, raft.time, raft, world, tracked, pageStart, alive);
+    this.track.step(delta, raft.time, raft, world, tracked, pageStart, alive, held.looking, fish ? fish.deaths : null);
     if (MEASURE) measure.finish(frameStart, renderer, pageStart, pageCount, school.counts(), this.hooks.frameCost);
     this.summary.step(delta, world, raft.time, this.hooks.summary);
   };

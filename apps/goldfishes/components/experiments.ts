@@ -327,7 +327,8 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     area: "screen",
     section: "dated",
     date: "2026-11-24",
-    phrase: "simulation/0's two myopic agents under bubble/9's body: what crosses between bubbles — fish moving on, a sign copied — is the flow, and a finger drawn across the raft is a new keyword",
+    updated: "2026-11-25",
+    phrase: "bubble/9's body with its decisions made the agents' own: a bubble is as large as the goldfish it holds, a goldfish swims free until a bubble is worth it, and a finger drawn across the screen lays new bubbles",
     load: () => import("./screen/simulation/1"),
   },
   {
@@ -379,6 +380,14 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     date: "2026-11-24",
     phrase: "2d-mobiles/2 with no device around the glass: only the mobiles' screens in a grid, its gaps, margins, columns, corners and cut all options",
     load: () => import("./pc/2d-mobiles/3"),
+  },
+  {
+    key: "pc/2d-mobiles/4",
+    area: "pc",
+    section: "dated",
+    date: "2026-11-25",
+    phrase: "2d-mobiles/3 with filters over its honest interface: each layer a cell reading its keyword, the water the goldfish moves, each glass through its goldfish's eye",
+    load: () => import("./pc/2d-mobiles/4"),
   },
   {
     key: "pc/archive/news-phones/1",
