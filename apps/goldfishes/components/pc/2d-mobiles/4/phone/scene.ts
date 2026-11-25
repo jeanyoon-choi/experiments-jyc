@@ -49,7 +49,7 @@ export function rgba(hex: string, alpha = 1): [number, number, number, number] {
 const WHITE: [number, number, number, number] = [1, 1, 1, 1];
 
 /** 치환: what the cells read (filters/sign.ts WORDS), how a keyword is named, and its hue (0–1). */
-export type Cells = { words: number; label: (keyword: string) => string; hue: (keyword: string) => number };
+export type Cells = { words: number; face: number; label: (keyword: string) => string; hue: (keyword: string) => number };
 
 export class Scene {
   private readonly quads = new Set<Quad>();
@@ -155,17 +155,19 @@ export class Scene {
 
   /** Sets what the cells read; null when nothing is substituted (then no word is painted and the quads carry no cell). */
   substitute(cells: Cells | null) {
-    if (cells?.words === this.cells?.words && Boolean(cells) === Boolean(this.cells)) return;
+    if (cells?.words === this.cells?.words && cells?.face === this.cells?.face && Boolean(cells) === Boolean(this.cells)) return;
     this.cells = cells;
     this.dirty = true;
   }
 
   private word(value: string) {
-    let tile = this.words.get(value);
+    const face = this.cells?.face ?? 0;
+    const key = `${face}:${value}`;
+    let tile = this.words.get(key);
     if (!tile) {
-      tile = this.tiles.request(wordSpec(value, this.tiles.scale), { onReady: () => (this.dirty = true) });
+      tile = this.tiles.request(wordSpec(value, this.tiles.scale, face), { onReady: () => (this.dirty = true) });
       this.tiles.retain(tile);
-      this.words.set(value, tile);
+      this.words.set(key, tile);
     }
     return tile;
   }

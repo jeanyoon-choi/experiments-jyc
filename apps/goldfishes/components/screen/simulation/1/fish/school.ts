@@ -26,7 +26,7 @@
 import { Attention, type AttentionInput } from "./attention.ts";
 import { fallVelocity, kill, createLife, LIFE_OFF, stepLife, vigour, type LifeParameters, type Rgb } from "./lifecycle.ts";
 import { angleDifference, closestBetween, RandomStream, unit } from "./math.ts";
-import { meander } from "../rules/attach.ts";
+import { FREE_PACE, meander } from "../rules/attach.ts";
 import { clampCount, EDGE_GAP, FISH_DEFAULTS, MAX_FISH, MOUTH, SIDE, TAIL, type AgentsInput, type Fish, type FishParameters, type FlatLinks, type LifeContext, type SchoolWeb } from "./model.ts";
 import { Obstacles } from "./obstacles.ts";
 
@@ -252,6 +252,10 @@ export class GoldfishSchool {
     attending.parameters = parameters;
     attending.hold = hold;
     attending.clearance = clearance;
+    // rules/attach.ts `touch`: the fish are bubble/9's, and the bubbles' objects are read only for what it tires of.
+    const byObject = (parameters.byObject ?? 0) >= 0.5 && agents !== null;
+    attention.tireBy(byObject, parameters.forget ?? 0, agents ? agents.data : null);
+    if (byObject) agents = null;
     attending.agents = agents;
     attending.near = (parameters.near ?? 0) * Math.min(this.width, this.height);
     const free = (parameters.worth ?? 0) > 0;
@@ -392,9 +396,10 @@ export class GoldfishSchool {
         const closing = goalDistance > 0.01 ? (fish.vx * gx + fish.vy * gy) / goalDistance : 0;
         fish.stuck = goalDistance > 40 && closing < 6 * speed ? fish.stuck + dt : Math.max(0, fish.stuck - dt);
       } else {
-        // No reachable page: cruise.
-        ax += Math.cos(heading) * (CRUISE * speed - speedNow) * 0.8;
-        ay += Math.sin(heading) * (CRUISE * speed - speedNow) * 0.8;
+        // No reachable page: cruise. Held by nothing (rules/attach.ts), slowly: the pace picks up once a bubble has it.
+        const cruise = CRUISE * speed * (free ? FREE_PACE : 1);
+        ax += Math.cos(heading) * (cruise - speedNow) * 0.8;
+        ay += Math.sin(heading) * (cruise - speedNow) * 0.8;
         // Held by nothing (rules/attach.ts): it wanders.
         if (free) {
           const turn = meander(this.time, unit(id, 41), unit(id, 42), unit(id, 43), unit(id, 44)) * 0.6 * speedNow;
@@ -446,7 +451,8 @@ export class GoldfishSchool {
         }
       }
       if (neighbours > 0) {
-        const together = parameters.schooling * (1 - near * 0.8);
+        // A free fish is slower, so the same pull would gather the shoal into a knot: it is drawn together less.
+        const together = parameters.schooling * (1 - near * 0.8) * (free && fish.target < 0 ? FREE_PACE : 1);
         ax += ((vx / neighbours - fish.vx) * 0.45 + (cx / neighbours - fish.x) * 0.1) * together;
         ay += ((vy / neighbours - fish.vy) * 0.45 + (cy / neighbours - fish.y) * 0.1) * together;
       }

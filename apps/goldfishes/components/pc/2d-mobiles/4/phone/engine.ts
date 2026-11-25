@@ -36,8 +36,8 @@ const WAKE_A_PT = 1 / 15000;
 const WAKE_MOST = 0.1;
 /** As rings (물결 방식 고리): a touch is a ring of 1; swimming leaves one of this size every so many pt. */
 /** 치환: a switch reaches every mobile within this many seconds, and each mobile fades in this many of its own. */
-const SUB_WITHIN = 3;
-const SUB_FADE = 0.35;
+const SUB_WITHIN = 1.5;
+const SUB_FADE = 0.175;
 const WAKE_EVERY = 240;
 const WAKE_RING = 0.3;
 
@@ -335,7 +335,7 @@ export class Engine {
       filters[index * 4 + 1] = tuning.ground === 1 || (tuning.ground === 2 && phone.dark) ? 1 : 0;
     });
     // The cells stay packed until the last mobile's have faded out.
-    this.scene.substitute(showing ? { words: tuning.words, label: this.labelOf, hue: this.hueOfKeyword } : null);
+    this.scene.substitute(showing ? { words: tuning.words, face: tuning.face, label: this.labelOf, hue: this.hueOfKeyword } : null);
     this.compositor.sub = [0, tuning.frame, tuning.cells, tuning.ink];
   }
 

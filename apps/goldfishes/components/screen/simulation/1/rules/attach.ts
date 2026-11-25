@@ -30,3 +30,28 @@ export function holds(score: number, worth: number) {
 export function meander(time: number, a: number, b: number, c: number, d: number) {
   return Math.sin(time * (0.25 + 0.3 * a) + 6.283 * b) + 0.5 * Math.sin(time * (0.7 + 0.5 * c) + 6.283 * d);
 }
+
+/**
+ * A free fish's pace against one that a bubble has (artist, 2026-11-25: slow while nothing has its attention, the
+ * pace it has now once it has met a bubble, so the two are seen apart).
+ */
+export const FREE_PACE = 0.35;
+
+// The third answer, `touch` (simulation/docs/conditions.md §4; corrections 9 and 13: an agent sees only what is in
+// front of it). As `worth`, but:
+//   - a goldfish sees no bubble from afar: only those within TOUCH of it can hold it, so a free fish is held by a
+//     bubble it swims into and a held fish goes on only to bubbles at hand;
+//   - it does not follow a link by chance: every time its attention lapses it makes the one choice (the best at hand,
+//     if that is worth more than swimming on);
+//   - what it tires of is the object it watched, not the one bubble (`byObject`), and it forgets over `forget`
+//     seconds: so one object holds a fish once, and many objects side by side hold it long.
+
+/** How near a bubble's edge must be for a goldfish to see it, as a share of the field's shorter side. */
+export const TOUCH = 0.03;
+
+/**
+ * How fast a goldfish tires of an object, against bubble/9's tiring of one bubble. At 1 (the first build) a fish
+ * was done with an object in 0.6 s and a stroke was eaten up in ten seconds; the model document's goldfish take
+ * some seconds over a keyword (M9: 0.15 a second).
+ */
+export const OBJECT_PACE = 0.15;

@@ -45,7 +45,16 @@ export const LADDER: Step[] = [
   { ...OFF, name: "9 뿌리던 몫은 맞닿은 버블에게", contacts: true, visible: true, noSpread: true, noDrift: true, noArrivals: true, near: 0.3, adopt: true, nearSpread: true },
 ];
 
-type Second = Record<"top" | "widest" | "topTenth" | "specks" | "tenReplaced" | "underWay" | "portions" | "changes" | "kinds" | "fishSpread" | "inside" | "strokeShare", number>;
+type Second = Record<
+  | "top" | "widest" | "topTenth" | "specks" | "tenReplaced" | "underWay" | "portions" | "changes" | "kinds" | "fishSpread" | "inside" | "strokeShare"
+  // The scorecard (simulation/docs/conditions.md §6). The party: the raft's share of the screen, objects at least 40 and
+  // 80 px in radius, kinds holding over a hundredth of the area. The restlessness: mean change of a radius a second
+  // over the radius, bubbles whose object changed. The spreading: the leading object's share of the area, and whether
+  // the leader changed this second. The uproar: the model document's judgement over the last 4 s (by direction, not
+  // amount), as four shares of the time.
+  | "cover" | "big" | "huge" | "kindsSeen" | "swell" | "kindChanges" | "topKind" | "leaderChanged" | "still" | "turning" | "uproar" | "wobble" | "held",
+  number
+>;
 
 /** `strokes`: seconds at which nine bubbles of a new object are laid in a line. */
 export function run(step: Step, seconds: number, strokes: readonly number[] = [], seed = 1) {
@@ -71,6 +80,9 @@ export function run(step: Step, seconds: number, strokes: readonly number[] = []
   const before = new Float64Array(1_000);
   const signs = { seeds: agents.seeds, couriers: agents.couriers, time: 0 };
   const records: Second[] = [];
+  const kindAt: Int32Array[] = [];
+  const changedAt: Uint8Array[] = [];
+  let leader = -1;
   let top: number[] = [];
   let changes = 0;
   let strokeAt = 0;
@@ -127,14 +139,73 @@ export function run(step: Step, seconds: number, strokes: readonly number[] = []
     let tenth = 0;
     let specks = 0;
     const kinds = new Set<number>();
+    const kindNow = new Int32Array(1_000).fill(-1);
+    const changedNow = new Uint8Array(1_000);
+    const areaOfKind = new Map<number, number>();
+    const last = kindAt[kindAt.length - 1];
+    let big = 0;
+    let huge = 0;
+    let swell = 0;
+    let kindChanges = 0;
     for (let index = 0; index < size; index += 1) {
       const page = order[index]!;
       const r = raft.radii[page]!;
       area += r * r;
       if (index < Math.round(size / 10)) tenth += r * r;
       if (r <= 5.01) specks += 1;
-      kinds.add(step.adopt ? agents.keywordOf(page) : kindOf[page]!);
+      if (r >= 40) big += 1;
+      if (r >= 80) huge += 1;
+      if (before[page]! > 0) swell += Math.abs(r - before[page]!) / Math.max(1, r) / size;
+      const kind = step.adopt ? agents.keywordOf(page) : kindOf[page]!;
+      kinds.add(kind);
+      kindNow[page] = kind;
+      areaOfKind.set(kind, (areaOfKind.get(kind) ?? 0) + r * r);
+      if (last && last[page]! >= 0 && last[page] !== kind) {
+        changedNow[page] = 1;
+        kindChanges += 1;
+      }
       before[page] = r;
+    }
+    kindAt.push(kindNow);
+    changedAt.push(changedNow);
+    if (kindAt.length > 5) {
+      kindAt.shift();
+      changedAt.shift();
+    }
+    let kindsSeen = 0;
+    let topKind = 0;
+    let leading = -1;
+    for (const [kind, share] of areaOfKind) {
+      if (share > area * 0.01) kindsSeen += 1;
+      if (share > topKind) {
+        topKind = share;
+        leading = kind;
+      }
+    }
+    const leaderChanged = leader >= 0 && leading !== leader ? 1 : 0;
+    leader = leading;
+    // The last 4 s by direction (model document, M8.2): G how much changed, C how much of it went one way, and how
+    // much of it was a bubble changing twice or more.
+    let state = 0;
+    if (kindAt.length === 5) {
+      const old = kindAt[0]!;
+      const net = new Map<number, number>();
+      let moved = 0;
+      let twice = 0;
+      for (let page = 0; page < size; page += 1) {
+        let count = 0;
+        for (let second = 1; second < 5; second += 1) count += changedAt[second]![page]!;
+        moved += count;
+        if (count >= 2) twice += count;
+        if (old[page]! >= 0) net.set(old[page]!, (net.get(old[page]!) ?? 0) - 1);
+        net.set(kindNow[page]!, (net.get(kindNow[page]!) ?? 0) + 1);
+      }
+      let flow = 0;
+      for (const difference of net.values()) flow += Math.abs(difference) / 2;
+      const amount = moved / Math.max(1, size * 4);
+      const direction = moved ? flow / moved : 0;
+      const reversal = moved ? twice / moved : 0;
+      state = amount < 0.01 ? 0 : direction >= 0.55 && reversal < 0.25 ? 1 : amount >= 0.03 ? 2 : 3;
     }
     const ten = order.slice(0, 10);
     const replaced = top.length ? ten.filter((page) => !top.includes(page)).length : 0;
@@ -154,14 +225,16 @@ export function run(step: Step, seconds: number, strokes: readonly number[] = []
     const sectors = new Float64Array(8);
     let alive = 0;
     let onStroke = 0;
+    let held = 0;
     for (const one of school.fish) {
       if (one.life.dying) continue;
       alive += 1;
+      if (one.target >= 0) held += 1;
       sectors[Math.floor(((Math.atan2(one.y - cy, one.x - cx) + Math.PI) / (2 * Math.PI)) * 8) % 8]! += 1;
       if (strokeKeyword >= 0 && one.target >= 0 && one.target < size && agents.keywordOf(one.target) === strokeKeyword) onStroke += 1;
     }
-    let held = 0;
-    for (const count of sectors) if (count >= alive / 20) held += 1;
+    let sectorsHeld = 0;
+    for (const count of sectors) if (count >= alive / 20) sectorsHeld += 1;
     const signChanges = agents.counts.signChanges;
     records.push({
       top: (raft.radii[order[0]!]! ** 2) / Math.max(1, area),
@@ -173,9 +246,22 @@ export function run(step: Step, seconds: number, strokes: readonly number[] = []
       portions: pageStart,
       changes: step.adopt ? signChanges - changes : changes,
       kinds: kinds.size,
-      fishSpread: held / 8,
+      fishSpread: sectorsHeld / 8,
       inside,
       strokeShare: onStroke / Math.max(1, alive),
+      cover: (Math.PI * area) / (FIELD.width * FIELD.height),
+      big,
+      huge,
+      kindsSeen,
+      swell,
+      kindChanges,
+      topKind: topKind / Math.max(1, area),
+      leaderChanged,
+      still: state === 0 ? 1 : 0,
+      turning: state === 1 ? 1 : 0,
+      uproar: state === 2 ? 1 : 0,
+      wobble: state === 3 ? 1 : 0,
+      held,
     });
     changes = step.adopt ? signChanges : 0;
   }
@@ -189,7 +275,13 @@ export function mean(records: readonly Second[], from: number, to: number) {
   return out;
 }
 
-if (process.argv[1]?.endsWith("study/ladder.ts")) {
+/** `node study/ladder.ts score 0 180`: the scorecard of one step over `seconds`, its first 40 s left out. */
+if (process.argv[1]?.endsWith("study/ladder.ts") && process.argv[2] === "score") {
+  const step = LADDER[Number(process.argv[3] ?? 0)]!;
+  const seconds = Number(process.argv[4] ?? 180);
+  const records = run(step, seconds);
+  console.log(step.name, JSON.stringify(mean(records, 40, seconds)));
+} else if (process.argv[1]?.endsWith("study/ladder.ts")) {
   const asked = process.argv.slice(2).map(Number);
   LADDER.forEach((step, index) => {
     if (asked.length && !asked.includes(index)) return;

@@ -41,7 +41,7 @@ export const QUESTIONS: readonly Question[] = [
   { key: "scale", section: "bubble", label: "라프트 전체의 크기", answers: ["늘 같음", "붙은 금붕어 수만큼"] },
   { key: "noDrift", section: "bubble", label: "품질 (요동의 세기는 네트워크 → 품질 요동)", answers: ["혼자 요동", "금붕어가 볼 때만"] },
   { key: "adopt", section: "bubble", label: "버블이 바뀔 때 무엇으로", answers: ["아무 오브제", "이웃의 오브제", "이웃의 오브제와 매력"] },
-  { key: "attach", section: "fish", label: "버블에 붙는 때", answers: ["가장 끌리는 것에 늘", "헤엄치는 것보다 끌릴 때만"] },
+  { key: "attach", section: "fish", label: "버블에 붙는 때", answers: ["가장 끌리는 것에 늘", "멀리서도 보고, 끌릴 때만 (폐기)", "닿은 것 중 덜 질린 것에, 끌릴 때만"] },
   { key: "noArrivals", section: "stroke", label: "새 버블 (저절로 생기는 속도는 네트워크 → 새 페이지)", answers: ["저절로도 생김", "획에서만"] },
 ];
 
@@ -51,14 +51,22 @@ const AGENTS_ONE: Choices = { contacts: 1, visible: 1, spread: 1, noDrift: 1, no
 /** 2026-11-25: a bubble's size comes from the goldfish that watch it; a goldfish is held only by what is worth it. */
 const AGENTS_TWO: Choices = { ...AGENTS_ONE, spread: 3, scale: 1, attach: 1 };
 
+/**
+ * 2026-11-25, agreed with the artist (simulation/docs/conditions.md §4): a goldfish is held only by a bubble it
+ * touches and tires of the objects it has watched; a bubble's area is the attention it has been given and not yet lost.
+ */
+const AGENTS_THREE: Choices = { ...AGENTS_TWO, attach: 2 };
+
 export const VERSIONS: readonly { id: string; label: string; choices: Choices }[] = [
   { id: "bubble-9", label: "bubble/9", choices: BUBBLE_NINE },
   { id: "agents-1", label: "에이전트 1", choices: AGENTS_ONE },
-  { id: "agents-2", label: "에이전트 2 (금붕어가 크기)", choices: AGENTS_TWO },
+  // Discarded by the artist on 2026-11-25 (simulation/docs/1.md): kept as the record, not to be built on.
+  { id: "agents-2", label: "에이전트 2 (폐기)", choices: AGENTS_TWO },
+  { id: "agents-3", label: "에이전트 3", choices: AGENTS_THREE },
 ];
 
 /** What the route opens on. */
-export const OPENING_CHOICES: Choices = AGENTS_TWO;
+export const OPENING_CHOICES: Choices = AGENTS_THREE;
 
 /** Whether `model` answers every question as `choices` does. */
 export function sameChoices(model: Choices, choices: Choices) {

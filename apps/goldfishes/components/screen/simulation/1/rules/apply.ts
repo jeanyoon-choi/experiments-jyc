@@ -5,7 +5,7 @@ import type { Held } from "./scale.ts";
 import { SUPPLY } from "./supply.ts";
 import type { Choices } from "./versions.ts";
 
-export type Answers = Choices & { strokeSize: number; strokeQuality: number };
+export type Answers = Choices & { strokeSize: number; strokeQuality: number; grow: number };
 
 export function applyRules(raft: Raft, answers: Answers, held: Held) {
   const local = raft.local;
@@ -21,6 +21,12 @@ export function applyRules(raft: Raft, answers: Answers, held: Held) {
   raft.watched = held.watched;
   raft.looking = held.looking;
   const sized = answers.scale >= 0.5;
+  held.grow = answers.grow;
+  // What the strokes laid since the last frame (raft.lay): each bubble its own fish's worth.
+  if (raft.laid > 0) {
+    if (sized) held.lay(raft.laid);
+    raft.laid = 0;
+  }
   raft.body = sized ? held.units : 0;
   // Another answer to how large the raft is starts the screen over: a raft changing size at once would crush the school.
   if (sized !== raft.sized) {

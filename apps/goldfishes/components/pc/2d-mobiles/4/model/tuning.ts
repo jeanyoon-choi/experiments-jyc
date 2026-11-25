@@ -62,6 +62,8 @@ export type Tuning = {
   sub: number;
   /** What a cell reads: 0 its keyword, 1 its layer, 2 a command. */
   words: number;
+  /** 서체, the face the words are set in (filters/word-paint.ts FACES): 0 Helvetica Neue Bold. */
+  face: number;
   /** A cell's colour: 0 먹 (the ground alone), 1 its keyword's colour. */
   ink: number;
   /** The cells' ground: 0 white, 1 black, 2 each owner's own (light or dark). */
@@ -112,12 +114,13 @@ export const TUNING_DEFAULTS: Tuning = {
   header: 0,
   dpr: 3,
   sharp: 1.25,
-  // The filters the route opens with (user, 2026-11-25): keyword cells on black with no frame, the goldfish's rings,
+  // The filters the route opens with (user, 2026-11-25): keyword cells, black on white, with no frame, the goldfish's rings,
   // and its lens at full, travelling with it. `?sub=0&ripple=0&lens=0` is pc/2d-mobiles/3 as it is.
   sub: 1,
   words: 0,
+  face: 0,
   ink: 0,
-  ground: 1,
+  ground: 0,
   frame: 0,
   cells: 1,
   ripple: 0.65,
@@ -181,6 +184,7 @@ export type Choice = { key: Exclude<keyof Tuning, "death">; label: string; optio
 export const SUB_CHOICES: readonly Choice[] = [
   { key: "sub", label: "화면", options: ["원본", "치환", "콘텐츠만", "UI만"] },
   { key: "words", label: "칸이 읽는 것", options: ["키워드", "레이어", "명령어"] },
+  { key: "face", label: "서체", options: ["Helvetica", "Impact", "SF Black", "Futura", "Menlo", "Didot", "Thin"] },
   { key: "ink", label: "칸 색", options: ["먹", "키워드 색"] },
   { key: "ground", label: "바탕", options: ["흰", "검정", "주인 따라"] },
 ];
@@ -204,7 +208,7 @@ export const LENS_RANGES: readonly Range[] = [
 export const LENS_CHOICES: readonly Choice[] = [{ key: "lensAt", label: "렌즈 중심", options: ["유리 가운데", "금붕어"] }];
 
 /** Every filter option, for the panel's reset. */
-export const FILTER_KEYS: readonly (keyof Tuning)[] = ["sub", "words", "ink", "ground", "frame", "cells", "ripple", "water", "lens", "lensAt"];
+export const FILTER_KEYS: readonly (keyof Tuning)[] = ["sub", "words", "face", "ink", "ground", "frame", "cells", "ripple", "water", "lens", "lensAt"];
 
 /** The options that differ from the defaults, as a query: what the address keeps. */
 export function tuningToQuery(tuning: Tuning, params: URLSearchParams) {

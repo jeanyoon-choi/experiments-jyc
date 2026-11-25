@@ -59,6 +59,12 @@ export type FishParameters = {
    */
   worth: number;
   body: number;
+  /**
+   * simulation/1 (rules/attach.ts `touch`): 1: a fish tires of the object it watched, wherever it is shown, not of
+   * the one bubble; `forget`: over how many seconds that wears off (0: bubble/9's 12 s).
+   */
+  byObject: number;
+  forget: number;
 };
 
 export const FISH_DEFAULTS: FishParameters = {
@@ -73,6 +79,8 @@ export const FISH_DEFAULTS: FishParameters = {
   near: 0,
   worth: 0,
   body: 0,
+  byObject: 0,
+  forget: 0,
 };
 
 /**

@@ -37,11 +37,15 @@ export type Model = {
   near: number;
   /** With the goldfish's answer `worth` (rules/attach.ts): the pull a bubble must have to hold a fish; 1 is a bubble of one fish's worth, known, empty, at its edge. */
   worth: number;
-  /** A stroke's bubble: how many times a fair share large it comes in (while the raft's size is fixed), and with how much appeal. */
+  /** With the goldfish's answer `touch`: over how many seconds a fish forgets an object it tired of. */
+  forget: number;
+  /** With the raft's size the goldfish's (rules/scale.ts): how long it takes the raft to follow the fish it holds, s. */
+  grow: number;
+  /** A stroke's bubble: how large it comes in (fair shares while the raft's size is fixed, fish's worths when it is the goldfish's), and with how much appeal. */
   strokeSize: number;
   strokeQuality: number;
 } & Choices; // The agent model's answers (rules/versions.ts): per question the answer in use, 0 bubble/9's.
-export const MODEL_OPENING: Model = { id: "에이전트", zeroSum: 1, open: 0, near: 0, worth: 0.5, strokeSize: 5, strokeQuality: 2.5, ...OPENING_CHOICES };
+export const MODEL_OPENING: Model = { id: "에이전트", zeroSum: 1, open: 0, near: 0, worth: 0.5, forget: 12, grow: 7, strokeSize: 5, strokeQuality: 2.5, ...OPENING_CHOICES };
 
 /** Portions carrying less than this share of the mean flow are not drawn (they would read as specks). */
 export const LEAST_PORTION = 0.5;

@@ -4,7 +4,7 @@
 // and one word stretched to fill it (SCC's /mobiles/2, substitution/3). The
 // word is chosen here, three ways:
 // - keyword: what circulates. A layer that carries a keyword of the main
-//   screen reads it ("AI", "GPU"); a layer that carries none is an empty cell.
+//   screen reads it ("AI", "GPU"); a layer that carries none reads its wrapper.
 // - layer: the wrapper. The same event in every app, each in its own wrapper
 //   (NOTES 1017): the bars read their app, the rest what kind of layer it is.
 // - command: SCC's reading (its 규율 vocabulary), by layer and by app.
@@ -66,16 +66,16 @@ export const WORDS = { keyword: 0, layer: 1, command: 2 } as const;
 
 /** The word a cell reads; "" for an empty cell. `label` gives a keyword as the screen names it. */
 export function wordOf(sign: Sign, words: number, label: (keyword: string) => string) {
-  if (words === WORDS.layer) {
-    if (sign.layer === "chrome") return sign.app ? APP_NAMES[sign.app].toUpperCase() : "";
-    if (sign.layer === "content") return sign.app ? CONTENT_BY_KIND[APPS[sign.app].kind] : "POST";
-    return LAYER_WORDS[sign.layer];
-  }
   if (words === WORDS.command) {
     if (sign.layer === "content") return sign.app ? COMMAND_BY_APP[sign.app] : "CONFORM";
     return COMMAND_BY_LAYER[sign.layer];
   }
-  return sign.keyword ? label(sign.keyword).toUpperCase() : "";
+  // A layer that carries no keyword (an app's bars above all) reads its wrapper instead: an empty cell
+  // read as a margin above and below the keywords (artist, 2026-11-25).
+  if (words === WORDS.keyword && sign.keyword) return label(sign.keyword).toUpperCase();
+  if (sign.layer === "chrome") return sign.app ? APP_NAMES[sign.app].toUpperCase() : "";
+  if (sign.layer === "content") return sign.app ? CONTENT_BY_KIND[APPS[sign.app].kind] : "POST";
+  return LAYER_WORDS[sign.layer];
 }
 
 /** A keyword's colour, as a hue 0–1: the same keyword is the same colour on every glass, so its spread can be followed. */
@@ -91,6 +91,6 @@ export function hueOf(keyword: string) {
  * Cells are mostly tall (a post, a clip), so the tile is as tall as it is wide, up to 512 px (`scale`: tile px per pt):
  * a 390 × 130 pt tile blurred visibly when stretched down a post (2026-11-25).
  */
-export function wordSpec(word: string, scale: number): TileSpec {
-  return { painter: "sub.word", w: 390, h: Math.max(60, Math.round(Math.min(390, 512 / scale))), mode: "dark", lang: "en", data: { word } };
+export function wordSpec(word: string, scale: number, face = 0): TileSpec {
+  return { painter: "sub.word", w: 390, h: Math.max(60, Math.round(Math.min(390, 512 / scale))), mode: "dark", lang: "en", data: { word, face } };
 }

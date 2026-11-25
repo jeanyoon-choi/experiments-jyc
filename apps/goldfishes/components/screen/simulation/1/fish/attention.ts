@@ -17,7 +17,7 @@
 //          was watched, which the route drains into that page's quality.
 // Draws from the random stream are in a pinned order (school-hash.test.ts).
 
-import { apparent, holds } from "../rules/attach.ts";
+import { apparent, holds, OBJECT_PACE } from "../rules/attach.ts";
 import { drain, unit, type RandomStream } from "./math.ts";
 import { MAX_PAGES, PAGE_INTS, type AgentsInput, type Fish, type FishParameters, type FlatLinks, type SchoolWeb } from "./model.ts";
 
@@ -87,6 +87,10 @@ export class Attention {
   private agentsOn = false;
   /** A fish that holds to nothing waits for its attention to lapse before it looks again (rules/attach.ts `worth`). */
   private patient = false;
+  /** Familiarity is kept by object (the bubble's keyword), and fades over this many seconds (rules/attach.ts `touch`). */
+  private byObject = false;
+  private forget = FAMILIARITY_DECAY;
+  private keys: Int32Array | null = null;
   /** Scratch for choose(): the bubbles in view. */
   private view = new Int32Array(64);
   private worth = new Float64Array(64);
@@ -117,9 +121,11 @@ export class Attention {
   /** A step begins: old memories go, pages that are gone and the dying are attended by nobody, the crowds are counted. */
   begin(time: number, school: readonly Fish[], pageCount: number, agents: AgentsInput | null = null, patient = false) {
     this.patient = patient;
+    if (!this.byObject) this.forget = FAMILIARITY_DECAY;
     if (time - this.lastCleanup > 2) {
       this.lastCleanup = time;
-      for (const [key, entry] of this.familiarity) if (time - entry.time > 60) this.familiarity.delete(key);
+      const old = Math.max(60, this.forget * 5);
+      for (const [key, entry] of this.familiarity) if (time - entry.time > old) this.familiarity.delete(key);
       if (agents) {
         // A shape not seen for two minutes is forgotten (at 0.05/s it is down to a 400th); the gone fish's keywords go with them.
         for (const [key, entry] of this.signMemory) if (time - entry.time > 120) this.signMemory.delete(key);
@@ -334,9 +340,22 @@ export class Attention {
   }
 
   /** How used to `page` the fish `id` is now. */
+  /** What a fish's familiarity is kept by: the bubble, or the object it shows (rules/attach.ts `touch`). */
+  private what(page: number) {
+    const keys = this.keys;
+    return keys && this.byObject ? keys[page * PAGE_INTS + 1]! % MAX_PAGES : page;
+  }
+
   private remembered(id: number, page: number, time: number) {
-    const entry = this.familiarity.get(id * MAX_PAGES + page);
-    return entry ? entry.value * Math.exp(-(time - entry.time) / FAMILIARITY_DECAY) : 0;
+    const entry = this.familiarity.get(id * MAX_PAGES + this.what(page));
+    return entry ? entry.value * Math.exp(-(time - entry.time) / this.forget) : 0;
+  }
+
+  /** The step's way of tiring: by bubble (bubble/9) or by the object shown, from `keys` (each bubble's keyword). */
+  tireBy(byObject: boolean, forget: number, keys: Int32Array | null) {
+    this.byObject = byObject && keys !== null;
+    this.forget = this.byObject && forget > 0 ? forget : FAMILIARITY_DECAY;
+    this.keys = keys;
   }
 
   /** Attention lapses: follow a link of the current page, or choose by salience. */
@@ -348,7 +367,7 @@ export class Attention {
     if (previous >= 0 && previous < pageCount) this.crowd[previous] = Math.max(0, this.crowd[previous]! - 1);
     let chosen = -1;
     this.found = 0;
-    if (input.agents) {
+    if (input.agents && !this.byObject) {
       this.choose(fish, id, previous, input, input.agents);
       return;
     }
@@ -483,7 +502,7 @@ export class Attention {
   watch(fish: Fish, id: number, page: number, seconds: number, input: AttentionInput) {
     const { time, parameters } = input;
     this.contact[page] = this.contact[page]! + seconds;
-    const agents = input.agents;
+    const agents = this.byObject ? null : input.agents;
     if (agents) {
       // Watching makes its keyword and its shape familiar.
       const rules = agents.rules;
@@ -495,9 +514,9 @@ export class Attention {
       this.remember(this.signMemory, signKey, shape + rules.shapeBore * (1 - shape) * seconds, time);
       return;
     }
-    const key = id * MAX_PAGES + page;
+    const key = id * MAX_PAGES + this.what(page);
     const memory = this.remembered(id, page, time);
-    const value = Math.min(FAMILIARITY_CAP, memory + seconds * 0.5 * parameters.habituation);
+    const value = Math.min(FAMILIARITY_CAP, memory + seconds * 0.5 * parameters.habituation * (this.byObject ? OBJECT_PACE : 1));
     const entry = this.familiarity.get(key);
     if (entry) {
       entry.value = value;

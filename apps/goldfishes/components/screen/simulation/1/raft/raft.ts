@@ -69,6 +69,8 @@ export class Raft {
   body = 0;
   /** Which answer to the raft's size the raft was last started under (rules/apply.ts). */
   sized = false;
+  /** What strokes laid since rules/apply.ts last took it into the raft's size, in fish's worths. */
+  laid = 0;
   /** The web's parameters under the agents, filled each step from the panel's and `local`. */
   private readonly quiet: WebParameters = { growth: 0, volatility: 0, floor: 3, adaptation: 0.6, discovery: 0, dynamics: 1, burstAt: 50, recovery: 10, visible: 1 };
   /** true: a bubble that takes a neighbour's object takes that neighbour's appeal with it (the object is what is liked). */
@@ -250,7 +252,9 @@ export class Raft {
       quiet.floor = web.floor;
       quiet.adaptation = web.adaptation;
       quiet.dynamics = web.dynamics;
-      quiet.burstAt = web.burstAt;
+      // Tiring is by a bubble's size against a fair share. When sizes are absolute (rules/scale.ts) that share is
+      // bubble/9's — a full raft's 800th, in fish's worths — whatever the raft holds now.
+      quiet.burstAt = this.body > 0 ? (web.burstAt * (this.school / 800) * this.pagerank.web.size) / this.body : web.burstAt;
       quiet.recovery = web.recovery;
       quiet.discovery = local.contacts ? 0 : web.discovery;
       quiet.volatility = local.noDrift ? 0 : web.volatility;
@@ -465,7 +469,13 @@ export class Raft {
       const page = this.pagerank.add(0, this.strokeQuality);
       if (page === null) count = -1;
       // Its size: one fish's worth of the raft when the raft's size is the school's, else `strokeSize` fair shares.
-      else this.pagerank.seed(page, this.body > 0 ? 1 / (this.body + 1) : Math.min(0.2, this.strokeSize / this.pagerank.state.size));
+      else if (this.body > 0) {
+        // `strokeSize` fish's worths of its own.
+        const worths = Math.max(0.1, this.strokeSize);
+        this.pagerank.seed(page, worths / (this.body + worths));
+        this.body += worths;
+        this.laid += worths;
+      } else this.pagerank.seed(page, Math.min(0.2, this.strokeSize / this.pagerank.state.size));
     }
     const bubble = count < 0 ? null : agents.lay(keyword, count ? heat / count : undefined);
     if (bubble !== null) {

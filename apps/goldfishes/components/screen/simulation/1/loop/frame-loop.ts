@@ -33,6 +33,7 @@ import { Spread } from "./spread";
 import { Summary } from "./summary";
 import { Track } from "./track";
 import { applyRules } from "../rules/apply";
+import { TOUCH } from "../rules/attach";
 import { Held } from "../rules/scale";
 
 /** Frames are paced to at most 60 Hz on whole vsyncs, so 120 Hz screens draw every other one. */
@@ -341,7 +342,12 @@ class RaftLoop implements FrameLoop {
         this.nearFrom = settings.fish;
         this.nearFish = { ...settings.fish };
       }
-      this.nearFish.near = system.near;
+      // rules/attach.ts: `touch` sees only what is at hand, makes the one choice each time and tires by object.
+      const touch = system.attach >= 1.5;
+      this.nearFish.near = touch ? TOUCH : system.near;
+      this.nearFish.follow = touch ? 0 : settings.fish.follow;
+      this.nearFish.byObject = touch ? 1 : 0;
+      this.nearFish.forget = system.forget;
       this.nearFish.worth = system.attach >= 0.5 ? system.worth : 0;
       this.nearFish.body = held.units;
       this.schoolSettings.fish = this.nearFish!;
@@ -350,7 +356,8 @@ class RaftLoop implements FrameLoop {
     }
     if (fish) {
       let input: AgentsInput | null = null;
-      if (agents && !local) {
+      // M9's fish are given the bubbles' signs to choose by; `touch` only their objects, to tire by.
+      if (agents && (!local || system.attach >= 1.5)) {
         input = this.agentsInput;
         input.data = agents.pageData;
         input.rules = settings.parameters.rule;

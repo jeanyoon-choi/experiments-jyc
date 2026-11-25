@@ -54,13 +54,18 @@ export const SystemPanel = memo(function SystemPanel({ model, onModel }: Props) 
                   </Chips>
                 </Fragment>
               ))}
+              {section.id === "fish" && model.attach >= 1.5 && (
+                <Slider label="질린 오브제를 잊는 시간 (초)" output={`${model.forget.toFixed(0)}초`} ariaLabel="금붕어가 질린 오브제를 잊는 시간" min={2} max={300} step={1} value={model.forget} onChange={(forget) => onModel({ forget })} />
+              )}
               {section.id === "fish" && model.attach >= 0.5 && (
                 <Slider label="붙는 문턱 (1: 한 마리 몫 버블이 바로 옆에서 끄는 힘)" output={model.worth.toFixed(2)} ariaLabel="금붕어가 버블에 붙는 문턱" min={0.05} max={3} step={0.05} value={model.worth} onChange={(worth) => onModel({ worth })} />
               )}
-              {section.id === "stroke" && model.scale < 0.5 && (
-                <Slider label="놓이는 크기 (제 몫의 몇 배)" output={`${model.strokeSize.toFixed(1)}배`} ariaLabel="획으로 놓이는 버블의 크기" min={0} max={30} step={0.5} value={model.strokeSize} onChange={(strokeSize) => onModel({ strokeSize })} />
+              {section.id === "bubble" && model.scale >= 0.5 && (
+                <Slider label="자라는 시간 (붙은 금붕어 수를 따라가는 데, 초)" output={`${model.grow.toFixed(0)}초`} ariaLabel="라프트가 붙은 금붕어 수를 따라가는 시간" min={1} max={60} step={1} value={model.grow} onChange={(grow) => onModel({ grow })} />
               )}
-              {section.id === "stroke" && model.scale >= 0.5 && <Note>놓이는 크기: 금붕어 한 마리 몫.</Note>}
+              {section.id === "stroke" && (
+                <Slider label={model.scale >= 0.5 ? "놓이는 크기 (금붕어 몇 마리 몫)" : "놓이는 크기 (제 몫의 몇 배)"} output={model.strokeSize.toFixed(1)} ariaLabel="획으로 놓이는 버블의 크기" min={0.5} max={30} step={0.5} value={model.strokeSize} onChange={(strokeSize) => onModel({ strokeSize })} />
+              )}
               {section.id === "stroke" && (
                 <Slider label="놓일 때의 매력" output={model.strokeQuality.toFixed(1)} ariaLabel="획으로 놓이는 버블의 매력" min={0} max={8} step={0.1} value={model.strokeQuality} onChange={(strokeQuality) => onModel({ strokeQuality })} />
               )}
