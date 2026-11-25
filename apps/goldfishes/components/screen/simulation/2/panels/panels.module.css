@@ -1,0 +1,19 @@
+/* H / S / L in one row (visual-panel's coat). */
+.hsl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.hsl label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.hsl input {
+  width: 100%;
+  min-width: 0;
+}

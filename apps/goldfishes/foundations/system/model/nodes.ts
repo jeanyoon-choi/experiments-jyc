@@ -131,6 +131,13 @@ export const NODES: SystemNode[] = [
       },
       {
         text: both(
+          "bubble/9의 몸에서 주사위를 빼고 돌린 것: 너무 커진 버블이 지쳐 터지는 순환, 이웃의 기질과 오브제를 넘겨받는 버블, 취향이 있는 금붕어, 획으로만 생기는 새 버블. 작가의 판정은 아직 없다.",
+          "bubble/9's body run without its dice: a bubble that holds too much tires and bursts, a bubble takes its neighbour's disposition and object, goldfish have a taste, new bubbles come only from a stroke. Not yet judged by the artist.",
+        ),
+        route: "screen/simulation/2",
+      },
+      {
+        text: both(
           "둘은 아직 한 화면이 아니다. M1–M9.1 가운데 작가가 받아들인 것은 없다.",
           "The two are not yet one screen. Of M1–M9.1 the artist accepted none.",
         ),

@@ -156,18 +156,23 @@ export class Scene {
   /** Sets what the cells read; null when nothing is substituted (then no word is painted and the quads carry no cell). */
   substitute(cells: Cells | null) {
     if (cells?.words === this.cells?.words && cells?.face === this.cells?.face && Boolean(cells) === Boolean(this.cells)) return;
+    // Another face's words are let go: kept, three faces' worth filled the atlas and the glasses' own tiles
+    // could not be placed (bars and whole glasses went black, 2026-11-25).
+    if (cells && this.cells && cells.face !== this.cells.face) {
+      for (const tile of this.words.values()) this.tiles.release(tile);
+      this.words.clear();
+    }
     this.cells = cells;
     this.dirty = true;
   }
 
   private word(value: string) {
     const face = this.cells?.face ?? 0;
-    const key = `${face}:${value}`;
-    let tile = this.words.get(key);
+    let tile = this.words.get(value);
     if (!tile) {
       tile = this.tiles.request(wordSpec(value, this.tiles.scale, face), { onReady: () => (this.dirty = true) });
       this.tiles.retain(tile);
-      this.words.set(key, tile);
+      this.words.set(value, tile);
     }
     return tile;
   }

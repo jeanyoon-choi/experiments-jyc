@@ -5,7 +5,7 @@
 Why it exists: on 2026-11-25 the lead rebuilt, one after another, failures the artist had already corrected on 2026-11-14/16 (sight at a distance, a stroke taking the whole screen, size following the head count at once), because the lead worked from summaries and did not re-read the sources. The sources, to re-read whole when a plan is made:
 
 - The model document, 21 pages: `docs/model/goldfishes-model.pdf` (no PDF reader is installed: `swift` with PDFKit's `PDFDocument(url:).string` reads it). Part 1: why the weekend failed and what the aim is. Part 2: M1–M9.1, formulas and verdicts. Part 3: the notes' first conditions and **the artist's 25 corrections**.
-- The notes (`/Users/jeongyoonchoi/Desktop/project/portfolio-v4/content/texts/entries/notes-*.json`): 1017, 1020, 1023, 1106, 1111, 1115, 1118, 1123. Only `핵심 정리` is the artist's own text; 1118 and 1123 have none (transcribed handwriting only).
+- The notes (`/Users/jeongyoonchoi/Desktop/project/portfolio-v4/content/texts/entries/notes-*.json`), **every one from 1013 to the latest, whole, not only `핵심 정리`** (artist, 2026-11-25): 1013, 1015 (two), 1016 (two), 1017, 1020, 1023, 1030, 1104, 1106, 1107, 1111, 1115, 1118, 1123, and `GLOSSARY.md`. `핵심 정리` is the artist.s own text (1020, 1023, 1030, 1106, 1111, 1115 carry the most); the rest is transcribed handwriting, unreliable word by word but the only record of 1017, 1118 and 1123. What they say the work is: §7.
 - `bubble/docs/1–9.md` (the body and what the artist said of it), [direction](../../../../docs/direction.md), the system map.
 
 ## 1. The artist's conditions
@@ -74,7 +74,7 @@ Found that weekend and still standing: where the screen rests is decided by how 
 11. **Free swimming is slow; once a bubble has given it dopamine, the pace it has now** — so the two are told apart.
 12. **A bubble growing by itself and goldfish going to it by themselves with no input is a contradiction.** One stroke must not take the whole screen, least of all at once ("아직 시작도 안했는데"). But bubbles too small for anything to be seen are not an answer either ("쪼끄맣고 재미도 없는"). Sizes must not jump ("크기도 glitchy").
 13. Checking: long enough on the running screen, never by the number of passing tests; beside bubble/9.
-14. Whether the screen rests with no input (bubble/9 never does): **yes, it rests** (2026-11-25, on the plan of 에이전트 3: "ㅇㅋ 이대로"). bubble/9's full picture is then the state while the audience keeps drawing.
+14. Whether the screen rests with no input (bubble/9 never does): **superseded later the same day — only "no new bubble"; the circulation never stops (§7, decided)**. Earlier that day: yes, it rests (2026-11-25, on the plan of 에이전트 3: "ㅇㅋ 이대로"). bubble/9's full picture is then the state while the audience keeps drawing.
 15. **The core must be judged by a measure, and there was none** (2026-11-25, on 에이전트 3's first run): "전혀 골드피시의 핵심, bubble/9 비주얼의 핵심인 유행의 전파, 정신없는 오브제들 기호들의 파티, 대난리, 이런 느낌이 전혀 없는데, 너 이거에 대한 평가기준이 전혀 없음." A stroke's bubbles shrinking and dying is not the picture ("얘네들이 자연스럽게 작아지고 죽잖아").
 16. **The going back and forth must stop** (same day): "왜 자꾸 왔다갔다하면서 문제가 해결 안되는건데? 너가 처음에 나보고 simulation 수식 이해 없어도 된다고 했지?" The lead's advice on 2026-11-24 that the formulas need not be understood was wrong.
 
@@ -98,6 +98,7 @@ Found that weekend and still standing: where the screen rests is decided by how 
 | 에이전트 2 (11-25) | Size from the goldfish held; a fish held only by what is worth it, seen from afar | **Discarded**: "전혀 bubble/9과 같은 비주얼 아웃풋도 없고". [1](./1.md) |
 | Adaptive resolution (11-25) | The canvas drops a step when frames are slow | Built; not known to help the Windows computer. |
 | 에이전트 3 (11-25) | Agreed plan, below. Built the same day (`rules/attach.ts` `touch`, `OBJECT_PACE`, tiring by object) | **Failed its second check, and the artist saw it fail.** No input, 91 s: 0–0.7 of 380 fish held, the bubble unchanged, no deaths (as planned). One stroke (17 bubbles of 5 fish's worths): 35 fish crushed as the bubbles appeared full size in one frame; 15 held at once, 0 after 12 s; the raft 16% of the screen → 0.4% in 30 s. Causes found: a fish tired of an object in 0.6 s (now 0.15 of that pace) and remembered it for 180 s (now bubble/9's 12 s), so the fish nearby each watched once and none came back. The grow-in of a stroke's bubbles is not built. **Not re-run after those two changes.** The route still opens on it. |
+| **simulation/2** (11-25) | bubble/9 copied whole; its circulation kept; the dice and the self-made bubbles taken out; a bubble that changes takes the disposition and object of the bubble that sends it the most; goldfish with a taste, tiring of a disposition; strokes. [2](./2.md) | **Built and measured; not yet judged by the artist.** Without the dice bubble/9 stills (ten largest replaced 1.71 → 0.13 a second, flow bubbles 544 → 87); the goldfish and dispositions do not make up for it; **bubble/6's own tiring started lower (50 shares, 30 s) does** (1.44 a second, 471 flow bubbles, largest 18 × the median, 60 fps). Ten minutes without input: neither still nor runaway, but the kinds on screen thin from 228 to 110. One stroke at eight moments: 17–47% of the area at most, 0.2–25% a minute on. The dispositions' values change little that is measured. A stroke can crush 30–60 goldfish. |
 
 ## 4. 에이전트 3: the plan agreed on 2026-11-25
 
@@ -158,3 +159,57 @@ What changes (proposed to the artist; see [1](./1.md) for whether it was taken u
 What it says of 에이전트 1 against bubble/9: an object does spread through it (two thirds of the time is a change going one way) and takes twice the ground, but the large bubbles hardly give way (0.39 against 1.73 a second), there are half as many very large ones and half as many signs in view, and the signs are thinning out. That is the "어색" in numbers, as far as numbers go.
 
 Not yet in it: the scenes with strokes (one stroke, ten, drawing kept up) and the pass-or-fail conditions; the same numbers from the browser.
+
+## 7. From the origin: what is wrong with the agent attempts, read against all the notes (2026-11-25)
+
+The artist: none of the simulations has a quarter of bubble/9's "sophisticated & smooth" feeling; every agent-based attempt failed; analyse exactly what is wrong and reconsider the next step from the origin, philosophically and as a system, **after reading the notes properly** ("정확히 골드피시가 뭔지 내 노트를 제대로 읽고 파악해야 함"). Until now the lead had read only each note's `핵심 정리`, and not 1013, 1015, 1016, 1030, 1104 or 1107 at all. Read whole this time: every note from 1013 to 1123, the glossary, the model document, bubble and simulation notes, the system map. **Nothing below is built or measured unless it says so; it is the lead's reading, for the artist to correct.**
+
+### What the notes say the work is (the artist's own text unless marked)
+
+- **The subject is the circulation, not the things circulated.** "무엇이 유통되는지는 중요하지 않다… 어떻게 유통되는지, 그 유통 구조 자체가 중요함"; "끊임없이 움직이는, 관념/상표/물건들"; "계속 돌아가는 플랫폼" (1030, 1023). "지속해서 바뀌고, 그 어디에도 멈춰있지 않은"; "World Wide Web 고유의 멈추지 않는 자리바꿈"; "키워드들이 끊임없이 자기-진화 및 전파 된다" (1020).
+- **Not everything at once: one thing dominates at a time.** "마구잡이 '동시다발'이 아닌, 유형적, 각 시간마다 dominate 하는 '차지하는 거대 서사'가 있는" (1030). 탕후루 → 마라탕 → 버터떡; "15초도 너무 길다".
+- **Two myopic agents in a loop that feeds itself**: goldfish ⇄ bubble, each optimising what is in front of it; the loop accelerates ("멈출 수가 없다", to the burst; 1030 transcribed, 1106).
+- **The audience makes only the bubble (an empty place) and its disposition.** What it becomes is the network's doing: "<어떤 키워드로 전이하여라> 라는 지시는 내리지 않는다… 자율적인 Web Network의 일" (1020 transcribed).
+- **PageRank is not the logic: "한 키워드에서 다음 키워드로"; Occam** (1111).
+- **The simulation as it stood on 11-15 was already judged by the artist**: "지금 Simulation은 그냥 순수 Parametric … Homogenous함. 우리가 해야 하는 것: Heterogenous, 각 Goldfish/Bubble에 일종의 기질 … 기질 간의 Feedback Loop Continuous: Numerical/Vector value로 Short term Alignment & Positioning → 인터랙션 하면서 Preference updates → vector → Repositioning → repeats" (1115). Transcribed there: no keyword's or bubble's attractivity is considered, all are the same, and "이걸로 진짜 창발적인 Output을 만들어내는 활동이 안된다".
+- The goldfish's death by dopamine and the new shoal (1020); the extremes (1115, transcribed).
+
+### The diagnosis
+
+1. **bubble/9 has the circulation and no trend; every agent model has a trend and no circulation.** The work, by the notes, is a trend moving over a circulation that never stops. bubble/9: one conserved weight always in flow (so: smooth, never still, the flow bubbles), but an object changes to the next in a list, 237 kinds at once, nothing dominates, the audience changes nothing — "동시다발", which is why its logic is a dummy. M1–M9.1 and 에이전트 2, 3: a keyword spreads from neighbour to neighbour, but nothing circulates under it. This is the model document's own third failure ("버블이 움직이는 생동감과 상태가 바뀌는 흐름을 한 문제로 보고 고쳤다"), repeated by the lead on 11-24/25.
+2. **Why bubble/9 is smooth, and the agent models cannot be as built.** bubble/9's size is a continuous quantity that only moves (Σ = 1) and is always relaxing toward a target that itself drifts slowly; three clocks apart (quality slow, weight middle, portions and morph seen). In M8.2–M9 and 에이전트 2, 3 a bubble's size is a **count of 380 goldfish** over 60–800 bubbles: 0.5 to 6 fish a bubble, whole numbers. That gives jumps ("크기도 glitchy"), no bubble more than about twice another's width (simulation/0), or specks. bubble/9's range (largest 23 times the median's width, about 500 times its area) cannot be carried by 380 counted fish at any setting. This is arithmetic, not tuning.
+3. **"No input, so the screen rests" was applied to the circulation itself.** A system that loses and is fed only by strokes has two ends: every answer dies away ("자연스럽게 작아지고 죽잖아"), or, with the feedback above one, it runs away ("한 획이 화면 전체"). Between them is a knife-edge; finding it by hand was the going back and forth. The research the model document leans on (Gleeson, the forest fire) gets its range of sizes only **with a steady slow drive**; the lead took the conclusion without the condition. Measured here: the only two changes that altered bubble/9's picture were removing the share spread over all (749 of 800 dried) and removing quality's wandering (leaders' turnover halved) — its two drives.
+4. **Identical agents.** Every bubble the same, every fish the same but for familiarity. The known ends of that class: one keyword (the voter model; coexistence 0–2% in the document), frozen, or runaway. bubble/9 is rich partly because each page has its own, changing appeal — by dice. **The notes' own replacement for that dice is 1115's disposition (기질), changing through interaction.** The lead filed it as "later, after simulation/1" (direction, system map) and spent the whole of `simulation/` trying to get from identical agents what the artist's note of 11-15 says they cannot give.
+5. Built from one bubble upward, where nothing of bubble/9's picture exists to compare with.
+
+So what is wrong is not "agent-based" as such but this class of it: a few hundred identical agents, size as a head count, fed only by strokes.
+
+### What the next step should be (proposed; nothing built)
+
+- **Keep from bubble/9 not PageRank but the one property that made it smooth: attention is a continuous quantity that circulates and is never created or lost by itself.** A bubble's area is the attention it holds; it changes only by flow (the flow bubbles). The 380 goldfish are the ones we see of it, not the unit it is counted in.
+- **What moves it is the agents' dispositions** (1115): each bubble and goldfish a vector; how well they match decides, on the spot, where a fish goes and where attention flows; each interaction shifts both. This takes the place of bubble/9's dice and list, and of M9's "copy the busier neighbour". "한 키워드에서 다음 키워드로" is a bubble's disposition sliding toward what holds fish beside it.
+- **New bubbles only from the audience**, with a disposition; never what they become.
+- **Before any code: the model on one page**, as equations with plain words and what each is expected to produce, for the artist to correct (1111 transcribed: "제대로 공식으로 먼저 이해해야"; correction 2).
+- Then from bubble/9's full raft downward, never from one bubble up; beside bubble/9; judged by the artist's eye.
+
+### The artist's to decide (the lead's reading in brackets)
+
+1. Does "no input, the screen stays as it is" (correction 17, condition 14) mean the circulation stops too, or only that no new bubble and no new keyword appears? [The notes read as the second: the 자리바꿈 never stops; only the audience brings anything new. Under the first, bubble/9's feeling is not reachable: it is made of never stopping.]
+2. Is 1115's disposition brought forward to be the centre of the model now, not a later layer? [Yes.]
+3. Whether a position on the screen means anything (1115: TBD) stays open; the proposal does not need it answered.
+
+### Decided by the artist (2026-11-25, on §7)
+
+- **"No input, the screen stays" means no new bubble appears; the circulation goes on** ("입력 없으면 가만히가 당연히 새 버블이 안 생긴다는 의미지, 유통은 지속적으로 되어야 함"). This replaces the reading in condition 14 and in §2 ("the screen rests without input").
+- **The disposition (1115) is brought to the centre of the model now** ("기질을 한번 지금 모델의 중심으로 당겨봐").
+- **A new home, `simulation/2`** (the artist's proposal; the lead agrees: simulation/1 carries eight switches and three discarded versions, and stays as their record). Copied from bubble/9.
+- The model on one page, for the artist to correct before anything is built: [2](./2.md).
+
+### Decided and found while building simulation/2 (2026-11-25)
+
+- The artist, on the model page: **the disposition is the bubble's, not the sign's** — the object groups will all change, so nothing is taken from them; **simple parameters for now, to see the feeling, replaceable later**, nothing semantic ("overengineering하거나 semantic하게 만드는 데 highly skeptical"); a stroke's bubble at **a mean share**. And: plan it properly, then build it without mistakes.
+- **What bubble/9's dice were doing, measured in bubble/9 itself with nothing else changed**: with quality no longer wandering, the ten largest are replaced 0.01–0.13 times a second (1.71), the flow bubbles fall to a sixth, the bubbles of 40 px and more from 27 to 11. The goldfish's watching does not replace it, at twelve times the weight either (0.2–0.7).
+- **bubble/6's tiring is an engine by itself** when it starts below where a giant settles: at 20 shares 3.1 replaced a second and a largest width 11.5 times the median, at 40 1.7 and 16.2, at 50 1.4 and 18.0, at 60 1.1 and 19.7 (no dice). It is the agents' own (holding too much tires), already in bubble/9, and needs no new rule. This is what §7 called "a drive" and did not yet have.
+- **Taking a neighbour's object on with bubble/9's own tiring (80) ends in one object on 80–85% of the area within two minutes**; with the tiring at 50 the leader holds 22–37% and is overtaken, for ten minutes at least. The number of kinds still falls (228 → 110 in ten minutes).
+- **The dispositions as built (a direction on a circle; taste 1) change little in any number taken**: the same picture with them off; the same at taste 3. One difference seen: strokes are answered more unevenly with tiring by disposition (peaks 17–47% against 15–28%).
+- A mistake in the measuring, caught: one batch was run with the tiring switched off by a mistyped setting and showed two giants and one object; those runs were thrown out and redone.
