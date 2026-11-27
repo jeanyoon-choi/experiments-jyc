@@ -31,6 +31,8 @@ export type Faces = {
   readonly discs: Float32Array;
   discOf(page: number): number;
   buried(page: number, hold: number, clearance: number): boolean;
+  /** Whether `page` has already been found buried in this step (nothing is worked out). */
+  knownBuried(page: number): boolean;
   /** The free angle around `page` nearest to `preferred`, or null. */
   exposedAngle(page: number, preferred: number, hold: number, clearance: number): number | null;
 };
@@ -224,10 +226,12 @@ export class Attention {
     const discs = faces.discs;
     const mean = 1 / Math.max(1, pageCount);
     const { scores, order } = this;
-    // Pages that score, in index order: a buried page (no hold point anywhere round it) cannot be chosen.
+    // Pages that score, in index order: a buried page (no hold point anywhere round it) cannot be chosen. Whether a
+    // page is buried is worked out only when it is the best left (exposedAngle below asks, once per page a step);
+    // one already found buried in this step is left out here. The page chosen is the same either way.
     let candidates = 0;
     for (let page = 0; page < pageCount; page += 1) {
-      if (faces.buried(page, hold, clearance)) {
+      if (faces.knownBuried(page)) {
         scores[page] = 0;
         continue;
       }
@@ -250,7 +254,6 @@ export class Attention {
     // The best-scoring page that is reachable (lowest index among equals): the
     // most salient first, so the search for an open hold point runs only
     // until one is found, not for every page that beats the best so far.
-    // Buried pages never score (scoring left `order` the rest, by index).
     for (;;) {
       let page = -1;
       let best = 0;

@@ -17,6 +17,11 @@ export type PageMorphs = {
   going(page: number): number;
   /** Whether a page's morph has set by `time` (or it has none): only then does it move on again. */
   settled(page: number, time: number, duration: number): boolean;
+  /**
+   * `page` is another bubble now (a stroke's, in a let-go bubble's place: raft/raft.ts takeOver): it is not tracked
+   * any more, so it is shown as what it should be at once, as a new page is, not flowing out of what stood there.
+   */
+  forget(page: number): void;
 };
 
 export function createPageMorphs(max = MAX_TRACKED): PageMorphs {
@@ -52,5 +57,8 @@ export function createPageMorphs(max = MAX_TRACKED): PageMorphs {
   };
   const going = (page: number) => (page < max && pageTo[page]! >= 0 ? pageTo[page]! : -1);
   const settled: PageMorphs["settled"] = (page, time, duration) => page >= max || pageTo[page]! < 0 || time - pageStart[page]! >= duration;
-  return { layer, going, settled };
+  const forget: PageMorphs["forget"] = (page) => {
+    if (page < max) pageTo[page] = -1;
+  };
+  return { layer, going, settled, forget };
 }

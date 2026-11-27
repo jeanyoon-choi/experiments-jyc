@@ -93,6 +93,8 @@ export type ObjectPass = {
   draw(pageStart: number, count: number, pageOf: Int32Array, headingOf: Float32Array, parameters: ObjectParameters, frame: ObjectFrame): void;
   /** Whether a page's morph has set by `time` (or it has none): only then does it move on again. */
   settled(page: number, time: number, duration: number): boolean;
+  /** `page` is another bubble now: shown as what it should be at once (pass/page-morphs.ts forget). */
+  forget(page: number): void;
   /** Draws the 랩's object alone. */
   drawLab(lab: LabFrame, parameters: ObjectParameters): void;
   /**
@@ -357,5 +359,5 @@ export function createObjectPass(foam: FoamRenderer, maxBubbles: number): Object
     gl.deleteProgram(program);
   };
 
-  return { draw, drawLab, settled: morphs.settled, ready: (layer) => residency.baked[layer] === 1, idle: bakes.idle, pageExtent, dispose };
+  return { draw, drawLab, settled: morphs.settled, forget: morphs.forget, ready: (layer) => residency.baked[layer] === 1, idle: bakes.idle, pageExtent, dispose };
 }

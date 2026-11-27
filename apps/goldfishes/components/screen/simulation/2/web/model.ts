@@ -402,6 +402,29 @@ export function addPage(web: RankedWeb, quality = 0, group?: number) {
 }
 
 /**
+ * simulation/2: `page` is let go of and starts again as a newly added page would (a full web's way in): every
+ * candidate from it and to it is dropped, and its group, quality and tiredness are a newcomer's.
+ */
+export function renewPage(web: RankedWeb, page: number, quality = 0, group?: number) {
+  if (page < 0 || page >= web.size) return false;
+  const chosen = Math.max(0, Math.min(web.groups - 1, group ?? web.group[page]!));
+  for (let from = 0; from < web.size; from += 1) {
+    const links = web.out[from]!;
+    if (from === page) links.length = 0;
+    else for (let at = links.length - 1; at >= 0; at -= 1) if (links[at]!.target === page) links.splice(at, 1);
+  }
+  const old = web.group[page]!;
+  web.groupSize[old] = web.groupSize[old]! - 1;
+  web.group[page] = chosen;
+  web.groupSize[chosen] = web.groupSize[chosen]! + 1;
+  web.rank[page] = 1 / web.size;
+  web.quality[page] = quality + web.profiles[chosen]!.quality;
+  web.fatigue[page] = 0;
+  computeRank(web);
+  return true;
+}
+
+/**
  * Advances the web by `seconds`: quality drifts, attention relaxes toward
  * appeal, candidates are discovered and faded, and new pages may arrive.
  * `pendingPages` carries the fraction of a new page from one step to the

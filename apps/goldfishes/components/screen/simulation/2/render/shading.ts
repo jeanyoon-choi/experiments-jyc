@@ -34,9 +34,14 @@ export const SHADING = /* glsl */ `
 uniform vec2 frame;                   // CSS px
 uniform sampler2D lightMap;           // the photographed room (CC0 HDRI), as a panorama
 // Stills, 512² layers of one array (a fragment shader has sixteen texture units, and the objects' use them all):
-// 0 a portrait (환경 일론 머스크), as the whole environment; 1 a scanned hide (materials/mix.ts leather).
+// 0 a portrait (환경 일론 머스크), as the whole environment; 1 a scanned hide (materials/mix.ts leather);
+// 2 라이브 화면's picture, replaced as its frames arrive (assets.ts).
 uniform mediump sampler2DArray plates;
 uniform float faceAspect;             // its width over its height
+uniform float liveScreen;             // 라이브 화면: 0 none, otherwise a live picture (plates layer 2) hung in the room
+uniform float liveStrength;
+uniform float liveSize;               // 0 small … 1 across most of what a sphere mirrors
+uniform float liveAspect;             // the picture's width over its height
 uniform vec3 lightColour;             // the light's colour
 uniform vec3 background;              // the ground's colour (what the spheres rest in)
 uniform float exposure;
@@ -149,6 +154,22 @@ vec3 faceAt(vec3 w, float blur) {
   return textureLod(plates, vec3(clamp(at, vec2(0.004), vec2(0.996)), 0.0), blur + 1.0).rgb;
 }
 
+// 라이브 화면: a lit screen showing a live picture, hung on the camera's side of the room (straight towards the
+// viewer, whatever the tilt), so a surface facing the viewer mirrors it. The room's light stays as it is; this is
+// one more thing in it, as the key's softbox is.
+vec3 liveAt(vec3 w, float rough) {
+  vec3 r = screenOf(w);
+  if (r.z <= 0.02) return vec3(0.0);
+  float reach = mix(0.3, 3.0, liveSize);
+  vec2 q = r.xy / r.z / (reach * vec2(liveAspect, 1.0));
+  float soft = 0.03 + 1.2 * rough;
+  float inside = 1.0 - smoothstep(1.0 - soft, 1.0 + soft, max(abs(q.x), abs(q.y)));
+  if (inside <= 0.0) return vec3(0.0);
+  vec3 seen = textureLod(plates, vec3(clamp(0.5 + 0.5 * q, vec2(0.004), vec2(0.996)), 2.0), rough * 6.0).rgb;
+  // A camera's picture is display-encoded; the room's light is linear.
+  return seen * seen * inside;
+}
+
 // What a sphere's surface at world point o reflects along world direction w
 // (z up): the room, the key and, below the horizon, the ground.
 vec3 envAt(vec3 o, vec3 w, float rough) {
@@ -156,6 +177,7 @@ vec3 envAt(vec3 o, vec3 w, float rough) {
   if (photoStrength > 0.0) {
     room += photoStrength * (photo > 5.5 ? faceAt(w, rough * 6.0) * 1.2 : photoAt(roomHit(o, w), rough * 7.0));
   }
+  if (liveScreen > 0.5) room += liveStrength * liveAt(w, rough);
   vec3 key = normalize(keyAt - o);
   float size = mix(0.12, 0.7, keySize);
   float soft = 0.45 + 0.8 * keySize + 1.5 * rough;

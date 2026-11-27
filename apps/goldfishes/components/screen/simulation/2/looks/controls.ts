@@ -32,6 +32,13 @@ const BASE_SLIDER_GROUPS: readonly SliderGroup[] = [
     ],
   },
   {
+    title: "라이브 화면",
+    controls: [
+      { key: "liveStrength", label: "화면 밝기", min: 0, max: 8, step: 0.05 },
+      { key: "liveSize", label: "화면 크기", min: 0, max: 1, step: 0.01 },
+    ],
+  },
+  {
     title: "바닥",
     controls: [
       { key: "groundLight", label: "바닥 반사 (테두리)", min: 0, max: 2, step: 0.01 },

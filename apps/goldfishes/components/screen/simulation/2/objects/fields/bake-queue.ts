@@ -41,7 +41,12 @@ export function createBakeQueue(residency: Residency, takeIn: (answer: FieldAnsw
   };
   // `?replay` (loop/replay.ts): one worker, so the bakes come back in the order they were asked for and the pools
   // fill the same way every run.
-  const workerCount = window.location.search.includes("replay") ? 1 : Math.max(1, Math.min(3, (navigator.hardwareConcurrency || 2) - 1));
+  // simulation/2 (2026-11-25): the frame's own thread, the school's worker and the browser's GPU process each want a
+  // core too. While three workers baked, the frame's own work took 1.6–2.4 times as long on a ten-core machine
+  // (measured); on four cores three workers leave it nothing. So one worker up to four cores, two up to six, else three
+  // (not measured on a machine with few cores: the opening's bakes take longer there, the frames should not).
+  const cores = navigator.hardwareConcurrency || 2;
+  const workerCount = window.location.search.includes("replay") || cores <= 4 ? 1 : cores <= 6 ? 2 : 3;
   let disposed = false;
   /** Per layer: a bake under way. */
   const baking = new Uint8Array(layers);

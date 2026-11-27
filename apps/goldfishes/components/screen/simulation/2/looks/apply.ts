@@ -10,7 +10,9 @@ export function withLook(current: Visual, look: Partial<Visual>): Visual {
   // A material's own choices (인쇄물's 방향) stay as they are set: they run beside the 연출, not under it.
   const choices = materialOf(look.material ?? LOOK_BASE.material)?.choices ?? [];
   const kept = Object.fromEntries(choices.map((choice) => [choice.key, (current as Record<string, unknown>)[choice.key]]).filter(([, value]) => value !== undefined));
-  return { ...LOOK_BASE, area: current.area, portions: current.portions, flow: current.flow ?? 1, ...look, ...kept };
+  // 라이브 화면 is the room's, not a 연출's: it stays on, as set, through every 연출.
+  const live = { liveScreen: current.liveScreen ?? LOOK_BASE.liveScreen, liveStrength: current.liveStrength ?? LOOK_BASE.liveStrength, liveSize: current.liveSize ?? LOOK_BASE.liveSize };
+  return { ...LOOK_BASE, area: current.area, portions: current.portions, flow: current.flow ?? 1, ...live, ...look, ...kept };
 }
 
 /** 섞음's own values: a 연출 stays the one chosen while 섞음 is turned on over it (`loose`). */

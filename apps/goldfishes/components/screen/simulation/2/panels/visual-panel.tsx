@@ -1,6 +1,7 @@
 import { Fragment, memo, useState, type Dispatch, type SetStateAction } from "react";
 import styles from "../bubble-three.module.css";
 import { coatChosenOf, COLOUR_CONTROLS, FAMILY_OPENING, familyOf, fromHex, LOOK_BASE, LOOK_FAMILIES, LOOKS, PHOTO_ROOMS, sameLook, SLIDER_GROUPS, toHex, withLook } from "../looks";
+import { LIVE_SOURCES } from "../render/live/source";
 import { materialOf } from "../render/materials";
 import { hsl, hslOf } from "../render/materials/coats";
 import { OPENING } from "../state/opening";
@@ -132,6 +133,18 @@ export const VisualPanel = memo(function VisualPanel({ visual, setVisual, onExpo
             onClick={() => setVisual((current) => ({ ...current, photo: option.mode, photoStrength: current.photoStrength > 0 ? current.photoStrength : 1 }))}
           >
             {option.label}
+          </Chip>
+        ))}
+      </Chips>
+      {/* A live picture hung in the room, beside its light (render/live/source.ts): the 환경 stays as chosen. */}
+      <Note>라이브 화면</Note>
+      <Chips label="라이브 화면">
+        <Chip pressed={!visual.liveScreen} onClick={() => setVisual((current) => ({ ...current, liveScreen: 0 }))}>
+          없음
+        </Chip>
+        {Object.entries(LIVE_SOURCES).map(([id, source]) => (
+          <Chip key={id} pressed={visual.liveScreen === Number(id)} onClick={() => setVisual((current) => ({ ...current, liveScreen: Number(id) }))}>
+            {source.label}
           </Chip>
         ))}
       </Chips>

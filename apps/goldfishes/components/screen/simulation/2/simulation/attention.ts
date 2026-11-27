@@ -38,6 +38,12 @@ export class Watching {
   /** Which pages a fish touched last frame: a page newly touched is a note (소리). */
   private readonly touchedBefore = new Uint8Array(MAX_ENTITIES);
 
+  /** `page` is another bubble now (a stroke's, in a let-go bubble's place): the watching of what stood there is not its own. */
+  renew(page: number) {
+    this.watched[page] = 0;
+    this.touchedBefore[page] = 0;
+  }
+
   /** This frame's contact, taken from `source`. */
   drain(source: ContactSource, pageCount: number) {
     source.drainContact(pageCount, this.attention);

@@ -220,6 +220,7 @@ export function createFoamRenderer(canvas: HTMLCanvasElement): FoamRenderer | nu
     assets.use(look);
     uniforms.samplers(program, SHADING_SAMPLERS);
     gl.uniform1f(location(program, "faceAspect"), assets.faceAspect());
+    gl.uniform1f(location(program, "liveAspect"), assets.liveAspect());
     gl.activeTexture(gl.TEXTURE0 + UNIT.lastScene);
     gl.bindTexture(gl.TEXTURE_2D, last.texture);
   };

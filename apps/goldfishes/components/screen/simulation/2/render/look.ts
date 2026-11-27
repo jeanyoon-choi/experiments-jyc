@@ -42,6 +42,10 @@ export type Look = {
   lightTurn: number;
   photo: number;
   photoStrength: number;
+  /** 라이브 화면: a live picture hung in the room on the camera's side — its source (live/source.ts LIVE_SOURCES; 0 none), brightness and size. */
+  liveScreen: number;
+  liveStrength: number;
+  liveSize: number;
   keyStrength: number;
   keySize: number;
   shadowLift: number;
@@ -73,6 +77,9 @@ export const LOOK_DEFAULTS: Look = {
   lightTurn: 0,
   photo: 0,
   photoStrength: 1,
+  liveScreen: 0,
+  liveStrength: 2,
+  liveSize: 0.4,
   keyStrength: 0,
   keySize: 0.5,
   shadowLift: 0.2,

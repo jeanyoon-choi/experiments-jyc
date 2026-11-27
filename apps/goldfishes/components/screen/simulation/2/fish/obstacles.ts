@@ -36,8 +36,6 @@ export class Obstacles {
   private readonly buriedValue = new Uint8Array(MAX_PAGES);
   private stepIndex = 0;
   private readonly arcs = new Float64Array(512);
-  /** Orders arc indices by their start (buried()), one comparator for every call. */
-  private readonly byArcStart = (a: number, b: number) => this.arcs[a * 2]! - this.arcs[b * 2]!;
   private arcOrder = new Int32Array(256);
   private seen = new Int32Array(2_048);
   private seenStamp = 0;
@@ -116,6 +114,11 @@ export class Obstacles {
       if (dx * dx + dy * dy < r * r) return false;
     }
     return true;
+  }
+
+  /** True when buried() has already found `page` buried in this step (nothing is worked out here). */
+  knownBuried(page: number) {
+    return this.buriedStep[page] === this.stepIndex && this.buriedValue[page] === 1;
   }
 
   /** Index into `discs` of a page's disc (x, y, radius follow). */
@@ -213,9 +216,17 @@ export class Obstacles {
     }
     if (count === 0) return false;
     // Sorted by start; swept from the first start round to it again, each arc and its copy a turn later.
-    const order = this.arcOrder.subarray(0, count);
-    for (let index = 0; index < count; index += 1) order[index] = index;
-    order.sort(this.byArcStart);
+    // (An insertion sort, stable as Array.prototype.sort is: the same order, without a call per comparison.)
+    const order = this.arcOrder;
+    for (let index = 0; index < count; index += 1) {
+      const key = arcs[index * 2]!;
+      let to = index - 1;
+      while (to >= 0 && arcs[order[to]! * 2]! > key) {
+        order[to + 1] = order[to]!;
+        to -= 1;
+      }
+      order[to + 1] = index;
+    }
     const first = arcs[order[0]! * 2]!;
     let end = first;
     for (let turn = 0; turn < 2; turn += 1) {

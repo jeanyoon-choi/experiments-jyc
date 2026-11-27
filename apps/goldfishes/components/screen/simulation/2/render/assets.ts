@@ -2,6 +2,7 @@
 // sheets. Nothing is asked for until a look first wants it; each sits as a plain placeholder until it is in.
 
 import { sampling } from "./gl";
+import { LIVE_SOURCES, type LiveSource } from "./live/source";
 import { FACE_ENVIRONMENT, type Look } from "./look";
 import { MIX_MATERIAL } from "./materials/mix";
 import { PRINT_MATERIAL } from "./materials/print";
@@ -16,6 +17,8 @@ const FACE_IMAGE = "/images/0908/tech-power-faces/008.jpg";
 const HIDE_IMAGE = "/assets/goldfishes/materials/leather-red-02.png";
 /** The stills' layers (SHADING plates) are this size. */
 const PLATE_SIZE = 512;
+/** 라이브 화면's layer: dark until a frame arrives. */
+const LIVE_LAYER = 2;
 
 export type Assets = {
   /**
@@ -25,6 +28,8 @@ export type Assets = {
   use(look: Look): void;
   /** The portrait's width over its height (1 until it is in). */
   faceAspect(): number;
+  /** 라이브 화면's picture's width over its height (1 until its first frame). */
+  liveAspect(): number;
   /** Whether every room, still and sheet asked for is in. */
   loaded(): boolean;
   dispose(): void;
@@ -67,9 +72,9 @@ export function createAssets(gl: WebGL2RenderingContext): Assets {
   // The stills (SHADING plates): the portrait and the hide, each loaded when first wanted (grey, and flat, until then).
   const plates = gl.createTexture()!;
   gl.bindTexture(gl.TEXTURE_2D_ARRAY, plates);
-  gl.texStorage3D(gl.TEXTURE_2D_ARRAY, Math.log2(PLATE_SIZE) + 1, gl.RGBA8, PLATE_SIZE, PLATE_SIZE, 2);
+  gl.texStorage3D(gl.TEXTURE_2D_ARRAY, Math.log2(PLATE_SIZE) + 1, gl.RGBA8, PLATE_SIZE, PLATE_SIZE, 3);
   sampling(gl, gl.TEXTURE_2D_ARRAY, gl.LINEAR_MIPMAP_LINEAR, gl.LINEAR, gl.REPEAT, gl.REPEAT);
-  for (const [layer, value] of [[0, 90], [1, 128]] as const) {
+  for (const [layer, value] of [[0, 90], [1, 128], [LIVE_LAYER, 0]] as const) {
     gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, layer, PLATE_SIZE, PLATE_SIZE, 1, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(PLATE_SIZE * PLATE_SIZE * 4).fill(value));
   }
   gl.generateMipmap(gl.TEXTURE_2D_ARRAY);
@@ -108,6 +113,37 @@ export function createAssets(gl: WebGL2RenderingContext): Assets {
     loadPlate(1, HIDE_IMAGE);
   };
 
+  // 라이브 화면 (live/source.ts): its source is opened when a look first asks for it and closed when none does; each
+  // new frame is drawn to the layer's size, mirrored (the screen reads as a mirror), and replaces the layer.
+  let live: LiveSource | null = null;
+  let liveWanted = 0;
+  let liveCanvas: CanvasRenderingContext2D | null = null;
+  const wantLive = (wanted: number) => {
+    if (wanted !== liveWanted) {
+      live?.close();
+      live = LIVE_SOURCES[wanted]?.open() ?? null;
+      liveWanted = wanted;
+      if (!live) {
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, plates);
+        gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, LIVE_LAYER, PLATE_SIZE, PLATE_SIZE, 1, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(PLATE_SIZE * PLATE_SIZE * 4));
+        gl.generateMipmap(gl.TEXTURE_2D_ARRAY);
+      }
+    }
+    const frame = live?.take();
+    if (!frame) return;
+    if (!liveCanvas) {
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = PLATE_SIZE;
+      liveCanvas = canvas.getContext("2d")!;
+      liveCanvas.setTransform(-1, 0, 0, 1, PLATE_SIZE, 0);
+    }
+    liveCanvas.drawImage(frame, 0, 0, PLATE_SIZE, PLATE_SIZE);
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, plates);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, LIVE_LAYER, PLATE_SIZE, PLATE_SIZE, 1, gl.RGBA, gl.UNSIGNED_BYTE, liveCanvas.canvas);
+    gl.generateMipmap(gl.TEXTURE_2D_ARRAY);
+  };
+
   // 인쇄물's sheets (materials/print-sheets.ts): painted in a worker the first time that material is chosen.
   const printMap = createPrintMap(gl);
 
@@ -117,6 +153,7 @@ export function createAssets(gl: WebGL2RenderingContext): Assets {
       if (look.photo === FACE_ENVIRONMENT) wantFace();
       if (Math.round(look.material) === MIX_MATERIAL.id) wantHide();
       gl.activeTexture(gl.TEXTURE0 + UNIT.plates);
+      wantLive(Math.round(look.liveScreen ?? 0));
       gl.bindTexture(gl.TEXTURE_2D_ARRAY, plates);
       if (Math.round(look.material) === PRINT_MATERIAL.id) printMap.want(Math.round(look.printRegion ?? 0));
       gl.activeTexture(gl.TEXTURE0 + UNIT.printMap);
@@ -125,9 +162,11 @@ export function createAssets(gl: WebGL2RenderingContext): Assets {
       gl.bindTexture(gl.TEXTURE_2D, lightMap);
     },
     faceAspect: () => faceAspect,
+    liveAspect: () => live?.aspect() ?? 1,
     loaded: () => loading === 0 && !printMap.painting(),
     dispose() {
       disposed = true;
+      live?.close();
       gl.deleteTexture(lightMap);
       gl.deleteTexture(plates);
       printMap.dispose();

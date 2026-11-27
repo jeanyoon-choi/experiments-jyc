@@ -319,11 +319,30 @@ export class Raft {
   }
 
   /**
+   * simulation/2, the web full: the smallest bubble on show (not `linkedFrom`) is let go of and becomes the new one
+   * at (x, y) — the bubble that had lost the most attention, so the one least missed. Null when there is none.
+   */
+  private takeOver(x: number, y: number, linkedFrom: number | null) {
+    const world = this.world;
+    const shown = world.shown;
+    let page = -1;
+    for (let other = 0; other < world.state.size; other += 1) {
+      if (other !== linkedFrom && (page < 0 || shown[other]! < shown[page]!)) page = other;
+    }
+    if (page < 0) return null;
+    world.renew(page, linkedFrom !== null ? world.state.group[linkedFrom]! : this.nearestGroup(x, y));
+    if (linkedFrom !== null) world.relate(linkedFrom, page, HAND_LINK_WEIGHT);
+    this.placePage(page, x, y);
+    return page;
+  }
+
+  /**
    * simulation/2: a stroke's bubble at (x, y), linked from `linkedFrom` (the stroke's last) when given. It comes in
-   * `shares` fair shares large (artist, 2026-11-25: a bubble's mean share), taken evenly from the rest. Null at the cap.
+   * `shares` fair shares large (artist, 2026-11-25: a bubble's mean share), taken evenly from the rest. At the cap it takes the
+   * smallest bubble's place (artist, 2026-11-26: a stroke always lands).
    */
   lay(x: number, y: number, linkedFrom: number | null, shares: number, quality = 0) {
-    const page = this.createPage(x, y, linkedFrom);
+    const page = this.createPage(x, y, linkedFrom) ?? this.takeOver(x, y, linkedFrom);
     if (page === null) return null;
     // Its appeal as it comes in (전파's newcomers had 1.5); it wears off like any other unless the goldfish keep it up.
     this.world.setQuality(page, quality);

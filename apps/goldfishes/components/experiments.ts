@@ -336,6 +336,7 @@ export const goldfishExperiments: readonly GoldfishExperiment[] = [
     area: "screen",
     section: "dated",
     date: "2026-11-25",
+    updated: "2026-11-26",
     phrase: "bubble/9's circulation kept and its dice taken out: a bubble that holds too much tires and bursts, a bubble that changes takes its neighbour's disposition and object, goldfish have tastes, and new bubbles come only from a finger drawn across the screen",
     load: () => import("./screen/simulation/2"),
   },

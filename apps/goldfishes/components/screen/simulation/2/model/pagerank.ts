@@ -6,6 +6,7 @@ import { iterate, outWeights, transit } from "../web/iteration.ts";
 import {
   addCandidate,
   addPage,
+  renewPage,
   attend,
   candidate,
   concentration,
@@ -94,6 +95,15 @@ export class PageRankWorld implements World<WebParameters> {
 
   add(group?: number, quality = 0) {
     return addPage(this.web, quality, group);
+  }
+
+  /** simulation/2: `entity` starts again as a new one (web/model.ts renewPage); what it was shown at goes back to the rest. */
+  renew(entity: number, group?: number, quality = 0) {
+    if (!renewPage(this.web, entity, quality, group)) return false;
+    const rest = 1 - this.shown[entity]!;
+    this.shown[entity] = 0;
+    if (rest > 0) for (let other = 0; other < this.web.size; other += 1) this.shown[other] = this.shown[other]! / rest;
+    return true;
   }
 
   /**

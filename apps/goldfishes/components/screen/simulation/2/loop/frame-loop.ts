@@ -198,8 +198,16 @@ class RaftLoop implements FrameLoop {
       number = bubbles.begin(objects);
       this.strokeLast[number] = null;
     }
+    const sizeBefore = raft.world.state.size;
     const page = raft.lay(x, y, this.strokeLast[number] ?? null, settings.system.strokeSize, settings.system.strokeQuality);
     if (page !== null) {
+      // At the cap the bubble took a let-go bubble's place (raft.ts takeOver). It is the stroke's object at once, as
+      // a new bubble is: left tracked, it flowed out of whatever stood there, so a stroke read as many objects
+      // (artist, 2026-11-26).
+      if (page < sizeBefore) {
+        this.objectPass.forget(page);
+        this.watching.renew(page);
+      }
       bubbles.lay(page, number);
       this.strokeLast[number] = page;
     }
@@ -230,6 +238,9 @@ class RaftLoop implements FrameLoop {
     if (MEASURE || REPLAY || interval > 250 || document.hidden) return;
     this.paceWait -= interval;
     if (this.paceWait > 0) return;
+    // Nor does a frame drawn while objects are being baked: the bake workers take the frame's cores (measured: its
+    // own work 1.6–2.4 times as long), and a step down then bakes them all again, which is slow again.
+    if (!this.objectPass.idle()) return;
     this.frameTime += (interval - this.frameTime) * 0.05;
     this.slowFor = this.frameTime > SLOW_FRAME ? this.slowFor + interval : 0;
     if (this.slowFor < SLOW_SECONDS * 1_000 || this.sharpness <= 0.3) return;
